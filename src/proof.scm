@@ -64,7 +64,7 @@
 (define (proof-in-impnc-intro-form? proof)
   (eq? 'proof-in-impnc-intro-form (tag proof)))
 
-;; (mk-proof-in-intro-form x1 ... proof) is formed from proof by first 
+;; (mk-proof-in-intro-form x1 ... proof) is formed from proof by first
 ;; abstracting x1, then x2 and so on.  Here x1, x2 ... can be
 ;; assumption or object variables.
 
@@ -251,7 +251,7 @@
 ;; Constructors, accessors and test for implication eliminations:
 
 (define (make-proof-in-imp-elim-form proof1 proof2)
-  (list 'proof-in-imp-elim-form 
+  (list 'proof-in-imp-elim-form
 	(imp-form-to-conclusion (proof-to-formula proof1))
 	proof1
 	proof2))
@@ -275,7 +275,7 @@
       '()))
 
 (define (make-proof-in-impnc-elim-form proof1 proof2)
-  (list 'proof-in-impnc-elim-form 
+  (list 'proof-in-impnc-elim-form
 	(impnc-form-to-conclusion (proof-to-formula proof1))
 	proof1
 	proof2))
@@ -343,7 +343,7 @@
 	   (exl-form? formula)
 	   (exr-form? formula)
 	   (exu-form? formula)
-	   (exdt-form? formula) 
+	   (exdt-form? formula)
 	   (exlt-form? formula)
 	   (exrt-form? formula)
 	   (exut-form? formula))
@@ -545,7 +545,7 @@
 
 ;; We generalize proof-in-elim-form-to-final-op and
 ;; proof-in-elim-form-to-args to treat Ex-Elim axioms as if they
-;; were rules in application notation.  
+;; were rules in application notation.
 
 (define (proof-in-gen-elim-form-to-final-op proof)
   (case (tag proof)
@@ -689,7 +689,7 @@
 	(list 'proof-in-all-elim-form
 	      (if (and (term-in-var-form? term)
 		       (equal? var (term-in-var-form-to-var term)))
-		  kernel	      
+		  kernel
 		  (formula-subst kernel var term))
 	      proof
 	      term))
@@ -733,7 +733,7 @@
 	(list 'proof-in-allnc-elim-form
 	      (if (and (term-in-var-form? term)
 		       (equal? var (term-in-var-form-to-var term)))
-		  kernel	      
+		  kernel
 		  (formula-subst kernel var term))
 	      proof
 	      term))
@@ -1276,7 +1276,7 @@
       (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	     (kernel (proof-in-imp-intro-form-to-kernel proof))
 	     (context (proof-to-context kernel)))
-	(remove-wrt avar=? avar context)))       
+	(remove-wrt avar=? avar context)))
      ((proof-in-imp-elim-form)
       (let ((context1 (proof-to-context (proof-in-imp-elim-form-to-op proof)))
 	    (context2 (proof-to-context
@@ -1286,7 +1286,7 @@
       (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
 	     (kernel (proof-in-impnc-intro-form-to-kernel proof))
 	     (context (proof-to-context kernel)))
-	(remove-wrt avar=? avar context)))       
+	(remove-wrt avar=? avar context)))
      ((proof-in-impnc-elim-form)
       (let ((context1
 	     (proof-to-context (proof-in-impnc-elim-form-to-op proof)))
@@ -1305,7 +1305,7 @@
       (let* ((var (proof-in-all-intro-form-to-var proof))
 	     (kernel (proof-in-all-intro-form-to-kernel proof))
 	     (context (proof-to-context kernel)))
-	(remove var context)))       
+	(remove var context)))
      ((proof-in-all-elim-form)
       (let ((context (proof-to-context (proof-in-all-elim-form-to-op proof)))
 	    (free (term-to-free (proof-in-all-elim-form-to-arg proof))))
@@ -1314,7 +1314,7 @@
       (let* ((var (proof-in-allnc-intro-form-to-var proof))
 	     (kernel (proof-in-allnc-intro-form-to-kernel proof))
 	     (context (proof-to-context kernel)))
-	(remove var context)))       
+	(remove var context)))
      ((proof-in-allnc-elim-form)
       (let ((context (proof-to-context (proof-in-allnc-elim-form-to-op proof)))
 	    (free (term-to-free (proof-in-allnc-elim-form-to-arg proof))))
@@ -1331,7 +1331,7 @@
      (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	    (kernel (proof-in-imp-intro-form-to-kernel proof))
 	    (context (proof-to-context-wrt avar-eq kernel)))
-       (remove-wrt avar-eq avar context)))       
+       (remove-wrt avar-eq avar context)))
     ((proof-in-imp-elim-form)
      (let ((context1 (proof-to-context-wrt
 		      avar-eq (proof-in-imp-elim-form-to-op proof)))
@@ -1342,7 +1342,7 @@
      (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
 	    (kernel (proof-in-impnc-intro-form-to-kernel proof))
 	    (context (proof-to-context-wrt avar-eq kernel)))
-       (remove-wrt avar-eq avar context)))       
+       (remove-wrt avar-eq avar context)))
     ((proof-in-impnc-elim-form)
      (let ((context1 (proof-to-context-wrt
 		      avar-eq (proof-in-impnc-elim-form-to-op proof)))
@@ -1365,7 +1365,7 @@
      (let* ((var (proof-in-all-intro-form-to-var proof))
 	    (kernel (proof-in-all-intro-form-to-kernel proof))
 	    (context (proof-to-context-wrt avar-eq kernel)))
-       (remove var context)))       
+       (remove var context)))
     ((proof-in-all-elim-form)
      (let ((context (proof-to-context-wrt
 		     avar-eq (proof-in-all-elim-form-to-op proof)))
@@ -1375,7 +1375,7 @@
      (let* ((var (proof-in-allnc-intro-form-to-var proof))
 	    (kernel (proof-in-allnc-intro-form-to-kernel proof))
 	    (context (proof-to-context-wrt avar-eq kernel)))
-       (remove var context)))       
+       (remove var context)))
     ((proof-in-allnc-elim-form)
      (let ((context (proof-to-context-wrt
 		     avar-eq (proof-in-allnc-elim-form-to-op proof)))
@@ -1436,7 +1436,7 @@
   (do ((c context (cdr c))
        (i 1 (if (avar-form? (car c)) (+ 1 i) i))
        (line "" line))
-      ((null? c) (if (> (string-length line) 0) 
+      ((null? c) (if (> (string-length line) 0)
 		     (begin (display-comment line) (newline))))
     (if (avar-form? (car c))
 	(let* ((string (string-append (avar-to-name (car c)) "_"
@@ -1447,8 +1447,8 @@
 		(display-comment line)
 		(newline)
 		(set! line "    ")))
-	  (set! line (string-append 
-		      line 
+	  (set! line (string-append
+		      line
 		      (pretty-print-string
 		       (string-length line)
 		       (- PP-WIDTH (string-length COMMENT-STRING))
@@ -1478,7 +1478,7 @@
 	(remove-wrt avar=? avar (proof-with-context-to-context proof))))
 
 (define (make-acproof-in-imp-elim-form proof1 proof2)
-  (list 'proof-in-imp-elim-form 
+  (list 'proof-in-imp-elim-form
 	(imp-form-to-conclusion (proof-to-formula proof1))
 	proof1
 	proof2
@@ -1493,7 +1493,7 @@
 	(remove-wrt avar=? avar (proof-with-context-to-context proof))))
 
 (define (make-acproof-in-impnc-elim-form proof1 proof2)
-  (list 'proof-in-impnc-elim-form 
+  (list 'proof-in-impnc-elim-form
 	(impnc-form-to-conclusion (proof-to-formula proof1))
 	proof1
 	proof2
@@ -1543,7 +1543,7 @@
 	(list 'proof-in-all-elim-form
 	      (if (and (term-in-var-form? term)
 		       (equal? var (term-in-var-form-to-var term)))
-		  kernel	      
+		  kernel
 		  (formula-subst kernel var term))
 	      proof
 	      term
@@ -1569,7 +1569,7 @@
 	(list 'proof-in-allnc-elim-form
 	      (if (and (term-in-var-form? term)
 		       (equal? var (term-in-var-form-to-var term)))
-		  kernel	      
+		  kernel
 		  (formula-subst kernel var term))
 	      proof
 	      term
@@ -1658,7 +1658,7 @@
 ;; In proof-to-cvars-aux we can assume that the proved formula has
 ;; computational content.
 
-(define (proof-to-cvars-aux proof) 
+(define (proof-to-cvars-aux proof)
   (case (tag proof)
     ((proof-in-avar-form) (list (proof-in-avar-form-to-avar proof)))
     ((proof-in-aconst-form) '())
@@ -1839,7 +1839,7 @@
      (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	    (kernel (proof-in-imp-intro-form-to-kernel proof))
 	    (free-avars (proof-to-free-avars kernel)))
-       (remove-wrt avar=? avar free-avars)))       
+       (remove-wrt avar=? avar free-avars)))
     ((proof-in-imp-elim-form)
      (let ((free-avars1
 	    (proof-to-free-avars (proof-in-imp-elim-form-to-op proof)))
@@ -1850,7 +1850,7 @@
      (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
 	    (kernel (proof-in-impnc-intro-form-to-kernel proof))
 	    (free-avars (proof-to-free-avars kernel)))
-       (remove-wrt avar=? avar free-avars)))       
+       (remove-wrt avar=? avar free-avars)))
     ((proof-in-impnc-elim-form)
      (let ((free-avars1
 	    (proof-to-free-avars (proof-in-impnc-elim-form-to-op proof)))
@@ -1883,7 +1883,7 @@
      (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	    (kernel (proof-in-imp-intro-form-to-kernel proof))
 	    (bound (proof-to-bound-avars kernel)))
-       (adjoin-wrt avar=? avar bound)))       
+       (adjoin-wrt avar=? avar bound)))
     ((proof-in-imp-elim-form)
      (let ((bound1 (proof-to-bound-avars
 		    (proof-in-imp-elim-form-to-op proof)))
@@ -1894,7 +1894,7 @@
      (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
 	    (kernel (proof-in-impnc-intro-form-to-kernel proof))
 	    (bound (proof-to-bound-avars kernel)))
-       (adjoin-wrt avar=? avar bound)))       
+       (adjoin-wrt avar=? avar bound)))
     ((proof-in-impnc-elim-form)
      (let ((bound1 (proof-to-bound-avars
 		    (proof-in-impnc-elim-form-to-op proof)))
@@ -1929,7 +1929,7 @@
 	    (kernel (proof-in-imp-intro-form-to-kernel proof))
 	    (free-and-bound-avars
 	     (proof-to-free-and-bound-avars-wrt avar-eq kernel)))
-       (union-wrt avar-eq (list avar) free-and-bound-avars)))       
+       (union-wrt avar-eq (list avar) free-and-bound-avars)))
     ((proof-in-imp-elim-form)
      (let ((free-and-bound-avars1
 	    (proof-to-free-and-bound-avars-wrt
@@ -1943,7 +1943,7 @@
 	    (kernel (proof-in-impnc-intro-form-to-kernel proof))
 	    (free-and-bound-avars
 	     (proof-to-free-and-bound-avars-wrt avar-eq kernel)))
-       (union-wrt avar-eq (list avar) free-and-bound-avars)))       
+       (union-wrt avar-eq (list avar) free-and-bound-avars)))
     ((proof-in-impnc-elim-form)
      (let ((free-and-bound-avars1
 	    (proof-to-free-and-bound-avars-wrt
@@ -2039,7 +2039,7 @@
     (else (myerror "proof-to-aconsts-without-rules-aux" "proof tag expected"
 		   (tag proof)))))
 
-(define (proof-to-aconsts-without-rules proof)  
+(define (proof-to-aconsts-without-rules proof)
   (remove-duplicates-wrt aconst=? (proof-to-aconsts-without-rules-aux proof)))
 
 (define (proof-to-aconsts-with-repetitions proof)
@@ -2192,7 +2192,7 @@
        (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	      (kernel (proof-in-imp-intro-form-to-kernel proof))
 	      (free-cr-avars (proof-to-free-cr-avars kernel id-deco?)))
-	 (remove-wrt avar=? avar free-cr-avars)))       
+	 (remove-wrt avar=? avar free-cr-avars)))
       ((proof-in-imp-elim-form)
        (if (formula-of-nulltype-wrt-id-deco? (proof-to-formula proof))
 	   '()
@@ -2864,7 +2864,7 @@
 		(ppat? (proof-in-allnc-intro-form-to-kernel x)))
 	       ((proof-in-allnc-elim-form)
 		(ppat? (proof-in-allnc-elim-form-to-op x)))
-	       (else (myerror "ppat?" "unexpected proof tag" (tag x))))))))    
+	       (else (myerror "ppat?" "unexpected proof tag" (tag x))))))))
 
 ;; In aconst-and-decfla-to-proof a proof is returned (not an aconst)
 ;; because of possible all's instead of allnc's binding free variables
@@ -2880,7 +2880,7 @@
 			    aconst decfla id-deco?))
 	 (extended-aconst-without-repro-data
 	  (make-aconst name kind uninst-fla extended-tpsubst))
-	 (extended-aconst    
+	 (extended-aconst
 	  (apply make-aconst
 		 name kind uninst-fla extended-tpsubst
 		 extended-aconst-without-repro-data))
@@ -3548,9 +3548,9 @@
 		(avar (formula-to-new-avar premise))
 		(conclusion (imp-form-to-conclusion formula)))
 	   (make-proof-in-imp-intro-form
-	    avar	      
+	    avar
 	    (npterm-and-var-genavar-alist-and-formula-to-proof
-	     npterm-kernel 
+	     npterm-kernel
 	     (cons (list npterm-var avar) var-genavar-alist)
 	     (union (formula-to-free premise) crit)
 	     conclusion))))
@@ -3559,9 +3559,9 @@
 		(avar (formula-to-new-avar premise))
 		(conclusion (impnc-form-to-conclusion formula)))
 	   (make-proof-in-impnc-intro-form
-	    avar	      
+	    avar
 	    (npterm-and-var-genavar-alist-and-formula-to-proof
-	     npterm-kernel 
+	     npterm-kernel
 	     (cons (list npterm-var avar) var-genavar-alist)
 	     (union (formula-to-free premise) crit)
 	     conclusion))))
@@ -3620,7 +3620,7 @@
 		 (npterm-and-var-genavar-alist-and-formula-to-proof
 		  npterm-right var-genavar-alist crit right-formula))))
 	     (else (myerror
-		    "npterm-and-var-genavar-alist-and-formula-to-proof" 
+		    "npterm-and-var-genavar-alist-and-formula-to-proof"
 		    "and-formula expected"
 		    formula)))))
     (else
@@ -3672,7 +3672,7 @@
 		  (repro-formula
 		   (if (= 1 (length transformed-repro-formulas))
 		       (car transformed-repro-formulas)
-		       (myerror 
+		       (myerror
 			"elim-npterm-and-var-genavar-alist-to-proof"
 			"unexpected repro formulas" repro-data)))
 		  (permuted-repro-formulas
@@ -3697,7 +3697,7 @@
 		  (repro-formula
 		   (if (= 1 (length transformed-repro-formulas))
 		       (car transformed-repro-formulas)
-		       (myerror 
+		       (myerror
 			"elim-npterm-and-var-genavar-alist-to-proof"
 			"unexpected repro formulas" repro-data)))
 		  (permuted-repro-formulas
@@ -3751,7 +3751,7 @@
 	   arg var-genavar-alist crit (impnc-form-to-premise formula))))
 	((all-form? formula) (make-proof-in-all-elim-form prev1 arg))
 	((allnc-form? formula) (make-proof-in-allnc-elim-form prev1 arg))
-	(else (myerror "elim-npterm-and-var-genavar-alist-to-proof" 
+	(else (myerror "elim-npterm-and-var-genavar-alist-to-proof"
 		       "imp- or all-formula expected"
 		       formula)))))
     ((term-in-lcomp-form)
@@ -3762,7 +3762,7 @@
        (cond
 	((and-form? formula)
 	 (make-proof-in-and-elim-left-form prev))
-	(else (myerror "elim-npterm-and-var-genavar-alist-to-proof" 
+	(else (myerror "elim-npterm-and-var-genavar-alist-to-proof"
 		       "and-formula expected"
 		       formula)))))
     ((term-in-rcomp-form)
@@ -3773,7 +3773,7 @@
        (cond
 	((and-form? formula)
 	 (make-proof-in-and-elim-right-form prev))
-	(else (myerror "elim-npterm-and-var-genavar-alist-to-proof" 
+	(else (myerror "elim-npterm-and-var-genavar-alist-to-proof"
 		       "and-formula expected"
 		       formula)))))
     (else
@@ -4102,7 +4102,7 @@
 	 (tpsubst (aconst-to-tpsubst aconst))
 	 (info (assoc pvar tpsubst))
 	 (tpsubst-without-pvar
-	  (if info	
+	  (if info
 	      (list-transform-positive tpsubst
 		(lambda (x) (not (equal? (car x) pvar))))
 	      tpsubst))
@@ -4529,7 +4529,7 @@
 	   (op2 (proof-in-elim-form-to-final-op proof)) ;Ex-Elim or Exnc-Elim
 	   (op1 (proof-in-elim-form-to-final-op main-premise))
 	   (aconst1
-	    (begin 
+	    (begin
 	      (display (aconst-to-name
 			(proof-in-aconst-form-to-aconst op1)))
 	      (display "/")
@@ -4552,7 +4552,7 @@
 	   (tpsubst (aconst-to-tpsubst aconst1))
 	   (info (assoc pvar tpsubst))
 	   (tpsubst-without-pvar
-	    (if info	
+	    (if info
 		(list-transform-positive tpsubst
 		  (lambda (x) (not (equal? (car x) pvar))))
 		tpsubst))
@@ -5098,7 +5098,7 @@
 
 (define (proof-and-context-to-proof-without-predecided-avars proof context)
   (case (tag proof)
-    ((proof-in-avar-form proof-in-aconst-form) proof)     
+    ((proof-in-avar-form proof-in-aconst-form) proof)
     ((proof-in-imp-intro-form)
      (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	    (kernel (proof-in-imp-intro-form-to-kernel proof))
@@ -5370,7 +5370,7 @@
 	  (formula (proof-to-formula prev))
 	  (kernel (atom-form-to-kernel formula))
 	  (args (term-in-app-form-to-args kernel))
-	  (lhs (car args))		   
+	  (lhs (car args))
 	  (minuend (cadr args))
 	  (new-minuend (car (term-in-app-form-to-args minuend))))
      (mk-proof-in-elim-form
@@ -5738,7 +5738,7 @@
 (define (proof-to-parts-of-level-one proof)
   (let* ((final-kernels (proof-in-intro-form-to-final-kernels proof))
 	 (lists (map proof-in-elim-form-to-final-op-and-args final-kernels)))
-    (apply append lists)))	 
+    (apply append lists)))
 
 (define (proof-to-parts proof . opt-level)
   (if
@@ -5788,7 +5788,7 @@
 	(proof-in-aconst-form? arg-op)
 	(string=?  (aconst-to-name (proof-in-aconst-form-to-aconst arg-op))
 		   "Intro"))))))
-	    
+
 (define (proof-to-one-step-idpredconst-elim-intro-reduct proof)
   (let* ((op (proof-in-elim-form-to-final-op proof))
 	 (args (proof-in-elim-form-to-args proof))
@@ -6052,7 +6052,7 @@
 				   (map proof-to-formula ih-sub-proofs))))
 	       (cterm2-flas ;list of R(Qs)ys
 		(map (lambda (proof)
-		       (imp-form-to-conclusion 
+		       (imp-form-to-conclusion
 			(all-allnc-form-to-final-kernel
 			 (proof-to-formula proof))))
 		     ih-sub-proofs))
@@ -6162,7 +6162,7 @@
 				      (imp-impnc-all-allnc-form-to-final-conclusion
 				      var-or-prem-or-nc-indicator))
 				     simidpc-pvar))
-				   (list				    
+				   (list
 				    (formula-to-new-avar
 				     (formula-substitute
 				      var-or-prem-or-nc-indicator
@@ -6201,7 +6201,7 @@
 			       (lambda (x)
 				 (or (var-form? x)
 				     (and (pair? x) (avar-form? (car x)))))))
-			    (varterms-and-premproofs			
+			    (varterms-and-premproofs
 			     (map
 			      (lambda (var-or-prem var-or-prem-avar-list)
 				(cond
@@ -6570,11 +6570,11 @@
       (rename-bound-avars-aux (proof-in-and-intro-form-to-right proof) alist)))
     ((proof-in-and-elim-left-form)
      (make-proof-in-and-elim-left-form
-      (rename-bound-avars-aux 
+      (rename-bound-avars-aux
        (proof-in-and-elim-left-form-to-kernel proof) alist)))
     ((proof-in-and-elim-right-form)
      (make-proof-in-and-elim-right-form
-      (rename-bound-avars-aux 
+      (rename-bound-avars-aux
        (proof-in-and-elim-right-form-to-kernel proof) alist)))
     ((proof-in-all-intro-form)
      (let ((var (proof-in-all-intro-form-to-var proof))
@@ -6725,7 +6725,7 @@
 		      elim-args)
 		 (map make-term-in-var-form (list-tail new-free k))
 		 (map (lambda (arg) (term-substitute arg tosubst))
-		      rest-args))))	     
+		      rest-args))))
 					;else eta expand and recursively call
 	     (let* ((rest-free (list-tail free (length args)))
 		    (eta-expanded-proof
@@ -7071,7 +7071,7 @@
              ((null? opt-name-test)
 	      (let* ((inst-proof (theorem-aconst-to-inst-proof aconst))
 		     (free (formula-to-free (proof-to-formula inst-proof))))
-		(expand-theorems 
+		(expand-theorems
 		 (apply mk-proof-in-nc-intro-form
 			(append free (list inst-proof))))))
 	     (((car opt-name-test) name)
@@ -7478,7 +7478,7 @@
 (define (display-proof-expr . opt-proof)
   (if (and (null? opt-proof)
 	   (null? PPROOF-STATE))
-      (myerror 
+      (myerror
        "display-proof-expr"
        "proof argument or proof under construction expected"))
   (let* ((proof (if (null? opt-proof)
@@ -7493,7 +7493,7 @@
 (define (display-normalized-proof-expr . opt-proof)
   (if (and (null? opt-proof)
 	   (null? PPROOF-STATE))
-      (myerror 
+      (myerror
        "display-normalized-proof-expr"
        " proof argument or proof under construction expected"))
   (let ((proof (if (null? opt-proof)
@@ -8196,7 +8196,7 @@
 ;; (proof-of-stab-at formula) generates a proof of ((A -> F) -> F) -> A.
 ;; For F, T one takes the obvious proof, and for other atomic formulas
 ;; the proof using cases on booleans.  For all other prime, ex or exnc
-;; formulas one takes an instance of the global assumption Stab: 
+;; formulas one takes an instance of the global assumption Stab:
 ;; ((Pvar -> F) -> F) -> Pvar.
 
 (define (proof-of-stab-at formula) ;formula must be unfolded
@@ -8209,7 +8209,7 @@
 ;;              u1:(F -> F) -> F      F -> F
 ;;              ----------------------------
 ;;                              F
-       
+
        (let ((u1 (formula-to-new-avar (make-negation (make-negation falsity))))
 	     (u2 (formula-to-new-avar falsity)))
 	 (make-proof-in-imp-intro-form
@@ -8226,7 +8226,7 @@
 	 (if (not (synt-total? kernel))
 	     (myerror "proof-of-stab-at" "total kernel expected" kernel))
 	 (mk-proof-in-elim-form
-	  (make-proof-in-aconst-form 
+	  (make-proof-in-aconst-form
 	   (all-formula-to-cases-aconst
 	    (pf "all boole(((boole -> F) -> F) -> boole)")))
 	  kernel
@@ -8438,7 +8438,7 @@
 ;;              u1:(bot -> bot) -> bot      bot -> bot
 ;;              --------------------------------------
 ;;                                     bot
-       
+
        (let ((u1 (formula-to-new-avar
 		  (make-negation-log (make-negation-log falsity-log))))
 	     (u2 (formula-to-new-avar falsity-log)))
@@ -8664,7 +8664,7 @@
 	 (if (not (synt-total? kernel))
 	     (myerror "proof-of-efq-at" "total kernel expected" kernel))
 	 (mk-proof-in-elim-form
-	  (make-proof-in-aconst-form 
+	  (make-proof-in-aconst-form
 	   (all-formula-to-cases-aconst
 	    (pf "all boole(F -> boole)")))
 	  kernel
@@ -9219,7 +9219,7 @@
 	      (pvar? (predicate-form-to-predicate formula)))
 	 (let* ((subst-formula-gg (formula-substitute formula topsubst-gg))
 		(u (formula-to-new-avar subst-formula-gg)))
-	   (make-proof-in-imp-intro-form 
+	   (make-proof-in-imp-intro-form
 	    u (make-proof-in-avar-form u)))
 	 (let* ((tosubst (list-transform-positive topsubst
 			   (lambda (x) (or (tvar-form? (car x))
@@ -9449,7 +9449,7 @@
 	      (pvar? (predicate-form-to-predicate formula)))
 	 (let* ((gg-subst-formula (formula-substitute formula topsubst-gg))
 		(u (formula-to-new-avar gg-subst-formula)))
-	   (make-proof-in-imp-intro-form 
+	   (make-proof-in-imp-intro-form
 	    u (make-proof-in-avar-form u)))
 	 (myerror "wiping-formula-to-proof-aux" "pvar or falsity-log expected"
 		  formula)))
@@ -9823,20 +9823,20 @@
        (make-proof-in-impnc-elim-form prev-op prev-arg)))
     ((proof-in-and-intro-form)
      (make-proof-in-and-intro-form
-      (proof-to-goedel-gentzen-translation-aux 
+      (proof-to-goedel-gentzen-translation-aux
        (proof-in-and-intro-form-to-left proof)
        avar-to-goedel-gentzen-avar)
-      (proof-to-goedel-gentzen-translation-aux 
+      (proof-to-goedel-gentzen-translation-aux
        (proof-in-and-intro-form-to-right proof)
        avar-to-goedel-gentzen-avar)))
     ((proof-in-and-elim-left-form)
      (make-proof-in-and-elim-left-form
-      (proof-to-goedel-gentzen-translation-aux 
+      (proof-to-goedel-gentzen-translation-aux
        (proof-in-and-elim-left-form-to-kernel proof)
        avar-to-goedel-gentzen-avar)))
     ((proof-in-and-elim-right-form)
      (make-proof-in-and-elim-right-form
-      (proof-to-goedel-gentzen-translation-aux 
+      (proof-to-goedel-gentzen-translation-aux
        (proof-in-and-elim-right-form-to-kernel proof)
        avar-to-goedel-gentzen-avar)))
     ((proof-in-all-intro-form)
@@ -9878,7 +9878,7 @@
 (define (formula-to-formula-without-triple-negations-log formula)
   (if ;formula is triple negation
    (and (imp-form? formula)
-	(formula=? falsity-log (imp-form-to-conclusion formula)) 
+	(formula=? falsity-log (imp-form-to-conclusion formula))
 	(imp-form? (imp-form-to-premise formula))
 	(formula=? falsity-log (imp-form-to-conclusion
 				(imp-form-to-premise formula)))
@@ -9938,7 +9938,7 @@
 	     (concl (imp-form-to-conclusion formula))
 	     (u (formula-to-new-avar formula)))
 	 (if ;formula is a triple negation
-	  (and (formula=? falsity-log concl) 
+	  (and (formula=? falsity-log concl)
 	       (imp-form? prem)
 	       (formula=? falsity-log (imp-form-to-conclusion prem))
 	       (imp-form? (imp-form-to-premise prem))
@@ -9973,7 +9973,7 @@
 	     (concl (impnc-form-to-conclusion formula))
 	     (u (formula-to-new-avar formula)))
 	 (if ;formula is a triple negation
-	  (and (formula=? falsity-log concl) 
+	  (and (formula=? falsity-log concl)
 	       (imp-form? prem)
 	       (formula=? falsity-log (imp-form-to-conclusion prem))
 	       (imp-form? (imp-form-to-premise prem))
@@ -10043,7 +10043,7 @@
 	     (concl (imp-form-to-conclusion formula))
 	     (u (formula-to-new-avar reduced-formula)))
 	 (if ;formula is a triple negation
-	  (and (formula=? falsity-log concl) 
+	  (and (formula=? falsity-log concl)
 	       (imp-form? prem)
 	       (formula=? falsity-log (imp-form-to-conclusion prem))
 	       (imp-form? (imp-form-to-premise prem))
@@ -10071,7 +10071,7 @@
 	     (concl (impnc-form-to-conclusion formula))
 	     (u (formula-to-new-avar reduced-formula)))
 	 (if ;formula is a triple negation
-	  (and (formula=? falsity-log concl) 
+	  (and (formula=? falsity-log concl)
 	       (imp-form? prem)
 	       (formula=? falsity-log (imp-form-to-conclusion prem))
 	       (imp-form? (imp-form-to-premise prem))
@@ -10148,7 +10148,7 @@
 ;; ========================
 
 ;; In case of ex-formulas ex xs1 A1 ... ex xsn An and conclusion B we
-;; recursively construct a proof of 
+;; recursively construct a proof of
 
 ;; ex xs1 A1 -> ... -> ex xsn An -> all xs1,...,xsn(A1 -> ... -> An -> B) -> B.
 
@@ -10168,7 +10168,7 @@
 		    (or (pair? (apply intersection varss))
 			(pair? (intersection (apply append varss)
 					     (formula-to-free concl))))))
-	 (new-varss 
+	 (new-varss
 	  (if test
 	      (map (lambda (vars) (map var-to-new-var vars)) varss)
 	      varss))
@@ -10228,7 +10228,7 @@
 					  mk-proof-in-elim-form
 					  (make-proof-in-avar-form v)
 					  (append
-					   (map make-term-in-var-form 
+					   (map make-term-in-var-form
 						flattened-varss)
 					   (list (make-proof-in-avar-form
 						  u1)))))))))))))))
@@ -10513,7 +10513,7 @@
 	      u1 ;A0
 	      (make-proof-in-imp-elim-form
 	       (make-proof-in-imp-elim-form
-		(ex-formulas-and-concl-to-ex-elim-proof 
+		(ex-formulas-and-concl-to-ex-elim-proof
 		 ex-red-right ex-red-formula)
 		(make-proof-in-imp-elim-form
 		 proof-of-right-to-ex-red-right ;B -> B*
@@ -11813,7 +11813,7 @@
 	      proof
 	      (myerror "fold-to-unfold" "not implemented for proofs of" fla)))
 	 (else (myerror "fold-to-unfold" "predicate expected" pred)))))
-     ((atom-form? fla) proof)      
+     ((atom-form? fla) proof)
      (else (myerror "fold-to-unfold" "not implemented for proofs of" fla)))))
 
 ;; unfold-to-fold expects a proof M of the result A' of unfolding a
@@ -11918,7 +11918,7 @@
 	      proof
 	      (myerror "unfold-to-fold" "not implemented for proofs of" fla)))
 	 (else (myerror "unfold-to-fold" "predicate expected" pred)))))
-     ((atom-form? fla) proof)      
+     ((atom-form? fla) proof)
      (else (myerror "unfold-to-fold" "not implemented for proofs of" fla)))))
 
 ;; fold-imp-unfold-proof expects a folded formula A and returns a proof
