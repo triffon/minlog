@@ -1,0 +1,47 @@
+# $Id: Makefile.template 2156 2008-01-25 13:25:12Z schimans $
+# The generic part of all the test Makefiles, based on ideas of
+# Robert Staerk
+# but calling structure heavily modified
+
+
+# The init file for Minlog:
+MINLOGSRC = $(TOP)/init.scm
+
+# How should Minlog be called?
+SCHEME ?= petite
+MINLOG 	= $(SCHEME) -- $(MINLOGSRC)
+
+
+# theoretically it would also depend on %.save, but make allows only
+# one % in the dependency file; so I assume that %.scm is more important
+.%.test-passed: %.scm $(TOP)/init.scm
+	cat $*.scm | $(MINLOG) | sed "1d;2d" > $*.out
+	cat $*.out | sed "s/[0-9]//g" > $*.out.nodigits
+	cat $*.save | sed "s/[0-9]//g" > $*.save.nodigits
+	if diff -u $*.out.nodigits $*.save.nodigits > $*.diff; then \
+	rm $*.out.nodigits $*.save.nodigits $*.out $*.diff; \
+	touch .$*.test-passed; echo '$* is OK'; else \
+		if [ -n "$(FIXTEST)" ]; then \
+			cat $*.diff; \
+			echo -n "Accept new output for `pwd`/$*.scm? [n|y] "; \
+			read input; \
+			if [ "$$input" = "y" -o "$$input" = "yes" ]; then \
+				cp $*.out $*.save; \
+			fi; \
+		else \
+			cat $(TOP)/examples/warning.txt; echo "$*"; echo " ";pwd; echo " "; \
+			cat $*.diff; \
+			false;\
+		fi; \
+	fi
+# If failing we do not touch the .test-passed file to make sure a new call to
+# make test processes this target again. Then we signal that we haven't
+# been successful by false.
+
+$(TOP)/init.scm:
+	(cd $(TOP); make init.scm)
+
+genericclean:
+	rm -f *~ core *.diff *.out .TEST *.nodigits .*.test-passed
+
+.always:

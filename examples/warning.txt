@@ -1,0 +1,22 @@
+
+
+
+
+
+
+
+==============================================================================
+        WARNING: detected a difference in the output
+------------------------------------------------------------------------------
+The offending filename is printed below (followed by the current directory)
+There might be two reasons for this:
+
+ 1.) Minlog has a new feature and therefore gives new answers. In this case
+     change the corresponding .save file.
+ 2.) A new bug was introduced to the minlog system. Fix it!
+
+Read the differences carefully before deciding whether 1 or 2 is the case.
+You might also whish to read the .out file containing all of minlog's output.
+==============================================================================
+
+
