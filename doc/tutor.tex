@@ -187,7 +187,7 @@ and try to derive the consequent from it.  That is, we assume $A \ob B
 \ob C$ and want to derive:
 \begin{equation*}
   (A \ob B) \ob A \ob C;
-\end{equation*}  
+\end{equation*}
 hence we set the latter as our new goal.  Then we observe that the
 formula $(A \ob B) \ob A \ob C$ is an implication as well, and thus
 can be treated in the same way; so we now assume both $A \ob B \ob C$
@@ -726,7 +726,7 @@ extract a witness, say $n_0$, by applying an existential elimination.
 ?_3: all n(P n -> ex n0 Q n0) from
   1:all n(P n -> Q n)
   2:ex n P n
-> ok, we now have the new goal 
+> ok, we now have the new goal
 ?_4: ex n Q n from
   1:all n(P n -> Q n)
   2:ex n P n
@@ -1208,7 +1208,7 @@ continuous function.  We suggest to solve the problem as follows.
 
 (set-goal "all f(
  all x,V(f x in V ->
-  excl U(x in U & all y(y in U -> f y in V))) -> 
+  excl U(x in U & all y(y in U -> f y in V))) ->
  all x,W(f(f x)in W ->
   excl U(x in U & all y(y in U -> f(f y)in W))))")
 (search)
@@ -1427,7 +1427,7 @@ and write:
 (ng)
 (use "IH")
 
-ok, we now have the new goal 
+ok, we now have the new goal
 ?_5: Double(Succ n)=Succ n+Succ n from
   n924  n  IH:Double n=n+n
 > ok, the normalized goal is
@@ -1656,13 +1656,13 @@ Then we carry on by
 \end{verbatim}
 
 \subsubsection{Exercise}
-Prove that the program constant \verb|map|, defined in \texttt{list.scm} 
-by the computation rules 
-\begin{verbatim} 
+Prove that the program constant \verb|map|, defined in \texttt{list.scm}
+by the computation rules
+\begin{verbatim}
 (add-computation-rules
  "phi map(Nil alpha1)" "(Nil alpha2)"
  "phi map y::ys" "phi y::phi map ys")
-\end{verbatim} 
+\end{verbatim}
 commutes with \texttt{Rev}
 
 \begin{verbatim}
@@ -1679,7 +1679,7 @@ that of binary trees.  First of all we introduce a new algebra, called
 \inquotes{ltree} and \inquotes{rtree} (for left and right tree).
 \begin{verbatim}
 (add-algs "bintree"
-          '("bintree" "Null") 
+          '("bintree" "Null")
           '("bintree=>nat=>bintree=>bintree" "Con"))
 (av "ltree" "rtree" (py "bintree"))
 \end{verbatim}
@@ -1698,7 +1698,7 @@ consisting of the labels in the tree, starting with the root label.
 To see how this works, one can for example type:
 \begin{verbatim}
 (pp (nt (pt "Flatten(Con(Con Null 4 Null)
-                        1 
+                        1
                         (Con Null 5(Con Null 7 Null)))")))
 \end{verbatim}
 to obtain \texttt{1::4::5::7:} as the list of labels.
@@ -1710,7 +1710,7 @@ In \mi\ we can also introduce inductively generated predicates with
 the command \texttt{add-ids}.  An example defining the even numbers
 inductively is as follows:
 \begin{verbatim}
-(add-ids 
+(add-ids
   (list (list "EvenI" (make-arity (py "nat")) "algEvenI"))
   '("EvenI 0" "InitEvenI")
   '("allnc n(EvenI n -> EvenI(n+2))" "GenEvenI"))
@@ -1754,7 +1754,7 @@ apply the first closure axiom for EvenI, and by calling \texttt{intro
 \end{verbatim}
 
 To conclude this section, we present a proof using induction on the
-predicate \texttt{EvenI}.  
+predicate \texttt{EvenI}.
 \begin{verbatim}
 (set-goal "allnc n (EvenI n -> ex m m+m=n)")
 (assume "n")
@@ -1826,21 +1826,21 @@ totality immediately after defining a program constant.
 
 For example, the program constant \texttt{Double} clearly is total.
 To let \mi\ know this fact we have to prove a lemma.
-\begin{verbatim} 
+\begin{verbatim}
 ;; DoubleTotal
 (set-goal (rename-variables
             (term-to-totality-formula (pt "Double"))))
 \end{verbatim}
 The goal then is, as expected,
-\begin{verbatim} 
+\begin{verbatim}
 ?_1: allnc n^(TotalNat n^ -> TotalNat(Double n^))
 \end{verbatim}
 Now we carry on by assuming the variable and the hypothesis
-\begin{verbatim} 
+\begin{verbatim}
 (assume "n^" "Tn")
 \end{verbatim}
 At this point we use the elimination axiom for \texttt{TotalNat}
-\begin{verbatim} 
+\begin{verbatim}
 (elim "Tn")
 (use "TotalNatZero")
 (assume "n^1" "Tn1" "IH")
@@ -2038,7 +2038,7 @@ Here, the extracted program essentially corresponds to the identity
 function.  For comparison we recommend to extract a program using the
 earlier defined program constants \verb|Even/Odd|.
 \begin{verbatim}
-(set-goal "all n ex m((Even n -> 2*m = n) & 
+(set-goal "all n ex m((Even n -> 2*m = n) &
                       (Odd n -> 2*m+1=n))")
 \end{verbatim}
 
@@ -2425,7 +2425,7 @@ succeeds in finding appropriate instances for the quantifiers in the
 goal, then these instances will be automatically inserted.  However,
 one needs to explicitly provide terms for those variables that cannot
 be automatically instantiated by pattern
-unification. 
+unification.
 
 \underline{Existential Quantifier}
 
@@ -2483,13 +2483,13 @@ Here \textsl{x} and \textsl{x-list} are as in \texttt{use-with}.
 expects a string as its last argument, to name
 the newly introduced instantiated hypothesis.
 
-\texttt{(cut \textsl{A})}\index{cut@\texttt{cut}}\\ 
+\texttt{(cut \textsl{A})}\index{cut@\texttt{cut}}\\
 replaces the goal $B$ by the two new goals $A$ and $A \to B$, with $A
 \to B$ to be proved first.  Note that the same effect can also be
 produced by means of the \texttt{use} command.
 
-\texttt{(assert \textsl{A})}\index{assert@\texttt{assert}}\\ 
-replaces the goal $B$ by the two new goals $A$ and $A \to B$, 
+\texttt{(assert \textsl{A})}\index{assert@\texttt{assert}}\\
+replaces the goal $B$ by the two new goals $A$ and $A \to B$,
 with $A$ to be proved first.
 
 \texttt{(ind)}\index{ind@\texttt{ind}}\\
@@ -2616,7 +2616,7 @@ and \textsl{m1} $\dots$ indicate the multiplicities of the specific
 To exclude a hypothesis one can list it with multiplicity $0$.
 
 \texttt{(auto \textsl{m} \textsl{(name1 m1)} \dots)}%
-\index{auto@\texttt{auto}}\\ 
+\index{auto@\texttt{auto}}\\
 It can be convenient to automate (the easy cases of an) interactive
 proof development by iterating \texttt{search} as long as it is
 successful in finding a proof.  Then the first goal where it failed is

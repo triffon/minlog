@@ -1,5 +1,5 @@
 %% $Id: ref.tex 2694 2014-01-24 09:22:30Z schwicht $
-%% was: ea.tex,v 1.68 2001/08/13 12:55:02 schwicht Exp 
+%% was: ea.tex,v 1.68 2001/08/13 12:55:02 schwicht Exp
 \documentclass[11pt,a4paper]{amsart}
 \RequirePackage[latin1]{inputenc}
 \RequirePackage{bussproofs}
@@ -165,7 +165,7 @@
 \newcommand{\HA}{\mathrm{HA}} %Heyting Arithmetic
 \newcommand{\ID}{\mathrm{ID}} %Arithmetic with inductively defined predicates
 \newcommand{\IDelta}{\mathrm{I}\Delta}
-\newcommand{\Ilev}{\mathbf{Z}} 
+\newcommand{\Ilev}{\mathbf{Z}}
 \newcommand{\ISigma}{\mathrm{I}\Sigma}
 \newcommand{\LRA}{\mathrm{LA({;})}} %Linear two-sorted arithmetic
 \newcommand{\LRT}{\mathrm{LT({;})}} %Linear two-sorted Goedel T
@@ -352,7 +352,7 @@
 \newcommand{\LinOrd}{\mathrm{LinOrd}}
 \newcommand{\listappend}{\mathbin{\ast}}
 \newcommand{\listrev}{\mathrm{Rev}}
-\newcommand{\lnf}[1]{\mathrm{nf}(#1)} 
+\newcommand{\lnf}[1]{\mathrm{nf}(#1)}
 \newcommand{\Map}{\C{M}}
 \newcommand{\mr}{\mathrel{\mathbf{r}}}
 \newcommand{\mrind}{\textbf{r}}
@@ -379,7 +379,7 @@
 \newcommand{\redplus}{\rightarrow^+}
 \newcommand{\redstar}{\rightarrow^*}
 \newcommand{\reflect}{{\uparrow}}
-\newcommand{\reify}{{\downarrow}} 
+\newcommand{\reify}{{\downarrow}}
 \newcommand{\Rev}{R}
 \newcommand{\rf}[3]{\mathrm{rf}(#1;#2;#3)}
 \newcommand{\RTotal}{\mathrm{RT}}
@@ -730,10 +730,10 @@ such objects only.  For example, $\texttt{n}, \texttt{n0},
 $\verb#n^#, \verb#n^0#, \verb#n^1#, \verb#n^2#, \dots$ are general
 variables.  This amounts to an abbreviation of
 \begin{alignat*}{2}
-  &\forall_{\hat{x}}(\GTotal_{\rho} \hat{x} \to A) &\quad\hbox{by}\quad& 
+  &\forall_{\hat{x}}(\GTotal_{\rho} \hat{x} \to A) &\quad\hbox{by}\quad&
   \forall_x A,
   \\
-  &\exists_{\hat{x}}(\GTotal_{\rho} \hat{x} \land A) &\quad\hbox{by}\quad& 
+  &\exists_{\hat{x}}(\GTotal_{\rho} \hat{x} \land A) &\quad\hbox{by}\quad&
   \exists_x A.
 \end{alignat*}
 
@@ -903,46 +903,46 @@ respect to}) one can provide special notions of equality.  To construct
 substitutions we have
 \begin{alignat*}{2}
 &\texttt{(make-substitution \textsl{args} \textsl{vals})},%
-\index{make-substitution@\texttt{make-substitution}} 
+\index{make-substitution@\texttt{make-substitution}}
 \\
-&\texttt{(make-substitution-wrt \textsl{arg-val-equal?}\ \textsl{args} 
+&\texttt{(make-substitution-wrt \textsl{arg-val-equal?}\ \textsl{args}
 \textsl{vals})},%
-\index{make-substitution-wrt@\texttt{make-substitution-wrt}} 
+\index{make-substitution-wrt@\texttt{make-substitution-wrt}}
 \\
 &\texttt{(make-subst \textsl{arg} \textsl{val})},%
-\index{make-subst@\texttt{make-subst}} 
+\index{make-subst@\texttt{make-subst}}
 \\
 &\texttt{(make-subst-wrt \textsl{arg-val-equal?}\ \textsl{arg} \textsl{val})},%
-\index{make-subst-wrt@\texttt{make-subst-wrt}} 
+\index{make-subst-wrt@\texttt{make-subst-wrt}}
 \\
-&\texttt{empty-subst}.\index{empty-subst@\texttt{empty-subst}} 
+&\texttt{empty-subst}.\index{empty-subst@\texttt{empty-subst}}
 \end{alignat*}
 Accessing a substitution is done via the usual access operations
 for association list: \texttt{assoc} and \texttt{assoc-wrt}.
 We also provide
 \begin{alignat*}{2}
   &\texttt{(restrict-substitution-wrt \textsl{subst} \textsl{test?})},%
-  \index{restrict-substitution-wrt@\texttt{restrict-substitution-wrt}} 
+  \index{restrict-substitution-wrt@\texttt{restrict-substitution-wrt}}
   \\
   &\texttt{(restrict-substitution-to-args \textsl{subst} \textsl{args})},%
-  \index{restrict-substitution-to-args@\texttt{restrict-substitution-to-args}} 
+  \index{restrict-substitution-to-args@\texttt{restrict-substitution-to-args}}
   \\
   &\texttt{(substitution-equal?\ \textsl{subst1} \textsl{subst2})},%
-  \index{substitution-equal?@\texttt{substitution-equal?}} 
+  \index{substitution-equal?@\texttt{substitution-equal?}}
   \\
-  &\texttt{(substitution-equal-wrt?\ \textsl{arg-equal?}\ \textsl{val-equal?}\ 
+  &\texttt{(substitution-equal-wrt?\ \textsl{arg-equal?}\ \textsl{val-equal?}\
     \textsl{subst1} \textsl{subst2})},%
-  \index{substitution-equal-wrt?@\texttt{substitution-equal-wrt?}} 
+  \index{substitution-equal-wrt?@\texttt{substitution-equal-wrt?}}
   \\
-  &\texttt{(subst-item-equal-wrt?\ \textsl{arg-equal?}\ \textsl{val-equal?}\ 
+  &\texttt{(subst-item-equal-wrt?\ \textsl{arg-equal?}\ \textsl{val-equal?}\
     \textsl{item1} \textsl{item2})},%
-  \index{subst-item-equal-wrt?@\texttt{subst-item-equal-wrt?}} 
+  \index{subst-item-equal-wrt?@\texttt{subst-item-equal-wrt?}}
   \\
   &\texttt{(consistent-substitutions-wrt?}
   \\
-  &\qquad\texttt{\textsl{arg-equal?}\ 
+  &\qquad\texttt{\textsl{arg-equal?}\
     \textsl{val-equal?}\ \textsl{subst1} \textsl{subst2})}.%
-  \index{consistent-substitutions-wrt?@\texttt{consistent-substitutions-wrt?}} 
+  \index{consistent-substitutions-wrt?@\texttt{consistent-substitutions-wrt?}}
 \end{alignat*}
 
 \emph{Composition}\index{composition} $\vartheta \eta$ of two
@@ -959,11 +959,11 @@ with $y_j \in \{x_1, \dots, x_n\}$.  It is easy to see that
 composition is associative, with the empty substitution as unit.
 We provide
 \begin{alignat*}{2}
-  \texttt{(compose-substitutions-wrt}\ 
+  \texttt{(compose-substitutions-wrt}\
   &\texttt{\textsl{substitution-proc} \textsl{arg-equal?}}
   \\
   &\texttt{\textsl{arg-val-equal?}\ \textsl{subst1} \textsl{subst2}}).%
-  \index{compose-substitutions-wrt@\texttt{compose-substitutions-wrt}} 
+  \index{compose-substitutions-wrt@\texttt{compose-substitutions-wrt}}
 \end{alignat*}
 
 We shall have occasion to use these general substitution procedures
@@ -971,23 +971,23 @@ for the following kinds of substitutions
 \begin{equation*}
   \begin{tabular}{|l|l|l|l|}
     \hline
-    for                  
-    &called          
-    &domain equality 
+    for
+    &called
+    &domain equality
     &arg-val-equality
     \\
     \hline
-    type variables       
+    type variables
     &\texttt{tsubst}\index{tsubst@\texttt{tsubst}}
     &\texttt{equal?}
     &\texttt{equal?}
     \\
-    object variables     
+    object variables
     &\texttt{osubst}\index{osubst@\texttt{osubst}}
     &\texttt{equal?}
     &\texttt{var-term-equal?}\index{var-term-equal?@\texttt{var-term-equal?}}
     \\
-    predicate variables  
+    predicate variables
     &\texttt{psubst}\index{psubst@\texttt{psubst}}
     &\texttt{equal?}
     &\texttt{pvar-cterm-equal?}%
@@ -1027,19 +1027,19 @@ In particular, for \emph{type substitutions} \texttt{tsubst}
 we have
 \begin{alignat*}{2}
   &\texttt{(type-substitute \textsl{type} \textsl{tsubst})},%
-  \index{type-substitute@\texttt{type-substitute}} 
+  \index{type-substitute@\texttt{type-substitute}}
   \\
   &\texttt{(type-subst \textsl{type} \textsl{tvar} \textsl{type1})},%
-  \index{type-subst@\texttt{type-subst}} 
+  \index{type-subst@\texttt{type-subst}}
   \\
   &\texttt{(compose-t-substitutions \textsl{tsubst1} \textsl{tsubst2})}.%
-  \index{compose-t-substitutions@\texttt{compose-t-substitutions}} 
+  \index{compose-t-substitutions@\texttt{compose-t-substitutions}}
 \end{alignat*}
 As display function for type substitutions one can use the general
 \texttt{pp-subst}\index{pp-subst@\texttt{pp-subst}} or the special
 \begin{align*}
   &\texttt{(display-t-substitution \textsl{tsubst})},%
-  \index{display-t-substitution@\texttt{display-t-substitution}} 
+  \index{display-t-substitution@\texttt{display-t-substitution}}
 \end{align*}
 
 We add here some notions and observations on substitutions%
@@ -1244,7 +1244,7 @@ Again lemmata similar to those above can be proven.
 As test for the admissibility of a substitution we provide
 \begin{align*}
   &\texttt{(admissible-substitution?\ \textsl{topasubst} \textsl{expr})}.%
-  \index{admissible-substitution?@\texttt{admissible-substitution?}} 
+  \index{admissible-substitution?@\texttt{admissible-substitution?}}
 \end{align*}
 
 \subsection{Type unification and matching}
@@ -1260,10 +1260,10 @@ otherwise.  \texttt{type-unify-list} does the same for lists of terms.
 We provide
 \begin{alignat*}{2}
   &\texttt{(type-unify \textsl{type1} \textsl{type2})},%
-  \index{type-unify@\texttt{type-unify}} 
+  \index{type-unify@\texttt{type-unify}}
   \\
   &\texttt{(type-unify-list \textsl{types1} \textsl{types2})}.%
-  \index{type-unify-list@\texttt{type-unify-list}} 
+  \index{type-unify-list@\texttt{type-unify-list}}
 \end{alignat*}
 
 Notice that the algorithm we use (via disagreement pairs) does not
@@ -1284,10 +1284,10 @@ this is impossible, and the substitution otherwise.
 We provide
 \begin{alignat*}{2}
   &\texttt{(type-match \textsl{pattern} \textsl{instance})},%
-  \index{type-match@\texttt{type-match}} 
+  \index{type-match@\texttt{type-match}}
   \\
   &\texttt{(type-match-list \textsl{patterns} \textsl{instances})}.%
-  \index{type-match-list@\texttt{type-match-list}} 
+  \index{type-match-list@\texttt{type-match-list}}
 \end{alignat*}
 
 \subsection{Algebras and types}
@@ -1366,9 +1366,9 @@ the $i$-th \emph{constructor type}%
 
 In $(\rho_{\nu}(\xi))_{\nu < n} \to \xi$ we call
 $\rho_{\nu}(\xi)$ a \emph{parameter} argument type%
-\index{parameter argument type} if $\xi$ does not occur in it, and a 
+\index{parameter argument type} if $\xi$ does not occur in it, and a
 \emph{recursive} argument type%
-\index{recursive argument type} otherwise.  
+\index{recursive argument type} otherwise.
 A recursive argument type $\rho_{\nu}(\xi)$ is \emph{nested} if it has
 an occurrence of $\xi$ in a strictly positive parameter position of
 another (previously defined) algebra, and unnested otherwise.  An
@@ -1493,7 +1493,7 @@ we name
   \typeTo \typeRead(\alpha) &\quad&
   \hbox{read}.
 \end{alignat*}
-Using $\typeRead(\alpha)$ we then define 
+Using $\typeRead(\alpha)$ we then define
 \begin{equation*}
   \typeWrite \defeq
   \mu_{\xi}(\xi, \typeRead(\xi) \typeTo \xi)
@@ -1519,7 +1519,7 @@ One can extend the definition of algebras and types to
 list $\vec{\xi} = \xi_0, \dots, \xi_{N-1}$ of typevariables and
 generate $\vec{\xi},j$-constructor types ($j<N$) by
 \begin{equation*}
-  \frac{(\rho_{i \nu}(\vec{\beta}\,) \in 
+  \frac{(\rho_{i \nu}(\vec{\beta}\,) \in
     \Ty(\vec{\alpha}, \vec{\beta}\,))_{i<k; \nu < n_i}}
        {( (\rho_{i \nu}(\vec{\xi}\,))_{\nu < n_i} \to \xi_j) \in
          \constrtypes{\vec{\xi},j}\,(\vec{\alpha}\,)}.
@@ -1619,7 +1619,7 @@ The immediate cases for the outer recursion are
   f_i x,
   \qquad
   \Map_{\lambda_{\vec{\alpha}}(\sigma \typeTo \rho)}^{\vec{\sigma} \to  \vec{\tau}}
-  h \vec{f} x \defeq 
+  h \vec{f} x \defeq
   \Map_{\lambda_{\vec{\alpha}}\rho}^{\vec{\sigma} \to  \vec{\tau}} (h x) \vec{f}.
 \end{equation*}
 It remains to consider $\iota(\vec{\pi}(\vec{\alpha}\,))$.  In case
@@ -1656,7 +1656,7 @@ w.r.t.\ the recursion on $x$.
 
 Here are some examples.
 \begin{align*}
-  &\Map_{\typeL{\sigma}}^{\tau} \nil f^{\sigma \typeTo \tau} \defeq 
+  &\Map_{\typeL{\sigma}}^{\tau} \nil f^{\sigma \typeTo \tau} \defeq
   \nil,
   \\
   &\Map_{\typeL{\sigma}}^{\tau}(x^{\sigma} :: l^{\typeL{\sigma}})
@@ -1697,7 +1697,7 @@ To add and remove names for type variables, we use
   &\texttt{(remove-tvar-name \textsl{name1} \dots)}.%
   \index{remove-tvar-name@\texttt{remove-tvar-name}}
 \end{align*}
-We need a constructor, accessors and a test for type variables. 
+We need a constructor, accessors and a test for type variables.
 \begin{alignat*}{2}
   &\texttt{(make-tvar \textsl{index} \textsl{name})}%
   \index{make-tvar@\texttt{make-tvar}}
@@ -1790,7 +1790,7 @@ We also provide the tests
 
 To remove names for algebras we use
 \begin{align*}
-  &\texttt{(remove-alg-name \textsl{name1} \dots)} 
+  &\texttt{(remove-alg-name \textsl{name1} \dots)}
   \index{remove-alg-name@\texttt{remove-alg-name}}.
 \end{align*}
 
@@ -1827,44 +1827,44 @@ Tests:
   \index{object-type?@\texttt{object-type?}}
 \end{align*}
 
-We also need constructors and accessors for arrow types 
+We also need constructors and accessors for arrow types
 \begin{alignat*}{2}
-  &\texttt{(make-arrow \textsl{arg-type} \textsl{val-type})}      
+  &\texttt{(make-arrow \textsl{arg-type} \textsl{val-type})}
   \index{make-arrow@\texttt{make-arrow}}
   &\quad& \text{constructor},
   \\
-  &\texttt{(arrow-form-to-arg-type \textsl{arrow-type})} 
+  &\texttt{(arrow-form-to-arg-type \textsl{arrow-type})}
   \index{arrow-form-to-arg-type@\texttt{arrow-form-to-arg-type}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(arrow-form-to-val-type \textsl{arrow-type})} 
+  &\texttt{(arrow-form-to-val-type \textsl{arrow-type})}
   \index{arrow-form-to-val-type@\texttt{arrow-form-to-val-type}}
   && \text{accessor}
 \end{alignat*}
 and star types, i.e., the primitive product,
 \begin{alignat*}{2}
-  &\texttt{(make-star \textsl{type1} \textsl{type2})}             
+  &\texttt{(make-star \textsl{type1} \textsl{type2})}
   \index{make-star@\texttt{make-star}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(star-form-to-left-type \textsl{star-type})}  
+  &\texttt{(star-form-to-left-type \textsl{star-type})}
   \index{star-form-to-left-type@\texttt{star-form-to-left-type}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(star-form-to-right-type star-type)} 
+  &\texttt{(star-form-to-right-type star-type)}
   \index{star-form-to-right-type@\texttt{star-form-to-right-type}}
-  && \text{accessor.}   
+  && \text{accessor.}
 \end{alignat*}
 For convenience we also have
 \begin{alignat*}{2}
   &\texttt{(mk-arrow \textsl{type1} \dots\ \textsl{type})},%
   \index{mk-arrow@\texttt{mk-arrow}}
   \\
-  &\texttt{(arrow-form-to-arg-types \textsl{type} <\textsl{n}>)} 
+  &\texttt{(arrow-form-to-arg-types \textsl{type} <\textsl{n}>)}
   \index{arrow-form-to-arg-types@\texttt{arrow-form-to-arg-types}}
-  &\quad& \text{all (first $n$) argument types} 
+  &\quad& \text{all (first $n$) argument types}
   \\
-  &\texttt{(arrow-form-to-final-val-type \textsl{type})}     
+  &\texttt{(arrow-form-to-final-val-type \textsl{type})}
   \index{arrow-form-to-final-val-type@\texttt{arrow-form-to-final-val-type}}
   && \text{type of final value.}
 \end{alignat*}
@@ -1961,7 +1961,7 @@ substitution otherwise.
 We provide
 \begin{alignat*}{2}
   &\texttt{(type-match-modulo-coercion \textsl{pattern} \textsl{instance})}.%
-  \index{type-match-modulo-coercion@\texttt{type-match-modulo-coercion}} 
+  \index{type-match-modulo-coercion@\texttt{type-match-modulo-coercion}}
 \end{alignat*}
 
 \section{Variables}
@@ -1991,10 +1991,10 @@ $0$.
 To add and remove names for variables of a given type (e.g.,
 $\texttt{n}, \texttt{m}$ for variables of type \texttt{nat}), we use
 \begin{align*}
-  &\texttt{(add-var-name \textsl{name1} \dots\ \textsl{type})},%% 
+  &\texttt{(add-var-name \textsl{name1} \dots\ \textsl{type})},%%
   \index{add-var-name@\texttt{add-var-name}}
   \\
-  &\texttt{(remove-var-name \textsl{name1} \dots\ \textsl{type})},%% 
+  &\texttt{(remove-var-name \textsl{name1} \dots\ \textsl{type})},%%
   \index{remove-var-name@\texttt{remove-var-name}}
   \\
   &\texttt{(default-var-name \textsl{type}).}
@@ -2008,7 +2008,7 @@ In this case one can use the empty string to create a so called
 numerated variable (see below).  The parser is able to produce this
 kind of canonical variables from type expressions.
 
-We need a constructor, accessors and tests for variables. 
+We need a constructor, accessors and tests for variables.
 \begin{alignat*}{2}
   &\texttt{(make-var \textsl{type} \textsl{index} \textsl{t-deg}
     \textsl{name})} &\quad& \text{constructor},
@@ -2036,7 +2036,7 @@ variables.  Moreover, it is guaranteed that parsing a displayed
 variable reproduces the variable; the converse need not be the case
 (we may want to convert it into some canonical form).
 
-For convenience we have the function 
+For convenience we have the function
 \begin{alignat*}{2}
   &\texttt{(mk-var \textsl{type} <\textsl{index}> <\textsl{t-deg}>
     <\textsl{name}>).}
@@ -2066,7 +2066,7 @@ It is guaranteed that \texttt{make-var} used with the empty name
 string is a bijection of the product of $\Ty$, $\D{N}$, and the
 degrees of totality to the set of numerated variables,
 with inverses \texttt{var-to-type}, \texttt{numerated-var-to-index}
-and \texttt{var-to-t-deg}.  
+and \texttt{var-to-t-deg}.
 
 Although these functions look like an ad hoc extension of the
 interface that is convenient for normalization by evaluation, there is
@@ -2238,7 +2238,7 @@ $k_j, m_j$ as above (for simultaneously defined algebras).  For $m_j
 \begin{equation*}
   (\rho_{i \nu}(\vec{\xi}\,))_{\nu < n_i} \typeTo \xi_j.
 \end{equation*}
-The $j$-th simultaneous recursion operator% 
+The $j$-th simultaneous recursion operator%
 \index{recursion!operator, simultaneous} $\rec_j^{\vec{\iota},
   \vec{\tau}}$ has type
 \begin{equation*}
@@ -2266,13 +2266,13 @@ $\rec_{\iota}^{\tau}$ for $\rec_{1}^{\iota, \tau}$.  o--- An example of
 a simultaneous recursion on tree lists and trees will be given below.
 
 \begin{definition*}
-  \emph{Terms of Gödel's $\T$}% 
+  \emph{Terms of Gödel's $\T$}%
   \index{term!of Gödel's $\T$}\index{T@$\T$} for nested algebras are
   inductively defined from typed variables $x^{\rho}$ and constants
   for constructors $\constr_i^{\iota}$, recursion operators
   $\rec_{\iota}^{\tau}$ and map operators
   $\Map_{\lambda_{\vec{\alpha}}\pi}^{\vec{\rho} \to \vec{\tau}}$ by
-  abstraction $\lambda_{x^{\rho}} M^{\sigma}$ and application 
+  abstraction $\lambda_{x^{\rho}} M^{\sigma}$ and application
   $M^{\rho \typeTo \sigma} N^{\rho}$.
 \end{definition*}
 
@@ -2291,7 +2291,7 @@ We define a \emph{conversion relation}%
   \label{E:RecConv}
   \rec_{\iota}^{\tau} (\constr_i^{\iota} \vec{N}) \vec{M} &\cnv
   M_i (\Map_{\lambda_{\alpha}\rho_{\nu}(\alpha)}^{\iota \to
-    \iota \typeProd \tau} N_{\nu} 
+    \iota \typeProd \tau} N_{\nu}
   \lambda_x \langle x^{\iota},\rec_{\iota}^{\tau}x\vec{M}\rangle)_{\nu < n}.
 \end{align}
 where in \eqref{E:RecConv} for simplicity we have spelled out the
@@ -2396,7 +2396,7 @@ define the single function $\evenodd \colon \typeN \typeTo \typeB
 \begin{equation*}
   \ST_0 = \typeB \typeProd \typeB,
   \quad
-  \ST_1 = \typeN \typeTo \typeB \typeProd \typeB \typeTo 
+  \ST_1 = \typeN \typeTo \typeB \typeProd \typeB \typeTo
   \typeB \typeProd \typeB,
 \end{equation*}
 and we can define $\evenodd \, m \defeq \rec_{\typeN}^{\typeB
@@ -2439,7 +2439,7 @@ are
 \end{equation*}
 Hence the types of the recursion operators are
 \begin{align*}
-  \rec_{\typeTlist} &\colon \typeTlist \typeTo 
+  \rec_{\typeTlist} &\colon \typeTlist \typeTo
   \ST_0 \typeTo \ST_1 \typeTo \ST_2 \typeTo \ST_3 \typeTo \sigma,
   \\
   \rec_{\typeTree} &\colon \typeTree \typeTo
@@ -2554,7 +2554,7 @@ occur.  This variant is called the \emph{cases operator}%
 cases according to the outer constructor form.  Here all step types
 have the form
 \begin{equation*}
-  \ST_i^{\vec{\iota}, \vec{\tau}} \defeq \vec{\rho} \typeTo 
+  \ST_i^{\vec{\iota}, \vec{\tau}} \defeq \vec{\rho} \typeTo
   (\vec{\sigma}_{\nu} \typeTo \iota_{j_{\nu}})_{\nu < n} \typeTo \tau_j.
 \end{equation*}
 The intended meaning of the cases operator is given by the conversion
@@ -2567,8 +2567,8 @@ Notice that only those step terms are used whose value type is the
 present $\tau_j$; this is due to the fact that there are no recursive
 calls.  Therefore the type of the cases operator is
 \begin{equation*}
-  \Cases_{\iota_j \typeTo \tau_j}^{\vec{\iota}} \colon \iota_j \typeTo 
-  \ST_{i_0}\typeTo \dots \typeTo \ST_{i_{q-1}} \typeTo \tau_j, 
+  \Cases_{\iota_j \typeTo \tau_j}^{\vec{\iota}} \colon \iota_j \typeTo
+  \ST_{i_0}\typeTo \dots \typeTo \ST_{i_{q-1}} \typeTo \tau_j,
 \end{equation*}
 where $\ST_{i_0}, \dots, \ST_{i_{q-1}}$ consists of all $\ST_i$ with value
 type $\tau_j$.  We write $\Cases_{\iota_j}^{\tau_j}$ or even
@@ -2578,7 +2578,7 @@ The simplest example (for type $\typeB$) is \emph{if-then-else}.
 Another example is
 \begin{equation*}
   \Cases_{\typeN}^{\tau} \colon
-  \typeN \typeTo \tau \typeTo (\typeN \typeTo \tau) \typeTo \tau. 
+  \typeN \typeTo \tau \typeTo (\typeN \typeTo \tau) \typeTo \tau.
 \end{equation*}
 It can be used to define the \emph{predecessor} function on $\typeN$,
 i.e., $\pred 0 \defeq 0$ and $\pred(\suc n) \defeq n$, by the term
@@ -2638,7 +2638,7 @@ leaves towards the root, and terminate because total ideals are
 well-founded.  If however we deal with cototal ideals (infinitary
 derivations for example), then a similar operator is available to
 define functions with cototal ideals as values, namely
-\inquotes{corecursion}.  
+\inquotes{corecursion}.
 
 To understand the type of a corecursion operator recall the
 constructor types $\kappa_i(\iota)$ of an algebra $\iota =
@@ -2664,7 +2664,7 @@ Dually for the algebra $\iota$ the type of its \emph{destructor}%
 \end{equation*}
 The corecursion operator\index{corecursion!operator}
 $\corec_{\iota}^{\tau}$ is used to construct a mapping from $\tau$ to
-$\iota$ by \inquotes{corecursion} on the structure of $\iota$. 
+$\iota$ by \inquotes{corecursion} on the structure of $\iota$.
 Its type is
 \begin{equation*}
   \tau \typeTo
@@ -2690,7 +2690,7 @@ We list the types of the corecursion operators for some algebras:
   \typeTo \typeBin,
   \\
   &\corec_{\typeL{\rho}}^{\tau} \colon \tau \typeTo
-  (\tau \typeTo \typeUnit \typeSum \rho \typeProd 
+  (\tau \typeTo \typeUnit \typeSum \rho \typeProd
   (\typeL{\rho} \typeSum \tau)) \typeTo \typeL{\rho},
   \\
   &\corec_{\typeIntv}^{\tau} \colon \tau \typeTo
@@ -2966,7 +2966,7 @@ by \inquotes{corecursion} on the structure of $\iota$.  Its type is
 
 We give an example of a simultaneous corecursion on tree lists and trees.
 Recall the simultaneously defined algebras
-$(\typeTlist(\alpha), \typeTree(\alpha))$ %in \ref{SS:AlgsTypes} 
+$(\typeTlist(\alpha), \typeTree(\alpha))$ %in \ref{SS:AlgsTypes}
 (we write them without the parameter $\alpha$ here), whose constructors
 $\constr_i^{(\typeTlist, \typeTree)}$ for $i \in \{0, \dots, 3\}$ are
 \begin{equation*}
@@ -2992,7 +2992,7 @@ $\corec_{\typeTree}$.  The step types are
 \end{equation*}
 Hence the types of the corecursion operators are
 \begin{align*}
-  \corec_{\typeTlist} &\colon \sigma \typeTo 
+  \corec_{\typeTlist} &\colon \sigma \typeTo
   \ST_0 \typeTo \ST_1 \typeTo \typeTlist,
   \\
   \corec_{\typeTree} &\colon \tau \typeTo \ST_0 \typeTo \ST_1 \typeTo \typeTree.
@@ -3123,7 +3123,7 @@ The defining equations in \ref{SS:TCFConv} can all be seen as
 computation rules, for
 \begin{enumeratei}
 \item the append-function $\listappend$,
-\item list reversal $\listrev$, 
+\item list reversal $\listrev$,
 \item the simultaneously defined functions $\even, \odd \colon \typeN
   \typeTo \typeB$ and
 \item the two simultaneously defined functions $\oplus \colon \typeTlist
@@ -3230,7 +3230,7 @@ $i$-th injection into the sum type of the product of the $\vec{x}$.
 \subsection{Implementation}
 Every object constant has the internal representation
 \begin{align*}
-  \texttt{(const}\ 
+  \texttt{(const}\
   &\hbox{\textsl{object-or-arity} \textsl{name} \textsl{kind}
     \textsl{uninst-type} \textsl{tsubst}}
   \\
@@ -3359,7 +3359,7 @@ is reproduced.  The repro-data are of the following forms.
 
 Constructor, accessors and tests for all kinds of constants:
 \begin{alignat*}{2}
-  &\texttt{(make-const \textsl{obj-or-arity} \textsl{name} \textsl{kind} 
+  &\texttt{(make-const \textsl{obj-or-arity} \textsl{name} \textsl{kind}
     \textsl{uninst-type} \textsl{tsubst}}
   \\
   &\quad \texttt{\textsl{t-deg} \textsl{token-type}
@@ -3393,7 +3393,7 @@ Constructor, accessors and tests for all kinds of constants:
 From these we can define
 \begin{alignat*}{2}
   &\texttt{(const-to-type \textsl{const})},%
-  \index{const-to-type@\texttt{const-to-type}} 
+  \index{const-to-type@\texttt{const-to-type}}
   \\
   &\texttt{(const-to-tvars \textsl{const})}.%
   \index{const-to-tvars@\texttt{const-to-tvars}}
@@ -3409,7 +3409,7 @@ The test functions are
   &\texttt{(const?\ \textsl{x})},%
   \index{const?@\texttt{const?}}
   \\
-  &\texttt{(const=?\ \textsl{x} \textsl{y})}.%%                       
+  &\texttt{(const=?\ \textsl{x} \textsl{y})}.%%
   \index{const=?@\texttt{const=?}}
 \end{alignat*}
 \texttt{check-const} assumes that the constant is not one of those
@@ -3423,10 +3423,10 @@ parameters) the corresponding instance of the constructor.  We provide
 \begin{alignat*}{2}
   &\texttt{(constr-name?\ \textsl{string})},%
   \index{constr-name?@\texttt{constr-name?}}
-  \\ 
+  \\
   &\texttt{(constr-name-to-constr \textsl{name} <\textsl{tsubst}>)},%
   \index{constr-name-to-constr@\texttt{constr-name-to-constr}}
-  \\ 
+  \\
   &\texttt{(constr-name-and-tsubst-to-constr \textsl{name} \textsl{tsubst})}%
   \index{constr-name-and-tsubst-to-constr@\texttt{constr-name-and-tsubst{\dots}}}
 \end{alignat*}
@@ -3451,7 +3451,7 @@ information from the string denoting a program constant (via
 \begin{alignat*}{2}
   &\texttt{(pconst-name?\ \textsl{string})},%
   \index{pconst-name?@\texttt{constr-name?}}
-  \\ 
+  \\
   &\texttt{(pconst-name-to-pconst \textsl{name})},%
   \index{pconst-name-to-pconst@\texttt{pconst-name-to-pconst}}
   \\
@@ -3514,7 +3514,7 @@ To make program constants more readable we provide
 To add and remove computation and rewrite rules and also external code
 we have
 \begin{align*}
-  &\texttt{(add-computation-rule \textsl{lhs} \textsl{rhs})},%% 
+  &\texttt{(add-computation-rule \textsl{lhs} \textsl{rhs})},%%
   \index{add-computation-rule@\texttt{add-computation-rule}}
   \\
   &\texttt{(add-rewrite-rule \textsl{lhs} \textsl{rhs})},%
@@ -3539,7 +3539,7 @@ To generate our constants with fixed rules we use
   \index{finalg-to-=-const@\texttt{finalg-to-=-const}}
   &\quad& \text{equality},
   \\
-  &\texttt{(finalg-to-e-const \textsl{finalg})}%%           
+  &\texttt{(finalg-to-e-const \textsl{finalg})}%%
   \index{finalg-to-e-const@\texttt{finalg-to-e-const}}
   && \text{existence},
   \\
@@ -3623,15 +3623,15 @@ is used to achieve normalization of proofs via translating them in
 terms, to translate a gind-aconst.  In addition we need the number m
 of quantifiers used for the axioms.
 
-\emph{Corecursion}.  
+\emph{Corecursion}.
 To generate the corecursion constants we use
 \begin{alignat*}{2}
   &\texttt{(alg-or-arrow-types-to-corec-consts .\
-    \textsl{arrow-types})},%%    
+    \textsl{arrow-types})},%%
   \index{alg-or-arrow-types-to-corec-consts@\texttt{alg-or-arrow-types-to-corec-consts}}
   \\
   &\texttt{(alg-or-arrow-types-to-corec-const .\
-    \textsl{arrow-types})}.%%          
+    \textsl{arrow-types})}.%%
   \index{alg-or-arrow-types-to-corec-const@\texttt{alg-or-arrow-types-to-corec-const}}
 \end{alignat*}
 To avoid being trapped in non-termination of the conversion rule for
@@ -3779,7 +3779,7 @@ We need a constructor, accessors and tests for predicate variables.
   &\texttt{(pvar?\ \textsl{x})}\index{pvar?@\texttt{pvar?}}.
 \end{alignat*}
 
-For convenience we have the function 
+For convenience we have the function
 \begin{alignat*}{2}
   &\texttt{(mk-pvar \textsl{arity} <\textsl{index}> <\textsl{h-deg}>
      <\textsl{n-deg}> <\textsl{name}>)}.
@@ -3794,8 +3794,8 @@ reproduces the predicate variable; the converse need not be the case
 (we may want to convert it into some canonical form).
 
 \subsection{Predicate constants}
-\label{SS:PredConsts} 
-We also allow \emph{predicate constants}%% 
+\label{SS:PredConsts}
+We also allow \emph{predicate constants}%%
 \index{predicate constant}.  The general reason for having them is
 that sometimes we want axiomatized predicates, which are \emph{not}
 placeholders for formulas.  The main example is the totality predicate
@@ -3887,15 +3887,15 @@ We have a constructor, accessors and tests for predicate constants.
   && \text{accessor},
   \\
   &\texttt{(predconst-to-index \textsl{predconst})}%
-  \index{predconst-to-index@\texttt{predconst-to-index}} 
+  \index{predconst-to-index@\texttt{predconst-to-index}}
   && \text{accessor},
   \\
   &\texttt{(predconst-to-name \textsl{predconst})}%
-  \index{predconst-to-name@\texttt{predconst-to-name}} 
+  \index{predconst-to-name@\texttt{predconst-to-name}}
   && \text{accessor},
   \\
   &\texttt{(predconst?\ \textsl{x})}.%
-  \index{predconst?@\texttt{predconst?}} 
+  \index{predconst?@\texttt{predconst?}}
 \end{alignat*}
 Moreover we provide
 \begin{alignat*}{2}
@@ -3927,7 +3927,7 @@ example, in the algebra $\typeN$ we can inductively define
 \begin{equation*}
   \Total_{\typeN} 0,
   \qquad
-  \forall_n(\Total_{\typeN} n \to \Total_{\typeN}(\suc n)).  
+  \forall_n(\Total_{\typeN} n \to \Total_{\typeN}(\suc n)).
 \end{equation*}
 Its least-fixed-point scheme will now be taken in the form
 \begin{equation*}
@@ -4031,7 +4031,7 @@ types.
   $\preds(P)$ \inquotes{$P$ is a predicate}, again by simultaneous
   induction.
   \begin{align*}
-    &\frac {\preds(P)} {\formulas(P \vec{r}\,)} 
+    &\frac {\preds(P)} {\formulas(P \vec{r}\,)}
     \qquad
     \frac{\formulas(A) \quad \formulas(B)}
          {\formulas(A \to B)}
@@ -4042,7 +4042,7 @@ types.
          \qquad
          \frac {\formulas(A)} {\preds(\set {\vec{x}} {A})}
          \\
-         &\frac{\hbox{$\formulas(A_{i\nu})$ and $\SP(X, A_{i\nu})$ 
+         &\frac{\hbox{$\formulas(A_{i\nu})$ and $\SP(X, A_{i\nu})$
              for all $i{<}k$, $\nu{<}n_i$
              \quad
              $X \notin \FPV(A_{0\nu})$ for all $\nu{<}n_0$}}
@@ -4075,9 +4075,9 @@ types.
   with a common reduct are identified.  In $\forall_{\vec{x}}
   ((A_{\nu}(X))_{\nu < n} \to X \vec{r}\,)$ we call $A_{\nu}(X)$ a
   \emph{parameter} premise%
-  \index{parameter premise} if $X$ does not occur in it, and a 
+  \index{parameter premise} if $X$ does not occur in it, and a
   \emph{recursive} premise%
-  \index{recursive premise} otherwise.  
+  \index{recursive premise} otherwise.
   A recursive premise $A_{\nu}(X)$ is \emph{nested} if it has an
   occurrence of $X$ in a strictly positive parameter position of another
   (previously defined) inductive predicate, and unnested otherwise.  An
@@ -4089,7 +4089,7 @@ types.
 
 A predicate of the form $\set{\vec{x}}{C}$ is called a
 \emph{comprehension term}%
-\index{comprehension term}.  
+\index{comprehension term}.
 We identify $\set {\vec{x}} {C(\vec{x}\,)}\vec{r}$ with
 $C(\vec{r}\,)$.  An inductively defined predicate is \emph{finitary}
 if its clauses have recursive premises of the form $X \vec{s}$ only.
@@ -4179,7 +4179,7 @@ transitivity.  Define \emph{falsity}\index{$\falsityF$}%
   We first show that $\falsityF \to \eqd {x^{\rho}} {y^{\rho}}$.  To
   see this, we first obtain $\eqd {\rec_{\typeB}^{\rho} \false x y}
   {\rec_{\typeB}^{\rho} \false x y}$ from the introduction axiom.
-  %% since $\rec_{\typeB}^{\rho} \false x y$ is an allowed term, 
+  %% since $\rec_{\typeB}^{\rho} \false x y$ is an allowed term,
   Then from $\eqd {\false} {\true}$ we get $\eqd {\rec_{\typeB}^{\rho}
     \true x y} {\rec_{\typeB}^{\rho} \false x y}$ by compatibility.
   Now $\rec_{\typeB}^{\rho} \true x y$ converts to $x$ and
@@ -4428,8 +4428,8 @@ for the algebra $\typeN$ are
 \begin{equation*}
   \Total_{\typeN} 0,
   \qquad
-  \forall_n(\Total_{\typeN} n \to \Total_{\typeN}(\suc n)).  
-  %% \allnc_n(\Total_{\typeN} n \toc \Total_{\typeN}(\suc n)).  
+  \forall_n(\Total_{\typeN} n \to \Total_{\typeN}(\suc n)).
+  %% \allnc_n(\Total_{\typeN} n \toc \Total_{\typeN}(\suc n)).
 \end{equation*}
 The least-fixed-point axiom is is according to \eqref{E:ElimID}
 \begin{equation*}
@@ -4471,7 +4471,7 @@ with least-fixed-point axiom
   \Total_{\typeBin} x \to {}
   &X 0^{\typeBin} \to {}
   \\
-  &\forall_x(\Total_{\typeBin} x \to X x \to 
+  &\forall_x(\Total_{\typeBin} x \to X x \to
   \forall_y(\Total_{\typeBin} y \to X y \to
   X(\constr^{\typeBin \typeTo \typeBin \typeTo \typeBin} x y))) \to {}
   \\
@@ -4529,7 +4529,7 @@ and the least-fixed-point axiom is
   \forall_l (\RTotal_{\typeL{\alpha}}(Y) l \to &X(\nil) \to {}
   \\
   &\forall_x(
-  Y x \to 
+  Y x \to
   \forall_l(\RTotal_{\typeL{\alpha}}(Y) l \to X l \to X(\con {} {x} {l}))) \to {}
   \\
   &X l^{\typeL{\alpha}} ).
@@ -4592,7 +4592,7 @@ and the least-fixed-point axiom is
   \forall_l (\STotal_{\typeL{\alpha}} l \to &X(\nil) \to {}
   \\
   &\forall_x(
-  \set {y} {\truth} x \to 
+  \set {y} {\truth} x \to
   \forall_l(\STotal_{\typeL{\alpha}} l \to X l \to X(\con {} {x} {l}))) \to {}
   \\
   &X l^{\typeL{\alpha}} ).
@@ -5023,109 +5023,109 @@ require this.
 %% \subsection*{Interface}
 We have constructors, accessors and tests for variables
 \begin{alignat*}{2}
-  &\texttt{(make-term-in-var-form var)}        
+  &\texttt{(make-term-in-var-form var)}
   \index{make-term-in-var-form@\texttt{make-term-in-var-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(term-in-var-form-to-var \textsl{term})}     
+  &\texttt{(term-in-var-form-to-var \textsl{term})}
   \index{term-in-var-form-to-var@\texttt{term-in-var-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-var-form?\ \textsl{term})}          
+  &\texttt{(term-in-var-form?\ \textsl{term})}
   \index{term-in-var-form?@\texttt{term-in-var-form?}}
   && \text{test,}
 \end{alignat*}
 for constants
 \begin{alignat*}{2}
-  &\texttt{(make-term-in-const-form \textsl{const})}    
+  &\texttt{(make-term-in-const-form \textsl{const})}
   \index{make-term-in-const-form@\texttt{make-term-in-const-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(term-in-const-form-to-const \textsl{term})},%% 
+  &\texttt{(term-in-const-form-to-const \textsl{term})},%%
   \index{term-in-const-form-to-const@\texttt{term-in-const-form-to-const}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-const-form?\ \textsl{term})}         
+  &\texttt{(term-in-const-form?\ \textsl{term})}
   \index{term-in-const-form?@\texttt{term-in-const-form?}}
   && \text{test,}
 \end{alignat*}
 for abstractions
 \begin{alignat*}{2}
-  &\texttt{(make-term-in-abst-form \textsl{var} \textsl{term})}   
+  &\texttt{(make-term-in-abst-form \textsl{var} \textsl{term})}
   \index{make-term-in-abst-form@\texttt{make-term-in-abst-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(term-in-abst-form-to-var \textsl{term})}     
+  &\texttt{(term-in-abst-form-to-var \textsl{term})}
   \index{term-in-abst-form-to-var@\texttt{term-in-abst-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-abst-form-to-kernel \textsl{term})}  
+  &\texttt{(term-in-abst-form-to-kernel \textsl{term})}
   \index{term-in-abst-form-to-kernel@\texttt{term-in-abst-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-abst-form?\ \textsl{term})}          
+  &\texttt{(term-in-abst-form?\ \textsl{term})}
   \index{term-in-abst-form?@\texttt{term-in-abst-form?}}
   && \text{test,}
 \end{alignat*}
 for applications
 \begin{alignat*}{2}
-  &\texttt{(make-term-in-app-form \textsl{term1} \textsl{term2})},%% 
+  &\texttt{(make-term-in-app-form \textsl{term1} \textsl{term2})},%%
   \index{make-term-in-app-form@\texttt{make-term-in-app-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(term-in-app-form-to-op \textsl{term})}       
+  &\texttt{(term-in-app-form-to-op \textsl{term})}
   \index{term-in-app-form-to-op@\texttt{term-in-app-form-to-op}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-app-form-to-arg \textsl{term})}      
+  &\texttt{(term-in-app-form-to-arg \textsl{term})}
   \index{term-in-app-form-to-arg@\texttt{term-in-app-form-to-arg}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-app-form?\ \textsl{term})}           
+  &\texttt{(term-in-app-form?\ \textsl{term})}
   \index{term-in-app-form?@\texttt{term-in-app-form?}}
   && \text{test,}
 \end{alignat*}
 for pairs
 \begin{alignat*}{2}
-  &\texttt{(make-term-in-pair-form \textsl{term1} \textsl{term2})}  
+  &\texttt{(make-term-in-pair-form \textsl{term1} \textsl{term2})}
   \index{make-term-in-pair-form@\texttt{make-term-in-pair-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(term-in-pair-form-to-left \textsl{term})}      
+  &\texttt{(term-in-pair-form-to-left \textsl{term})}
   \index{term-in-pair-form-to-left@\texttt{term-in-pair-form-to-left}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-pair-form-to-right \textsl{term})}     
+  &\texttt{(term-in-pair-form-to-right \textsl{term})}
   \index{term-in-pair-form-to-right@\texttt{term-in-pair-form-to-right}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-pair-form?\ \textsl{term})}            
+  &\texttt{(term-in-pair-form?\ \textsl{term})}
   \index{term-in-pair-form?@\texttt{term-in-pair-form?}}
   && \text{test,}
 \end{alignat*}
 for the left and right component of a pair
 \begin{alignat*}{2}
-  &\texttt{(make-term-in-lcomp-form \textsl{term})}        
+  &\texttt{(make-term-in-lcomp-form \textsl{term})}
   \index{make-term-in-lcomp-form@\texttt{make-term-in-lcomp-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(make-term-in-rcomp-form \textsl{term})}        
+  &\texttt{(make-term-in-rcomp-form \textsl{term})}
   \index{make-term-in-rcomp-form@\texttt{make-term-in-rcomp-form}}
-  && \text{constructor}, 
+  && \text{constructor},
   \\
-  &\texttt{(term-in-lcomp-form-to-kernel \textsl{term})}   
+  &\texttt{(term-in-lcomp-form-to-kernel \textsl{term})}
   \index{term-in-lcomp-form-to-kernel@\texttt{term-in-lcomp-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-rcomp-form-to-kernel \textsl{term})}   
+  &\texttt{(term-in-rcomp-form-to-kernel \textsl{term})}
   \index{term-in-rcomp-form-to-kernel@\texttt{term-in-rcomp-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-lcomp-form?\ \textsl{term})}           
+  &\texttt{(term-in-lcomp-form?\ \textsl{term})}
   \index{term-in-lcomp-form?@\texttt{term-in-lcomp-form?}}
   && \text{test},
   \\
-  &\texttt{(term-in-rcomp-form?\ \textsl{term})}           
+  &\texttt{(term-in-rcomp-form?\ \textsl{term})}
   \index{term-in-rcomp-form?@\texttt{term-in-rcomp-form?}}
   && \text{test},
 \end{alignat*}
@@ -5133,21 +5133,21 @@ and for \texttt{if}-constructs
 \begin{alignat*}{2}
   &\texttt{(make-term-in-if-form \textsl{test} \textsl{alts} .\ \textsl{rest})}
   \index{make-term-in-if-form@\texttt{make-term-in-if-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(term-in-if-form-to-test \textsl{term})}         
+  &\texttt{(term-in-if-form-to-test \textsl{term})}
   \index{term-in-if-form-to-test@\texttt{term-in-if-form-to-test}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-if-form-to-alts \textsl{term})}         
+  &\texttt{(term-in-if-form-to-alts \textsl{term})}
   \index{term-in-if-form-to-alts@\texttt{term-in-if-form-to-alts}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-if-form-to-rest \textsl{term})}         
+  &\texttt{(term-in-if-form-to-rest \textsl{term})}
   \index{term-in-if-form-to-rest@\texttt{term-in-if-form-to-rest}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-if-form?\ \textsl{term})}               
+  &\texttt{(term-in-if-form?\ \textsl{term})}
   \index{term-in-if-form?@\texttt{term-in-if-form?}}
   && \text{test},
 \end{alignat*}
@@ -5160,13 +5160,13 @@ and works for ordinary application as well as for component formation.
 \begin{alignat*}{2}
   &\texttt{(mk-term-in-app-form \textsl{term} \textsl{term1} \dots)}
   \index{mk-term-in-app-form@\texttt{mk-term-in-app-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(term-in-app-form-to-final-op \textsl{term})},%% 
+  &\texttt{(term-in-app-form-to-final-op \textsl{term})},%%
   \index{term-in-app-form-to-final-op@\texttt{term-in-app-form-to-final-op}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(term-in-app-form-to-args \textsl{term})},%% 
+  &\texttt{(term-in-app-form-to-args \textsl{term})},%%
   \index{term-in-app-form-to-args@\texttt{term-in-app-form-to-args}}
   && \text{accessor}.
 \end{alignat*}
@@ -5276,21 +5276,21 @@ normalize every term, where normalization refers to the computation as
 well as the rewrite rules.
 
 %% \subsection*{Interface}
-An object consists of a semantical value and a type.  
+An object consists of a semantical value and a type.
 \begin{alignat*}{2}
-  &\texttt{(nbe-make-object \textsl{type} \textsl{value})}%% 
+  &\texttt{(nbe-make-object \textsl{type} \textsl{value})}%%
   \index{nbe-make-object@\texttt{nbe-make-object}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
   &\texttt{(nbe-object-to-type \textsl{object})}%
   \index{nbe-object-to-type@\texttt{nbe-object-to-type}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(nbe-object-to-value \textsl{object})}%% 
+  &\texttt{(nbe-object-to-value \textsl{object})}%%
   \index{nbe-object-to-value@\texttt{nbe-object-to-value}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(nbe-object?\ \textsl{x})}             
+  &\texttt{(nbe-object?\ \textsl{x})}
   \index{nbe-object?@\texttt{nbe-object?}}
   && \text{test}.
 \end{alignat*}
@@ -5305,14 +5305,14 @@ application as well as for component formation. We also need an
 operation composing two unary function objects.
 \begin{alignat*}{2}
   &\texttt{(nbe-object-app \textsl{function-obj} \textsl{arg-obj1} \dots)},%
-  \index{nbe-object-app@\texttt{nbe-object-app}} 
+  \index{nbe-object-app@\texttt{nbe-object-app}}
   \\
   &\texttt{(nbe-object-compose \textsl{function-obj1} \textsl{function-obj2})}.%
-  \index{nbe-object-compose@\texttt{nbe-object-compose}} 
+  \index{nbe-object-compose@\texttt{nbe-object-compose}}
 \end{alignat*}
 For ground type values we need constructors, accessors and tests.  To
 make constructors \inquotes{self-evaluating}, a constructor value has
-the form 
+the form
 \begin{equation*}
   \hbox{\texttt{(constr-value \textsl{name} \textsl{objs}
       \textsl{delayed-constr})},}
@@ -5321,25 +5321,25 @@ where \textsl{delayed-constr} is a procedure of zero arguments which
 evaluates to this very same constructor.  This is necessary to avoid
 having a cycle (for nullary constructors, and only for those).
 \begin{alignat*}{2}
-  &\texttt{(nbe-make-constr-value \textsl{name} \textsl{objs})}%% 
+  &\texttt{(nbe-make-constr-value \textsl{name} \textsl{objs})}%%
   \index{nbe-make-constr-value@\texttt{nbe-make-constr-value}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(nbe-constr-value-to-name \textsl{value})}    
+  &\texttt{(nbe-constr-value-to-name \textsl{value})}
   \index{nbe-constr-value-to-name@\texttt{nbe-constr-value-to-name}}
   && \text{accessor}, \\
-  &\texttt{(nbe-constr-value-to-args \textsl{value})}    
-  && \text{accessor}, 
+  &\texttt{(nbe-constr-value-to-args \textsl{value})}
+  && \text{accessor},
   \\
-  &\texttt{(nbe-constr-value-to-constr \textsl{value})}  
+  &\texttt{(nbe-constr-value-to-constr \textsl{value})}
   \index{nbe-constr-value-to-constr@\texttt{nbe-constr-value-to-constr}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(nbe-constr-value?\ \textsl{value})}          
+  &\texttt{(nbe-constr-value?\ \textsl{value})}
   \index{nbe-constr-value?@\texttt{nbe-constr-value?}}
-  && \text{test}, 
+  && \text{test},
   \\
-  &\texttt{(nbe-fam-value?\ \textsl{value})}             
+  &\texttt{(nbe-fam-value?\ \textsl{value})}
   \index{nbe-fam-value?@\texttt{nbe-fam-value?}}
   && \text{test}.
 \end{alignat*}
@@ -5350,13 +5350,13 @@ is
   &\texttt{(nbe-pconst-and-tsubst-and-rules-to-object}
   \index{nbe-pconst-and-tsubst-and-rules-to-object@\texttt{nbe-pconst-{\dots}-to-object}}
   \\
-  &\qquad \texttt{\textsl{pconst}\ \textsl{tsubst}\ \textsl{comprules}\  
+  &\qquad \texttt{\textsl{pconst}\ \textsl{tsubst}\ \textsl{comprules}\
     \textsl{rewrules})}.
 \end{align*}
 Using it we can the define an \emph{evaluation} function, which
 assigns to a term and an environment a semantical object:
 \begin{alignat*}{2}
-  &\texttt{(nbe-term-to-object \textsl{term} \textsl{bindings})} 
+  &\texttt{(nbe-term-to-object \textsl{term} \textsl{bindings})}
   \index{nbe-term-to-object@\texttt{nbe-term-to-object}}
   &\quad& \text{evaluation.}
 \end{alignat*}
@@ -5368,19 +5368,19 @@ this variable, which always is an object of the correct type.
 The interpretation of the program constants requires some auxiliary
 functions (cf.\ \cite{BergerEberlSchwichtenberg03}):
 \begin{alignat*}{2}
-  &\texttt{(nbe-constructor-pattern?\ \textsl{term})} 
+  &\texttt{(nbe-constructor-pattern?\ \textsl{term})}
   \index{nbe-constructor-pattern?@\texttt{nbe-constructor-pattern?}}
-  &\quad& \text{test}, 
+  &\quad& \text{test},
   \\
-  &\texttt{(nbe-inst?\ \textsl{constr-pattern} \textsl{obj})}  
+  &\texttt{(nbe-inst?\ \textsl{constr-pattern} \textsl{obj})}
   \index{nbe-inst?@\texttt{nbe-inst?}}
-  && \text{test}, 
+  && \text{test},
   \\
-  &\texttt{(nbe-genargs \textsl{constr-pattern} \textsl{obj})} 
+  &\texttt{(nbe-genargs \textsl{constr-pattern} \textsl{obj})}
   \index{nbe-genargs@\texttt{nbe-genargs}}
   && \text{generalized arguments},
   \\
-  &\texttt{(nbe-extract \textsl{termfam})} 
+  &\texttt{(nbe-extract \textsl{termfam})}
   \index{nbe-extract@\texttt{nbe-extract}}
   && \text{extracts a term from a family},
   \\
@@ -5393,7 +5393,7 @@ Then we can define
   \index{nbe-reify@\texttt{nbe-reify}}
   &\quad& \text{reification},
   \\
-  &\texttt{(nbe-reflect \textsl{term})} 
+  &\texttt{(nbe-reflect \textsl{term})}
   \index{nbe-reflect@\texttt{nbe-reflect}}
   && \text{reflection}
 \end{alignat*}
@@ -5616,23 +5616,23 @@ section~\ref{SS:GenSubst}.  Under the conditions stated there on
 admissibility we define
 \begin{alignat*}{2}
   &\texttt{(term-substitute \textsl{term} \textsl{tosubst})},%
-  \index{term-substitute@\texttt{term-substitute}} 
+  \index{term-substitute@\texttt{term-substitute}}
   \\
   &\texttt{(term-subst \textsl{term} \textsl{arg} \textsl{val})},%
-  \index{term-subst@\texttt{term-subst}} 
+  \index{term-subst@\texttt{term-subst}}
   \\
   &\texttt{(compose-substitutions \textsl{subst1} \textsl{subst2})}.
-  \index{compose-substitutions@\texttt{compose-substitutions}} 
+  \index{compose-substitutions@\texttt{compose-substitutions}}
 \end{alignat*}
 Display functions for substitutions are
 \begin{align*}
   &\texttt{(pp-subst \textsl{topsubst})}\index{pp-subst@\texttt{pp-subst}}
   \\
   &\texttt{(display-substitutions \textsl{topsubst})},%
-  \index{display-substitutions@\texttt{display-substitutions}} 
+  \index{display-substitutions@\texttt{display-substitutions}}
   \\
   &\texttt{(substitution-to-string \textsl{subst})}.
-  \index{substitution-to-string@\texttt{substitution-to-string}} 
+  \index{substitution-to-string@\texttt{substitution-to-string}}
 \end{align*}
 We also provide
 \begin{align*}
@@ -5766,7 +5766,7 @@ free variables.
 %% \subsection*{Interface}
 Tests:
 \begin{align*}
-  &\texttt{(atom-form?\ \textsl{formula})},%% 
+  &\texttt{(atom-form?\ \textsl{formula})},%%
   \index{atom-form?@\texttt{atom-form?}}
   \\
   &\texttt{(predicate-form?\ \textsl{formula})},%
@@ -5833,7 +5833,7 @@ We need constructors and accessors for prime formulas
 \end{alignat*}
 We also have constructors for special atomic formulas
 \begin{alignat*}{2}
-  &\texttt{(make-eqd \textsl{term1} \textsl{term2})}%% 
+  &\texttt{(make-eqd \textsl{term1} \textsl{term2})}%%
   \index{make-eqd@\texttt{make-eqd}}
   &\quad& \text{constructor for Leibniz equalities},
   \\
@@ -5860,13 +5860,13 @@ We also have constructors for special atomic formulas
 \end{alignat*}
 We need constructors and accessors for implications
 \begin{alignat*}{2}
-  &\texttt{(make-imp \textsl{premise} \textsl{conclusion})}       
+  &\texttt{(make-imp \textsl{premise} \textsl{conclusion})}
   \index{make-imp@\texttt{make-imp}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(imp-form-to-premise \textsl{imp-formula})}   
+  &\texttt{(imp-form-to-premise \textsl{imp-formula})}
   \index{imp-form-to-premise@\texttt{imp-form-to-premise}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
   &\texttt{(imp-form-to-conclusion \textsl{imp-formula})}
   \index{imp-form-to-conclusion@\texttt{imp-form-to-conclusion}}
@@ -5874,13 +5874,13 @@ We need constructors and accessors for implications
 \end{alignat*}
 non-computational implications ($\tonc$; displayed \verb#-->#)
 \begin{alignat*}{2}
-  &\texttt{(make-impnc \textsl{premise} \textsl{conclusion})}       
+  &\texttt{(make-impnc \textsl{premise} \textsl{conclusion})}
   \index{make-impnc@\texttt{make-impnc}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(impnc-form-to-premise \textsl{impnc-formula})}   
+  &\texttt{(impnc-form-to-premise \textsl{impnc-formula})}
   \index{impnc-form-to-premise@\texttt{impnc-form-to-premise}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
   &\texttt{(impnc-form-to-conclusion \textsl{impnc-formula})}
   \index{impnc-form-to-conclusion@\texttt{impnc-form-to-conclusion}}
@@ -5888,13 +5888,13 @@ non-computational implications ($\tonc$; displayed \verb#-->#)
 \end{alignat*}
 conjunctions
 \begin{alignat*}{2}
-  &\texttt{(make-and \textsl{formula1} \textsl{formula2})}    
+  &\texttt{(make-and \textsl{formula1} \textsl{formula2})}
   \index{make-and@\texttt{make-and}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(and-form-to-left \textsl{and-formula})}   
+  &\texttt{(and-form-to-left \textsl{and-formula})}
   \index{and-form-to-left@\texttt{and-form-to-left}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
   &\texttt{(and-form-to-right \textsl{and-formula})}
   \index{and-form-to-right@\texttt{and-form-to-right}}
@@ -5902,13 +5902,13 @@ conjunctions
 \end{alignat*}
 tensors
 \begin{alignat*}{2}
-  &\texttt{(make-tensor \textsl{formula1} \textsl{formula2})}    
+  &\texttt{(make-tensor \textsl{formula1} \textsl{formula2})}
   \index{make-tensor@\texttt{make-tensor}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(tensor-form-to-left \textsl{tensor-formula})}   
+  &\texttt{(tensor-form-to-left \textsl{tensor-formula})}
   \index{tensor-form-to-left@\texttt{tensor-form-to-left}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
   &\texttt{(tensor-form-to-right \textsl{tensor-formula})}
   \index{tensor-form-to-right@\texttt{tensor-form-to-right}}
@@ -5916,88 +5916,88 @@ tensors
 \end{alignat*}
 universally quantified formulas
 \begin{alignat*}{2}
-  &\texttt{(make-all \textsl{var} \textsl{formula})}           
+  &\texttt{(make-all \textsl{var} \textsl{formula})}
   \index{make-all@\texttt{make-all}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(all-form-to-var \textsl{all-formula})}    
+  &\texttt{(all-form-to-var \textsl{all-formula})}
   \index{all-form-to-var@\texttt{all-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(all-form-to-kernel \textsl{all-formula})} 
+  &\texttt{(all-form-to-kernel \textsl{all-formula})}
   \index{all-form-to-kernel@\texttt{all-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
 \end{alignat*}
 universally quantified formulas without computational content ($\allnc$)
 \begin{alignat*}{2}
-  &\texttt{(make-allnc \textsl{var} \textsl{formula})}           
+  &\texttt{(make-allnc \textsl{var} \textsl{formula})}
   \index{make-allnc@\texttt{make-allnc}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(allnc-form-to-var \textsl{allnc-formula})}    
+  &\texttt{(allnc-form-to-var \textsl{allnc-formula})}
   \index{allnc-form-to-var@\texttt{allnc-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(allnc-form-to-kernel \textsl{allnc-formula})} 
+  &\texttt{(allnc-form-to-kernel \textsl{allnc-formula})}
   \index{allnc-form-to-kernel@\texttt{allnc-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
 \end{alignat*}
 existentially quantified formulas
 \begin{alignat*}{2}
-  &\texttt{(make-ex \textsl{var} \textsl{formula})}           
+  &\texttt{(make-ex \textsl{var} \textsl{formula})}
   \index{make-ex@\texttt{make-ex}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(ex-form-to-var \textsl{ex-formula})}    
+  &\texttt{(ex-form-to-var \textsl{ex-formula})}
   \index{ex-form-to-var@\texttt{ex-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(ex-form-to-kernel \textsl{ex-formula})} 
+  &\texttt{(ex-form-to-kernel \textsl{ex-formula})}
   \index{ex-form-to-kernel@\texttt{ex-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
 \end{alignat*}
 existentially quantified formulas in the sense of classical arithmetic
 \begin{alignat*}{2}
-  &\texttt{(make-exca \textsl{var} \textsl{formula})}           
+  &\texttt{(make-exca \textsl{var} \textsl{formula})}
   \index{make-exca@\texttt{make-exca}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(exca-form-to-var \textsl{exca-formula})}    
+  &\texttt{(exca-form-to-var \textsl{exca-formula})}
   \index{exca-form-to-var@\texttt{exca-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(exca-form-to-kernel \textsl{exca-formula})} 
+  &\texttt{(exca-form-to-kernel \textsl{exca-formula})}
   \index{exca-form-to-kernel@\texttt{exca-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
 \end{alignat*}
 existentially quantified formulas in the sense of classical logic
 \begin{alignat*}{2}
-  &\texttt{(make-excl \textsl{var} \textsl{formula})}           
+  &\texttt{(make-excl \textsl{var} \textsl{formula})}
   \index{make-excl@\texttt{make-excl}}
   &\quad& \text{constructor},
   \\
-  &\texttt{(excl-form-to-var \textsl{excl-formula})}    
+  &\texttt{(excl-form-to-var \textsl{excl-formula})}
   \index{excl-form-to-var@\texttt{excl-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(excl-form-to-kernel \textsl{excl-formula})} 
+  &\texttt{(excl-form-to-kernel \textsl{excl-formula})}
   \index{excl-form-to-kernel@\texttt{excl-form-to-kernel}}
   && \text{accessor},
 \end{alignat*}
 existentially quantified formulas in the sense of classical logic w.r.t.\
 $\allnc$
 \begin{alignat*}{2}
-  &\texttt{(make-excu \textsl{var} \textsl{formula})}           
+  &\texttt{(make-excu \textsl{var} \textsl{formula})}
   \index{make-excu@\texttt{make-excu}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(excu-form-to-var \textsl{excu-formula})}    
+  &\texttt{(excu-form-to-var \textsl{excu-formula})}
   \index{excu-form-to-var@\texttt{excu-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(excu-form-to-kernel \textsl{excu-formula})} 
+  &\texttt{(excu-form-to-kernel \textsl{excu-formula})}
   \index{excu-form-to-kernel@\texttt{excu-form-to-kernel}}
-  && \text{accessor.} 
+  && \text{accessor.}
 \end{alignat*}
 
 By means of inductively defined predicate constants, we have defined
@@ -6015,13 +6015,13 @@ also some mild form of automatization for these computationally
 sensitive forms of logical connectives, which provides for
 computational content only if there is some:
 \begin{alignat*}{2}
-  &\texttt{(make-exi \textsl{var} \textsl{formula})},%% 
+  &\texttt{(make-exi \textsl{var} \textsl{formula})},%%
   \index{make-exi@\texttt{make-exi}}
   \\
-  &\texttt{(make-exnci \textsl{var} \textsl{formula})},%% 
+  &\texttt{(make-exnci \textsl{var} \textsl{formula})},%%
   \index{make-exnci@\texttt{make-exnci}}
   \\
-  &\texttt{(make-andi \textsl{formula1} \textsl{formula2})},%% 
+  &\texttt{(make-andi \textsl{formula1} \textsl{formula2})},%%
   \index{make-andi@\texttt{make-andi}}
   \\
   &\texttt{(make-ori \textsl{formula1} \textsl{formula2})}.
@@ -6038,43 +6038,43 @@ For convenience we have as generalized constructors
   \index{mk-impnc@\texttt{mk-impnc}}
   &\quad&\text{n.c.\ implication},
   \\
-  &\texttt{(mk-neg \textsl{formula1} {\dots})}%% 
+  &\texttt{(mk-neg \textsl{formula1} {\dots})}%%
   \index{mk-neg@\texttt{mk-neg}}
   && \text{negation},
   \\
-  &\texttt{(mk-neg-log \textsl{formula1} {\dots})}%% 
+  &\texttt{(mk-neg-log \textsl{formula1} {\dots})}%%
   \index{mk-neg-log@\texttt{mk-neg-log}}
   && \text{logical negation},
   \\
-  &\texttt{(mk-and \textsl{formula} \textsl{formula1} {\dots})}%% 
+  &\texttt{(mk-and \textsl{formula} \textsl{formula1} {\dots})}%%
   \index{mk-and@\texttt{mk-and}}
   && \text{conjunction},
   \\
-  &\texttt{(mk-tensor \textsl{formula} \textsl{formula1}\! {\dots}\!)}%% 
+  &\texttt{(mk-tensor \textsl{formula} \textsl{formula1}\! {\dots}\!)}%%
   \index{mk-tensor@\texttt{mk-tensor}}
   && \text{tensor},
   \\
-  &\texttt{(mk-all \textsl{var1} {\dots}\ \textsl{formula})}%% 
+  &\texttt{(mk-all \textsl{var1} {\dots}\ \textsl{formula})}%%
   \index{mk-all@\texttt{mk-all}}
   && \text{all-formula},
   \\
-  &\texttt{(mk-allnc \textsl{var1} {\dots}\ \textsl{formula})}%% 
+  &\texttt{(mk-allnc \textsl{var1} {\dots}\ \textsl{formula})}%%
   \index{mk-allnc@\texttt{mk-allnc}}
   && \text{allnc-formula},
   \\
-  &\texttt{(mk-ex \textsl{var1} {\dots}\ \textsl{formula})}%% 
+  &\texttt{(mk-ex \textsl{var1} {\dots}\ \textsl{formula})}%%
   \index{mk-ex@\texttt{mk-ex}}
   && \text{ex-formula},
   \\
-  &\texttt{(mk-exca \textsl{var1} {\dots}\ \textsl{formula})}%% 
+  &\texttt{(mk-exca \textsl{var1} {\dots}\ \textsl{formula})}%%
   \index{mk-exca@\texttt{mk-exca}}
   && \text{classical ex-formula (arithmetical)},
   \\
-  &\texttt{(mk-excl \textsl{var1} {\dots}\ \textsl{formula})}%% 
+  &\texttt{(mk-excl \textsl{var1} {\dots}\ \textsl{formula})}%%
   \index{mk-excl@\texttt{mk-excl}}
   && \text{classical ex-formula (logical)},
   \\
-  &\texttt{(mk-excu \textsl{var1} {\dots}\ \textsl{formula})}%% 
+  &\texttt{(mk-excu \textsl{var1} {\dots}\ \textsl{formula})}%%
   \index{mk-excu@\texttt{mk-excu}}
   && \text{classical ex-formula (logical, n.c.)}.
 \end{alignat*}
@@ -6117,7 +6117,7 @@ connectives.  Occasionally it is convenient to have
 \begin{alignat*}{2}
   &\texttt{(imp-form-to-premises \textsl{formula} <\textsl{n}>)},%
   \index{imp-form-to-premises@\texttt{imp-form-to-premises}}
-  &\quad& \text{all (first $n$) premises} 
+  &\quad& \text{all (first $n$) premises}
   \\
   &\texttt{(imp-form-to-final-conclusion \textsl{formula} <\textsl{n}>)}
   \index{imp-form-to-final-conclusion@\texttt{imp-form-to-final-conclusion}}
@@ -6129,44 +6129,44 @@ removing the first $n$ premises) of the formula (similar for
 It is also useful to have some general procedures working for
 arbitrary binary connectives and quantified formulas.  We provide
 \begin{alignat*}{2}
-  &\texttt{(make-bicon \textsl{bicon} \textsl{formula1} \textsl{formula2})}%% 
+  &\texttt{(make-bicon \textsl{bicon} \textsl{formula1} \textsl{formula2})}%%
   \index{make-bicon@\texttt{make-bicon}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(bicon-form-to-bicon \textsl{bicon-form})}%% 
+  &\texttt{(bicon-form-to-bicon \textsl{bicon-form})}%%
   \index{bicon-form-to-bicon@\texttt{bicon-form-to-bicon}}
   &\quad& \text{accessor},
   \\
-  &\texttt{(bicon-form-to-left \textsl{bicon-form})}%% 
+  &\texttt{(bicon-form-to-left \textsl{bicon-form})}%%
   \index{bicon-form-to-left@\texttt{bicon-form-to-left}}
   &\quad& \text{accessor},
   \\
-  &\texttt{(bicon-form-to-right \textsl{bicon-form})}%% 
+  &\texttt{(bicon-form-to-right \textsl{bicon-form})}%%
   \index{bicon-form-to-right@\texttt{bicon-form-to-right}}
   &\quad& \text{accessor},
   \\
-  &\texttt{(bicon-form?\ \textsl{x})}%% 
+  &\texttt{(bicon-form?\ \textsl{x})}%%
   \index{bicon-form?@\texttt{bicon-form?}}
-  &\quad& \text{test}, 
+  &\quad& \text{test},
   \\
-  &\texttt{(make-quant-formula \textsl{quant} \textsl{var1} \dots\ 
-    \textsl{kernel})}%% 
+  &\texttt{(make-quant-formula \textsl{quant} \textsl{var1} \dots\
+    \textsl{kernel})}%%
   \index{make-quant-formula@\texttt{make-quant-formula}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
   &\texttt{(quant-form-to-quant \textsl{quant-form})}%
   \index{quant-form-to-quant@\texttt{quant-form-to-quant}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(quant-form-to-vars \textsl{quant-form})}%%      
+  &\texttt{(quant-form-to-vars \textsl{quant-form})}%%
   \index{quant-form-to-vars@\texttt{quant-form-to-vars}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
   &\texttt{(quant-form-to-kernel \textsl{quant-form})}%
   \index{quant-form-to-kernel@\texttt{quant-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(quant-form?\ \textsl{x})}%%     
+  &\texttt{(quant-form?\ \textsl{x})}%%
   \index{quant-form?@\texttt{quant-form?}}
   && \text{test}
 \end{alignat*}
@@ -6177,13 +6177,13 @@ and for convenience also
 \end{equation*}
 We also provide
 \begin{align*}
-  &\texttt{(prime-predicate-form?\ \textsl{x})},%% 
+  &\texttt{(prime-predicate-form?\ \textsl{x})},%%
   \index{prime-predicate-form?@\texttt{prime-predicate-form?}}
   \\
-  &\texttt{(prime-form?\ \textsl{x})},%% 
+  &\texttt{(prime-form?\ \textsl{x})},%%
   \index{prime-form?@\texttt{prime-form?}}
   \\
-  &\texttt{(quant-prime-form?\ \textsl{x})},%% 
+  &\texttt{(quant-prime-form?\ \textsl{x})},%%
   \index{quant-prime-form?@\texttt{quant-prime-form?}}
   \\
   &\texttt{(quant-free?\ \textsl{x})}
@@ -6197,7 +6197,7 @@ and for prime, imp, impnc, all or allnc formulas
 To fold and unfold (classical existential quantifiers in) formulas we
 have
 \begin{align*}
-  &\texttt{(fold-formula \textsl{formula})},%% 
+  &\texttt{(fold-formula \textsl{formula})},%%
   \index{fold-formula@\texttt{fold-formula}}
   \\
   &\texttt{(unfold-formula \textsl{formula}).}
@@ -6206,7 +6206,7 @@ have
 To test equality of formulas up to normalization and $\alpha$-equality
 we use
 \begin{align*}
-  &\texttt{(classical-formula=?\ \textsl{formula1} \textsl{formula2})},%% 
+  &\texttt{(classical-formula=?\ \textsl{formula1} \textsl{formula2})},%%
   \index{classical-formula=?@\texttt{classical-formula=?}}
   \\
   &\texttt{(formula=?\ \textsl{formula1} \textsl{formula2})},
@@ -6217,16 +6217,16 @@ where in the first procedure we unfold before comparing.
 
 Morever we need
 \begin{align*}
-  &\texttt{(formula-to-free \textsl{formula})},%% 
+  &\texttt{(formula-to-free \textsl{formula})},%%
   \index{formula-to-free@\texttt{formula-to-free}}
   \\
-  &\texttt{(formula-to-bound \textsl{formula})},%% 
+  &\texttt{(formula-to-bound \textsl{formula})},%%
   \index{formula-to-bound@\texttt{formula-to-bound}}
   \\
-  &\texttt{(formula-to-tvars \textsl{formula})},%% 
+  &\texttt{(formula-to-tvars \textsl{formula})},%%
   \index{formula-to-tvars@\texttt{formula-to-tvars}}
   \\
-  &\texttt{(formula-to-pvars \textsl{formula})},%% 
+  &\texttt{(formula-to-pvars \textsl{formula})},%%
   \index{formula-to-pvars@\texttt{formula-to-pvars}}
   \\
   &\texttt{(ex-free-formula?\ \textsl{formula})},%
@@ -6289,30 +6289,30 @@ We also provide
 
 The constructor and accessors for comprehension terms are
 \begin{alignat*}{2}
-  &\texttt{(make-cterm \textsl{var1} \dots\ \textsl{formula})}%% 
+  &\texttt{(make-cterm \textsl{var1} \dots\ \textsl{formula})}%%
   \index{make-cterm@\texttt{make-cterm}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(cterm-to-vars \textsl{cterm})}       
+  &\texttt{(cterm-to-vars \textsl{cterm})}
   \index{cterm-to-vars@\texttt{cterm-to-vars}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(cterm-to-formula \textsl{cterm})}    
+  &\texttt{(cterm-to-formula \textsl{cterm})}
   \index{cterm-to-formula@\texttt{cterm-to-formula}}
   && \text{accessor}.
 \end{alignat*}
 Moreover we need
 \begin{align*}
-  &\texttt{(cterm-to-arity \textsl{cterm})},%%    
-  \index{cterm-to-arity@\texttt{cterm-to-arity}} 
+  &\texttt{(cterm-to-arity \textsl{cterm})},%%
+  \index{cterm-to-arity@\texttt{cterm-to-arity}}
   \\
-  &\texttt{(cterm-to-free \textsl{cterm})},%%    
-  \index{cterm-to-free@\texttt{cterm-to-free}} 
+  &\texttt{(cterm-to-free \textsl{cterm})},%%
+  \index{cterm-to-free@\texttt{cterm-to-free}}
   \\
-  &\texttt{(cterm-to-bound \textsl{cterm})},%%    
-  \index{cterm-to-bound@\texttt{cterm-to-bound}} 
+  &\texttt{(cterm-to-bound \textsl{cterm})},%%
+  \index{cterm-to-bound@\texttt{cterm-to-bound}}
   \\
-  &\texttt{(fold-cterm \textsl{cterm})},%% 
+  &\texttt{(fold-cterm \textsl{cterm})},%%
   \index{fold-cterm@\texttt{fold-cterm}}
   \\
   &\texttt{(unfold-cterm \textsl{cterm})},%
@@ -6337,10 +6337,10 @@ disjunction.  To \inquotes{undecorate} formulas and comprehension
 terms we use
 \begin{align*}
   &\texttt{(formula-to-undec-formula \textsl{formula} \textsl{id-deco?})},%
-  \index{formula-to-undec-formula@\texttt{formula-to-undec-cterm}} 
+  \index{formula-to-undec-formula@\texttt{formula-to-undec-cterm}}
   \\
   &\texttt{(cterm-to-undec-cterm \textsl{cterm} \textsl{id-deco?})}.%
-  \index{cterm-to-undec-cterm@\texttt{cterm-to-undec-cterm}} 
+  \index{cterm-to-undec-cterm@\texttt{cterm-to-undec-cterm}}
 \end{align*}
 Both change all occurrences of $\to$, $\forall$ into $\tonc$,
 $\allnc$, and in case \texttt{id-deco?}\ is true (\texttt{id} for
@@ -6455,16 +6455,16 @@ object and predicate variables in a formula or a comprehension
 term:
 \begin{alignat*}{2}
   &\texttt{(formula-substitute \textsl{formula} \textsl{topsubst})},%
-  \index{formula-substitute@\texttt{formula-substitute}} 
+  \index{formula-substitute@\texttt{formula-substitute}}
   \\
   &\texttt{(formula-subst \textsl{formula} \textsl{arg} \textsl{val})},%
-  \index{formula-subst@\texttt{formula-subst}} 
+  \index{formula-subst@\texttt{formula-subst}}
   \\
   &\texttt{(cterm-substitute \textsl{cterm} \textsl{topsubst})},%
-  \index{cterm-substitute@\texttt{cterm-substitute}} 
+  \index{cterm-substitute@\texttt{cterm-substitute}}
   \\
   &\texttt{(cterm-subst \textsl{cterm} \textsl{arg} \textsl{val})}.%
-  \index{cterm-subst@\texttt{cterm-subst}} 
+  \index{cterm-subst@\texttt{cterm-subst}}
 \end{alignat*}
 In a simultaneous substitution topsubst for type, object and predicate
 variables in a formula or a comprehension term it is allowed that the
@@ -6493,7 +6493,7 @@ As display functions for substitutions we again use
   &\texttt{(pp-subst \textsl{topsubst})}\index{pp-subst@\texttt{pp-subst}}
   \\
   &\texttt{(display-substitutions \textsl{topsubst})}.%
-  \index{display-substitutions@\texttt{display-substitutions}} 
+  \index{display-substitutions@\texttt{display-substitutions}}
 \end{align*}
 
 \section{Assumption variables}
@@ -6515,25 +6515,25 @@ We need a constructor, accessors and tests for assumption variables.
 \begin{alignat*}{2}
   &\texttt{(make-avar \textsl{formula} \textsl{index} \textsl{name})}%
   \index{make-avar@\texttt{make-avar}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(avar-to-formula \textsl{avar})}%% 
+  &\texttt{(avar-to-formula \textsl{avar})}%%
   \index{avar-to-formula@\texttt{avar-to-formula}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(avar-to-index \textsl{avar})}   
+  &\texttt{(avar-to-index \textsl{avar})}
   \index{avar-to-index@\texttt{avar-to-index}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(avar-to-name \textsl{avar})}    
+  &\texttt{(avar-to-name \textsl{avar})}
   \index{avar-to-name@\texttt{avar-to-name}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(avar?\ \textsl{x})}             
+  &\texttt{(avar?\ \textsl{x})}
   \index{avar?@\texttt{avar?}}
-  && \text{test}, 
+  && \text{test},
   \\
-  &\texttt{(avar=?\ \textsl{avar1} \textsl{avar2})}  
+  &\texttt{(avar=?\ \textsl{avar1} \textsl{avar2})}
   \index{avar=?@\texttt{avar=?}}
   && \text{test}.
 \end{alignat*}
@@ -6550,7 +6550,7 @@ identifiers.  For a full test one can use
   \index{avar-full=?@\texttt{avar-full=?}}
 \end{equation*}
 
-For convenience we have the function 
+For convenience we have the function
 \begin{alignat*}{2}
   &\texttt{(mk-avar \textsl{formula} <\textsl{index}> <\textsl{name}>)}.%
   \index{mk-avar@\texttt{mk-avar}}
@@ -6612,16 +6612,16 @@ formula.  Note that free variables may again occur in the assumed
 formula.  For example, assumption constants axiomatizing the
 existential quantifier will internally have the form
 \begin{alignat*}{2}
-  &\texttt{(aconst ExIntro $\forall_{\hat{x}^{\alpha}}(P\hat{x} \to 
+  &\texttt{(aconst ExIntro $\forall_{\hat{x}^{\alpha}}(P\hat{x} \to
     \ex_{\hat{x}^{\alpha}} P\hat{x})$
     $(\alpha \mapsto \tau, P^{(\alpha)} \mapsto
     \set{\hat{z}^{\tau}}{A})$)},%
   \index{ExIntro@\texttt{ExIntro}}
   \\
-  &\texttt{(aconst ExElim $\ex_{\hat{x}^{\alpha}} P\hat{x} \to 
+  &\texttt{(aconst ExElim $\ex_{\hat{x}^{\alpha}} P\hat{x} \to
     \forall_{\hat{x}^{\alpha}}( P\hat{x}
     \to Q) \to Q$}
-  \\ 
+  \\
   &\qquad\qquad\qquad\qquad \texttt{$(\alpha \mapsto \tau, P^{(\alpha)}
     \mapsto \set{\hat{z}^{\tau}}{A}, Q \mapsto \set{}{B})$)}.%
   \index{ExElim@\texttt{ExElim}}
@@ -6631,31 +6631,31 @@ Interface for general assumption constants:
   &\texttt{(make-aconst \textsl{name} \textsl{kind} \textsl{uninst-formula}
     \textsl{tpsubst}}
   \\
-  &\qquad \texttt{\textsl{repro-data1} \dots)}       
+  &\qquad \texttt{\textsl{repro-data1} \dots)}
   \index{make-aconst@\texttt{make-aconst}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(aconst-to-name \textsl{aconst})}       
+  &\texttt{(aconst-to-name \textsl{aconst})}
   \index{aconst-to-name@\texttt{aconst-to-name}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(aconst-to-kind \textsl{aconst})}       
+  &\texttt{(aconst-to-kind \textsl{aconst})}
   \index{aconst-to-kind@\texttt{aconst-to-kind}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(aconst-to-uninst-formula \textsl{aconst})}       
+  &\texttt{(aconst-to-uninst-formula \textsl{aconst})}
   \index{aconst-to-uninst-formula@\texttt{aconst-to-uninst-formula}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(aconst-to-tpsubst \textsl{aconst})}       
+  &\texttt{(aconst-to-tpsubst \textsl{aconst})}
   \index{aconst-to-tpsubst@\texttt{aconst-to-tpsubst}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(aconst-to-repro-data \textsl{aconst})}       
+  &\texttt{(aconst-to-repro-data \textsl{aconst})}
   \index{aconst-to-repro-data@\texttt{aconst-to-repro-data}}
   && \text{accessor},
   \\
-  &\texttt{(aconst-form?\ \textsl{x})}                     
+  &\texttt{(aconst-form?\ \textsl{x})}
   \index{aconst-form?@\texttt{aconst-form?}}
   && \text{test}.
 \end{alignat*}
@@ -6665,7 +6665,7 @@ generalized.  The latter can be obtained as free variables in
 inst-formula.  We therefore provide
 \begin{alignat*}{2}
   &\texttt{(aconst-to-inst-formula \textsl{aconst})},%
-  \index{aconst-to-inst-formula@\texttt{aconst-to-inst-formula}} 
+  \index{aconst-to-inst-formula@\texttt{aconst-to-inst-formula}}
   \\
   &\texttt{(aconst-to-formula \textsl{aconst})}.%
   \index{aconst-to-formula@\texttt{aconst-to-formula}}
@@ -6682,7 +6682,7 @@ However, to avoid recomputations we carry them along.
 We also provide
 \begin{alignat*}{2}
   &\texttt{(check-aconst \textsl{x})},%
-  \index{check-aconst@\texttt{check-aconst}} 
+  \index{check-aconst@\texttt{check-aconst}}
   \\
   &\texttt{(aconst=?\ \textsl{aconst1} \textsl{aconst2})},%
   \index{aconst=?@\texttt{aconst=?}}
@@ -6704,7 +6704,7 @@ free type parameters and (ii) make use of convenient abbreviations, we
 need to allow corresponding additional axioms.
 
 Recall that we require nullary constructors in every free algebra;
-hence, it has a \inquotes{canonical inhabitant}%% 
+hence, it has a \inquotes{canonical inhabitant}%%
 \index{canonical inhabitant}\index{inhabitant!canonical}.  Since we
 allow free type parameters $\alpha$, we provide a constant
 $\Inhab_{\alpha}$ intended to denote the canonical inhabitant of the
@@ -6779,7 +6779,7 @@ case.  Similarly, $(\mathtt{elim}\ \mathtt{Hyp})$ with a hypothesis
 $\mathtt{Hyp} \colon \GTotal r$ and a goal $A(r)$ uses the elimination
 axiom
 \begin{equation*}
-  \allnc_{\hat{n}}(\GTotal \hat{n} \to A(0) \to 
+  \allnc_{\hat{n}}(\GTotal \hat{n} \to A(0) \to
   \allnc_{\hat{n}}(A(\hat{n}) \to A(\suc \hat{n})) \to A(\hat{n}))
 \end{equation*}
 with the term $r$, the hypothesis $\mathtt{Hyp}$ and two new goals for
@@ -6802,10 +6802,10 @@ we have the \emph{step formula}
     y_{m+1}^{\vec{\sigma}_1 \to \iota_{j_1}},\dots,
     y_{m+n}^{\vec{\sigma}_n \to \iota_{j_n}}}(
   &\forall_{\vec{x}^{\vec{\sigma}_1}}\,
-  P_{j_1}(y_{m+1}\vec{x}\,) \to \dots \to 
+  P_{j_1}(y_{m+1}\vec{x}\,) \to \dots \to
   \\
   &\forall_{\vec{x}^{\vec{\sigma}_n}}\,
-  P_{j_n}(y_{m+n}\vec{x}\,) \to 
+  P_{j_n}(y_{m+n}\vec{x}\,) \to
   \\
   &P_j(\constr_i^{\vec{\iota}}(\vec{y}\,))).
 \end{align*}
@@ -6850,11 +6850,11 @@ given: the $\forall_{x^{\typeTree}} \dots$ is right there, and for
 \texttt{tlist} we can look up the simultaneously defined algebras.  --
 The internal representation is
 \begin{alignat*}{2}
-  &\texttt{(aconst Ind $E_1 \to E_2 \to E_3 \to E_4 \to 
+  &\texttt{(aconst Ind $E_1 \to E_2 \to E_3 \to E_4 \to
     \forall_{x_1^{\typeTree}} P_1(x_1)$}
   \\
-  &\qquad \qquad \qquad 
-  \texttt{$(P_1 \mapsto \set{x_1^{\typeTree}}{A_1}, 
+  &\qquad \qquad \qquad
+  \texttt{$(P_1 \mapsto \set{x_1^{\typeTree}}{A_1},
     P_2 \mapsto \set{x_2^{\typeTlist}}{A_2})$)}.%
   \index{Ind@\texttt{Ind}}
 \end{alignat*}
@@ -6862,9 +6862,9 @@ The internal representation is
 A simplified version (without the recursive calls) of the induction
 axiom is the cases axiom
 \begin{alignat*}{2}
-  &\texttt{(aconst Cases $E_1 \to E_2 \to 
-    \forall_{x_1^{\typeTree}} P_1(x_1)$ 
-    $(P_1 \mapsto \set{x_1^{\typeTree}}{A_1})$)}%% 
+  &\texttt{(aconst Cases $E_1 \to E_2 \to
+    \forall_{x_1^{\typeTree}} P_1(x_1)$
+    $(P_1 \mapsto \set{x_1^{\typeTree}}{A_1})$)}%%
   \index{Cases@\texttt{Cases}}
   \\
   \intertext{with}
@@ -6875,12 +6875,12 @@ axiom is the cases axiom
 
 The assumption constants corresponding to these axioms are generated by
 \begin{alignat*}{2}
-  &\texttt{(all-formulas-to-ind-aconst \textsl{all-formula1} \dots)}%% 
-  \index{all-formulas-to-ind-aconst@\texttt{all-formulas-to-ind-aconst}} 
+  &\texttt{(all-formulas-to-ind-aconst \textsl{all-formula1} \dots)}%%
+  \index{all-formulas-to-ind-aconst@\texttt{all-formulas-to-ind-aconst}}
   &\quad&\text{for \texttt{Ind}\index{Ind@\texttt{Ind}}}
   \\
-  &\texttt{(all-formula-to-cases-aconst \textsl{all-formula})}%% 
-  \index{all-formula-to-cases-aconst@\texttt{all-formula-to-cases-aconst}} 
+  &\texttt{(all-formula-to-cases-aconst \textsl{all-formula})}%%
+  \index{all-formula-to-cases-aconst@\texttt{all-formula-to-cases-aconst}}
   &\quad&\text{for \texttt{Cases}\index{Cases@\texttt{Cases}}}.
 \end{alignat*}
 \texttt{all-formula-and-number-to-gind-aconst}%
@@ -6950,7 +6950,7 @@ Theorems are normally created after successfully completing an
 interactive proof.  One may also create a theorem from an explicitly
 given (closed) proof.  The command is
 \begin{alignat*}{2}
-  &\texttt{(add-theorem \textsl{string} .\ \textsl{opt-proof})}%%    
+  &\texttt{(add-theorem \textsl{string} .\ \textsl{opt-proof})}%%
   \index{add-theorem@\texttt{add-theorem}}
   &\quad&\text{or \texttt{save}\index{save@\texttt{save}}}.
 \end{alignat*}
@@ -6958,7 +6958,7 @@ From a theorem name we can access its aconst, its (original) proof and
 also its instantiated proof by
 \begin{align*}
   &\texttt{(theorem-name-to-aconst \textsl{string})},%
-  \index{theorem-name-to-aconst@\texttt{theorem-name-to-aconst}} 
+  \index{theorem-name-to-aconst@\texttt{theorem-name-to-aconst}}
   \\
   &\texttt{(theorem-name-to-proof \textsl{string})},%
   \index{theorem-name-to-proof@\texttt{theorem-name-to-proof}}
@@ -7014,14 +7014,14 @@ predicate variable substitution $P^{(\alpha)} \mapsto
   \\
   &\qquad \qquad \qquad\texttt{$
     \forall_f^{\alpha \to \typeN}(
-    \forall_{x^{\alpha}}(\forall_y(f y {<} f x  \to P y) \to 
+    \forall_{x^{\alpha}}(\forall_y(f y {<} f x  \to P y) \to
     P x) \to
     \forall_x P x)$}
   \\
-  &\qquad \qquad \qquad 
-  \texttt{$(\alpha \mapsto \rho, 
+  &\qquad \qquad \qquad
+  \texttt{$(\alpha \mapsto \rho,
     f^{\alpha \to \typeN} \mapsto g^{\rho \to \typeN},
-    P^{(\alpha)} \mapsto \set{\hat{z}^{\rho}}{A})$).} 
+    P^{(\alpha)} \mapsto \set{\hat{z}^{\rho}}{A})$).}
   \index{Cvind-with-measure-11@\texttt{Cvind-with-measure-11}}
   \\
   &\texttt{(aconst Minpr-with-measure-l11}
@@ -7032,9 +7032,9 @@ predicate variable substitution $P^{(\alpha)} \mapsto
     \forall_y(f y {<} f x  \to P y \to \falsum)))$}
   \\
   &\qquad \qquad \qquad
-  \texttt{$(\alpha \mapsto \rho, 
+  \texttt{$(\alpha \mapsto \rho,
     f^{\alpha \to \typeN} \mapsto g^{\rho \to \typeN},
-    P^{(\alpha)} \mapsto \set{\hat{z}^{\rho}}{A})$).} 
+    P^{(\alpha)} \mapsto \set{\hat{z}^{\rho}}{A})$).}
   \index{Minpr-with-measure-l11@\texttt{Minpr-with-measure-l11}}
 \end{alignat*}
 Here $\excl$ is the classical existential quantifier defined by
@@ -7048,7 +7048,7 @@ more such parameters.
 
 When dealing with classical logic it will be useful to have
 \begin{alignat*}{2}
-  &(P \to P_1) \to 
+  &(P \to P_1) \to
   ((P \to \falsum) \to P_1) \to P_1
   &\quad&\text{\texttt{CasesLog}.%
     \index{CasesLog@\texttt{CasesLog}}}
@@ -7060,7 +7060,7 @@ The assumption constants corresponding to these theorems are
 generated by
 \begin{alignat*}{2}
   &\texttt{(theorem-name-to-aconst \textsl{name})}.%
-  \index{theorem-name-to-aconst@\texttt{theorem-name-to-aconst}} 
+  \index{theorem-name-to-aconst@\texttt{theorem-name-to-aconst}}
 \end{alignat*}
 
 \subsection{Global assumptions}
@@ -7075,7 +7075,7 @@ presently.  Global assumptions are added, removed and displayed by
     \index{aga@\texttt{aga}})},
   \\
   &\texttt{(remove-global-assumption \textsl{string1} \dots)},%
-  \index{remove-global-assumption@\texttt{remove-global-assumption}} 
+  \index{remove-global-assumption@\texttt{remove-global-assumption}}
   \\
   &\texttt{(display-global-assumptions \textsl{string1} \dots)}.%
   \index{display-global-assumptions@\texttt{display-global-assumptions}}
@@ -7105,7 +7105,7 @@ The assumption constants corresponding to these global assumptions are
 generated by
 \begin{alignat*}{2}
   &\texttt{(global-assumption-name-to-aconst \textsl{name})}.%
-  \index{global-assumption-name-to-aconst@\texttt{global-ass{\dots}-name-to-aconst}} 
+  \index{global-assumption-name-to-aconst@\texttt{global-ass{\dots}-name-to-aconst}}
 \end{alignat*}
 
 It is a practical problem to find existing theorems or global
@@ -7132,29 +7132,29 @@ list of object and assumption variables.
 \subsection{Constructors and accessors}
 We have constructors, accessors and tests for assumption variables
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-avar-form \textsl{avar})}        
+  &\texttt{(make-proof-in-avar-form \textsl{avar})}
   \index{make-proof-in-avar-form@\texttt{make-proof-in-avar-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-avar-form-to-avar \textsl{proof})}    
+  &\texttt{(proof-in-avar-form-to-avar \textsl{proof})}
   \index{proof-in-avar-form-to-avar@\texttt{proof-in-avar-form-to-avar}}
   && \text{accessor},
   \\
-  &\texttt{(proof-in-avar-form?\ \textsl{proof})}          
+  &\texttt{(proof-in-avar-form?\ \textsl{proof})}
   \index{proof-in-avar-form?@\texttt{proof-in-avar-form?}}
   && \text{test},
 \end{alignat*}
 for assumption constants
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-aconst-form \textsl{aconst})}     
+  &\texttt{(make-proof-in-aconst-form \textsl{aconst})}
   \index{make-proof-in-aconst-form@\texttt{make-proof-in-aconst-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-aconst-form-to-aconst \textsl{proof})}%% 
+  &\texttt{(proof-in-aconst-form-to-aconst \textsl{proof})}%%
   \index{proof-in-aconst-form-to-aconst@\texttt{proof-in-aconst-form-to-aconst}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-aconst-form?\ \textsl{proof})}         
+  &\texttt{(proof-in-aconst-form?\ \textsl{proof})}
   \index{proof-in-aconst-form?@\texttt{proof-in-aconst-form?}}
   && \text{test},
 \end{alignat*}
@@ -7162,9 +7162,9 @@ for implication introduction
 \begin{alignat*}{2}
   &\texttt{(make-proof-in-imp-intro-form \textsl{avar} \textsl{proof})}%
   \index{make-proof-in-imp-intro-form@\texttt{make-proof-in-imp-intro-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-imp-intro-form-to-avar \textsl{proof})}  
+  &\texttt{(proof-in-imp-intro-form-to-avar \textsl{proof})}
   \index{proof-in-imp-intro-form-to-avar@\texttt{proof-in-imp-intro-form-to-avar}}
   &&\text{accessor},
   \\
@@ -7172,35 +7172,35 @@ for implication introduction
   \index{proof-in-imp-intro-form-to-kernel@\texttt{pr{\dots}-imp-intro-form-to-kernel}}
   &&\text{accessor},
   \\
-  &\texttt{(proof-in-imp-intro-form?\ \textsl{proof})}        
+  &\texttt{(proof-in-imp-intro-form?\ \textsl{proof})}
   \index{proof-in-imp-intro-form?@\texttt{proof-in-imp-intro-form?}}
   && \text{test},
 \end{alignat*}
 for implication elimination
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-imp-elim-form \textsl{proof1} \textsl{proof2})}%% 
+  &\texttt{(make-proof-in-imp-elim-form \textsl{proof1} \textsl{proof2})}%%
   \index{make-proof-in-imp-elim-form@\texttt{make-proof-in-imp-elim-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-imp-elim-form-to-op \textsl{proof})}   
+  &\texttt{(proof-in-imp-elim-form-to-op \textsl{proof})}
   \index{proof-in-imp-elim-form-to-op@\texttt{proof-in-imp-elim-form-to-op}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-imp-elim-form-to-arg \textsl{proof})}  
+  &\texttt{(proof-in-imp-elim-form-to-arg \textsl{proof})}
   \index{proof-in-imp-elim-form-to-arg@\texttt{proof-in-imp-elim-form-to-arg}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-imp-elim-form?\ \textsl{proof})}       
+  &\texttt{(proof-in-imp-elim-form?\ \textsl{proof})}
   \index{proof-in-imp-elim-form?@\texttt{proof-in-imp-elim-form?}}
   && \text{test},
 \end{alignat*}
 for and introduction
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-and-intro-form \textsl{proof1} \textsl{proof2})}  
+  &\texttt{(make-proof-in-and-intro-form \textsl{proof1} \textsl{proof2})}
   \index{make-proof-in-and-intro-form@\texttt{make-proof-in-and-intro-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-and-intro-form-to-left \textsl{proof})}%% 
+  &\texttt{(proof-in-and-intro-form-to-left \textsl{proof})}%%
   \index{proof-in-and-intro-form-to-left@\texttt{pr{\dots}and-intro-form-to-left}}
   &&\text{accessor},
   \\
@@ -7208,33 +7208,33 @@ for and introduction
   \index{proof-in-and-intro-form-to-right@\texttt{pr{\dots}and-intro-form-to-right}}
   &&\text{accessor},
   \\
-  &\texttt{(proof-in-and-intro-form?\ \textsl{proof})}       
+  &\texttt{(proof-in-and-intro-form?\ \textsl{proof})}
   \index{proof-in-and-intro-form?@\texttt{proof-in-and-intro-form?}}
   && \text{test},
 \end{alignat*}
 for and elimination
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-and-elim-left-form \textsl{proof})}        
+  &\texttt{(make-proof-in-and-elim-left-form \textsl{proof})}
   \index{make-proof-in-and-elim-left-form@\texttt{make-proof-in-and-elim-l{\dots}}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
   &\texttt{(make-proof-in-and-elim-right-form \textsl{proof})}
   \index{make-proof-in-and-elim-right-form@\texttt{make-proof-in-and-elim-r{\dots}}}
-  && \text{constructor}, 
+  && \text{constructor},
   \\
-  &\texttt{(proof-in-and-elim-left-form-to-kernel \textsl{proof})}  
+  &\texttt{(proof-in-and-elim-left-form-to-kernel \textsl{proof})}
   \index{proof-in-and-elim-left-form-to-kernel@\texttt{proof-in-and-elim{\dots}}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-and-elim-right-form-to-kernel \textsl{proof})}%% 
+  &\texttt{(proof-in-and-elim-right-form-to-kernel \textsl{proof})}%%
   \index{proof-in-and-elim-right-form-to-kernel@\texttt{proof-in-and-elim{\dots}}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-and-elim-left-form?\ \textsl{proof})}          
+  &\texttt{(proof-in-and-elim-left-form?\ \textsl{proof})}
   \index{proof-in-and-elim-left-form?@\texttt{proof-in-and-elim-left-form?}}
-  && \text{test}, 
+  && \text{test},
   \\
-  &\texttt{(proof-in-and-elim-right-form?\ \textsl{proof})}         
+  &\texttt{(proof-in-and-elim-right-form?\ \textsl{proof})}
   \index{proof-in-and-elim-right-form?@\texttt{proof-in-and-elim-right-form?}}
   && \text{test},
 \end{alignat*}
@@ -7242,57 +7242,57 @@ for all introduction
 \begin{alignat*}{2}
   &\texttt{(make-proof-in-all-intro-form \textsl{var} \textsl{proof})}
   \index{make-proof-in-all-intro-form@\texttt{make-proof-in-all-intro-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-all-intro-form-to-var \textsl{proof})}      
+  &\texttt{(proof-in-all-intro-form-to-var \textsl{proof})}
   \index{proof-in-all-intro-form-to-var@\texttt{pr{\dots}all-intro-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-all-intro-form-to-kernel \textsl{proof})}   
+  &\texttt{(proof-in-all-intro-form-to-kernel \textsl{proof})}
   \index{proof-in-all-intro-form-to-kernel@\texttt{pr{\dots}all-intro-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-all-intro-form?\ \textsl{proof})}           
+  &\texttt{(proof-in-all-intro-form?\ \textsl{proof})}
   \index{proof-in-all-intro-form?@\texttt{proof-in-all-intro-form?}}
   && \text{test},
 \end{alignat*}
 for all elimination
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-all-elim-form \textsl{proof} \textsl{term})}%% 
+  &\texttt{(make-proof-in-all-elim-form \textsl{proof} \textsl{term})}%%
   \index{make-proof-in-all-elim-form@\texttt{make-proof-in-all-elim-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-all-elim-form-to-op \textsl{proof})}        
+  &\texttt{(proof-in-all-elim-form-to-op \textsl{proof})}
   \index{proof-in-all-elim-form-to-op@\texttt{proof-in-all-elim-form-to-op}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-all-elim-form-to-arg \textsl{proof})}       
+  &\texttt{(proof-in-all-elim-form-to-arg \textsl{proof})}
   \index{proof-in-all-elim-form-to-arg@\texttt{proof-in-all-elim-form-to-arg}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-all-elim-form?\ \textsl{proof})}            
+  &\texttt{(proof-in-all-elim-form?\ \textsl{proof})}
   \index{proof-in-all-elim-form?@\texttt{proof-in-all-elim-form?}}
   && \text{test},
 \end{alignat*}
 and for \texttt{cases}-constructs
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-cases-form \textsl{test} \textsl{alt1} \dots)}       
+  &\texttt{(make-proof-in-cases-form \textsl{test} \textsl{alt1} \dots)}
   \index{make-proof-in-cases-form@\texttt{make-proof-in-cases-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-cases-form-to-test \textsl{proof})}         
+  &\texttt{(proof-in-cases-form-to-test \textsl{proof})}
   \index{proof-in-cases-form-to-test@\texttt{proof-in-cases-form-to-test}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-cases-form-to-alts \textsl{proof})}         
+  &\texttt{(proof-in-cases-form-to-alts \textsl{proof})}
   \index{proof-in-cases-form-to-alts@\texttt{proof-in-cases-form-to-alts}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-cases-form-to-rest \textsl{proof})}         
+  &\texttt{(proof-in-cases-form-to-rest \textsl{proof})}
   \index{proof-in-cases-form-to-rest@\texttt{proof-in-cases-form-to-rest}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-cases-form?\ \textsl{proof})}               
+  &\texttt{(proof-in-cases-form?\ \textsl{proof})}
   \index{proof-in-cases-form?@\texttt{proof-in-cases-form?}}
   && \text{test}.
 \end{alignat*}
@@ -7319,7 +7319,7 @@ related functions are
   &\texttt{(proof-in-elim-form-to-final-op \textsl{proof})},%
   \index{proof-in-elim-form-to-final-op@\texttt{pr{\dots}elim-form-to-final-op}}
   \\
-  &\texttt{(proof-in-elim-form-to-args \textsl{proof}).}%% 
+  &\texttt{(proof-in-elim-form-to-args \textsl{proof}).}%%
   \index{proof-in-elim-form-to-args@\texttt{proof-in-elim-form-to-args}}
 \end{alignat*}
 
@@ -7350,9 +7350,9 @@ For n.c.\ implication introduction
 \begin{alignat*}{2}
   &\texttt{(make-proof-in-impnc-intro-form \textsl{avar} \textsl{proof})}
   \index{make-proof-in-impnc-intro-form@\texttt{make-proof-in-impnc-intro-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-impnc-intro-form-to-avar \textsl{proof})}  
+  &\texttt{(proof-in-impnc-intro-form-to-avar \textsl{proof})}
   \index{proof-in-impnc-intro-form-to-avar@\texttt{proof-in-impnc-intro-form-to-avar}}
   &&\text{accessor},
   \\
@@ -7360,25 +7360,25 @@ For n.c.\ implication introduction
   \index{proof-in-impnc-intro-form-to-kernel@\texttt{pr{\dots}-impnc-intro-form-to-kernel}}
   &&\text{accessor},
   \\
-  &\texttt{(proof-in-impnc-intro-form?\ \textsl{proof})}        
+  &\texttt{(proof-in-impnc-intro-form?\ \textsl{proof})}
   \index{proof-in-impnc-intro-form?@\texttt{proof-in-impnc-intro-form?}}
   && \text{test},
 \end{alignat*}
 for n.c.\ implication elimination
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-impnc-elim-form \textsl{proof1} \textsl{proof2})}%% 
+  &\texttt{(make-proof-in-impnc-elim-form \textsl{proof1} \textsl{proof2})}%%
   \index{make-proof-in-impnc-elim-form@\texttt{make-proof-in-impnc-elim-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-impnc-elim-form-to-op \textsl{proof})}   
+  &\texttt{(proof-in-impnc-elim-form-to-op \textsl{proof})}
   \index{proof-in-impnc-elim-form-to-op@\texttt{proof-in-impnc-elim-form-to-op}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-impnc-elim-form-to-arg \textsl{proof})}  
+  &\texttt{(proof-in-impnc-elim-form-to-arg \textsl{proof})}
   \index{proof-in-impnc-elim-form-to-arg@\texttt{proof-in-impnc-elim-form-to-arg}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-impnc-elim-form?\ \textsl{proof})}       
+  &\texttt{(proof-in-impnc-elim-form?\ \textsl{proof})}
   \index{proof-in-impnc-elim-form?@\texttt{proof-in-impnc-elim-form?}}
   && \text{test},
 \end{alignat*}
@@ -7386,35 +7386,35 @@ for n.c.\ all introduction
 \begin{alignat*}{2}
   &\texttt{(make-proof-in-allnc-intro-form \textsl{var} \textsl{proof})}
   \index{make-proof-in-allnc-intro-form@\texttt{make-proof-in-allnc-intro-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-allnc-intro-form-to-var \textsl{proof})}      
+  &\texttt{(proof-in-allnc-intro-form-to-var \textsl{proof})}
   \index{proof-in-allnc-intro-form-to-var@\texttt{pr{\dots}allnc-intro-form-to-var}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-allnc-intro-form-to-kernel \textsl{proof})}   
+  &\texttt{(proof-in-allnc-intro-form-to-kernel \textsl{proof})}
   \index{proof-in-allnc-intro-form-to-kernel@\texttt{pr{\dots}allnc-intro-form-to-kernel}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-allnc-intro-form?\ \textsl{proof})}           
+  &\texttt{(proof-in-allnc-intro-form?\ \textsl{proof})}
   \index{proof-in-allnc-intro-form?@\texttt{proof-in-allnc-intro-form?}}
   && \text{test},
 \end{alignat*}
 for n.c.\ all elimination
 \begin{alignat*}{2}
-  &\texttt{(make-proof-in-allnc-elim-form \textsl{proof} \textsl{term})}%% 
+  &\texttt{(make-proof-in-allnc-elim-form \textsl{proof} \textsl{term})}%%
   \index{make-proof-in-allnc-elim-form@\texttt{make-proof-in-allnc-elim-form}}
-  &\quad& \text{constructor}, 
+  &\quad& \text{constructor},
   \\
-  &\texttt{(proof-in-allnc-elim-form-to-op \textsl{proof})}        
+  &\texttt{(proof-in-allnc-elim-form-to-op \textsl{proof})}
   \index{proof-in-allnc-elim-form-to-op@\texttt{proof-in-allnc-elim-form-to-op}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-allnc-elim-form-to-arg \textsl{proof})}       
+  &\texttt{(proof-in-allnc-elim-form-to-arg \textsl{proof})}
   \index{proof-in-allnc-elim-form-to-arg@\texttt{proof-in-allnc-elim-form-to-arg}}
-  && \text{accessor}, 
+  && \text{accessor},
   \\
-  &\texttt{(proof-in-allnc-elim-form?\ \textsl{proof})}            
+  &\texttt{(proof-in-allnc-elim-form?\ \textsl{proof})}
   \index{proof-in-allnc-elim-form?@\texttt{proof-in-allnc-elim-form?}}
   && \text{test}.
 \end{alignat*}
@@ -7540,7 +7540,7 @@ show that such an optimal decoration exists, and give an algorithm to
 construct it.
 
 We denote the \emph{sequent} of a proof $M$ by $\Seq(M)$; it consists
-of its \emph{context} and \emph{end formula}.  
+of its \emph{context} and \emph{end formula}.
 
 The \emph{proof pattern}%
 \index{proof pattern} $\UP(M)$ of a proof $M$ is the result of marking
@@ -7600,7 +7600,7 @@ extends the given extension of its sequent.
     extension of $\Seq(U)$ has the property that $M$ also extends
     $M_{\infty}$.
   \end{enumeratea}
-\end{theorem*} 
+\end{theorem*}
 
 The main function for decorating is
 \begin{align*}
@@ -7687,7 +7687,7 @@ ex-elim axiom such that the conclusion is atomic or existential.
 
 We need the following functions.
 \begin{alignat*}{2}
-  &\texttt{(proof-and-genavar-var-alist-to-pterm \textsl{pvar-to-tvar}  
+  &\texttt{(proof-and-genavar-var-alist-to-pterm \textsl{pvar-to-tvar}
     \textsl{proof})}
   \\
   &\texttt{(npterm-and-var-genavar-alist-and-formula-to-proof}
@@ -7981,10 +7981,10 @@ We define \emph{spreading} formulas\index{formula!spreading} $S$,
 formulas\index{formula!isolating} $I$ inductively.
 \begin{alignat*}{2}
   S &\BNFdef \falsum \BNFor R \vec{t} \BNFor X \vec{t} \BNFor S \land S
-  \BNFor I \to S \BNFor \forall_{x} S, 
+  \BNFor I \to S \BNFor \forall_{x} S,
   \\
-  W &\BNFdef \falsum \BNFor X \vec{t} \BNFor W \land W \BNFor 
-  S \to W \BNFor \forall_{x} W, 
+  W &\BNFdef \falsum \BNFor X \vec{t} \BNFor W \land W \BNFor
+  S \to W \BNFor \forall_{x} W,
   \\
   I &\BNFdef R \vec{t} \BNFor W \BNFor I \land I.
 \end{alignat*}
@@ -8015,7 +8015,7 @@ isolating) formulas.
   \falsum^g$.  Take $\lambda u^{\falsum} u$.
 
   \emph{Case} $R \vec{t} \in \C{S}$.  We must show $\vdash R \vec{t} \to
-  \neg \neg R \vec{t}$.  Take $\lambda u^{R \vec{t}} \lambda v^{\neg 
+  \neg \neg R \vec{t}$.  Take $\lambda u^{R \vec{t}} \lambda v^{\neg
     R \vec{t}}.vu$.
 
   \emph{Case} $X \vec{t} \in \C{S}$, with $X$ substituted by
@@ -8077,7 +8077,7 @@ isolating) formulas.
   \end{equation*}
 
   \emph{Case} $\forall_{x} S \in \C{S}$.  We must show $\vdash \forall_{x} S
-  \to \forall_{x} S^g$.  Take 
+  \to \forall_{x} S^g$.  Take
   \begin{equation*}
     \AxiomC{IH}
     \noLine
@@ -8133,7 +8133,7 @@ isolating) formulas.
   \end{equation*}
 
   \emph{Case} $\forall_{x} W \in \C{W}$.  We must show $\vdash \forall_{x} W^g
-  \to \forall_{x} W$.  Take 
+  \to \forall_{x} W$.  Take
   \begin{equation*}
     \AxiomC{IH}
     \noLine
@@ -8209,15 +8209,15 @@ wiping\index{formula!wiping}%
   &\texttt{(isolating-formula?\ \textsl{formula})},%
   \index{isolating-formula?@\texttt{isolating-formula?}}
   \\
-  &\texttt{(spreading-formula-to-proof \textsl{formula} .\ 
+  &\texttt{(spreading-formula-to-proof \textsl{formula} .\
     \textsl{opt-psubst})},%
   \index{spreading-formula-to-proof@\texttt{spreading-formula-to-proof}}
   \\
-  &\texttt{(wiping-formula-to-proof \textsl{formula} .\ 
+  &\texttt{(wiping-formula-to-proof \textsl{formula} .\
     \textsl{opt-psubst})},%
   \index{wiping-formula-to-proof@\texttt{wiping-formula-to-proof}}
   \\
-  &\texttt{(isolating-formula-to-proof \textsl{formula} .\ 
+  &\texttt{(isolating-formula-to-proof \textsl{formula} .\
     \textsl{opt-psubst})}.%
   \index{isolating-formula-to-proof@\texttt{isolating-formula-to-proof}}
 \end{align*}
@@ -8245,7 +8245,7 @@ proof of
 \end{equation*}
 by means of
 \begin{align*}
-  &\texttt{(ex-formulas-and-concl-to-ex-elim-proof 
+  &\texttt{(ex-formulas-and-concl-to-ex-elim-proof
     \textsl{x} .\ \textsl{rest})}.%
   \index{ex-formulas-and-concl-to-ex-elim-proof@\texttt{ex-formulas-and-concl-to-ex-elim-proof}}
 \end{align*}
@@ -8333,31 +8333,31 @@ elements: (1) \texttt{num-goals}, an alist of entries \texttt{(number
 To construct a goal and access its components we have
 \begin{alignat*}{2}
   &\texttt{(make-goal-in-avar-form \textsl{avar})},%
-  \index{make-goal-in-avar-form@\texttt{make-goal-in-avar-form}} 
+  \index{make-goal-in-avar-form@\texttt{make-goal-in-avar-form}}
   \\
   &\texttt{(make-goal-in-all-elim-form \textsl{goal} \textsl{uservar})},%
-  \index{make-goal-in-all-elim-form@\texttt{make-goal-in-all-elim-form}} 
+  \index{make-goal-in-all-elim-form@\texttt{make-goal-in-all-elim-form}}
   \\
   &\texttt{(make-goal-in-allnc-elim-form \textsl{goal} \textsl{uservar})},%
-  \index{make-goal-in-allnc-elim-form@\texttt{make-goal-in-allnc-elim-form}} 
+  \index{make-goal-in-allnc-elim-form@\texttt{make-goal-in-allnc-elim-form}}
   \\
   &\texttt{(make-goal-in-imp-elim-form \textsl{avar})},%
-  \index{make-goal-in-imp-elim-form@\texttt{make-goal-in-imp-elim-form}} 
+  \index{make-goal-in-imp-elim-form@\texttt{make-goal-in-imp-elim-form}}
   \\
   &\texttt{(make-goal-in-impnc-elim-form \textsl{avar})},%
-  \index{make-goal-in-impnc-elim-form@\texttt{make-goal-in-impnc-elim-form}} 
+  \index{make-goal-in-impnc-elim-form@\texttt{make-goal-in-impnc-elim-form}}
   \\
   &\texttt{(mk-goal-in-elim-form .\ \textsl{elim-items})},%
-  \index{mk-goal-in-elim-form@\texttt{mk-goal-in-elim-form}} 
+  \index{mk-goal-in-elim-form@\texttt{mk-goal-in-elim-form}}
   \\
   &\texttt{(goal-to-goalvar \textsl{goal})},%
-  \index{goal-to-goalvar@\texttt{goal-to-goalvar}} 
+  \index{goal-to-goalvar@\texttt{goal-to-goalvar}}
   \\
   &\texttt{(goal-to-context \textsl{goal})},%
-  \index{goal-to-context@\texttt{goal-to-context}} 
+  \index{goal-to-context@\texttt{goal-to-context}}
   \\
   &\texttt{(goal-to-formula \textsl{goal})}.%
-  \index{goal-to-formula@\texttt{goal-to-formula}} 
+  \index{goal-to-formula@\texttt{goal-to-formula}}
 \end{alignat*}
 For interactively building proofs we need
 \begin{alignat*}{2}
@@ -8365,7 +8365,7 @@ For interactively building proofs we need
   \index{goal=?@\texttt{goal=?}}
   \\
   &\texttt{(goal-subst \textsl{proof} \textsl{goal} \textsl{proof1})}.%
-  \index{goal-subst@\texttt{goal-subst}} 
+  \index{goal-subst@\texttt{goal-subst}}
 \end{alignat*}
 Initialization of the global variable \texttt{PPROOF-STATE} and access
 to its parts is possible via
@@ -8373,13 +8373,13 @@ to its parts is possible via
   &\texttt{(make-pproof-state
     \textsl{num-goals} \textsl{proof} \textsl{maxgoal})},%
   \index{make-pproof-state@\texttt{make-pproof-state}}
-  \\ 
+  \\
   &\texttt{(pproof-state-to-num-goals)},%
   \index{pproof-state-to-num-goals@\texttt{pproof-state-to-num-goals}}
-  \\ 
+  \\
   &\texttt{(pproof-state-to-proof)},%
   \index{pproof-state-to-proof@\texttt{pproof-state-to-proof}}
-  \\ 
+  \\
   &\texttt{(pproof-state-to-formula)}.%
   \index{pproof-state-to-formula@\texttt{pproof-state-to-formula}}
 \end{alignat*}
@@ -8387,11 +8387,11 @@ At each stage of an interactive proof development we have access
 to the current proof and the current goal by executing
 \begin{alignat*}{2}
   &\texttt{(current-proof)}\index{current-proof@\texttt{current-proof}},
-  \\ 
+  \\
   &\texttt{(current-goal)}\index{current-goal@\texttt{current-goal}}.
 \end{alignat*}
 
-We initially supply our axioms (see \ref{SS:Axioms}) as theorems, and also 
+We initially supply our axioms (see \ref{SS:Axioms}) as theorems, and also
 \begin{verbatim}
    AtomTrue: all boole^(boole^ -> boole^ =True)
    AtomFalse: all boole((boole -> F) -> boole=False)
@@ -8566,7 +8566,7 @@ and \textsl{x-list} is a list consisting of
   variable.
 \end{enumeratei}
 
-\subsection{inst-with-to}  
+\subsection{inst-with-to}
 \texttt{inst-with-to}\index{inst-with-to@\texttt{inst-with-to}}
 expects a string as its last argument, which is used (via
 \texttt{name-hyp}) to name the newly introduced instantiated
@@ -8766,11 +8766,11 @@ a term to be used for the present (existential) goal.
 In \texttt{(ex-elim \textsl{x})}\index{ex-elim@\texttt{ex-elim}},
 \textsl{x} is
 \begin{enumeratei}
-\item a number or string identifying an existential hypothesis from 
+\item a number or string identifying an existential hypothesis from
   the context,
 \item the name of an existential global assumption or theorem,
 \item a closed proof on an existential formula,
-\item an existential formula with free variables from the context, 
+\item an existential formula with free variables from the context,
   genera\-ting a new goal.
 \end{enumeratei}
 Let $\ex_y A$ be the existential formula identified by \textsl{x}.
@@ -8917,11 +8917,11 @@ expects a string as its last argument, which is used (via
 In \texttt{(min-pr \textsl{x} \textsl{measure})}%
 \index{min-pr@\texttt{min-pr}}, \textsl{x} is
 \begin{enumeratei}
-\item a number or string identifying a classical existential hypothesis 
+\item a number or string identifying a classical existential hypothesis
   from the context,
 \item the name of a classical existential global assumption or theorem,
 \item a closed proof on a classical existential formula,
-\item a classical existential formula with free variables from the context, 
+\item a classical existential formula with free variables from the context,
   generating a new goal.
 \end{enumeratei}
 The result is a new implicational goal, whose premise provides the
@@ -8969,11 +8969,11 @@ provide \texttt{make-exc-intro-aconst}%
 In \texttt{(exc-elim \textsl{x})}\index{exc-elim@\texttt{exc-elim}},
 \textsl{x} is
 \begin{enumeratei}
-\item a number or string identifying a classical existential hypothesis 
+\item a number or string identifying a classical existential hypothesis
   from the context,
 \item the name of a classical existential global assumption or theorem,
 \item a closed proof on a classical existential formula,
-\item a classical existential formula with free variables from the context, 
+\item a classical existential formula with free variables from the context,
   generating a new goal.
 \end{enumeratei}
 Let $\excl_{\vec{y}} \vec{A}$ be the classical existential formula
@@ -8994,7 +8994,7 @@ P(\langle x_1, x_2 \rangle)$.
 \texttt{(admit)}\index{admit@\texttt{admit}} temporarily accepts the
 present goal, by turning it into a global assumption.
 
-\subsection{search} 
+\subsection{search}
 We provide a proof search tool \texttt{search}%
 \index{search@\texttt{search}} based on Huet's \cite{Huet75}
 unification algorithm for the simply typed lambda calculus; its
@@ -9003,8 +9003,8 @@ underlying theory is explained in \ref{S:UnifSearch}.  \texttt{(search
 expects for \textsl{m} a default value for multiplicity (i.e., how
 often assumptions are to be used), for \textsl{name1} $\dots$
 \begin{enumeratei}
-\item numbers of hypotheses from the present context or 
-\item names for theorems or global assumptions, 
+\item numbers of hypotheses from the present context or
+\item names for theorems or global assumptions,
 \end{enumeratei}
 and for \textsl{m1} \dots multiplicities (positive integers for global
 assumptions or theorems).  A search is started for a proof of the goal
@@ -9059,7 +9059,7 @@ In this section we only present the algorithms and state their
 properties.  Proofs can be found in \cite{Schwichtenberg04}.
 
 \subsection{Huet's unification algorithm}
-\label{SS:Huet} 
+\label{SS:Huet}
 We work in the simply typed $\lambda$-calculus, with the usual
 conventions.  For instance, whenever we write a term we assume that it
 is correctly typed.  \emph{Substitutions}\index{substitution} are
@@ -9149,7 +9149,7 @@ substitutions.
     \vec{x}\,) \dots (h_{n_i} \vec{x}\,))}$.  In each of these branches we
   have
   \begin{equation*}
-    Q(u \vec{r} = f \vec{s} \land C) \unifalg{\rho} 
+    Q(u \vec{r} = f \vec{s} \land C) \unifalg{\rho}
     Q'(u \vec{r} = f \vec{s} \land C) \rho,
   \end{equation*}
   where $Q'$ is obtained from $Q$ by removing $\exists_u$ and adding
@@ -9176,7 +9176,7 @@ One can prove correctness and completeness of this algorithm.
 \begin{theorem*}[Huet]
   Let a unification problem $\C{U}$ consisting of a $\forall \exists
   \forall$-prefix $Q$ and a list $\vec{r} = \vec{s}$ of unification pairs
-  be given.  Then either 
+  be given.  Then either
   \begin{enumeratea}
   \item the unification algorithm can make a transition, and
     \begin{enumeratei}
@@ -9391,7 +9391,7 @@ and $\rho = \rho_1 \circ \dots \circ \rho_n$.
 \begin{lemma*}
   Let a unification problem $\C{U}$ consisting of a $\forall \exists
   \forall$-prefix $Q$ and a list $\vec{r} = \vec{s}$ of unification pairs
-  be given.  Then either 
+  be given.  Then either
   \begin{enumeratea}
   \item the unification algorithm makes a transition $\C{U}
     \unifalg{\rho} \C{U}'$, and
@@ -9401,14 +9401,14 @@ and $\rho = \rho_1 \circ \dots \circ \rho_n$.
     \end{align*}
     is well-defined and we have $\Phi \colon \C{U}\hbox{-solutions} \to
     \C{U}'\hbox{-solutions}$ such that $\Phi'$ is inverse to $\Phi$, i.e.\
-    $\Phi'(\Phi \varphi) = \varphi$, or else 
+    $\Phi'(\Phi \varphi) = \varphi$, or else
   \item the unification algorithm fails, and there is no
     $\C{U}$-solution.
   \end{enumeratea}
 \end{lemma*}
 
 It is not hard to see that the unification algorithm terminates, by
-defining a measure that decreases with each transition.  
+defining a measure that decreases with each transition.
 
 \begin{corollary*}
   Given a unification problem $\C{U} = QC$, the unification algorithm
@@ -9451,7 +9451,7 @@ completeness the only-if-part.
       \bigl(\{\C{P} \Rightarrow \forall_{\vec{x}}(\vec{D} \to A)\} \cup S\bigr)
       \varphi$}
   \end{equation*}
-  if and only if 
+  if and only if
   \begin{equation*}
     \hbox{$\varphi$ is a $Q \forall_{\vec{x}}$-substitution such that
       $\vdash^{<n}
@@ -9493,7 +9493,7 @@ completeness the only-if-part.
   Let $Q$ be a $\forall \exists \forall$-prefix, $\{\C{P} \Rightarrow P
   \vec{r}\} \cup S$ $Q$-sequents and $\varphi$ a substitution.  Then
   \begin{equation*}
-    \hbox{$\varphi$ is a $Q$-substitution such that 
+    \hbox{$\varphi$ is a $Q$-substitution such that
       $\vdash^n \bigl(\{\C{P} \Rightarrow P \vec{r}\} \cup S\bigr) \varphi$}
   \end{equation*}
   if and only if there is a clause $\forall_{\vec{x}}(\vec{G} \to P
@@ -9519,7 +9519,7 @@ completeness the only-if-part.
   \vec{s}^* \rho$, hence $\vec{r} \varphi = \vec{s}^* \rho \varphi'$.
   Then
   \begin{equation*}
-    u^{(\forall_{\vec{x}}. \vec{G} \to P \vec{s}) \varphi} 
+    u^{(\forall_{\vec{x}}. \vec{G} \to P \vec{s}) \varphi}
     ( (\vec{X} \rho \varphi') \vec{z}\,)
     \vec{N}^{\vec{G}^* \rho \varphi'}
   \end{equation*}
@@ -9559,7 +9559,7 @@ completeness the only-if-part.
   (\rho \circ \varphi'){\restriction} Q_{\exists}$.  Also,
   $\subst{(\vec{G} \varphi)}{\vec{x}}{\vec{t}\,} = \vec{G} \vartheta =
   \vec{G}^* \vartheta^* = \vec{G}^* \rho \varphi'$.
-\end{proof} 
+\end{proof}
 
 A \emph{state}\index{state} is a pair $(Q,S)$ with $Q$ a prefix and
 $S$ a finite set of $Q$-sequents.  By the two lemmas just proved we
@@ -9617,7 +9617,7 @@ means that $\bigland \C{P} \to P \vec{r}$ is a $Q$-goal), then $(\C{P}
   \item Here is a more complex example (derived from proofs of the
     Orevkov-formulas), for which we only give the derivation tree.
     \def\defaultHypSeparation{\hskip.08in}
-    \def\ScoreOverhang{.5pt} 
+    \def\ScoreOverhang{.5pt}
     \begin{equation*}
       \AxiomC{$\forall_y(\forall_z( Ryz {\to} \falsum)) {\to} \falsum$}
       \UnaryInfC{$\forall_z( R0z {\to} \falsum) {\to} \falsum$}
@@ -9672,7 +9672,7 @@ and our previous search procedure continues to work.
 
 For the existential quantifier $\exists$ the problem is of a
 different nature.  We chose to introduce $\exists$ by means of axiom
-schemata.  Then the problem is which of such schemes to use in 
+schemata.  Then the problem is which of such schemes to use in
 proof search, given a goal $G$ and a set $\C{P}$ of clauses.  We
 might proceed as follows.
 
@@ -9696,7 +9696,7 @@ generalization of) the existence elimination scheme
 \end{equation*}
 to $\C{P}$.  Then start the search algorithm as described in
 section~\ref{SS:Search}.  The normal form theorem for the natural
-deduction system of minimal logic with $\exists$ then guarantees 
+deduction system of minimal logic with $\exists$ then guarantees
 completeness.
 
 However, experience has shown that this complete search procedure
@@ -9706,7 +9706,7 @@ existence elimination scheme with \emph{existential} conclusions.
 
 Moreover, it seems appropriate that -- before the search is started --
 one eliminates in a preprocessing step as many existential quantifiers
-as possible.  
+as possible.
 %% We shall discuss in the following to what extent this
 %% might be done.  As a preparation, we first prove a lemma.
 
@@ -9940,7 +9940,7 @@ for the other axioms the extracted terms are rather clear.  Term
 extraction is implemented by
 \begin{alignat*}{2}
   &\texttt{(proof-to-extracted-term \textsl{proof-or-thm-name})}.%
-  \index{proof-to-extracted-term@\texttt{proof-to-extracted-term}} 
+  \index{proof-to-extracted-term@\texttt{proof-to-extracted-term}}
 \end{alignat*}
 Hence \texttt{proof-to-extracted-term} gets either a proof
 or else a theorem name.  In the former case it works its way through
@@ -10036,7 +10036,7 @@ as well:
 (save "NatEqTotalSound")
 \end{verbatim}
 Hence we are allowed to change the extracted term of
-\texttt{NatEqTotal} into $\lambda_{n,m}(n=m)$.  
+\texttt{NatEqTotal} into $\lambda_{n,m}(n=m)$.
 
 Generally, \texttt{proof-to-soundness-proof} at \texttt{FinAlgEqTotal}
 looks for a therem with name \texttt{FinAlgEqTotalSound} and uses it.
@@ -10057,7 +10057,7 @@ corresponding notation in the $\lambda$-calculus.
     \\ \hline
     right element of a pair &$(M \; 1)$ & \texttt{rht M}
     \\ \hline
-    left embedding into a sum type $\rho \typeSum \sigma$ 
+    left embedding into a sum type $\rho \typeSum \sigma$
     & $\termSumIntroLeft_{{\rho}{\sigma}} M$ & \texttt{(InL rho sigma)M}
     \\ \hline
     right embedding into a sum type $\rho \typeSum \sigma$
@@ -10090,7 +10090,7 @@ One can prove that every theorem in $\TCF + \Ax_{\nci}$ has a
 realizer: the extracted term of its proof.  Here $(\Ax_{\nci})$ is an
 arbitrary set of non-computational invariant formulas viewed as
 axioms.
- 
+
 \begin{theorem*}[Soundness%
   \index{soundness theorem!for realizability}]
   Let $M$ be a derivation of $A$ from assumptions $u_i \colon C_i$
@@ -10125,18 +10125,18 @@ standard proof.
 An internal proof of soundness can be generated by calling
 \begin{alignat*}{2}
   &\texttt{(proof-to-soundness-proof \textsl{proof-or-thm-name})}.%
-  \index{proof-to-soundness-proof@\texttt{proof-to-soundness-proof}} 
+  \index{proof-to-soundness-proof@\texttt{proof-to-soundness-proof}}
 \end{alignat*}
 This uses the auxiliary functions
 \begin{alignat*}{2}
   &\texttt{(axiom-to-soundness-proof \textsl{aconst})},%
-  \index{axiom-to-soundness-proof@\texttt{axiom-to-soundness-proof}} 
+  \index{axiom-to-soundness-proof@\texttt{axiom-to-soundness-proof}}
   \\
   &\texttt{(theorem-to-soundness-proof \textsl{aconst})},%
-  \index{theorem-to-soundness-proof@\texttt{theorem-to-soundness-proof}} 
+  \index{theorem-to-soundness-proof@\texttt{theorem-to-soundness-proof}}
   \\
   &\texttt{(global-assumption-to-soundness-proof \textsl{aconst})}.%
-  \index{global-assumption-to-soundness-proof@\texttt{global-ass...-to-soundness-proof}} 
+  \index{global-assumption-to-soundness-proof@\texttt{global-ass...-to-soundness-proof}}
 \end{alignat*}
 
 \section{Computational content of classical proofs}
@@ -10201,7 +10201,7 @@ Assume that the lemmata $\vec{D}$ and the goal formula $G$ are such
 that we can derive
 \begin{align}
   \label{E:lem1}
-  &\vec{D} \to \subst{D_i}{\falsum}{\ex_y G}, 
+  &\vec{D} \to \subst{D_i}{\falsum}{\ex_y G},
   \\
   \label{E:lem2}
   &\subst{G}{\falsum}{\ex_y G} \to \ex_y G.
@@ -10238,13 +10238,13 @@ A formula is \emph{relevant}\index{formula!relevant} if it ends with
 recursion.
 \begin{alignat*}{2}
   &\texttt{(atr-relevant?\ \textsl{formula})},%
-  \index{atr-relevant?@\texttt{atr-relevant?}} 
+  \index{atr-relevant?@\texttt{atr-relevant?}}
   \\
   &\texttt{(atr-definite?\ \textsl{formula})},%
-  \index{atr-definite?@\texttt{atr-definite?}} 
+  \index{atr-definite?@\texttt{atr-definite?}}
   \\
   &\texttt{(atr-goal?\ \textsl{formula})}.%
-  \index{atr-goal?@\texttt{atr-goal?}} 
+  \index{atr-goal?@\texttt{atr-goal?}}
 \end{alignat*}
 We need to construct proofs from $\falsityF \to \falsum$ of
 \begin{alignat*}{2}
@@ -10254,23 +10254,23 @@ We need to construct proofs from $\falsityF \to \falsum$ of
   \\
   &((R^{\falsityF} \to \falsityF) \to \falsum) \to R
   &\quad&\text{for $R$ relevant and definite},
-  \\     
+  \\
   &I \to I^{\falsityF}
   &\quad&\text{for $I$ irrelevant and goal}.
 \end{alignat*}
 This is done by
 \begin{alignat*}{2}
   &\texttt{(atr-arb-definite-proof \textsl{formula})},%
-  \index{atr-arb-definite-proof@\texttt{atr-arb-definite-proof}} 
+  \index{atr-arb-definite-proof@\texttt{atr-arb-definite-proof}}
   \\
   &\texttt{(atr-arb-goal-proof \textsl{formula})},%
   \index{atr-arb-goal-proof@\texttt{atr-arb-goal-proof}}
   \\
   &\texttt{(atr-rel-definite-proof \textsl{formula})},%
-  \index{atr-rel-definite-proof@\texttt{atr-rel-definite-proof}} 
+  \index{atr-rel-definite-proof@\texttt{atr-rel-definite-proof}}
   \\
   &\texttt{(atr-irrel-goal-proof \textsl{formula})}.%
-  \index{atr-irrel-goal-proof@\texttt{atr-irrel-goal-proof}} 
+  \index{atr-irrel-goal-proof@\texttt{atr-irrel-goal-proof}}
 \end{alignat*}
 The next task is to generalize $G \to (G^{\falsityF} \to \falsum) \to
 \falsum$ and construct a proof of $(G_1^{\falsityF} \to ... \to
@@ -10376,7 +10376,7 @@ and for implication
 \end{align*}
 Recall that $(\rho \typeTo \nulltype) \defeq \nulltype$,
 $(\nulltype \typeTo \sigma) \defeq \sigma$,
-$(\nulltype \typeTo \nulltype) \defeq \nulltype$, and 
+$(\nulltype \typeTo \nulltype) \defeq \nulltype$, and
 $(\rho \typeProd \nulltype) \defeq \rho$,
 $(\nulltype \typeProd \sigma) \defeq \sigma$,
 $(\nulltype \typeProd \nulltype) \defeq \nulltype$.
@@ -10664,16 +10664,16 @@ For example, assuming that \verb#p# is declared as a variable of type
 \item \verb#boole2# a total anonymous variable of type boole with index 2.
 \item \verb#boole^2# a partial anonymous variable of type boole with index 2.
 \item \verb#(boole)_2# a total anonymous variable of type boole with index 2.
-\item \verb#nat=>boole_2# a total anonymous variable of type 
-  function of nat to boole with index 2. 
-\item \verb#nat=>boole^2# a partial anonymous variable of type 
-  function of nat to boole with index 2. 
-\item \verb#(nat=>alpha2)# a total anonymous variable of type 
-  function of nat to alpha2 with no index. 
-\item \verb#(nat=>alpha2)_2# a total anonymous variable of type 
-  function of nat to alpha2 with index 2. 
-\item \verb#(nat=>alpha2)^2# a partial anonymous variable of type 
-  function of nat to alpha2 with index 2. 
+\item \verb#nat=>boole_2# a total anonymous variable of type
+  function of nat to boole with index 2.
+\item \verb#nat=>boole^2# a partial anonymous variable of type
+  function of nat to boole with index 2.
+\item \verb#(nat=>alpha2)# a total anonymous variable of type
+  function of nat to alpha2 with no index.
+\item \verb#(nat=>alpha2)_2# a total anonymous variable of type
+  function of nat to alpha2 with index 2.
+\item \verb#(nat=>alpha2)^2# a partial anonymous variable of type
+  function of nat to alpha2 with index 2.
 \end{enumeratei}
 Compare these with the following applicative terms.
 \begin{enumeratei}
@@ -10775,14 +10775,14 @@ and \texttt{toop} have to be functions mapping the term to operator
 and argument of this ``application'' respectively.
 
 After that, we have binary operators written in infix notation.  In
-order of decreasing binding strength these are: 
+order of decreasing binding strength these are:
 \begin{enumeratei}
-\item multiplicative operators, leftassociative, token type \verb#mul-op#; 
-\item additive operators, leftassociative, token type \verb#add-op#; 
-\item relational operators, not associative, token type \verb#rel-op#; 
-\item boolean and operators, leftassociative, token type \verb#and-op#; 
-\item boolean or operators, leftassociative, token type \verb#or-op#; 
-\item boolean implication operators, rightassociative, token type 
+\item multiplicative operators, leftassociative, token type \verb#mul-op#;
+\item additive operators, leftassociative, token type \verb#add-op#;
+\item relational operators, not associative, token type \verb#rel-op#;
+\item boolean and operators, leftassociative, token type \verb#and-op#;
+\item boolean or operators, leftassociative, token type \verb#or-op#;
+\item boolean implication operators, rightassociative, token type
   \verb#imp-op#;
 \item pairing operators, rightassociative, token type \verb#pair-op#.
 \end{enumeratei}
@@ -10834,12 +10834,12 @@ possible.  Predefined quantors are \texttt{all}, \texttt{ex},
 \texttt{allnc}, \texttt{excl}, \texttt{exca}, and \texttt{excu}.
 
 The remaining junctors are binary junctors written in infix form.  In
-order of decreasing binding strength we have: 
+order of decreasing binding strength we have:
 \begin{enumeratei}
-\item conjunction junctors, leftassociative, token type \verb#and-jct#; 
-\item disjunction junctors, leftassociative, token type \verb#or-jct#; 
+\item conjunction junctors, leftassociative, token type \verb#and-jct#;
+\item disjunction junctors, leftassociative, token type \verb#or-jct#;
 \item tensor junctors, rightassociative, token type \verb#tensor-jct#;
-\item implication junctors, rightassociative, token type \verb#imp-jct#.  
+\item implication junctors, rightassociative, token type \verb#imp-jct#.
 \end{enumeratei}
 Predefined junctors are \verb#&# (and), \verb#!# (tensor), \verb#->#
 (implication) and \verb#--># (non-computational implication).
@@ -10883,7 +10883,7 @@ NatPlus
 	nat1+(nat2+nat3)	nat1+nat2+nat3
 \end{verbatim}
 The file also contains often used theorems and their proofs.  To
-review them the \texttt{search-about} command is recommended.  
+review them the \texttt{search-about} command is recommended.
 To find out about what has been proved about a particular constant
 use
 \begin{verbatim}
@@ -10905,15 +10905,15 @@ To see which theorems relating to case distinctions are available type
 One obtains the following theorems with their names:
 \begin{verbatim}
 NatLeLtCases
-all nat1,nat2((nat1<=nat2 -> Pvar) -> 
+all nat1,nat2((nat1<=nat2 -> Pvar) ->
               (nat2<nat1 -> Pvar) -> Pvar)
 NatLeCases
 all nat2,nat1(nat1<=nat2 ->
-              (nat1<nat2 -> Pvar) -> 
+              (nat1<nat2 -> Pvar) ->
               (nat1=nat2 -> Pvar) -> Pvar)
 NatLtSuccCases
-all nat2,nat1(nat1<Succ nat2 -> 
-              (nat1<nat2 -> Pvar) -> 
+all nat2,nat1(nat1<Succ nat2 ->
+              (nat1<nat2 -> Pvar) ->
               (nat1=nat2 -> Pvar) -> Pvar)
 \end{verbatim}
 As another example, to check the available transitivity theorems type
