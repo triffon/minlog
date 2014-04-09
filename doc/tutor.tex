@@ -1,0 +1,2706 @@
+%% $Id: tutor.tex 2702 2014-04-04 13:43:39Z schwicht $
+
+\documentclass[12pt]{amsart}
+\usepackage{amssymb,enumerate}
+\usepackage[backref]{hyperref}
+
+\newcommand{\allnc}{\forall^{\mathrm{nc}}} %no computational content
+\newcommand{\ex}{\exists} %constructive
+\newcommand{\excl}{\tilde{\exists}} %classical, with logical falsum
+\newcommand{\falsum}{\bot}
+\newcommand{\GTotal}{T} %obsolete, to be replaced by \Total
+
+\newcommand{\nil}{\mathrm{Nil}}
+%% \newcommand{\nil}{\mathrm{nil}}
+
+\newcommand{\typeB}{\mathbf{B}}
+
+%% \newcommand{\Eq}{\mathrm{Eq}}
+\newcommand{\eqd}[2]{#1 \equiv #2}
+%% \newcommand{\eqd}[2]{\mathrm{Eq}(#1,#2)}
+\newcommand{\inquotes}[1]{``#1''}
+\newcommand{\listappend}{\mathbin{\ast}}
+\newcommand{\listrev}{\mathrm{Rev}}
+\newcommand{\set}[2]{\{\,#1\mid#2\,\}}
+\newcommand{\subst}[3]{#1[#2:= #3]}
+
+\newcommand{\mi}{Minlog}
+\newcommand{\mdir}{\~{}/minlog}
+\newcommand{\ob}{\to}
+\newcommand{\bv}{\begin{verbatim}}
+
+\makeindex
+
+%% \newenvironment{enumeratei}{\begin{enumerate}[\upshape (i)]}
+%%                            {\end{enumerate}}
+%%    %% produces (i), (ii), etc,  Cross-reference with \eqref
+%% \newenvironment{enumeratea}{\begin{enumerate}[\upshape (a)]}
+%%                            {\end{enumerate}}
+%%    %% produces (a), (b), etc,  Cross-reference with \eqref
+
+\allowdisplaybreaks[4]
+%% \setlength{\textheight}{19 true cm}
+
+\hyphenation{appro-xi-ma-ted}
+\hyphenation{cha-rac-te-rize}
+\hyphenation{de-fi-ni-tions}
+\hyphenation{fa-ci-li-tate}
+\hyphenation{ge-ne-ra-ted}
+\hyphenation{Ma-the-ma-ti-cal}
+
+\def\qedsymbol{{\ \vbox{\hrule\hbox{%
+   \vrule height1.3ex\hskip0.8ex\vrule}\hrule}}\par}
+
+%% minlog.mac contains the macros for all tex-files of the minlog
+%% documentation in order to avoid code duplication and different
+%% notations.
+
+%% \input{minlog.mac}
+\author[L. Crosilla, M. Seisenberger, H. Schwichtenberg]
+{Laura Crosilla, Monika Seisenberger, Helmut Schwichtenberg}
+
+\thanks{This tutorial extends and completes a previous tutorial by L. Crosilla
+distributed with version 4.0 of \mi}
+
+\title[Minlog tutorial]{A tutorial for Minlog, version 5.0}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+This is a tutorial for the interactive proof system \mi, Version 5.0,
+developed by Helmut Schwichtenberg and members of the logic group%
+\footnote{http://www.math.lmu.de/$\sim$logik/welcome.html}
+at the University of Munich.
+
+\mi\ is implemented in Scheme.
+\mi's favorite dialect is Petite Chez Scheme from Cadence Research Systems,
+which is freely distributed at the Internet address \url{www.scheme.com}.
+
+The \mi\ system can be downloaded from the Internet address
+\url{http://www.minlog-system.de}
+%% or else http://www.math.lmu.de/$\sim$minlog/
+
+
+\section{Getting started}
+The purpose of this Tutorial is to give a rather basic introduction to
+the \mi\ system by means of some simple examples.  For a thorough
+presentation of \mi\ and the motivation behind it the reader should
+consult the reference manual \cite{minlogman} and the document
+\cite{tcf}.  For a more in--depth presentation of the theory
+underlying \mi, the reader might find it useful also to consult the
+book \cite{SchwichtenbergWainer12}.  The papers listed in
+the \mi\ web page also provide a more detailed and advanced
+description of specific features of the system.  In addition, the \mi\
+distribution comes equipped with a directory of examples, to which the
+user is referred.
+
+In the following we shall assume tacitly that you are using an
+UNIX-like operating system and that \mi\ is installed in \mdir, where
+\~{} denotes as usual your home directory.  Also, C-$\langle
+chr\rangle$ means: hold the CONTROL key down while typing the
+character $\langle chr \rangle$, while M-$\langle chr \rangle$ means:
+hold the META (or EDIT or ESC or ALT) key down while typing $\langle
+chr \rangle$.
+
+In order to use \mi, one simply needs a shell in which to run \mi\ and
+also an editor in which to edit and record the commands for later
+sessions.  In this tutorial we shall refer to GNU Emacs\footnote{See
+  also the Appendix \ref{emacs} for some useful keyboard commands to
+  start working with Emacs.}.  While working with Emacs, the ideal
+would be to split the window in two parts: one containing the file in
+which to store the commands, and the other with the \mi\ interactive
+session taking place.  To this aim, it is recommended to use the
+startup script \emph{\mdir/minlog} which takes scheme files as
+(optional) arguments. For example
+\begin{quote}
+  \texttt{\mdir/minlog file.scm}
+\end{quote}
+opens a new Emacs-window which is split into two parts.  The upper
+part contains the file  \emph{(Buffer file.scm)} whereas the lower part
+shows the \mi\ response \emph{(Buffer *minlog*)}.
+
+Alternatively, one can open emacs and invoke \mi\ by loading the file
+\emph{minlog.el}:
+\begin{quote}
+  \texttt{M-x load-file <enter>}\\
+  \texttt{\mdir/minlog.el}
+\end{quote}
+In both cases the file \emph{init.scm} is loaded. In fact, one could
+also simply evaluate \texttt{(load "\mdir/init.scm")} to start \mi.
+
+To execute a command of our file, we simply place the cursor
+at the end of it (after the closed parenthesis), and type
+\texttt{C-x C-e}.  In general, \texttt{C-x C-e} will
+enable us to process  any command we type in
+\texttt{file.scm}, one at the time.  To process a whole
+series of commands, one can  highlight the region of interest and
+type \texttt{C-c C-r}.  We should also mention at this
+point that to undo one step, it is enough  to give the command
+\texttt{(undo)}, while \texttt{(undo n)} will undo  the last $n$
+steps.  Finally, we can type  \texttt{(exit)} to end a Scheme
+session and  \texttt{C-x C-c} to exit Emacs.
+
+
+\section{Propositional logic}
+
+\subsection{A first example}
+We shall start from a simple example in propositional logic.  Suppose
+we want to prove the tautology:
+\begin{equation*}
+  (A \ob (B \ob C)) \ob ((A \ob B) \ob (A \ob C)).
+\end{equation*}
+In the following we shall make use of the convention for which
+parenthesis are associated to the right (as this is also implemented
+in \mi).  Therefore the formula above becomes:
+\begin{equation*}
+  (A \ob B \ob C) \ob (A \ob B) \ob A \ob C.
+\end{equation*}
+It is very important, especially at the beginning, to pay the maximum
+attention to the use of parenthesis to prevent mistakes; it might be a
+good strategy to rather exceed in their use in the first examples.
+\mi\ will automatically delete the parenthesis which are not needed,
+therefore facilitating the reading.
+
+
+\subsubsection{Making a sketch of the proof}
+The first task will be to make an informal sketch of the proof.  While
+making the plan we should consider the following fact: \mi\ (mainly)
+implements \inquotes
+{Goal Driven Reasoning}, also called
+\inquotes{Backward Chaining}.  That means that we start by writing the
+conclusion we aim at as our goal and then, step by step, refine this
+goal by applying to it appropriate logical rules.  A logical rule will
+have the effect of reducing the proof of a formula, the goal, to the
+proof of one or more other formulas, which will become the new goals.
+If our proof is correct, then the formula will be proved when we reach
+the point of having no more goals to solve.  In other words, \mi\
+keeps a list of goals and updates it each time a logical rule is
+applied.  The proof is completed when the list of goals is empty.
+
+In this case the tautology we want to prove is made of a series of
+implications, hence we will have to make repeated use of basic rules
+for \inquotes{deconstructing} implications.  The first move will then
+be to assume that the antecedent of the outmost implication is true
+and try to derive the consequent from it.  That is, we assume $A \ob B
+\ob C$ and want to derive:
+\begin{equation*}
+  (A \ob B) \ob A \ob C;
+\end{equation*}  
+hence we set the latter as our new goal.  Then we observe that the
+formula $(A \ob B) \ob A \ob C$ is an implication as well, and thus
+can be treated in the same way; so we now assume both $A \ob B \ob C$
+and $A \ob B$ and wish to derive $A \ob C$.  Clearly, we can make the
+same step once more and obtain $A \ob B \ob C$, $A \ob B$ and $A$ as
+our premises and try to derive $C$ from them.  Now we observe that in
+order to prove $C$ from the assumption $A \ob B \ob C$, we need to
+prove both $A$ and $B$.  Obviously $A$ is proved, as it is one of our
+assumptions, and $B$ immediately follows from $A \ob B$ and $A$ by
+modus ponens.
+
+
+\subsubsection{Implementing the proof}
+Once we have a plan for the proof, we can start implementing it in
+\mi.  The initial step would then be to write the formula in \mi.  For
+this purpose, we declare three predicate variables $A$, $B$ and $C$ by
+writing \footnote{We could as well have introduced predicate constants
+  instead of predicate variables.  In this case we would have used the
+  command \texttt{add-predconst-name}, with the same syntax. }:
+\begin{verbatim}
+(add-pvar-name "A" "B" "C" (make-arity))
+\end{verbatim}
+The expression \texttt{(make-arity)} produces the empty arity for $A$,
+$B$ and $C$ (see \cite{minlogman} for a description of
+\texttt{make-arity}).  \mi\ will then write:
+\begin{verbatim}
+ok, predicate variable A: (arity) added
+ok, predicate variable B: (arity) added
+ok, predicate variable C: (arity) added
+\end{verbatim}
+
+We now want to prove the above formula with \mi; we thus need to set
+it as our goal.
+
+
+\subsubsection{Setting the goal}
+To set a goal, we can use the command \texttt{set-goal} followed by
+the formula.  In the present case:
+\begin{verbatim}
+(set-goal "(A -> B -> C) -> (A -> B) -> A -> C"))
+\end{verbatim}
+Alternatively, we can first give a name to the formula we wish to
+prove and then use this name to set the goal.  In the present case,
+let's call \texttt{distr} (for distributivity of implication) the
+formula to be proved:
+\begin{verbatim}
+(define distr (pf "(A -> B -> C) -> (A -> B) -> A -> C"))
+\end{verbatim}
+
+The \texttt{define} command has the effect of defining a new variable,
+in this case \texttt{distr}, and attaching to it the Scheme term which
+is produced by the function \texttt{pf} applied to the formula we
+enter.  In fact, the function {\texttt pf}, short for \inquotes{parse
+  formula}, takes a string as argument and returns a Scheme term.
+This Scheme term is the \emph{internal form} in \mi\ of our formula,
+and \texttt{distr} is a name referring to it.  By typing
+\texttt{distr}, one can see the value of this variable.  The strategy
+of naming a formula might turn out to be particularly useful in case
+of very long goals.
+
+To set \texttt{distr} as our goal we type:
+\begin{verbatim}
+(set-goal distr)
+\end{verbatim}
+Typically, \mi\ will number the goals occurring in the proof, and will
+display the top goal as number 1, preceded by a question mark.  \mi\
+will print:
+\begin{verbatim}
+?_1: (A -> B -> C) -> (A -> B) -> A -> C
+\end{verbatim}
+
+
+\subsubsection{The proof}
+According to our sketch, the first step in proving the tautology was
+to assume the antecedent of the implication and turn the consequent
+into our new goal.  This is simply done by writing:
+\begin{verbatim}
+(assume 1)
+\end{verbatim}
+
+Here the number \texttt{1} is introduced by us to identify and name
+the hypothesis. \mi\ will thus denote this hypothesis by \texttt{1}:
+\begin{verbatim}
+ok, we now have the new goal
+?_2: (A -> B) -> A -> C from
+  1:A -> B -> C
+\end{verbatim}
+
+We repeat the assume command to decompose the implication in the
+second goal and obtain a new goal:
+\begin{verbatim}
+(assume 2)
+\end{verbatim}
+
+\begin{verbatim}
+ok, we now have the new goal
+?_3: A -> C from
+  1:A -> B -> C
+  2:A -> B
+\end{verbatim}
+
+And we decompose the new goal once more:
+\begin{verbatim}
+(assume 3)
+\end{verbatim}
+
+\begin{verbatim}
+ok, we now have the new goal
+?_4: C from
+  1:A -> B -> C
+  2:A -> B
+  3:A
+\end{verbatim}
+
+We now need to start using our assumptions.  As already mentioned, in
+order to prove $C$ it is enough to prove both $A$ and $B$, by
+assumption \texttt{1}.  Therefore we write: \texttt{(use 1)}.
+This has the effect of splitting the goal in two distinct subgoals
+(note how the subgoals are numbered):
+\begin{verbatim}
+(use 1)
+ok, ?_4 can be obtained from
+?_6: B from
+  1:A -> B -> C
+  2:A -> B
+  3:A
+?_5: A from
+  1:A -> B -> C
+  2:A -> B
+  3:A
+\end{verbatim}
+
+Then we write:
+\begin{verbatim} (use 3)
+ok, ?_5 is proved.  The active goal now is
+?_6: B from
+  1:A -> B -> C
+  2:A -> B
+  3:A
+\end{verbatim}
+
+And conclude the proof by:
+\begin{verbatim}
+(use 2)
+ok, ?_6 can be obtained from
+?_7: A from
+  1:A -> B -> C
+  2:A -> B
+  3:A
+>
+(use 3)
+ok, ?_7 is proved.  Proof finished.
+\end{verbatim}
+
+To see a record of the complete proof, simply type
+\texttt{(display-proof)}.  Other useful commands are
+\texttt{(proof-to-expr)} and the particularly useful
+\texttt{(proof-to-expr-with-formulas)}.  See the manual for a
+description of the various display commands available in \mi.
+
+We observe that the first three \texttt{assume} commands could be
+replaced by a single one, i.e., \texttt{(assume 1 2 3)}.  Also, in
+alternative to the last two \texttt{use} commands, we could have given
+only one command: \texttt{(use-with 2 3)}, which amounts to applying a
+cut to the premises 2 and 3.  A final remark: in case of rather
+complex proofs, it may be more convenient to use names to denote
+specific hypothesis, instead of making use of bare numbers.  To do so,
+one can simply use the \texttt{assume} command, followed by the name
+of the assumption in double quotes.
+
+Before starting to read the next section it is advisable to consult
+the reference manual \cite{minlogman} for a compendium of the commands
+utilized in this example.  It is worth noticing that in general these
+commands have a wider applicability than their usage as here
+presented.
+
+
+\subsection{A second example: conjunction}
+The next example is a simple tautology made of conjunctions and an
+implication.  We want to prove\footnote{Recall that $\land$ binds
+  stronger than $\ob$.}:
+\begin{equation*}
+  A \land B \ob B \land A.
+\end{equation*}
+In this case, we shall simply record the code of our \mi\ proof,
+asking the reader to check \mi's reply at each step.  We start as
+usual with declaring the variables $A$ and $B$ and setting the goal.
+Note that if one uses the same file for a number of examples, there is
+no need to re-declare the same predicate variables each time.  Hence
+here and in the example file available with the distribution repeated
+declarations are commented by prefixing a \inquotes{;; }.
+\begin{verbatim}
+;; (add-pvar-name "A" "B" (make-arity))
+(set-goal "A & B -> B & A")
+\end{verbatim}
+
+We than notice that the main connective is an implication, and thus
+call the command \texttt{assume}:
+\begin{verbatim}
+(assume 1)
+\end{verbatim}
+
+Next we need a command which operates on a conjunction and splits it
+into its two components. We can simply write:
+\begin{verbatim}
+(split)
+\end{verbatim}
+
+Finally, we impart the command \texttt{use} which is utilized to
+obtain the left (respectively the right) conjunct from an assumption
+which is a conjunction and \inquotes{\texttt{use}} it to derive the
+goal.
+\begin{verbatim}
+(use 1)
+(use 1)
+\end{verbatim}
+This completes the proof.
+
+
+\subsection{Exercises}
+The reader is encouraged to try and prove other tautologies.  For
+example the following:
+\begin{enumerate}
+\item $A \to B \to A$
+\item $(A \to B \to C) \to B \to A \to C$
+\item $(A \to B) \to (B \to C) \to A \to C$
+\item $(A \to B \to C) \to A \land B \to C$
+\end{enumerate}
+
+
+\subsection{Classical logic}
+To conclude this section on propositional logic, we give a short
+example of a tautology which uses classical logic.
+
+\mi\ implements minimal logic.  However, it is possible to use \mi\ to
+prove a proposition which holds in an extension of minimal logic, like
+intuitionistic or classical logic.  This is achieved by adding
+specific principles which are characteristics of each kind of logic,
+like the \inquotes{ex falso quodlibet} or a version of the
+\inquotes{tertium non datur}.  We recall that intuitionistic logic is
+obtained from minimal logic by adding a principle which enables us to
+derive any formula from falsity (\inquotes{ex falso quodlibet} is
+Latin for \inquotes{anything follows from falsity}).  This principle
+is usually stated as: $\falsum \ob A$, for arbitrary $A$, where
+$\falsum$ denotes falsity.  Classical logic may be obtained by adding
+to intuitionistic logic the law of \inquotes{tertium non datur} (Latin
+for \inquotes{there is no third option}).  This is usually stated as
+$A \lor \neg A$, for any $A$.  However, classical logic may also be
+obtained by adding to minimal logic a consequence of \inquotes{tertium
+  non datur}, known as \inquotes{stability}, asserting that $\neg \neg
+A \to A$, for any $A$.  Negation is represented in \mi\ as follows:
+$\neg A $ is $A \to \falsum$; consequently stability is written as:
+\begin{equation*}((A \ob \falsum) \ob \falsum) \ob A,\end{equation*}
+for each $A$.
+
+We can add \inquotes{external} principles to \mi\ by introducing
+so--called \emph{\inquotes{global assumptions}}.  Roughly speaking, a
+global assumption is a proposition whose proof does not concern us at
+the moment; hence it can also be an assumption with no proof.  Some
+global assumptions are already set by default, like \texttt{EfqLog}
+(which is \mi's name for \inquotes{ex falso quodlibet}) and
+\texttt{StabLog} (which is \mi's name for the law of stability).  In
+order to check which global assumptions we have at our disposal we
+type: \texttt{(display-global-assumptions)}.  To check a particular
+global assumption (or theorem) whose name we already know, we write
+\texttt{pp}\index{pp@\texttt{pp}} (for pretty-print) followed by the
+name of the assumption (or theorem) we want to check, e.g.:
+\texttt{(pp "StabLog")}.  Of course we can also introduce our own
+global assumptions and remove them at any time (see the reference
+manual for the relevant commands).
+
+In the following we wish to prove the tautology:
+\begin{equation*}
+  ((A \ob B) \ob A) \ob A,
+\end{equation*}
+which is known as \emph{Peirce formula}.  Also for this example, we
+will assume that the reader has prepared her sketch of the proof, and
+we will only give an intuitive idea of the proof, preferring to rather
+concentrate on the \mi\ interaction, which will be given in its
+complete form.
+
+As in the previous examples, we observe first of all that the goal is
+an implication, hence we will assume its antecedent, $(A \ob B) \ob
+A$, and try to prove its consequent, $A$.  Now classical logic comes
+into play: in order to prove $A$ we will assume that its negation
+holds and try to obtain a contradiction from it.  This will be
+achieved by use of Stability.  We further note that in order to make
+the argument work, we will need at some stage to resort also to
+\inquotes{ex falso quodlibet}.
+
+We start by setting the goal and assuming the antecedent of the
+implication:
+\begin{verbatim}
+;; (add-pvar-name "A" "B" (make-arity))
+(set-goal "((A -> B) -> A) -> A")
+(assume 1)
+\end{verbatim}
+
+We obtain:
+\begin{verbatim}
+ok, we now have the new goal
+?_2: A from
+  1:(A -> B) -> A
+\end{verbatim}
+
+We now apply Stability, \texttt{StabLog}, so that the goal $A$ will
+be replaced by its double negation: $(A \ob \falsum) \ob \falsum$.
+Note that $\falsum$ is called \texttt{bot} in \mi.
+
+\begin{verbatim}
+(use "StabLog")
+ok, ?_2 can be obtained from
+?_3: (A -> bot) -> bot from
+  1:(A -> B) -> A
+\end{verbatim}
+
+Since this is an implication, we let:
+\begin{verbatim}
+(assume 2)
+ok, we now have the new goal
+?_4: bot from
+  1:(A -> B) -> A
+  2:A -> bot
+\end{verbatim}
+
+We then use hypothesis 2 to replace the goal $\falsum$ by $A$.
+\begin{verbatim}
+(use 2)
+ok, ?_4 can be obtained from
+?_5: A from
+  1:(A -> B) -> A
+  2:A -> bot
+\end{verbatim}
+
+Also $A$ can be replaced by $A \ob B$ by use of hypothesis 1.
+Subsequently, we can assume the antecedent of the new goal, $A$, and
+call it hypothesis 3:
+\begin{verbatim}
+(use 1)
+ok, ?_5 can be obtained from
+?_6: A -> B from
+  1:(A -> B) -> A
+  2:A -> bot
+>
+(assume 3)
+ok, we now have the new goal
+?_7: B from
+  1:(A -> B) -> A
+  2:A -> bot
+  3:A
+\end{verbatim}
+
+Now we can make use of the principle of \inquotes{ex falso quodlibet}:
+if we want to prove $B$, we can instead prove falsum, since from
+falsum anything follows, in particular $B$.  Our goal can be updated
+to $\falsum$ by the following instance of \texttt{use}:
+\begin{verbatim}
+(use "EfqLog")
+ok, ?_7 can be obtained from:
+?_8: bot from
+  1:(A -> B) -> A
+  2:A -> bot
+  3:A
+\end{verbatim}
+
+The next two steps are obvious.
+\begin{verbatim}
+(use 2)
+ok, ?_8 can be obtained from
+?_9: A from
+  1:(A -> B) -> A
+  2:A -> bot
+  3:A
+>
+(use 3)
+ok, ?_9 is proved.  Proof finished.
+\end{verbatim}
+
+
+\subsection{Exercises}
+To familiarize yourself with negation, prove the following
+propositions.
+\begin{enumerate}
+  \item $(A \to B) \to \neg B \to \neg A$,
+  \item $\neg (A \to B) \to \neg B$,
+  \item $\neg \neg (A \to B) \to \neg \neg A \to \neg \neg B$.
+\end{enumerate}
+
+
+\subsection{Note on disjunction}
+In \mi\ we don't have a primitive logical constant for $\lor$.  This
+is due to the fact that when wishing to prove the disjunction $A \lor
+B$ we can often prove
+\begin{verbatim}
+(A -> Pvar) -> (B -> Pvar) -> Pvar
+\end{verbatim}
+instead\footnote{Note, however, that there is also an (inductively
+  defined) \inquotes{or}, which is displayed as \texttt{ord}, with
+  rules:
+
+\texttt{(pp "InlOrD")}
+
+\texttt{Pvar1 -> Pvar1 ord Pvar2}
+
+\texttt{(pp "InrOrD")}
+
+\texttt{Pvar2 -> Pvar1 ord Pvar2}
+}.
+
+
+\section{Predicate logic}
+
+\subsection{A first example with quantifiers}
+\label{Quantifiers}
+We now exemplify how to prove a statement in predicate logic.
+We want to prove:
+\begin{equation*}
+  \forall_n (P n \to Q n) \to \forall_n P n \to \forall_n Q n.
+\end{equation*}
+Here we assume that the predicates $P$ and $Q$ take natural numbers as
+arguments.  Therefore, we first of all load a file, already available
+within the distribution, which introduces the algebra of natural
+numbers, including some operations on them, like for example addition.
+The reader is advised to have a look at this file\footnote{See also
+  section \ref{NaturalNumbers}.} by typing:
+
+\texttt{(libload "nat.scm")}
+
+Note that this command will produce the display of the whole
+file nat.scm, evaluated.
+If we wish to load the file \inquotes{silently}, then we can
+precede the libload command by the following line:
+\begin{verbatim}
+(set! COMMENT-FLAG #f)
+\end{verbatim}
+This will have the effect of hiding the output.  To revert to full
+display (which is needed to proceed with the proof) one types:
+\begin{verbatim}
+(set! COMMENT-FLAG #t)
+\end{verbatim}
+
+As we load \texttt{nat.scm}, we can make use of all the conventions
+which are there stipulated; in particular, we can take $n,m,k$ to be
+variables for natural numbers (i.e. of type
+\texttt{nat})\footnote{Note that \mi\ automatically infers the type of
+  the variables $x_0, x_1, \dots$ once the variable $x$ has been
+  declared. In this case, it infers for example that $n_0, n_1, \dots$
+  are also natural numbers.}.  The next task is to introduce two new
+predicate variables $P$ and $Q$ which take natural numbers as
+arguments:
+\begin{verbatim}
+(add-pvar-name "P" "Q" (make-arity (py "nat")))
+> ok, predicate variable P: (arity nat) added
+ok, predicate variable Q: (arity nat) added
+\end{verbatim}
+
+We then set the goal:
+\begin{verbatim}
+(set-goal "all n(P n -> Q n) -> all n P n -> all n Q n")
+> ?_1: all n(P n -> Q n) -> all n P n -> all n Q n
+\end{verbatim}
+
+As usual, we first have to \inquotes{deconstruct} the implications:
+\begin{verbatim}
+(assume 1 2)
+> ok, we now have the new goal
+?_2: all n Q n from
+  1:all n(P n -> Q n)
+  2:all n P n
+\end{verbatim}
+
+Then we need to take care of the universal quantifier in the goal:
+\begin{verbatim}
+(assume "n")
+> ok, we now have the new goal
+?_3: Q n from
+  1:all n(P n -> Q n)
+  2:all n P n
+  n
+\end{verbatim}
+
+Note that we could have also used only one command to perform all
+these actions:
+\begin{verbatim}
+(assume 1 2 "n")
+\end{verbatim}
+
+We finally have to \inquotes{use} our hypothesis to conclude the proof:
+\begin{verbatim}
+(use 1)
+(use 2)
+> ok, ?_3 can be obtained from
+?_4: P n from
+  1:all n(P n -> Q n)
+  2:all n P n
+  n
+> ok, ?_4 is proved.  Proof finished.
+\end{verbatim}
+
+
+\subsection{Another example}
+We now wish to prove the following:
+\begin{equation*}
+  \forall_n (P n \to Q n) \to \exists_n P n \to \exists_n Q n.
+\end{equation*}
+We start by setting the goal and eliminating the two implications:
+\begin{verbatim}
+(set-goal "all n(P n -> Q n) -> ex n P n -> ex n Q n")
+(assume 1 2)
+?_1: all n(P n -> Q n) -> ex n P n -> ex n Q n
+> ok, we now have the new goal
+?_2: ex n Q n from
+  1:all n(P n -> Q n)
+  2:ex n P n
+\end{verbatim}
+
+Next we want to use the second assumption, now by applying
+\inquotes{forward reasoning}. Thus we assume there is a witness, say
+$n_0$, for this existential formula and call the resulting hypothesis
+$P_{n_0}$.  To this aim we make use of a command called
+\texttt{by-assume}:
+\begin{verbatim}
+(by-assume 2 "n0" "P_n0")
+> ok, we now have the new goal
+?_5: ex n Q n from
+  1:all n(P n -> Q n)
+  n0  P_n0:P n0
+\end{verbatim}
+
+Alternatively, from the existential formula in hypothesis 2, we can
+extract a witness, say $n_0$, by applying an existential elimination.
+\begin{verbatim}
+(ex-elim 2)
+(assume "n0" "P_n0")
+> ok, ?_2 can be obtained from
+?_3: all n(P n -> ex n0 Q n0) from
+  1:all n(P n -> Q n)
+  2:ex n P n
+> ok, we now have the new goal 
+?_4: ex n Q n from
+  1:all n(P n -> Q n)
+  2:ex n P n
+  n0  P_n0:P n0
+\end{verbatim}
+As we have already used assumption 2, we may wish to drop it by
+writing:
+\begin{verbatim}
+(drop 2)
+\end{verbatim}
+
+We conclude the proof by providing a witness, the term $n_0$, for our
+existential goal formula.  This will be done by calling the command
+\texttt{ex-intro} with argument \texttt{(pt "n0")}, where \texttt{pt}
+stands for \inquotes{parse term}.
+\begin{verbatim}
+(ex-intro (pt "n0"))
+> ok, ?_5 can be obtained from
+?_6: Q n0 from
+  1:all n(P n -> Q n)
+  n0  P_n0:P n0
+\end{verbatim}
+
+Finally, we first instantiate the universal quantifier in assumption 1
+to $n_0$ and then perform a cut with the third assumption.
+\begin{verbatim}
+(use-with 1 (pt "n0") "P_n0")
+>  ok, ?_5 is proved.  Proof finished.
+\end{verbatim}
+
+
+\subsection{An example with relations}
+In the next example we wish to prove that every total relation which
+is symmetric and transitive is reflexive.  For simplicity we shall
+work also in this case with the algebra of the natural numbers.  Our
+aim is to prove the following statement:
+\begin{align*}
+        &       \forall_{n,m}\, (R n m \ob R m n)
+                \,\land\, \forall_{n, m, k}\,
+                (R n m \;\land\; R m k \ob R n k)\\
+        &       \ob \forall_n\, (\exists_m\, R n m \ob R n n),
+\end{align*}
+\noindent
+where $n$, $m$, $k$ vary on natural numbers, while $R$ is a binary
+predicate on natural numbers.
+
+Before attacking our formula, we observe that in general conjunctions
+are quite complex to deal with, as they normally imply the branching
+of a proof in two subproofs.  Thus we might wish to first find a
+formula which is equivalent to the one above and \inquotes{simpler} to
+prove.  We note that we can equivalently express our goal by a formula
+in which the conjunctions have been replaced by implications. Also, we
+can express the conclusion with a prenex universal quantifier instead
+of an existential one.  That is, we can instead prove the following
+equivalent formula:
+\begin{align*}
+        &       \forall_{n, m}\, (R n m \ob R m n)
+                \ob \forall_{n, m, k}\,
+                (R n m \ob R m k \ob R n k)\\
+        &       \ob \forall_{n, m}\, (R n m \ob R n n).
+\end{align*}
+We observe that the strategy of first simplifying the goal may in some
+cases allow one to considerably reduce the amount of time needed to
+prove a statement.  For completeness and for a comparison, we shall
+also record a proof of the original goal at the end of this section.
+
+We now start by introducing the constant $R$. We also want to
+facilitate our work a bit further and introduce names for our two
+assumptions.  In the following we shall use the function \texttt{py}
+(for \inquotes{parse type}), which is the analogous for types of the
+function parse formula that we encountered in the first example.
+\begin{verbatim}
+(add-pvar-name "R" (make-arity (py "nat") (py "nat")))
+(define Sym (pf "all n,m(R n m  -> R m n)"))
+(define Trans (pf "all n,m,k(R n m -> R m k -> R n k)"))
+\end{verbatim}
+
+We now state the goal:
+\begin{verbatim}
+(set-goal (mk-imp Sym Trans (pf "all n,m(R n m -> R n n)")))
+?_1: all n,m(R n m -> R m n)
+       -> all n,m,k(R n m -> R m k -> R n k)
+       -> all n,m(R n m -> R n n)
+\end{verbatim}
+
+Note that also in this case, we could have directly written the two
+formulas as antecedents of the implication, avoiding the detour
+through a \texttt{define} command.  In case of more complex formulas,
+however, or when we need to use the same formulas for various proofs
+through one session, the strategy of introducing names for assumptions
+can be quite useful.
+
+We now observe that the goal is an implication, so that the first step
+is to write \texttt{(assume "Sym" "Trans")}.  We now obtain a
+universally quantified formula and hence need to proceed to eliminate
+the quantifiers. This can be accomplished by another \texttt{assume}
+command in which we specify two natural numbers, say $n$ and $m$.  So
+we write \texttt{(assume "n" "m")}.  This produces an implication
+which again needs to be eliminated by another \texttt{assume} command,
+say \texttt{(assume 3)}.  Quite conveniently we can put all these
+commands together by simply writing:
+\begin{verbatim}
+(assume "Sym" "Trans" "n" "m" 3)
+ok, we now have the new goal
+?_2: R n n from
+  Sym:all n,m(R n m -> R m n)
+  Trans:all n,m,k(R n m -> R m k -> R n k)
+  n  m  3:R n m
+\end{verbatim}
+
+The next move is to make use of our assumptions.  It is clear that if
+we take $k$ to be $n$ in \texttt{Trans}, then the goal can be obtained
+by an instance of \texttt{Sym}, and the proof is easily completed.
+We here utilize \texttt{use} by additionally providing a term,
+\texttt{"m"}, which instantiates the only variable which can not be
+automatically inferred by unification\footnote{See \cite{tcf} for an
+  introduction to unification.}.
+\begin{verbatim}
+(use "Trans" (pt "m"))
+?_4: R m n from
+  Sym:all n,m (R n m -> R m n)
+  Trans:all n,m,k(R n m -> R m k -> R n k)
+  n  m  3:R n m
+?_3: R n m from
+  Sym:all n,m(R n m -> R m n)
+  Trans:all n,m,k(R n m -> R m k -> R n k)
+  n  m  3:R n m
+\end{verbatim}
+
+The \texttt{use} command has the effect of replacing the current goal
+with two new goals.  These are obtained from \texttt{Trans} by
+instantiating the quantifiers with \texttt{n}, \texttt{m} and
+\texttt{n} (the two \texttt{n} being inferred by unification) and then
+by replacing the goal with the antecedents of the resulting instance
+of \texttt{Trans}.  We can now write:
+\begin{verbatim}
+(use 3)
+> ok, ?_3 is proved.  The active goal now is
+?_4: R m n from
+  Sym:all n,m(R n m -> R m n)
+  Trans:all n,m,k(R n m -> R m k -> R n k)
+  n  m  3:R n m
+\end{verbatim}
+
+We finally employ \texttt{Sym} and another \texttt{use}:
+\begin{verbatim}
+(use "Sym")
+ok, ?_4 can be obtained from
+?_5: R n m from
+  Sym:all n,m(R n m -> R m n)
+  Trans:all n,m,k(R n m -> R m k -> R n k)
+  n  m  3:R n m
+>
+(use 3)
+ok, ?_5 is proved.  Proof finished.
+\end{verbatim}
+
+
+\subsection{The same example again}
+We here present a \mi\ proof of the original goal in the previous
+example, as it allows us to exemplify the use of some new commands.
+We shall leave the proof uncommented and make a few remarks at the
+end. The reader will have to examine the proof and check \mi's
+interaction.
+\begin{verbatim}
+;; (libload "nat.scm")
+;; (add-pvar-name "R" (make-arity (py "nat") (py "nat")))
+(set-goal "all n,m(R n m  -> R m n)
+                 & all n,m,k(R n m & R m k -> R n k)
+                 -> all n(ex m R n m -> R n n)")
+(assume 1)
+(inst-with 1  'left)
+(inst-with 1 'right)
+(drop 1)
+(name-hyp 2 "Sym")
+(name-hyp 3 "Trans")
+(assume "n" 4)
+(ex-elim 4)
+(assume "m" 5)
+(cut "R m n")
+(assume 6)
+(use-with "Trans" (pt "n") (pt "m") (pt "n") "?")
+(drop "Sym" "Trans" 4)
+(split)
+(use 5)
+(use 6)
+(use-with "Sym" (pt "n") (pt "m") 5)
+\end{verbatim}
+
+The \texttt{use-with} command is similar to the \texttt{use} command,
+but when applied to a universal quantifier it requires to explicitly
+specify the terms one wants to instantiate.  In the second occurrence
+of \texttt{use-with}, \mi\ will instantiate as specified the universal
+quantifiers in the second premise and then use hypothesis 5 to prove
+the goal.
+
+The command \texttt{inst-with} is analogous to \texttt{use-with}, but
+operates in forward reasoning; hence it allows one to simplify the
+hypothesis, instead of the conclusion. In this case,
+\texttt{(inst-with 1 'left)} has the effect of producing the left
+component of the conjunction which constitutes the first hypothesis.
+Similarly for the right component.
+
+As to \texttt{cut}, this command enables one to introduce new goals:
+\texttt{(cut A)} has the effect of replacing goal $B$ by two new
+goals, $A \ob B$ and $A$.
+
+In the proof above we have also made use of the commands \texttt{drop}
+and \texttt{name-hyp}.  We have already seen the first command, which
+allows one to remove one or more hypothesis from the present context,
+to make the proof more readable.  In fact, it simply replaces the
+current goal with another goal in which the hypothesis
+\inquotes{dropped} are not displayed anymore (but they are not removed
+in general, as should be clear from the example above).  The second
+command has similar \inquotes{cosmetic} purposes, and allows one to
+rename a specific hypothesis and hence to work with names given by the
+user instead of numbers produced by default.  Both these commands
+result especially useful in the case of long and intricate proofs.
+
+
+\subsection{Exercises}
+Prove the following goals:
+\begin{enumerate}
+\item $\forall_{m,n} R m n \to \forall_{n,m} R m n$
+\item $\forall_{m, n} R m n \to \forall_n R n n$
+\item $\exists_m \forall_n R m n  \to \forall_n \exists_m R m n$
+\end{enumerate}
+
+
+\subsection{Advanced exercises}
+Now two examples which involve a function.  First declare a new
+function variable (where \texttt{av} stands for \inquotes{add
+  variable}):
+\begin{verbatim}
+(av "f" (py "nat=>nat"))
+(set-goal "all f(all n(P(f n) -> Q n)
+-> all n P n -> all n Q n)")
+(set-goal "all f(all n(P n -> Q (f n))
+-> ex n P n -> ex n Q n)")
+\end{verbatim}
+
+And finally:
+\begin{verbatim}
+;; (add-pvar-name "Q" (make-arity (py "nat")))
+;; (add-pvar-name "A" (make-arity))
+(set-goal "all n(Q n -> A) -> (ex n Q n -> A)")
+(set-goal "ex n(Q n -> A) -> all n Q n -> A")
+\end{verbatim}
+
+
+\subsection{Another example with classical logic}
+We conclude this section on predicate logic with the proofs of two
+formulas which hold in classical logic.  First of all, we prove the
+inverse of the formula in the last exercise, now generalised to an
+arbitrary type.  Then we use this formula (conveniently stored as a
+Lemma) to prove another formula which is usually known as the
+\inquotes{Drinker} formula.  So we start by proving:
+\begin{equation*}
+  (\forall_x Q x \to A) \to \excl_x (Q x \to A).
+\end{equation*}
+Here $Q$ is a unary predicate which ranges on an arbitrary type, say
+$\alpha$.  In addition, the existential quantifier, $\excl$, is here a
+\textbf{classical} existential quantifier, to be distinguished from
+the existential quantifier we encountered in the previous example. A
+classical quantifier $\excl_x$ is nothing more than an abbreviation
+for $\lnot\, \forall_x\, \lnot$.  Note that \mi\ implements both
+quantifiers, with the appropriate corresponding rules.
+
+We start by \inquotes{removing} the constant $Q$ from example
+\ref{Quantifiers}, so that we can re-introduce it as a fresh constant
+which ranges on $\alpha$ rather than on the natural numbers. We also
+introduce two new variables, $x$ and $y$, of type $\alpha$. Finally,
+we set the goal.
+\begin{verbatim}
+(remove-pvar-name "Q")
+(add-pvar-name "Q" (make-arity (py "alpha")))
+(av "x" (py "alpha"))
+(set-goal "(all x Q x -> A) -> excl x(Q x -> A)")
+\end{verbatim}
+
+We start by \inquotes{deconstructing} the two implications.  Then we
+can instantiate the universal quantifier in assumption 2 to a
+canonical inhabitant of the type $\alpha$.
+\begin{verbatim}
+(assume 1 2)
+(use 2 (pt "(Inhab alpha)"))
+\end{verbatim}
+
+Subsequently, we proceed by eliminating the implication in the goal,
+using assumption 1 and instantiating the resulting universal
+quantifier by $x$.
+\begin{verbatim}
+(assume 3)
+(use 1)
+(assume "x")
+\end{verbatim}
+
+Now it's time to call in classical logic.  The remaining steps should
+be self--explanatory.  Note in particular the use of \texttt{EfqLog}
+and the command \texttt{save} at the end of the proof which enables us
+to save the proof and call it \inquotes{Lemma}.
+\begin{verbatim}
+(use "StabLog")
+\end{verbatim}
+
+\begin{verbatim}
+(assume 4)
+(use 2 (pt "x"))
+(assume 5)
+(use 1)
+(assume "x1")
+\end{verbatim}
+
+\begin{verbatim}
+(use "EfqLog")
+(use-with 4 5)
+(save "Lemma")
+\end{verbatim}
+
+We now wish to prove the following:
+\begin{equation*}
+  \excl_x\, (Q x \ob \forall_y\, Q y),
+\end{equation*}
+again with $Q$ a unary predicate ranging on $\alpha$.
+
+The above formula is known as the \inquotes{drinker} formula, as it
+says something like: \inquotes{in a bar, there is a person such that
+  if that person drinks then everybody drinks}.  To prove the
+\inquotes{drinker}, we observe that if we substitute the predicate
+variable $A$ by $\forall_x Q x$ in the formula just proved, then we
+obtain the drinker formula.  The substitution can be achieved by the
+following command.
+\begin{verbatim}
+(set-goal "excl x(Q x -> all x Q x)")
+(use-with "Lemma"
+          (make-cterm (pv "x") (pf "Q x"))
+          (make-cterm (pf "all x Q x"))
+          "?")
+\end{verbatim}
+
+Here \texttt{pv} stands for \inquotes{parse variable}.  In addition,
+\texttt{make-cterm} produces a \emph{\inquotes{comprehension term}}
+consisting of a list of variables and the formula we wish to
+substitute.  For example, if we wish to replace a predicate variable
+$P$ with arity $x_1, \dots, x_n$ by a formula $F (y_1, \dots, y_n)$ we
+need to give a comprehension term consisting of a list of variables
+$y_1, \dots, y_n$ and the formula $F$ (with free variables $y_1,
+\dots, y_n$, plus possibly other variables, bound or free). That is,
+we write: \texttt{(make-cterm (pv "y1") ...(pv "yn") <formula F> )}.
+Note that the list of variables can also be empty, as in the second
+application of \texttt{make-cterm} above.  We leave the rest of the
+proof as an exercise for the reader.
+
+
+\subsection{Equality reasoning}
+We now wish to prove that for any function $f$ taking natural numbers
+to natural numbers, for any natural number $n$, the following holds:
+\begin{equation*}
+  f n = n \to  f (f n) = n.
+\end{equation*}
+First of all we recall the nat library and introduce $f$.  Then we set
+the goal and start by a familiar \texttt{assume} command.
+\begin{verbatim}
+;; (libload "nat.scm")
+(av "f" (py "nat=>nat"))
+
+(set-goal "all f,n(f n=n ->  f(f n)=n)")
+(assume "f" "n" 1)
+\end{verbatim}
+
+Next we can use the command \texttt{simp} which is an essential tool
+in \mi 's equality reasoning. This command has the effect of
+\emph{simplifying} a proof which involves equal terms by performing an
+appropriate substitution in the goal.  We conclude with a \texttt{use}
+command.
+\begin{verbatim}
+(simp 1)
+(use 1)
+\end{verbatim}
+
+Suppose now we wish to replace the right hand side by the left hand
+side in the equation above:
+\begin{verbatim}
+(set-goal "all f,n(n=f n -> n=f(f n))")
+\end{verbatim}
+
+This can be proved by the following commands:
+\begin{verbatim}
+(assume "f" "n" 1)
+(simp "<-" 1)
+(use 1)
+\end{verbatim}
+
+
+\section{Automatic proof search}
+Minlog allows for automatic proof search.  There are two distinct
+facilities for performing an automatic search in Minlog.  The first is
+given by the command \texttt{(prop)} and exemplifies
+Hudelmaier-Dyckhoff's search for the case of minimal propositional
+logic (see e.g.\ \cite{Hudelmaier89}, \cite{Dyckhoff92}).  The second
+is given by the command \texttt{(search)} and allows to automatically
+find proofs also for some quantified formulas.
+
+\subsection{Search in propositional logic}
+When we give the command \texttt{prop}, \mi\ will first look for a
+proof in propositional minimal logic.  If it fails to find a proof for
+the given proposition, it will try with intuitionistic logic, by
+adding appropriate instances of \inquotes{ex falso quodlibet}.  If
+this search also gives no positive answer, it will try to find a proof
+in classical logic, by adding appropriate instances of Stability.
+
+To apply this search algorithm, one simply needs to type
+\texttt{(prop)}. One could do so after stating the goal or at any
+point in a proof from which one believes that (minimal) propositional
+logic should suffice.  If Minlog finds a proof, one can then
+display it by means of any of the display commands available for
+proofs; for example by writing \texttt{dnp} (which is a shortcut for
+\texttt{display-normalized-proof}).
+
+The reader is encouraged to try \texttt{prop} on
+the following tautologies:
+\begin{enumerate}
+\item $(A \to B \to C) \to (A \to B) \to A \to C$
+\item $((A \to B) \to A) \to A$
+\end{enumerate}
+
+Further test examples can be found in the section on
+propositional logic in this tutorial.
+
+
+\subsection{Search in predicate logic}
+The command \texttt{search} embodies a search algorithm based on
+\cite{Miller91b} and ideas of U.~Berger (see the Minlog reference
+manual and \cite{Schwichtenberg04} for details on the algorithm and
+for some differences with Miller's original algorithm).  The
+\texttt{search} command enables us to automatically find a proof for a
+wider class of formulas compared with \texttt{prop}, since it also
+works for some formulae with quantifiers (see the reference manual for
+a detailed description of the class of formulae dealt with by
+\texttt{search}).  Note, however, that \texttt{search} only operates a
+search in \emph{minimal logic}.  If one wishes to apply this command
+to a classical formula like \inquotes{Peirce's law}, one could for
+example add the appropriate instances of \inquotes{ex falso quodlibet}
+and of \inquotes{Stability} as antecedents of the goal.  In case of
+more complex proofs, in which one can not easily modify the actual
+goal, an alternative would be to avail oneself of a more complete use
+of the \texttt{search} command which allows us to specify some global
+assumptions, theorems or even hypotheses from the given context which
+one would like to use in the proof.  Since the search space in the
+case of quantified formulas can become really vast, this possibility
+of declaring specific assumptions to be used in the proof can be very
+useful, especially if we also state the maximum number of
+multiplicities we allow for each assumption (i.e., the maximum number
+of times each assumption can be used in the proof).  One can also use
+this same device to exclude the use of a specific assumption in the
+proof, simply by letting its multiplicity to be $0$.
+
+To use the plain version of \texttt{search}, one simply writes
+\texttt{(search)}.  See the reference manual for the precise syntax of
+the command \texttt{search} when other assumptions are invoked with
+the respective multiplicities.
+
+The reader is encouraged to use \texttt{search} to prove the
+following: $\forall_x (P x \to Q x) \to \exists_x P x \to \exists_x Q
+x$.
+
+
+\subsubsection{A more complex example with \texttt{search}}
+We here wish to introduce a more complex example for the use of
+\texttt{search}.  We apply the algorithm to the following problem: if
+$f$ is a continuous function then $f$ composed with itself is also a
+continuous function.  We suggest to solve the problem as follows.
+\begin{verbatim}
+(add-tvar-name "beta")
+(add-var-name "U" "V" "W" (py "beta"))
+(add-program-constant "In" (py "alpha=>beta=>boole"))
+(add-infix-display-string "In" "in" 'rel-op)
+(add-var-name "f" (py "alpha=>alpha"))
+
+(set-goal "all f(
+ all x,V(f x in V ->
+  excl U(x in U & all y(y in U -> f y in V))) -> 
+ all x,W(f(f x)in W ->
+  excl U(x in U & all y(y in U -> f(f y)in W))))")
+(search)
+(dnp)
+\end{verbatim}
+Note that one can switch on a verbose form of search by letting:
+\texttt{(set! VERBOSE-SEARCH \#t)} before calling \texttt{search}. In
+this way one can see the single steps performed by the search
+algorithm and detect possible difficulties in finding a proof.
+
+Also, \texttt{add-infix-display-string} allows us to define a token
+with infix notation for the program constant\footnote{Similarly there
+  are commands for prefix and postfix use, for example:
+  \texttt{add-prefix-display-string}.}.
+
+
+\section{Datatypes and inductively defined predicates}
+\label{Datatypes}
+
+\subsection{The natural numbers}
+\label{NaturalNumbers}
+The standard example of a datatype is that of the natural numbers.  We
+have already seen that the natural numbers are implemented in \mi\ as
+an algebra, and that the distribution comes equipped with a file,
+called \texttt{nat.scm}, which introduces this algebra.  The algebra's
+constructors are $0$ and $Succ$ (zero and successor).  To display
+these constructors, we simply write:
+\begin{verbatim}
+(display-alg "nat")
+\end{verbatim}
+We obtain \mi's reply:
+\begin{verbatim}
+> nat
+        Zero:        nat
+        Succ:        nat=>nat
+\end{verbatim}
+
+Note also that for convenience \mi\ allows us to write \texttt{0, 1, 2,
+  3, ...} instead of \texttt{Zero, (Succ Zero), Succ(Succ Zero), ...}.
+
+Algebras usually come equipped with some functions, which are called
+\textbf{program constants} in \mi. For example, in the case of the
+natural numbers, one has the program-constants \texttt{NatPlus} and
+\texttt{NatTimes}, for addition and multiplication, respectively.
+These are displayed as \texttt{+} and \texttt{*}.  The behaviour of
+program constants is specified by means of appropriate term rewriting
+rules which in \mi\ are called \textbf{computation rules} and
+\textbf{rewrite rules} \footnote{The idea is that a computation rule
+  can be understood as a description of a computation in a suitable
+  \emph{semantical} model, provided the syntactic constructors
+  correspond to semantic ones in the model, whereas the other rules
+  should be proved before being introduced.}.
+
+For example, to see the program constant \texttt{NatPlus} and its rules
+type:
+\begin{verbatim}
+(display-pconst "NatPlus")
+
+> NatPlus
+  comprules
+        nat+0        nat
+        nat1+Succ nat2        Succ(nat1+nat2)
+  rewrules
+        0+nat        nat
+        Succ nat1+nat2        Succ(nat1+nat2)
+        nat1+(nat2+nat3)      nat1+nat2+nat3
+\end{verbatim}
+
+Note that here \texttt{nat} is a default variable of type nat.  We
+recommend to have a look at the file \texttt{nat.scm} to familiarise
+oneself with the way program constants are defined.
+
+To see the effect of term rewriting rules for \texttt{+} we type
+\begin{verbatim}
+(pp (nt (pt "3+4")))
+(pp (nt (pt "Succ n+Succ m+0")))
+\end{verbatim}
+which yields as results the number \texttt{7} and
+\texttt{Succ(Succ(n+m))}.  Here \texttt{pp} stands for \texttt{pretty
+  print} and \texttt{nt} stands for \texttt{normalize term}; this
+essentially consists in repeatedly applying\footnote{Term rewriting in
+  \mi\ makes use of normalisation-by-evaluation (see
+  \cite{minlogman}).} the term rewriting rules until no new term is
+obtained.
+
+
+\subsubsection{Adding new program constants and computation rules}
+We now wish to exemplify the introduction of new program constants on
+the natural numbers.
+
+Recall that if the file \texttt{nat.scm} is not already
+loaded\footnote{Clearly, it is good practice to run a new \mi\ session
+  when loading new files which could turn out to be incompatible with
+  previously loaded files or previously introduced definitions.}, we
+can type:
+\begin{verbatim}
+(set! COMMENT-FLAG #f)
+(libload "nat.scm")
+(set! COMMENT-FLAG #t)
+\end{verbatim}
+
+We now introduce a new program constant which represents the function
+which doubles a natural number.  The command used to introduce a new
+program constant is \texttt{add-program-constant}. It requires the
+name of the constant and its type; further arguments may be the degree
+of totality, the token type (e.g.\ \texttt{const}) and the arity (see
+\cite{minlogman}).  In particular, note that in \mi\ we can treat not
+only total objects but also partial ones\footnote{For the notion of
+  totality see \cite[Chapter 8.3]{Stoltenberg94}; see also
+  \cite{SchwichtenbergWainer12}.}.  Therefore, when we introduce a new
+program constant, we may also specify its totality degree. A totality
+degree of one (\texttt{t-deg-one}) indicates that the program constant
+is total, while zero (which is the default) denotes non--totality.  As
+to the type, in the present case, the new constant \texttt{Double} is
+of arrow type, as it takes natural numbers as input and produces
+natural numbers as output.
+
+\begin{verbatim}
+(add-program-constant "Double" (py "nat=>nat"))
+\end{verbatim}
+
+In case we wish to remove this program constant, we simply write:
+\begin{verbatim}
+(remove-program-constant "Double")
+\end{verbatim}
+
+The behaviour of a new program constant can be specified by
+introducing one or more computation rules for it.  This is accomplished
+by use of the command \texttt{add-computation-rule}, having two
+arguments: a left hand side and a right hand side.  The right hand
+side specifies the result of the computation rule for the argument
+indicated in the left hand side.
+
+The following example should clarify how to use these commands.
+
+The function \inquotes{Double} can be defined by specifying
+primitively recursively how it acts on zero and on the successor of
+each natural number.
+
+\begin{verbatim}
+(add-computation-rule (pt "Double 0") (pt "0"))
+(add-computation-rule (pt "Double(Succ n)")
+                      (pt "Succ(Succ(Double n))"))
+\end{verbatim}
+
+Alternatively, one could also write:
+\begin{verbatim}
+(add-computation-rules
+ "Double 0" "0"
+ "Double(Succ n)" "Succ(Succ(Double n))")
+\end{verbatim}
+
+To see the effect of the newly introduced computation rules:
+\begin{verbatim}
+(pp (nt (pt "Double 3")))
+(pp (nt (pt "Double(n+2)")))
+\end{verbatim}
+
+
+\subsubsection{Proof by induction}
+Here we wish to exemplify a proof by induction on the natural numbers.
+The goal is very simple: we wish to show that $\mathtt{Double}\ n=n+n$.
+The first step of the proof consists in using the command
+\texttt{ind}.  This command requires a universally quantified goal and
+proves it by induction, according to the definition of the specific
+algebra type.
+\begin{verbatim}
+(set-goal "all n Double n=n+n")
+(ind)
+\end{verbatim}
+
+The effect of applying \texttt{ind} is to refine the goal to a proof
+of the base and the step cases of the induction.  In the present case,
+where the constructors are Zero and Successor, we have to prove two
+cases: one for Zero and one for Successor.  \mi's reply will be
+something like this:
+\begin{verbatim}
+ok, ?_1 can be obtained from
+; ?_3: all n(Double n=n+n -> Double(Succ n)=Succ n+Succ n) from
+;   n924
+
+; ?_2: Double 0=0+0 from
+;   n924
+\end{verbatim}
+
+We then replace the goal with its normal form by letting:
+\begin{verbatim}
+(normalize-goal)
+
+; ?_4: T from
+;   n924
+\end{verbatim}
+
+The latter command can be abbreviated with \texttt{ng} and it
+normalizes the goal by using the computation rules for
+\inquotes{\texttt{+}} introduced in the file \texttt{nat.scm}.  More
+specifically, as both Double 0 and 0+0 reduce to 0, the normalization
+will first of all produce 0=0.  This in turn reduces to truth, here
+indicated by \texttt{T}.  It comes equipped with an axiom
+\texttt{Truth}, by means of which we prove the base case.
+%% \texttt{T} is a constructor of the
+%% predefined algebra of booleans, and it comes equipped with the
+%% \texttt{Truth-axiom}, by means of which we prove the base case.
+\begin{verbatim}
+(use "Truth")
+
+ok, ?_4 is proved.  The active goal now is
+?_3: all n(Double n=n+n -> Double(Succ n)=Succ n+Succ n) from
+  n924
+\end{verbatim}
+
+As to the step, we make use of the induction hypothesis, \texttt{IH},
+and write:
+\begin{verbatim}
+(assume "n" "IH")
+(ng)
+(use "IH")
+
+ok, we now have the new goal 
+?_5: Double(Succ n)=Succ n+Succ n from
+  n924  n  IH:Double n=n+n
+> ok, the normalized goal is
+?_6: Double n=n+n from
+  n924  n  IH:Double n=n+n
+> ok, ?_6 is proved.  Proof finished.
+\end{verbatim}
+
+Also in this case, when we write \texttt{ng} the term rewriting rules
+for \texttt{Double} and \inquotes{\texttt{+}} are applied.
+
+Finally, we wish to recall that one could also define the Double
+function without making use of a primitive recursive definition.
+\begin{verbatim}
+(add-program-constant "DoubleN" (py "nat=>nat"))
+(add-computation-rule (pt "DoubleN n") (pt "n+n"))
+\end{verbatim}
+
+
+\subsubsection{Exercises}
+Prove that the two definitions of the doubling function are equivalent:
+\begin{verbatim}
+(set-goal "all n Double n=DoubleN n")
+\end{verbatim}
+Prove also the following:
+\begin{verbatim}
+(set-goal "all n,m n+m=m+n")
+\end{verbatim}
+
+
+\subsubsection{Rewrite rules}
+Once we have proved the above statement for which the two definitions
+of Double are equivalent, we may add a rewrite rule which replaces
+each occurrence of \texttt{Double} by \texttt{DoubleN}.
+\begin{verbatim}
+(add-rewrite-rule (pt "Double n") (pt "DoubleN n"))
+\end{verbatim}
+
+
+\subsubsection{Another example}
+\label{EvenOdd}
+We now present another example of induction on the natural numbers,
+which introduces some additional features of \mi.
+
+Suppose we want to prove that for all natural numbers $n$, $Double\,
+n$ is even.  We define two new program constants \texttt{Odd} and
+\texttt{Even} which take a natural number as argument and give a
+boolean (true or false) as output.  As usual, the behaviour of these
+program constants can be specified by means of appropriate computation
+rules. In this case the computation rules will simultaneously
+characterize \texttt{Odd} and \texttt{Even}.
+\begin{verbatim}
+(add-program-constant "Odd" (py "nat=>boole"))
+(add-program-constant "Even" (py "nat=>boole"))
+
+(add-computation-rules
+ "Odd 0" "False"
+ "Even 0" "True"
+ "Odd(Succ n)" "Even n"
+ "Even(Succ n)" "Odd n")
+\end{verbatim}
+
+The steps of the proof are self--explanatory:
+\begin{verbatim}
+(set-goal "all n Even(Double n)")
+(ind)
+(prop)
+(search)
+\end{verbatim}
+
+
+\subsection{Case distinction on the booleans}
+We wish to give an example of distinction by cases, and for simplicity
+we shall consider a trivial example on the booleans.
+
+We wish to prove that for any boolean $p$, if $p$ is not false than it
+is true.  We add a variable \texttt{p} of type boolean and set the
+goal:
+\begin{verbatim}
+(av "p" (py "boole"))
+(set-goal "all p((p=False -> F) -> p=True)")
+\end{verbatim}
+
+The proof then proceeds by cases: either $p$ is false or it is true.
+The following steps should be clear.
+\begin{verbatim}
+(cases)
+(prop)
+(prop)
+\end{verbatim}
+
+
+\subsection{Induction on lists}
+The following example is an exercise on lists over an arbitrary type
+$\alpha$.  This example illustrates again the use of induction;
+however, since we now deal with \emph{parametrized algebras} (see
+\cite{minlogman,SchwichtenbergWainer12}) the task turns out to be a
+bit harder than when working with the algebra of natural
+numbers%% \footnote{We recall that an algebra is finitary if every
+  %% constructor takes only finitely many arguments. Therefore for any
+  %% two elements of a finitary algebra we can decide whether they are
+  %% equal.  \mi\ also allows for infinitary free algebras, whose
+  %% constructors may take infinitely many arguments. Notice that then
+  %% equality is not decidable any more, and hence needs to be
+  %% axiomatized.  An example of an infinitary algebra is given by the
+  %% countable ordinals.  They can be seen as generated from a nullary
+  %% constructor 0, a unary constructor for the successor and a
+  %% constructor building the supremum out of a countably infinite list
+  %% of ordinals (given by a function from the natural numbers to
+  %% ordinals).  }
+.
+
+To start with we load the file \texttt{list.scm}, which contains basic
+definitions and operations on lists over an arbitrary type
+$\alpha$\footnote{ Note that \texttt{list.scm} does require to first
+  upload \texttt{nat.scm}.  We recommend to go through the list file
+  before working out this example.}.  Then we introduce a function,
+$\listrev$, on lists which has the effect of reverting a list. Finally
+we prove:
+\begin{equation*}
+  \forall_{v,w} (\eqd{\listrev\, (v \listappend w)}
+  {(\listrev\, w) \listappend (\listrev\, v)}),
+\end{equation*}
+where $v$ and $w$ are lists over an arbitrary type $\alpha$ and $\ast$
+denotes the append function on lists as defined in \texttt{list.scm}.
+Further, $\equiv$ represent Leibniz' equality\footnote{Internally
+  Leibniz equality is printed \texttt{eqd}, where the \texttt{d}
+  stands for \inquotes{defined}, since Leibniz equality is inductively
+  defined by the clause \texttt{InitEqD}: $\allnc_x \eqd{x}{x}$; see
+\ref{EvenI} for inductively defined predicates.}: two
+elements are equal if they have the same properties, i.e., they are
+indistinguishable.
+
+We begin as follows:
+\begin{verbatim}
+;; (libload "nat.scm")
+(set! COMMENT-FLAG #f)
+(libload "list.scm")
+(set! COMMENT-FLAG #t)
+
+(add-var-name "x" "a" "b" "c" "d" (py "alpha"))
+(add-var-name "xs" "v" "w" "u" (py "list alpha"))
+\end{verbatim}
+
+We now need to define $\listrev$.  This is defined inductively, by
+first giving its value for the empty list and then saying how it
+applies to a non-empty list.  The two defining conditions for
+$\listrev$ are the following:
+\begin{align*}
+\listrev\,(\nil\, \alpha) &= (\nil\, \alpha),
+\\
+\listrev\,(a::w) &= (\listrev\, w) \listappend (a{:})
+\end{align*}
+where, according to the notation in \texttt{list.scm}, $\nil\, \alpha$
+denotes the empty list over the type $\alpha$, $a::w$ denotes the list
+obtained by adding the object $a$ of type $\alpha$ to the list $w$
+(over $\alpha$), while $a{:}$ is the one element list obtained from
+$a$.  We thus write:
+\begin{verbatim}
+(add-program-constant "ListRev"
+            (py "list alpha => list alpha") t-deg-one)
+(add-prefix-display-string "ListRev" "Rev")
+
+(add-computation-rules
+ "Rev(Nil alpha)" "(Nil alpha)"
+ "Rev(x::xs)" "Rev xs++x:")
+\end{verbatim}
+
+Note that for simplicity we have stated that \texttt{ListRev} is a
+total function.  \mi's output will include a warning, to remind us
+that we might wish to separately prove that \texttt{ListRev} is in
+fact total.  Also, \texttt{add-prefix-display-string} allows us to
+define a token for the program constant.
+
+The following proof makes use of a program constant,
+\texttt{ListAppd}, already available within the file
+\texttt{list.scm}.  This has the following computation rules:
+\begin{verbatim}
+         (Nil alpha)++xs2      xs2
+         (x1::xs1)++xs2        x1::xs1++xs2
+\end{verbatim}
+And rewrite rules:
+\begin{verbatim}
+         xs++(Nil alpha)       xs
+         xs1++x2: ++xs2        xs1++(x2::xs2)
+\end{verbatim}
+
+To check \texttt{ListAppd} we type:
+\begin{verbatim}
+(display-pconst "ListAppd")
+\end{verbatim}
+
+Now we can set the goal and start the proof by calling \texttt{ind}:
+\begin{verbatim}
+(set-goal "all v,w Rev(v++w)eqd Rev w++Rev v")
+(ind)
+\end{verbatim}
+
+This has the effect of producing two subgoals, corresponding to the
+base case and the step case, respectively.  We tackle the base case as
+follows:
+\begin{verbatim}
+(ng)
+(assume "w")
+(use "InitEqD")
+\end{verbatim}
+Here we have used \texttt{InitEqD}, which is the axiom: \texttt{xs eqd
+  xs}.
+
+Subsequently we move to the step case:
+\begin{verbatim}
+(assume "a" "v" "IHw" "w")
+(ng)
+(simp "IHw")
+\end{verbatim}
+
+And finally we use a theorem proved in the file \texttt{list.scm} and
+there called \texttt{ListAppdAssoc:}
+\begin{verbatim}
+all xs1,xs2,xs3 xs1++(xs2++xs3)eqd xs1++xs2++xs3
+\end{verbatim}
+Then we carry on by
+\begin{verbatim}
+(simp "ListAppdAssoc")
+(use "InitEqD")
+\end{verbatim}
+
+\subsubsection{Exercise}
+Prove that the program constant \verb|map|, defined in \texttt{list.scm} 
+by the computation rules 
+\begin{verbatim} 
+(add-computation-rules
+ "phi map(Nil alpha1)" "(Nil alpha2)"
+ "phi map y::ys" "phi y::phi map ys")
+\end{verbatim} 
+commutes with \texttt{Rev}
+
+\begin{verbatim}
+(av "f" (py "alpha=>alpha"))
+(set-goal "all f,xs (f map (Rev xs) eqd Rev (f map xs))")
+\end{verbatim}
+
+\subsection{Defining algebras: binary trees}
+We now wish to show how to introduce new algebras; we shall also give
+one more example on how to use them.  The example we shall consider is
+that of binary trees.  First of all we introduce a new algebra, called
+\inquotes{bintree} which has constructors \inquotes{Null} and
+\inquotes{Con}.  We also add two variables of type \inquotes{bintree}:
+\inquotes{ltree} and \inquotes{rtree} (for left and right tree).
+\begin{verbatim}
+(add-algs "bintree"
+          '("bintree" "Null") 
+          '("bintree=>nat=>bintree=>bintree" "Con"))
+(av "ltree" "rtree" (py "bintree"))
+\end{verbatim}
+
+We then add a new program constant (by using a shortcut, \texttt{apc},
+for the command \texttt{add-program-constant}) and its respective
+computation rules.  \texttt{Flatten} takes a tree and produces a list
+consisting of the labels in the tree, starting with the root label.
+\begin{verbatim}
+(apc "Flatten" (py "bintree=>list nat"))
+(add-computation-rules
+ "Flatten(Null)" "(Nil nat)"
+ "Flatten(Con ltree n rtree)" "n: ++Flatten ltree++Flatten rtree")
+\end{verbatim}
+
+To see how this works, one can for example type:
+\begin{verbatim}
+(pp (nt (pt "Flatten(Con(Con Null 4 Null)
+                        1 
+                        (Con Null 5(Con Null 7 Null)))")))
+\end{verbatim}
+to obtain \texttt{1::4::5::7:} as the list of labels.
+
+
+\subsection{Inductively defined predicates}
+\label{EvenI}
+In \mi\ we can also introduce inductively generated predicates with
+the command \texttt{add-ids}.  An example defining the even numbers
+inductively is as follows:
+\begin{verbatim}
+(add-ids 
+  (list (list "EvenI" (make-arity (py "nat")) "algEvenI"))
+  '("EvenI 0" "InitEvenI")
+  '("allnc n(EvenI n -> EvenI(n+2))" "GenEvenI"))
+\end{verbatim}
+The two closure axioms of this inductive definition are
+\texttt{InitEvenI:} \texttt{EvenI 0} and \texttt{GenEvenI: allnc n(
+  EvenI n -> EvenI(n + 2))}.  In the latter, we have made use of the
+\inquotes{non-computational} quantifier \texttt{allnc}.  We briefly
+recall that a non-computational quantifier may be used in cases where
+the variable it quantifies on will not be used (freely) in any term in
+the proof.\footnote{Consequently, extracted programs (see the next
+  chapter) will not depend on these variables.}  Seen purely logically
+there is no difference between the \texttt{all} and \texttt{allnc}
+quantifier.  With \texttt{algEvenI}, we provide a name for an algebra,
+corresponding to this inductive definition.  It can be omitted, in
+which case we have an \inquotes{inductive definition without
+  computational content}.
+
+Similarly to the case of simultaneous free algebras, we could use
+\texttt{add-ids} to introduce simultaneously more than one predicate.
+The case above is a particular example, in which the first occurrence
+of \texttt{list} is followed by only one item.
+
+Let's now see a proof which uses the closure axioms for
+\texttt{EvenI}.  This makes essential use of the command
+\texttt{intro}.  The command \texttt{(intro i .\ terms)} expects as
+goal a formula which can be proved using the i-th closure axiom.  This
+axiom is then applied, via \texttt{use}, hence \texttt{terms} may have
+to be provided.  For example, below by calling \texttt{intro 0} we
+apply the first closure axiom for EvenI, and by calling \texttt{intro
+  1} we apply the second closure axiom.
+\begin{verbatim}
+(set-goal "all n EvenI(n+n)")
+(ind)
+(ng)
+(intro 0)
+(assume "n" "IH")
+(ng)
+(intro 1)
+(use "IH")
+\end{verbatim}
+
+To conclude this section, we present a proof using induction on the
+predicate \texttt{EvenI}.  
+\begin{verbatim}
+(set-goal "allnc n (EvenI n -> ex m m+m=n)")
+(assume "n")
+(elim)
+\end{verbatim}
+
+Here \texttt{elim} applies the induction axiom for the inductive
+definition.  For example, if the goal is \texttt{all n(EvenI n -> P
+  n)}, we obtain the new goals: \texttt{P 0} and \texttt{all n((EvenI
+  n \& P n) -> P(n+2))}.  The commands for the rest of the proof have
+been explained before.
+\begin{verbatim}
+(ex-intro (pt "0"))
+(prop)
+
+(assume "n1" 2 3)
+(by-assume 3 "m0" 4)
+(ex-intro (pt "m0+1"))
+(simp "<-" 4)
+(use "Truth")
+\end{verbatim}
+
+As an exercise, we recommend to prove the above statement using a
+simultaneous inductive definition of Even/Odd.  The simultaneous
+definition and a hint of how to apply the \verb|elim| command can be
+found in the reference manual.
+
+\subsection{Totality of program constants}
+\label{SS:Totality}
+An important example for an inductively defined predicate is the
+totality predicate for an algebra, for instance \texttt{TotalNat}%
+\index{TotalNat@\texttt{TotalNat}} for the algebra \texttt{nat}.  It
+can be created by calling \texttt{(add-totality \textsl{alg-name})}%
+\index{add-totality@\texttt{add-totality}}.  When the file
+\texttt{nat.scm} is loaded this already has been done and
+\texttt{TotalNat} is inductively defined by the two clauses
+\texttt{TotalNatZero} and \texttt{TotalNatSucc}:
+\begin{align*}
+  &\mathtt{TotalNatZero} \colon	\mathtt{TotalNat}\; 0
+  \\
+  &\mathtt{TotalNatSucc} \colon
+  \allnc_{\hat{n}}(\texttt{TotalNat}\; \hat{n} \to
+  \texttt{TotalNat}(\texttt{Succ}\; \hat{n}))
+\end{align*}
+This can be checked by executing
+\begin{verbatim}
+(display-idpc "TotalNat")
+\end{verbatim}
+Note that here we have used $\hat{n}$ rather than $n$ as a variable
+name.  At this point it is appropriate to remember that in our
+intended model (the Scott-Ershov partial continuous functionals)
+\emph{partial} objects are first class citizens, and hence quantifiers
+by default range over them.  When we want to talk about total objects
+only, we need to relativize quantifiers to a totality predicate.  To
+make the notation less cumbersome we introduce the convention that if
+a variable name is followed by a \verb#^#, a general (or
+partial\index{partial}\index{variable!partial})) variable is meant.
+Variable names without a \verb#^# are implicitly restricted to range
+over total objects only.  In fact, $\forall_x P x$ is just a
+convenient abbreviation for $\allnc_{\hat{x}}(\GTotal \hat{x} \to P
+\hat{x})$.  Here $\GTotal$ is the totality predicate for the current
+type.
+
+When adding a program constant and its computation rules the default
+is that this constant denotes a partial functional.  However,
+often the computation rules are such that it actually is total (i.e.,
+defined for all total arguments).  It is good practice to prove
+totality immediately after defining a program constant.
+
+For example, the program constant \texttt{Double} clearly is total.
+To let \mi\ know this fact we have to prove a lemma.
+\begin{verbatim} 
+;; DoubleTotal
+(set-goal (rename-variables
+            (term-to-totality-formula (pt "Double"))))
+\end{verbatim}
+The goal then is, as expected,
+\begin{verbatim} 
+?_1: allnc n^(TotalNat n^ -> TotalNat(Double n^))
+\end{verbatim}
+Now we carry on by assuming the variable and the hypothesis
+\begin{verbatim} 
+(assume "n^" "Tn")
+\end{verbatim}
+At this point we use the elimination axiom for \texttt{TotalNat}
+\begin{verbatim} 
+(elim "Tn")
+(use "TotalNatZero")
+(assume "n^1" "Tn1" "IH")
+(ng #t)
+(use "TotalNatSucc")
+(use "TotalNatSucc")
+(use "IH")
+;; Proof finished.
+(save "DoubleTotal")
+\end{verbatim}
+It is important to give this lemma the name \texttt{DoubleTotal},
+i.e., the name of the program constant followed by \texttt{Total}.
+After the lemma with this name is saved \mi\ will know that
+\texttt{Double} is total.
+
+\section{Program extraction from proofs}
+\label{RevI}
+In this section we give some basic examples of program extraction from
+proofs.  We should perhaps mention at this point that program
+extraction was one of the main original motivations in the development
+of \mi.  In addition, \mi\ features some interesting aspects, as for
+example it implements a refined version of the so--called
+$A$--translation, thus allowing for program extraction from
+\textbf{classical} proofs.  An exposition of program extraction from
+proofs and (modified) $A$--translation is well beyond the purpose of
+this tutorial.  See for example \cite{BergerBuchholzSchwichtenberg02,%
+  BenlBergerSchwichtenbergSeisenbergerZuber98,%
+  SchwichtenbergWainer12}.
+
+For our first example of program extraction from proofs, we introduce
+an inductively defined predicate \texttt{RevI} (without computational
+content) as follows:
+\begin{verbatim}
+;; (set! COMMENT-FLAG #f)
+;; (libload "nat.scm")
+;; (libload "list.scm")
+;; (set! COMMENT-FLAG #t)
+
+;; (add-var-name "a" "b" "c" "d" "x" (py "alpha"))
+;; (add-var-name "v" "w" "u" "xs" (py "list alpha"))
+
+(add-ids
+ (list (list "RevI" (make-arity (py "list alpha")
+                                (py "list alpha"))))
+ '("RevI(Nil alpha)(Nil alpha)" "InitRevI")
+ '("all a,v,w(RevI v w  -> RevI(v++a:)(a::w))" "GenRevI"))
+\end{verbatim}
+
+Then we add a symmetry axiom for \texttt{RevI}:
+\begin{verbatim}
+(aga "RevSym" "all v,w(RevI v w -> RevI w v)")
+\end{verbatim}
+And finally set the goal:
+\begin{verbatim}
+(set-goal "all v ex w RevI v w")
+\end{verbatim}
+The proof proceeds by structural induction on lists.  We first of all
+call \texttt{ind}.  Subsequently, we tackle the base case by first of
+all providing a witness, \texttt{Nil} of type $\alpha$, and then by
+using the first closure axiom for \texttt{RevI}.
+\begin{verbatim}
+(ind)
+(ex-intro (pt "(Nil alpha)"))
+(intro 0)
+\end{verbatim}
+
+The step is proved by first of all calling some standard commands
+(\texttt{assume, by-assume}), then by providing a witness, and
+finally by making use of \texttt{RevSym} (twice).  The second closure
+axiom is called as usual by an \texttt{intro} command.
+\begin{verbatim}
+(assume "a" "v" 1)
+(by-assume 1 "w" 2)
+(ex-intro (pt "w ++ a:"))
+(use "RevSym")
+(intro 1)
+(use "RevSym")
+(use 2)
+\end{verbatim}
+
+We can finally name the proof we have just completed by writing:
+\begin{verbatim}
+(define constr-proof (current-proof))
+\end{verbatim}
+
+Note that \texttt{(current-proof)} stores the latest proof.
+
+We now extract a program from the proof and normalize it as follows:
+\begin{verbatim}
+(define eterm (proof-to-extracted-term constr-proof))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+\end{verbatim}
+
+We have used \texttt{rename-variables} to obtain a more readable term.
+This \inquotes{normalized extracted term} \texttt{neterm} is the
+program we are looking for.  To display it we write:
+\begin{verbatim}
+(pp neterm)
+\end{verbatim}
+
+The output will be:
+\begin{verbatim}
+[xs](Rec list alpha=>list alpha)xs
+    (Nil alpha)([x,xs0,xs1]xs1++x:)
+\end{verbatim}
+
+Here \texttt{[xs]} denotes abstraction on the variable \texttt{xs},
+usually also written by use of the $\lambda$ notation.  We observe
+that the extracted term uses the recursion operator \texttt{Rec}.  In
+more familiar terms, it amounts to a program, which we may call
+\texttt{Reverse}, defined as follows:
+\begin{verbatim}
+Reverse Nil=Nil
+Reverse (x :: xs)=(Reverse xs) ++ x:
+\end{verbatim}
+
+%% We now extract a program from the proof and normalize it as follows:
+%% \begin{verbatim}
+%% (define program
+%%    (nt (proof-to-extracted-term constr-proof)))
+%% \end{verbatim}
+
+%% To display the program we write:
+%% \begin{verbatim}
+%% (pp program)
+%% \end{verbatim}
+
+%% The output will be:
+%% \begin{verbatim}
+%% [xs0](Rec list alpha=>list alpha)xs0
+%%      (Nil alpha)([x1,xs2,xs3]xs3++x1:)
+%% \end{verbatim}
+
+%% Here \texttt{[xs0]} denotes abstraction on the variable \texttt{xs0},
+%% usually also written by use of the $\lambda$ notation.  We observe
+%% that the extracted term uses the recursion operator \texttt{Rec}.
+
+Note that we could have also displayed the program by using the
+command \texttt{term-to-scheme-expr}, which produces the
+$\lambda$--term corresponding to the program.
+
+To test the program we can \inquotes{run} it on input \texttt{[a,b,c,d]}:
+\begin{verbatim}
+(pp (nt (make-term-in-app-form neterm (pt "a::b::c::d:"))))
+\end{verbatim}
+and obtain the result: \texttt{d::c::b::a:}
+
+
+\subsection{Program extraction from proofs using inductive
+  definitions with computational content} In this section we wish to
+exemplify how to extract a program from a proof by induction of a
+statement which uses an inductive definition\footnote{These inductive
+  definitions are also called \inquotes{inductive definitions with
+    computational content}. Note that there are also inductive
+  definitions without computational content (for example \texttt{RevI}
+  above).  For more information on computational content, see for
+  example \cite{SchwichtenbergWainer12} and
+  \cite{BergerSeisenberger10}.}.  In fact, an inductive definition
+with computational content on the proof side corresponds to a free
+algebra on the program side.  Thus we need to provide a name for such
+an algebra, if a new one has to be generated.  However, if there is an
+already existing algebra with fitting constructors, the name of this
+algebra can be provided as well.  I.e., in our example on the even
+numbers, which we recall below, we could alse take \texttt{nat}.  The
+types of the algebra's constructors corresponds to the clauses of the
+inductive definition, named \texttt{InitEven} and \texttt{GenEven}.
+\begin{verbatim}
+(add-ids
+ (list (list "EvenI" (make-arity (py "nat")) "algEvenI"))
+ '("EvenI 0" "InitEvenI")
+ '("allnc n(EvenI n -> EvenI(n+2))" "GenEvenI"))
+\end{verbatim}
+We recall our proof and extract a program:
+\begin{verbatim}
+(set-goal "allnc n(EvenI n -> ex m m+m=n)")
+(assume "n")
+(elim)
+(ex-intro (pt "0"))
+(prop)
+(assume "n1" 2 3)
+(by-assume 3 "m0" 4)
+(ex-intro (pt "m0+1"))
+(simp "<-" 4)
+(use "Truth")
+
+(define eterm (proof-to-extracted-term (current-proof)))
+(define neterm (rename-variables (nt eterm)))
+\end{verbatim}
+We can see the program by writing:
+\begin{verbatim}
+(pp neterm)
+\end{verbatim}
+Here, the extracted program essentially corresponds to the identity
+function.  For comparison we recommend to extract a program using the
+earlier defined program constants \verb|Even/Odd|.
+\begin{verbatim}
+(set-goal "all n ex m((Even n -> 2*m = n) & 
+                      (Odd n -> 2*m+1=n))")
+\end{verbatim}
+
+As mentioned, we can define the even predicate by an inductive
+definition without computational content.
+\begin{verbatim}
+(add-ids (list (list "EvenNC" (make-arity (py "nat"))))
+	 '("EvenNC 0" "InitEvenNC")
+	 '("allnc n(EvenNC n -> EvenNC(n+2))" "GenEvenNC"))
+\end{verbatim}
+We leave it to the reader to prove a non-computational version of the
+lemma above, using the command \verb|exnc-intro| in the proof:
+\begin{verbatim}
+(set-goal "allnc n(EvenNC n -> exnc m m+m=n)")
+\end{verbatim}
+
+%% \subsection{Another example}
+%% In this section we wish to exemplify how to extract a program from a
+%% proof by induction of a statement which uses an inductive definition.
+%% The inductive definition we wish to implement has computational
+%% content\footnote{These inductive definitions are also called
+%%   \inquotes{inductive definitions with computational content}. Note
+%%   that there are also inductive definitions without computational
+%%   content (for example \texttt{RevI} above).
+%% %In the latter case, the inductive definition is just used as a
+%% %predicate which (roughly speaking) does not occur on the program side.
+%% For more on computational content, see for example
+%% \cite{SchwichtenbergWainer12} and \cite{BergerSeisenberger10}.}; thus
+%% we define an algebra corresponding to it.  In fact, an inductive
+%% definition with computational content on the proof side corresponds to
+%% a free algebra on the program side. Thus we need to provide a name for
+%% such an algebra, if a new one has to be generated.  However, if there
+%% is an already existing algebra with fitting constructors, the name of
+%% this algebra can be provided as well.  I.e., in the example below we
+%% could alse take \texttt{nat}.  The types of the algebra's constructors
+%% corresponds to the clauses of the inductive definition, named
+%% \texttt{InitEven} and \texttt{GenEven}.
+%% %% as well as names for the constructors.  We call
+%% %% \texttt{algEven} the algebra and \texttt{InitEven} and
+%% %% \texttt{GenEven}, respectively, the two constructors.  The latter
+%% %% correspond to the closure axioms of the inductive definition.
+%% \begin{verbatim}
+%% (add-ids
+%%  (list (list "EvenII" (make-arity (py "nat")) "algEvenII"))
+%%  '("EvenII 0" "InitEvenII")
+%%  '("allnc n(EvenII n -> EvenII(n+2))" "GenEvenII"))
+%% \end{verbatim}
+
+%% In the following we shall also make use of the
+%% \inquotes{non--computational} quantifier \texttt{allnc}.  Here we
+%% briefly recall that a \inquotes{non--computational} quantifier may be
+%% used in this case as the variable it quantifies on will not be used
+%% free in a term later on in the proof. This is to say, the extracted
+%% program doesn't depend on this variable.
+
+%% We set the following goal:
+%% \begin{verbatim}
+%% (set-goal "allnc n(EvenII n -> ex m m+m=n)")
+%% \end{verbatim}
+
+%% The proof proceeds as follows:
+%% \begin{verbatim}
+%% (assume "n")
+%% (elim)
+%% (ex-intro (pt "0"))
+%% (prop)
+%% (assume "n1" 2 3)
+%% (by-assume 3 "m0" 4)
+%% (ex-intro (pt "m0+1"))
+%% (simp "<-" 4)
+%% (use "Truth-Axiom")
+%% \end{verbatim}
+
+%% We then give a name to the proof just completed:
+%% \begin{verbatim}
+%% (define eterm (proof-to-extracted-term (current-proof)))
+%% (define neterm (rename-variables (nt eterm)))
+%% \end{verbatim}
+
+%% We can see the program by writing:
+%% \begin{verbatim}
+%% (pp neterm)
+%% \end{verbatim}
+
+
+\subsection{Program extraction from classical proofs}
+Finally, we wish to exemplify how to extract programs from classical
+proofs.  Once more, an account of the theory underlying this example
+exceeds the modest aims of this tutorial, so that we can but refer the
+inquisitive reader to the literature already mentioned above.
+
+The goal is to prove a classical variant of the statement in section
+\ref{RevI}.  Quite concisely, we set the goal and produce a proof:
+\begin{verbatim}
+(set-goal "all v excl w RevI v w")
+
+(assume "v0" 1)
+(cut "all u allnc v(v++u eqd v0 ->
+                   all w (RevI v w -> bot))")
+
+(assume "claim")
+\end{verbatim}
+
+Now we can make use of the \texttt{claim} to prove the goal:
+\begin{verbatim}
+(use "claim"
+     (pt "v0") (pt "(Nil alpha)") (pt "(Nil alpha)"))
+(ng)
+(use "InitEqD")
+(intro 0)
+\end{verbatim}
+
+And prove the \texttt{claim} by induction:
+\begin{verbatim}
+(ind)
+\end{verbatim}
+
+The base case is tackled as follows:
+\begin{verbatim}
+(assume "v")
+(ng)
+(assume 2 "w")
+(simp 2)
+(use 1)
+\end{verbatim}
+
+As to the step we write:
+\begin{verbatim}
+(assume "a" "u" "IH" "v" 3 "w" 4)
+(use "IH" (pt "v++a:") (pt "a::w"))
+(ng)
+(use 3)
+(intro 1)
+(use 4)
+\end{verbatim}
+
+Finally we name the proof, which we conveniently call \texttt{class-proof}:
+\begin{verbatim}
+(define class-proof (np (current-proof)))
+\end{verbatim}
+Finally we add a variable \texttt{g}:
+\begin{verbatim}
+(av "g" (py "list alpha=>list alpha"))
+\end{verbatim}
+The reasons for this are purely cosmetic. In fact, \texttt{g} will be
+the default name in case the extracted program needs a variable of
+type \texttt{list alpha=>list alpha}.  Otherwise the program would use
+a default variable.
+\begin{verbatim}
+(define eterm
+  (atr-min-excl-proof-to-structured-extracted-term
+   class-proof))
+(define neterm (rename-variables (nt eterm)))
+\end{verbatim}
+%% Note that this contains still a term \texttt{cEqDCompatRev} which
+%% denotes a lemma used in the above proof (when we called the command
+%% \texttt{simp}).
+
+%% In general, if we extract a program from a proof which makes use of a
+%% lemma that we previously proved, then the proof will contain the name
+%% of such lemma.  We have two possible ways of eliminating such
+%% reference to the lemma.
+%% \begin{itemize}
+%% \item Replace the name of the lemma by its actual proof.  In the
+%%   present context, this could be achieved by executing the command:
+%%   \texttt{(expand-theorems (current-proof))}.
+%% \item Alternatively, on the program side, we can replace the name of
+%%   the lemma by the name of a corresponding subprogram.  This is
+%%   achieved by use of the command \texttt{animate}, which has the
+%%   effect of adding a computation rule.
+%% \end{itemize}
+
+%% In the present case, we replace \texttt{cEqDCompatRev} by its program:
+%% \begin{verbatim}
+%% (animate "EqDCompatRev")
+%% \end{verbatim}
+
+%% This will produce the output:
+%% \begin{verbatim}
+%% ok, computation rule (cEqDCompatRev alpha7)
+%%         -> [alpha7_0]alpha7_0 added
+%% \end{verbatim}
+
+We display the program and obtain the output:
+\begin{verbatim}
+(pp neterm)
+
+[xs]
+ (Rec list alpha=>list alpha=>list alpha)xs([xs0]xs0)
+ ([x,xs0,g,xs1]g(x::xs1))
+ (Nil alpha)
+\end{verbatim}
+
+Finally:
+\begin{verbatim}
+(pp (nt (make-term-in-app-form program (pt "a::b::c:"))))
+\end{verbatim}
+This gives the result:
+\begin{verbatim}
+c::b::a:
+\end{verbatim}
+
+To conclude, we would like to remark that this program differs from
+that obtained in section \ref{RevI}.  In fact, the program above could
+be written in a more readable form as follows:
+\begin{verbatim}
+Reverse xs0 = reverse-acc xs0 Nil
+
+reverse-acc Nil xs1 = xs1
+reverse-acc (x1::xs2) xs4 = reverse-acc xs2 (x1::xs4)
+\end{verbatim}
+The reader can see that this program is linear, hence better than the
+previous one which is quadratic.
+
+\newpage
+
+
+\section{Appendix: Useful Commands for Emacs and Petite Scheme}
+
+\subsection{Emacs}\label{emacs}
+\begin{itemize}
+\item Start Emacs: \texttt{emacs \&}\\
+\item Leave Emacs: C-x C-c\\
+\item Split a window in two: \texttt{C-x 2}\\
+\item Move to another Buffer: \texttt{C-x b}
+(then specify the Buffer's name)\\
+\item Move to another window: \texttt{C-x o}\\
+\item Load a file: \texttt{C-x C-f}
+(then give a name of a file with extension \texttt{.scm})\\
+\item Save a file: \texttt{C-x C-s}\\
+\item Exit from the Minibuffer: \texttt{C-g}\\
+\end{itemize}
+
+\begin{center}
+\begin{large}
+Scheme\\
+\end{large}
+\end{center}
+\vspace{3 mm}
+
+\begin{itemize}
+\item Load  (Petite) Scheme:  \texttt{M-x run-petite}\\
+\item Evaluate a Scheme expression: \texttt{C-x C-e}\\
+\item Evaluate a region: mark the region and then \texttt{C-c C-r}\\
+\item Kill a process: \texttt{C-c C-c} \\
+\item Leave the Debug: \texttt{r}\\
+\item End a Scheme session: \texttt{(exit)}\\
+\item Comment: \texttt{;}\\
+\end{itemize}
+\texttt{C = Control} (or \texttt{Strg}), \texttt{M = Meta} (or
+\texttt{Edit} or \texttt{Esc} or \texttt{Alt}).
+
+
+\newpage
+
+\subsection{Useful Commands: \mi}
+The following is a list of commands which could be used in a
+\inquotes{standard} interactive proof with \mi. Rather than explaining
+the commands in detail (many of them have been demonstrated in the
+above tutorial), we shall write them down, often with a short
+description of their use gathered from the reference manual.  The
+reader is advised to check the full details with the reference manual.
+
+
+\subsubsection{Some declarations needed to start a proof}
+\begin{enumerate}[]
+\item \texttt{(add-tvar-name \textsl{name1} \dots)}%
+\index{add-tvar-name@\texttt{add-tvar-name}}\\
+\item \texttt{(add-algs \dots)}\index{add-algs@\texttt{add-algs}}
+%% , and also \\
+%% \texttt{(add-param-alg \dots)}%
+%% \index{add-param-alg@\texttt{add-param-alg}}
+\\
+\item \texttt{(add-var-name \textsl{name1} \dots\ \textsl{type})}%
+\index{add-var-name@\texttt{add-var-name}}\\
+\item \texttt{(add-predconst-name \textsl{name1} \dots\ \textsl{arity})}%
+\index{add-predconst-name@\texttt{add-predconst-name}}\\
+\item \texttt{(add-pvar-name \textsl{name1} \dots\ \textsl{type})}%
+\index{add-var-name@\texttt{add-pvar-name}}\\
+\item \texttt{(add-program-constant \textsl{name} \textsl{type}
+  <\textsl{rest}>)}%
+\index{add-program-constant@\texttt{add-program-constant}}\\
+\item \texttt{(add-computation-rule \textsl{lhs} \textsl{rhs})}%
+\index{add-computation-rule@\texttt{add-computation-rule}}\\
+\item \texttt{(add-rewrite-rule \textsl{lhs} \textsl{rhs})}%
+\index{add-rewrite-rule@\texttt{add-rewrite-rule}}\\
+\item \texttt{(add-global-assumption \textsl{name} \textsl{formula})}%
+\index{add-global-assumption@\texttt{add-global-assumption}}
+  \quad \hbox{(abbr. \texttt{aga}\index{aga@\texttt{aga}})}\\
+\end{enumerate}
+For each introduction command above there corresponds another one
+having the effect of removing the item so introduced (constants,
+variables,  etc). For example:
+
+\texttt{(remove-predconst-name \textsl{name1} \dots)}%
+\index{remove-predconst-name@\texttt{remove-predconst-name}}\\
+There are also numerous display commands, in particular the following:\\
+
+\texttt{(display-pconst \textsl{name1} \dots)}%
+\index{display-pconst@\texttt{display-pconst}}.\\
+
+\texttt{(display-alg \textsl{alg-name1} \dots)}%
+\index{display-alg@\texttt{display-alg}}\\
+
+\texttt{(display-idpc \textsl{idpc-name1} \dots)}%
+\index{display-idpc@\texttt{display-idpc}}\\
+
+\texttt{(display-global-assumptions \textsl{string1} \dots)}%
+\index{display-global-assumptions@\texttt{display-global-assumptions}}\\
+
+\texttt{(display-theorems \textsl{string1} \dots)}%
+\index{display-theorems@\texttt{display-theorems}}
+
+For types, terms and formulas there is a command \texttt{(pp
+  \textsl{object})}\index{pp@\texttt{pp}} (for pretty-print), which
+tries to insert useful line breaks.  Variants are \texttt{(ppc
+  \textsl{object})}\index{ppc@\texttt{ppc}} (for pretty-print with case
+display) and \texttt{(pp-subst \textsl{substitution})}%
+\index{pp-subst@\texttt{pp-subst}} (for pretty-printing substitutions).
+
+\texttt{rename-variables}%
+\index{rename-variables@\texttt{rename-variables}} renames bound
+variables in terms, formulas and comprehension terms.
+
+\subsubsection{Goals}
+
+\texttt{(set-goal \textsl{formula})}\index{set-goal@\texttt{set-goal}}
+where \textsl{formula} needs to be closed (if it not so, then
+universal quantifiers will be inserted automatically).\\
+
+\texttt{(normalize-goal \textsl{goal})}%
+\index{normalize-goal@\texttt{normalize-goal}}  (abbr.\
+\texttt{ng}\index{ng@\texttt{ng}})
+replaces the goal by its normal form.\\
+
+\texttt{(display-current-goal)}%
+\index{display-current-goal@\texttt{display-current-goal}}
+ (abbr.\ \texttt{dcg}\index{dcg@\texttt{dcg}})
+
+
+\subsubsection{Generating interactive proofs}
+
+\underline{Implication}
+
+\texttt{(assume \textsl{x1}\dots)}\index{assume@\texttt{assume}}\\
+moves the antecedent of a goal in implication form to
+the hypotheses. The hypotheses,  $\textsl{x1}\dots$,
+should be identified by numbers
+or strings.
+
+\texttt{(use \textsl{x})\index{use@\texttt{use}}}\\
+where \textsl{x} is
+\begin{itemize}
+\item a number or string identifying a hypothesis from the context,
+\item the string \inquotes{Truth},
+\item the name of a theorem or global assumption.
+\item a closed proof,
+\item a formula with free variables from the context, generating a new
+goal.\\
+\end{itemize}
+
+\underline{Conjunction}
+
+\texttt{(split)}\index{split@\texttt{split}}\\
+expects a conjunction $A \land B$ as goal and splits it into
+two new goals, $A$ and $B$.\\
+
+\texttt{(use \textsl{x} . \textsl{elab-path})}\\
+where \textsl{x} is as in the description of the \texttt{use}
+command for implication and \textsl{elab-path} consists of \texttt{'left}
+or \texttt{'right}.\\
+
+\underline{Universal Quantifier}
+
+\texttt{(assume \textsl{x1}\dots)}\index{assume@\texttt{assume}}\\
+moves universally quantified variables into the context.  The variables
+need to be named (by using previously declared names of
+the appropriate types).
+
+\texttt{(use \textsl{x} . \textsl{terms})}\\
+where \textsl{x} is as in the case of implication and the optional
+\textsl{terms} is here a list of terms.  When pattern unification
+succeeds in finding appropriate instances for the quantifiers in the
+goal, then these instances will be automatically inserted.  However,
+one needs to explicitly provide terms for those variables that cannot
+be automatically instantiated by pattern
+unification. 
+
+\underline{Existential Quantifier}
+
+\texttt{(ex-intro \textsl{term})}\index{ex-intro@\texttt{ex-intro}}\\
+by this command the user provides a term to be used for
+the present (existential) goal.
+
+\texttt{(ex-elim \textsl{x})}\index{ex-elim@\texttt{ex-elim}},\\
+where \textsl{x} is
+\begin{itemize}
+\item a number or string identifying an existential hypothesis from
+  the context,
+\item the name of an existential global assumption or theorem,
+\item a closed proof on an existential formula,
+\item an existential formula with free variables from the context,
+  genera\-ting a new goal.
+\end{itemize}
+
+\underline{Classical Existential Quantifier}
+
+\texttt{(exc-intro \textsl{terms})}\index{exc-intro@\texttt{exc-intro}}\\
+this command is analogous to \texttt{(ex-intro)}, but
+it is used in the case of a classical existential goal.
+
+\texttt{(exc-elim \textsl{x})}\index{exc-elim@\texttt{exc-elim}}\\
+this corresponds to \texttt{(ex-elim)} and applies to a classical
+existential quantifier.
+
+\subsubsection{Other general commands}
+
+\texttt{(use-with \textsl{x} . \textsl{x-list})}
+\index{use-with@\texttt{use-with}}\\
+is a more verbose form of \texttt{use}, where the terms are not
+inferred via unification, but have to be given explicitly. Here
+\textsl{x} is as in \texttt{use}, and \textsl{x-list} is a list
+consisting of
+\begin{itemize}
+\item a number or string identifying a hypothesis form the context,
+\item the name of a theorem or global assumption,
+\item a closed proof,
+\item the string \inquotes{?}  generating a new goal,
+\item \texttt{'left} or \texttt{'right},
+\item a term, whose free variables are added to the context.
+\end{itemize}
+
+\texttt{(inst-with \textsl{x} . \textsl{x-list})}%
+\index{inst-with@\texttt{inst-with}}\\
+does for forward chaining the same as \texttt{use-with} for backward
+chaining.  It adds a new hypothesis which is an instance of a selected
+hypothesis or of a theorem.
+Here \textsl{x} and \textsl{x-list} are as in \texttt{use-with}.
+
+\texttt{(inst-with-to \textsl{x} . \textsl{x-list} \texttt{name-hyp})}
+\index{inst-with-to@\texttt{inst-with-to}}\\
+expects a string as its last argument, to name
+the newly introduced instantiated hypothesis.
+
+\texttt{(cut \textsl{A})}\index{cut@\texttt{cut}}\\ 
+replaces the goal $B$ by the two new goals $A$ and $A \to B$, with $A
+\to B$ to be proved first.  Note that the same effect can also be
+produced by means of the \texttt{use} command.
+
+\texttt{(assert \textsl{A})}\index{assert@\texttt{assert}}\\ 
+replaces the goal $B$ by the two new goals $A$ and $A \to B$, 
+with $A$ to be proved first.
+
+\texttt{(ind)}\index{ind@\texttt{ind}}\\
+expects a goal $\forall_{x^\rho} A$ with $\rho$ an algebra.  If $c_1,
+\dots, c_n$ are the constructors of the algebra $\rho$, then
+\texttt{(ind)} will generate $n$ new goals: \sloppy
+$\forall_{\vec{x}_i} (\subst{A}{x}{x_{1i}} \to \dots \to
+\subst{A}{x}{x_{ki}} \to \subst{A}{x}{c_i \vec{x}_i})$.
+
+\texttt{(simind \textsl{all-formula1}\dots)}%
+\index{simind@\texttt{simind}}\\
+expects a goal $\forall_{x^\rho} A$ with $\rho$ an algebra.  The user
+provides other formulas to be proved simultaneously with the given
+one.
+
+\texttt{(cases)}\index{cases@\texttt{cases}}\\
+expects a goal $\forall_{x^\rho} A$ with $\rho$ an algebra.  Assume
+that $c_1,\dots, c_n$ are the constructors of the algebra $\rho$.
+Then $n$ new (simplified) goals $\forall_{\vec{x}_i} \subst{A}{x}{c_i
+  \vec{x}_i}$ are
+generated.
+
+\texttt{(simp x)}\index{simp@\texttt{simp}}\\
+expects a known fact of the form $r^{\typeB}$, $\lnot r^{\typeB}$,
+$t=s$ or $t \approx s$.  In case $r^{\typeB}$, the boolean term $r$ in
+the goal is replaced by $T$, and in case $\lnot r^{\typeB}$ it is
+replaced by $F$.  If $t=s$ (resp. $t \approx s$), the goal is written
+in the form $\subst{A}{x}{t}$.  Using Compat-Rev (i.e. $\forall_{x,y}
+(x=y \to P y \to P x)$) (resp. Eq-Compat-Rev (i.e. $\forall_{x,y} (x
+\approx y \to P y \to P x)$)) the goal $\subst{A}{x}{t}$ is replaced
+by $\subst{A}{x}{s}$, where $P$ is $\set{x}{A}$, $x$ is $t$ and $y$ is
+$s$.  Here \textsl{x} is
+\begin{itemize}
+\item a number or string identifying a hypothesis form the context,
+\item the name of a theorem or global assumption, or
+\item a closed proof,
+\item a formula with free variables from the context, generating a new
+  goal.
+\end{itemize}
+
+\texttt{(name-hyp \textsl{i x1}})\index{name-hyp@\texttt{name-hyp}}\\
+expects an index $i$ and a string.  Then a new goal is created, which
+differs from the previous one only in display aspects:
+the string names the $i$th hypothesis.
+
+\texttt{(drop . x-list)}\index{drop@\texttt{drop}},\\
+hides (but does not erase) the hypothesis listed in \texttt{x-list}.
+If \texttt{x-list} is empty, all hypotheses are hidden.
+
+\texttt{(by-assume \textsl{x} \textsl{y}\textsl{u})}%
+\index{by-assume@\texttt{by-assume}}\\
+is used when proving a goal $G$ from an existential hypothesis $ExHyp
+\colon \ex y A$.  It corresponds to saying \inquotes{by $ExHyp$ assume
+  we have a $y$ satisfying $A$}.  Here \textsl{x} identifies an
+existential hypothesis, and we assume the variable $y$ and the kernel
+$A$ (with label $u$). This command corresponds to the sequence
+\texttt{(ex-elim \textsl{x})}, \texttt{(assume \textsl{y}
+  \textsl{u})}, \texttt{(drop \textsl{x})}.
+
+\texttt{(intro i .\ terms)}\index{intro@\texttt{intro}}\\
+expects as goal an inductively defined predicate.  The $i$-th
+introduction axiom for this predicate is applied, via \texttt{use}
+(hence \texttt{terms} may have to be provided).
+
+\texttt{(elim \textsl{idhyp})}\index{elim@\texttt{elim}}\\
+Recall that $I \vec{r}$ provides (i) a type substitution, (ii) a
+predicate instantiation, and (iii) the list $\vec{r}$ of argument
+terms.  In \texttt{(elim \textsl{idhyp})}\index{elim@\texttt{elim}}
+\textsl{idhyp} is, with an inductively defined predicate $I$,
+\begin{itemize}
+\item a number or string identifying a hypothesis $I \vec{r}$ form the
+  context
+\item the name of a global assumption or theorem $I \vec{r}$;
+\item a closed proof of a formula $I \vec{r}$;
+\item a formula $I \vec{r}$ with free variables from the context,
+  generating a new goal.
+\end{itemize}
+Then the (strengthened) elimination axiom is used with $\vec{r}$ for
+$\vec{x}$ and \textsl{idhyp} for $I \vec{r}$ to prove the goal
+$A(\vec{r}\,)$, leaving the instantiated (with $\set {\vec{x}}
+{A(\vec{x}\,)}$) clauses as new goals.
+
+\texttt{(elim)}\index{elim@\texttt{elim}}\\
+expects a goal $I \vec{r} \to A(\vec{r}\,)$.  Then the (strengthened)
+clauses are generated as new goals, via \texttt{use-with}.
+
+\texttt{(undo)}\index{undo@\texttt{undo}}
+or \texttt{(undo \textsl{n})}\\
+has the effect of cancelling the last step in a proof, or the
+last  \textsl{n} steps, respectively.
+
+
+\subsubsection{Automation and search}\quad
+
+\texttt{(strip)}\index{strip@\texttt{strip}}\\
+moves all universally quantified variables
+and hypotheses of the current goal into the context.
+
+\texttt{(strip n)}\\
+does the same as \texttt{(strip)}
+but only for $n$ variables or hypotheses.
+
+\texttt{(proceed)}\index{proceed@\texttt{proceed}}\\
+automatically refines the goal as far as possible as long as there is
+a unique proof.  When the proof is not unique, it prompts us with the
+new refined goal, and allows us to proceed in an
+interactive way.
+
+\texttt{(prop)}\index{prop@\texttt{prop}}\\
+searches for a proof of the stated goal.  It is devised for
+propositional logic only.
+
+\texttt{(search \textsl{m} \textsl{(name1 m1)} \dots)}%
+\index{search@\texttt{search}}\\
+expects for \textsl{m} a default value of multiplicity (i.e. a
+positive integer stating how often the assumptions are to be used).
+Here \textsl{name1} $\dots$ are
+\begin{itemize}
+\item numbers or names of hypotheses from the present context or
+\item names of theorems or global assumptions,
+\end{itemize}
+and \textsl{m1} $\dots$ indicate the multiplicities of the specific
+\textsl{name1} $\dots$.
+To exclude a hypothesis one can list it with multiplicity $0$.
+
+\texttt{(auto \textsl{m} \textsl{(name1 m1)} \dots)}%
+\index{auto@\texttt{auto}}\\ 
+It can be convenient to automate (the easy cases of an) interactive
+proof development by iterating \texttt{search} as long as it is
+successful in finding a proof.  Then the first goal where it failed is
+presented as the new goal.  \texttt{auto} takes the same arguments as
+\texttt{search}.
+
+\subsubsection{Displaying proofs objects}
+There are many ways to display a proof.  We normally use
+\texttt{display-proof} for a linear representation, showing the
+formulas and the rules used.  We also provide a (hopefully) readable
+type-free lambda expression via \texttt{proof-to-expr}, and can add
+useful information with one of \texttt{proof-to-expr-with-formulas},
+\texttt{proof-to-expr-with-aconsts}.  In case the optional proof
+argument is not present, the current proof is taken instead.
+\begin{alignat*}{2}
+  &\texttt{(display-proof .\ \textsl{opt-proof})}
+  \index{display-proof@\texttt{display-proof}}
+  &\quad& \text{abbreviated \texttt{dp}\index{dp@\texttt{dp}}},
+  \\
+  &\texttt{(display-normalized-proof .\ \textsl{opt-proof})}
+  \index{display-normalized-proof@\texttt{display-normalized-proof}}
+  &\quad& \text{abbreviated \texttt{dnp}\index{dnp@\texttt{dnp}}},
+  \\
+  &\texttt{(proof-to-expr .\ \textsl{opt-proof})},%
+  \index{proof-to-expr@\texttt{proof-to-expr}}
+  \\
+  &\texttt{(proof-to-expr-with-formulas .\ \textsl{opt-proof})},%
+  \index{proof-to-expr-with-formulas@\texttt{proof-to-expr-with-formulas}}
+  \\
+  &\texttt{(proof-to-expr-with-aconsts .\ \textsl{opt-proof})}.%
+  \index{proof-to-expr-with-aconsts@\texttt{proof-to-expr-with-aconsts}}
+\end{alignat*}
+Here \texttt{display-normalized-proof} normalizes the proof first.
+When in addition one wants to check the
+correctness of the proof, use
+\begin{align*}
+  &\texttt{(check-and-display-proof .\
+    \textsl{opt-proof-and-ignore-deco-flag})}%
+  \index{check-and-display-proof@\texttt{check-and-display-proof}}
+\end{align*}
+abbreviated \texttt{cdp}\index{cdp@\texttt{cdp}}.
+\texttt{ignore-deco-flag}\index{ignore-deco-flag@\texttt{ignore-deco-flag}}
+is set to true as soon as the present proof argument proves a formula
+of nulltype.
+
+\subsubsection{Searching for theorems}
+It is a practical problem to find existing theorems or global
+assumptions relevant for the situation at hand.  To help searching
+for those we provide
+\begin{equation*}
+  \texttt{(search-about \textsl{string})}.%
+  \index{search-about@\texttt{search-about}}
+\end{equation*}
+It searches in \texttt{THEOREMS}\index{THEOREMS@\texttt{THEOREMS}} and
+\texttt{GLOBAL-ASSUMPTIONS}%
+\index{GLOBAL-ASSUMPTIONS@\texttt{GLOBAL-ASSUMPTIONS}} for all items
+whose name contains \textsl{string}.
+
+%% \texttt{(display-proof\ . \textsl{opt-proof})}
+%% \index{display-proof@\texttt{display-proof}}
+%% (abbr. \texttt{dp})
+
+%% \texttt{(display-proof-expr\ . \textsl{opt-proof})}
+%% \index{display-proof-expr@\texttt{display-proof-expr}}
+%% (abbr. \texttt{dpe})\\
+
+%% \texttt{(display-eterm . \textsl{opt-proof})} (abbr. \texttt{det})\\
+
+%% \texttt{(check-and-display-proof)}  (abbr. \texttt{cdp})\\
+
+%% \texttt{(display-normalized-proof\ . \textsl{opt-proof})}
+%% \index{display-normalized-proof@\texttt{display-normalized-proof}}
+%% (abbr. \texttt{dnp}) \\
+
+%% \texttt{(display-normalized-proof-expr\ . \textsl{opt-proof})}
+%% \index{display-normalized-proof-expr@\texttt{display-normalized-proof-expr}}
+%% (abbr. \texttt{dnpe})\\
+
+%% \texttt{(display-normalized-eterm . \textsl{opt-proof})}
+%% (abbr. \texttt{dnet})
+
+\bibliography{minlog}
+\bibliographystyle{amsplain}
+
+\printindex
+
+\end{document}
