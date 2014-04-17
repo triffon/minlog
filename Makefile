@@ -71,6 +71,11 @@ alltest:
 	(cd examples; $(MAKE) clean)
 	($(MAKE) -k -i test)
 
+# 2014-04-16: Added to mke use of FIXTEST (Kenji Miyamoto)
+fixtest:
+	(cd examples; $(MAKE) clean)
+	(FIXTEST=true $(MAKE) test)
+
 examples/.TEST: init.scm
 	(cd examples; $(MAKE) .TEST)
 

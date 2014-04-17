@@ -7,7 +7,7 @@
 
 all: .TEST
 
-.TEST:	test/.TEST
+.TEST:	test/.TEST arith/.TEST analysis/.TEST
 	touch .TEST
 
 # .TEST:	test/.TEST quant/.TEST prop/.TEST hounif/.TEST arith/.TEST \
@@ -60,6 +60,8 @@ dijkstra/.TEST: .always
 
 clean: genericclean
 	(cd test; $(MAKE) clean)
+	(cd analysis; $(MAKE) clean)
+	(cd arith; $(MAKE) clean)
 
 # clean: genericclean
 # 	(cd classical; $(MAKE) clean)
