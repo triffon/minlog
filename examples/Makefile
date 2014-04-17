@@ -7,7 +7,7 @@
 
 all: .TEST
 
-.TEST:	test/.TEST arith/.TEST analysis/.TEST parsing/.TEST
+.TEST:	test/.TEST arith/.TEST analysis/.TEST classical/.TEST parsing/.TEST
 	touch .TEST
 
 # .TEST:	test/.TEST quant/.TEST prop/.TEST hounif/.TEST arith/.TEST \
