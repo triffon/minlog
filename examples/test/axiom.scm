@@ -318,7 +318,7 @@
 
 (define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
 (pp (aconst-to-formula aconst0))
-;; allnc r^,x^(F -> Acc r^ x^)
+;; allnc rel^,x^(F -> Acc rel^ x^)
 
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm0))
@@ -326,20 +326,20 @@
 
 (define aconst1 (number-and-idpredconst-to-intro-aconst 1 idpc))
 (pp (aconst-to-formula aconst1))
-;; allnc r^,x^(all y^(r^ y^ x^ -> Acc r^ y^) -> Acc r^ x^)
+;; allnc rel^,x^(all y^(rel^ y^ x^ -> Acc rel^ y^) -> Acc rel^ x^)
 
 (define eterm1 (proof-to-extracted-term (make-proof-in-aconst-form aconst1)))
 (pp (term-to-type eterm1))
 ;; (alpha=>itree alpha)=>itree alpha
 
-(define aconst (imp-formulas-to-elim-aconst (pf "Acc r^ x^ -> k=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "Acc rel^ x^ -> k=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
 
-;; allnc r^,x^,k(
-;;  Acc r^ x^ ->
-;;  allnc r^0,x^0(F -> k=0) ->
-;;  allnc r^0,x^0(
-;;   all y^(r^0 y^ x^0 -> Acc r^0 y^) -> all y^(r^0 y^ x^0 -> k=0) -> k=0) ->
+;; allnc rel^,x^,k(
+;;  Acc rel^ x^ ->
+;;  allnc rel^0,x^0(F -> k=0) ->
+;;  allnc rel^0,x^0(
+;;   all y^(rel^0 y^ x^0 -> Acc rel^0 y^) -> all y^(rel^0 y^ x^0 -> k=0) -> k=0) ->
 ;;  k=0)
 
 (define idpc (predicate-form-to-predicate (pf "(ExDT nat (cterm (n) n=m))")))
