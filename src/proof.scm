@@ -7215,6 +7215,118 @@
     (else (myerror "expand-theorems-with-positive-content"
 		   "proof tag expected" (tag proof)))))
 
+;; rename-avars similar to rename-variables in formula.scm
+
+(define (avars-and-used-avars-to-new-avars avars used-avars)
+  (if
+   (null? avars) '()
+   (let* ((avar (car avars))
+	  (rest (cdr avars))
+	  (formula (avar-to-formula avar))
+	  (name (avar-to-name avar))
+	  (relevant-avars (list-transform-positive used-avars
+			    (lambda (x) (string=? name (avar-to-name x)))))
+	  (relevant-indices (map avar-to-index relevant-avars))
+	  (new-index (do ((i -1 (+ i 1))
+			  (is relevant-indices (remove i is)))
+			 ((not (member i is)) i)))
+	  (new-avar (make-avar formula new-index name)))
+     (cons new-avar
+	   (avars-and-used-avars-to-new-avars
+	    rest (cons new-avar used-avars))))))
+
+(define (rename-avars-aux proof used-avars)
+  (if (not (proof-form? proof))
+      (myerror "rename-avars-aux" "proof expected" (tag proof)))
+  (case (tag proof)
+    ((proof-in-imp-intro-form)
+     (let* ((avar (proof-in-imp-intro-form-to-avar proof))
+	    (kernel (proof-in-imp-intro-form-to-kernel proof))
+	    (new-avar (avar-and-avars-to-new-avar avar used-avars))
+	    (subst (make-subst-wrt avar-proof-equal?
+				   avar (make-proof-in-avar-form new-avar)))
+	    (subst-kernel (if (null? subst)
+			      kernel
+			      (proof-substitute kernel subst))))
+       (make-proof-in-imp-intro-form
+	new-avar
+	(rename-avars-aux subst-kernel (cons new-avar used-avars)))))
+    ((proof-in-imp-elim-form)
+     (make-proof-in-imp-elim-form
+      (rename-avars-aux (proof-in-imp-elim-form-to-op proof) used-avars)
+      (rename-avars-aux (proof-in-imp-elim-form-to-arg proof) used-avars)))
+    ((proof-in-impnc-intro-form)
+     (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
+	    (kernel (proof-in-impnc-intro-form-to-kernel proof))
+	    (new-avar (avar-and-avars-to-new-avar avar used-avars))
+	    (subst (make-subst-wrt avar-proof-equal?
+				   avar (make-proof-in-avar-form new-avar)))
+	    (subst-kernel (if (null? subst)
+			      kernel
+			      (proof-substitute kernel subst))))
+       (make-proof-in-impnc-intro-form
+	new-avar
+	(rename-avars-aux subst-kernel (cons new-avar used-avars)))))
+    ((proof-in-impnc-elim-form)
+     (make-proof-in-impnc-elim-form
+      (rename-avars-aux (proof-in-impnc-elim-form-to-op proof) used-avars)
+      (rename-avars-aux (proof-in-impnc-elim-form-to-arg proof) used-avars)))
+    ((proof-in-and-intro-form)
+     (make-proof-in-and-intro-form
+      (rename-avars-aux (proof-in-and-intro-form-to-left proof) used-avars)
+      (rename-avars-aux (proof-in-and-intro-form-to-right proof) used-avars)))
+    ((proof-in-and-elim-left-form)
+     (make-proof-in-and-elim-left-form
+      (rename-avars-aux
+       (proof-in-and-elim-left-form-to-kernel proof) used-avars)))
+    ((proof-in-and-elim-right-form)
+     (make-proof-in-and-elim-right-form
+      (rename-avars-aux
+       (proof-in-and-elim-right-form-to-kernel proof) used-avars)))
+    ((proof-in-all-intro-form)
+     (let ((var (proof-in-all-intro-form-to-var proof))
+	   (kernel (proof-in-all-intro-form-to-kernel proof)))
+       (make-proof-in-all-intro-form
+	var (rename-avars-aux kernel used-avars))))
+    ((proof-in-all-elim-form)
+     (make-proof-in-all-elim-form
+      (rename-avars-aux (proof-in-all-elim-form-to-op proof) used-avars)
+      (proof-in-all-elim-form-to-arg proof)))
+    ((proof-in-allnc-intro-form)
+     (let ((var (proof-in-allnc-intro-form-to-var proof))
+	   (kernel (proof-in-allnc-intro-form-to-kernel proof)))
+       (make-proof-in-allnc-intro-form
+	var (rename-avars-aux kernel used-avars))))
+    ((proof-in-allnc-elim-form)
+     (make-proof-in-allnc-elim-form
+      (rename-avars-aux (proof-in-allnc-elim-form-to-op proof) used-avars)
+      (proof-in-allnc-elim-form-to-arg proof)))
+    (else proof)))
+
+(define (rename-avars . opt-proof-or-thm-name)
+  (if
+   (null? opt-proof-or-thm-name)
+   (rename-avars (current-proof))
+   (let* ((proof-or-thm-name (car opt-proof-or-thm-name))
+	  (proof (cond ((proof-form? proof-or-thm-name) proof-or-thm-name)
+		       ((string? proof-or-thm-name)
+			(theorem-name-to-proof proof-or-thm-name))
+		       (else (myerror "rename-avars"
+				      "proof or theorem name expected"
+				      proof-or-thm-name)))))
+     (rename-avars-aux proof (proof-to-free-avars proof)))))
+
+(define (avar-and-avars-to-new-avar avar avars)
+  (let* ((name (avar-to-name avar))
+	 (formula (avar-to-formula avar))
+	 (relevant-avars (list-transform-positive avars
+			   (lambda (x) (string=? name (avar-to-name x)))))
+	 (relevant-indices (map avar-to-index relevant-avars))
+	 (new-index (do ((i -1 (+ i 1))
+			 (is relevant-indices (remove i is)))
+			((not (member i is)) i))))
+    (make-avar formula new-index name)))
+
 ;; 10-4. Display
 ;; =============
 
