@@ -1,7 +1,7 @@
 ;; $Id: numbers.scm 2679 2014-01-08 10:05:44Z schwicht $
 
 '(
-(load "~/minlog/init.scm")
+(load "~/git/minlog/init.scm")
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
