@@ -12,7 +12,7 @@
 ;; E ::= Nil | LER | EE
 
 ;; It is easy to see that both grammars generate the same expressions.
-;; S appears to be more natural, but its generation trees are no
+;; S appears to be more natural, but its generation trees are not
 ;; unique: one can always append the empty list Nil.  This can be
 ;; repaired easily by only dealing with non-empty lists.  However,
 ;; this has the drawback that it is often useful to specialize general
@@ -368,7 +368,7 @@
 ;;  (Nil bin)
 ;;  O
 
-;; Since this term involves the recursion operator it is nor easy to
+;; Since this term involves the recursion operator it is not easy to
 ;; read.  To grasp its meaning we rewrite it.  In case LP 0 x the
 ;; result is obtained by applying g to [],O with g recursively defined
 ;; by
