@@ -227,19 +227,6 @@
 (dnp)
 
 (remove-var-name "x" "y" "f" "u" "v" "w")
-;; (add-tvar-name "beta")
-;; (add-var-name "U" "V" "W" (py "beta"))
-;; (add-program-constant "In" (py "alpha=>beta=>boole"))
-;; (add-infix-display-string "In" "in" 'rel-op)
-;; (add-var-name "f" (py "alpha=>alpha"))
-
-;; (set-goal "all f(
-;;  all x,V(f x in V -> excl U(x in U & all y(y in U -> f y in V))) ->
-;;  all x,W(f(f x)in W -> excl U(x in U & all y(y in U -> f(f y)in W))))")
-;; (search)
-;; (dnp)
-
-;; (remove-var-name "x" "y" "f" "U" "V" "W")
 
 ;; Datatypes and inductively defined predicates
 
