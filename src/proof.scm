@@ -11267,7 +11267,7 @@
     ((impnc)
      (let* ((prem (impnc-form-to-premise formula))
 	    (concl (impnc-form-to-conclusion formula))
-	    (prev (formula-and-falsity-avar-to-efq-proof concl))
+	    (prev (formula-and-falsity-avar-to-efq-proof concl u))
 	    (v (formula-to-new-avar prem)))
        (make-proof-in-impnc-intro-form v prev)))
     ((and)
