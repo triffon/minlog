@@ -173,7 +173,8 @@
 (define ALG-NAME-AND-NC-INDICATOR-TO-ALG-NAME '())
 
 (set! ALG-NAME-AND-NC-INDICATOR-TO-ALG-NAME
-      (append (list (list (list "ysum" '(#t #f)) "uysum")
+      (append (list (list (list "identity" '(#t)) "nulltype")
+		    (list (list "ysum" '(#t #f)) "uysum")
 		    (list (list "ysum" '(#f #t)) "ysumu")
 		    (list (list "ysum" '(#t #t)) "boole")
 		    (list (list "yprod" '(#t #f)) "identity")
