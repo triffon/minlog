@@ -1,6 +1,6 @@
 ;; $Id: list.scm 2678 2014-01-08 10:04:13Z schwicht $
 
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
 ;; (libload "nat.scm")
 ;; (set! COMMENT-FLAG #t)
@@ -63,6 +63,14 @@
 (add-var-name "x" (py "alpha"))
 (add-var-name "xs" (py "list alpha"))
 
+;; ListTotalVar
+(set-goal "all xs TotalList xs")
+(use "AllTotalIntro")
+(assume "xs^" "Txs")
+(use "Txs")
+;; Proof finished.
+(save "ListTotalVar")
+
 (add-ids (list (list "STotalList" (make-arity (py "list alpha")) "nat"))
 	 '("STotalList(Nil alpha)" "STotalListNil")
 	 '("allnc x^,xs^(
@@ -79,6 +87,18 @@
 ;; 	STotalListNilMR:	STotalListMR 0(Nil alpha)
 ;; 	STotalListConsMR:
 ;; allnc x^,xs^,n^(STotalListMR n^ xs^ --> STotalListMR(Succ n^)(x^ ::xs^))
+
+;; ListSTotalVar
+(set-goal "all xs STotalList xs")
+(use "AllTotalIntro")
+(assume "xs^" "Txs")
+(elim "Txs")
+(use "STotalListNil")
+(assume "x^" "Tx" "xs^0" "Txs0" "STxs0")
+(use "STotalListCons")
+(use "STxs0")
+;; Proof finished.
+(save "ListSTotalVar")
 
 (add-program-constant
  "ListAppend" (py "list alpha=>list alpha=>list alpha") t-deg-zero 'const 1)
@@ -437,7 +457,7 @@
 (set-goal "all xs1,xs2 Lh(xs1:+:xs2)=Lh xs1+Lh xs2")
 (ind)
 (assume "xs2")
-(use "Truth-Axiom")
+(use "Truth")
 (assume "x" "xs1" "IH")
 (use "IH")
 ;; Proof finished.
@@ -449,7 +469,7 @@
 (set-goal "all xs1,xs2 Lh(xs1++xs2)=Lh xs1+Lh xs2")
 (ind)
 (assume "xs2")
-(use "Truth-Axiom")
+(use "Truth")
 (assume "x" "xs1" "IH")
 (use "IH")
 ;; Proof finished.
@@ -614,7 +634,7 @@
 (ind)
 (assume "(nat=>alpha)^")
 (ng #t)
-(use "Truth-Axiom")
+(use "Truth")
 (assume "n" "IHn")
 (assume "(nat=>alpha)^")
 (ng #t)
@@ -676,14 +696,14 @@
 (ind)
 (ind)
 (ng #t)
-(use "Truth-Axiom")
+(use "Truth")
 (assume "n" "IHn")
 (ng #t)
 (use "IHn")
 (assume "x" "xs" "IHxs")
 (cases)
 (ng #t)
-(use "Truth-Axiom")
+(use "Truth")
 (assume "n")
 (ng #t)
 (use "IHxs")
@@ -767,16 +787,49 @@
 ;; Proof finished.
 (save "ListBarFBar")
 
+(add-var-name "psi" (py "alpha1=>list alpha1=>alpha2"))
+(add-var-name "y" (py "alpha1"))
+(add-var-name "ys" (py "list alpha1"))
+(add-var-name "z" (py "alpha2"))
+(add-var-name "zs" (py "list alpha2"))
+
+;; "ListIfTotal"
+(set-goal "allnc ys^(TotalList ys^ ->
+ allnc z^,psi^(Total z^ ->
+ allnc y^,ys^(Total y^ -> TotalList ys^ -> Total(psi^ y^ ys^)) ->
+ Total[if ys^ z^ psi^]))")
+(assume "ys^" "Tys" "z^" "psi^" "Tz" "Tpsi")
+(elim "Tys")
+(use "Tz")
+(assume "y^1" "Ty1" "ys^1" "Tys1" "Useless")
+(ng #t)
+(use "Tpsi")
+(use "Ty1")
+(use "Tys1")
+;; Proof finished.
+(save "ListIfTotal")
+
+;; "ListIfSTotal"
+(set-goal "allnc ys^(STotalList ys^ ->
+ allnc z^,psi^(Total z^ ->
+ allnc y^,ys^(STotalList ys^ -> Total(psi^ y^ ys^)) ->
+ Total[if ys^ z^ psi^]))")
+(assume "ys^" "STys" "z^" "psi^" "Tz" "STpsi")
+(elim "STys")
+(use "Tz")
+(assume "y^1" "ys^1" "STys1" "Useless")
+(ng #t)
+(use "STpsi")
+(use "STys1")
+;; Proof finished.
+(save "ListIfSTotal")
+
 (add-program-constant
  "ListMap" (py "(alpha1=>alpha2)=>list alpha1=>list alpha2") t-deg-zero)
 
 (add-infix-display-string "ListMap" "map" 'pair-op) ;right associative
 
 (add-var-name "phi" (py "alpha1=>alpha2"))
-(add-var-name "y" (py "alpha1"))
-(add-var-name "ys" (py "list alpha1"))
-(add-var-name "z" (py "alpha2"))
-(add-var-name "zs" (py "list alpha2"))
 
 (add-computation-rules
  "phi map(Nil alpha1)" "(Nil alpha2)"
@@ -785,14 +838,12 @@
 ;; (pp (nt (pt "Pred map 2::3::4:")))
 ;; 1::2::3:
 
-'(
-(pp (rename-variables
-     (term-to-totality-formula (pt "(ListMap alpha1 alpha2)"))))
+;; (pp (rename-variables
+;;      (term-to-totality-formula (pt "(ListMap alpha1 alpha2)"))))
 
-allnc phi^(
- allnc y^(Total y^ -> Total(phi^ y^)) ->
- allnc ys^(TotalList ys^ -> TotalList(phi^ map ys^)))
-)
+;; allnc phi^(
+;;  allnc y^(Total y^ -> Total(phi^ y^)) ->
+;;  allnc ys^(TotalList ys^ -> TotalList(phi^ map ys^)))
 
 ;; ListMapTotal
 (set-goal (term-to-totality-formula (pt "(ListMap alpha1 alpha2)")))
@@ -809,14 +860,12 @@ allnc phi^(
 ;; Proof finished.
 (save "ListMapTotal")
 
-'(
-(pp (rename-variables
-     (term-to-stotality-formula (pt "(ListMap alpha1 alpha2)"))))
+;; (pp (rename-variables
+;;      (term-to-stotality-formula (pt "(ListMap alpha1 alpha2)"))))
 
-allnc phi^(
- allnc y^(Total y^ -> Total(phi^ y^)) ->
- allnc ys^(STotalList ys^ -> STotalList(phi^ map ys^)))
-)
+;; allnc phi^(
+;;  allnc y^(Total y^ -> Total(phi^ y^)) ->
+;;  allnc ys^(STotalList ys^ -> STotalList(phi^ map ys^)))
 
 ;; ListMapSTotal
 (set-goal (term-to-stotality-formula (pt "(ListMap alpha1 alpha2)")))
@@ -835,7 +884,7 @@ allnc phi^(
 (set-goal "all phi,ys Lh(phi map ys)=Lh ys")
 (assume "phi")
 (ind)
-(use "Truth-Axiom")
+(use "Truth")
 (assume "y" "ys" "IH")
 (use "IH")
 ;; Proof finished.
@@ -846,7 +895,7 @@ allnc phi^(
 (assume "phi^" "ys^" "STys")
 (elim "STys")
 (ng #t)
-(use "Truth-Axiom")
+(use "Truth")
 (assume "y^" "ys^1" "STys1" "IH")
 (ng #t)
 (use "IH")
@@ -1051,11 +1100,11 @@ allnc phi^(
 (ind)
 (assume "Useless")
 (ng #t)
-(use  "Truth-Axiom")
+(use  "Truth")
 (assume "n" "IHn" "Useless")
 (ng #t)
 (use "IHn")
-(use "Truth-Axiom")
+(use "Truth")
 (assume "x^2" "xs^1" "STxs1" "IHl")
 (cases)
 (assume "Absurd")
@@ -1071,7 +1120,7 @@ allnc phi^(
 	   "?")
  (assume "n2")
  (ng #t)
- (use "Truth-Axiom")
+ (use "Truth")
 (assume "H")
 (simp "H")
 (use "IHl")
@@ -1092,11 +1141,11 @@ allnc phi^(
 (ind)
 (assume "Useless")
 (ng #t)
-(use "Truth-Axiom")
+(use "Truth")
 (assume "n" "IHn" "Useless")
 (use "IHn")
 (ng #t)
-(use "Truth-Axiom")
+(use "Truth")
 (assume "x^2" "xs^2" "STxs2" "IHl")
 (cases)
 (assume "Absurd")
@@ -1112,7 +1161,7 @@ allnc phi^(
 	   "?")
  (assume "n2")
  (ng #t)
- (use "Truth-Axiom")
+ (use "Truth")
 (assume "H")
 (simp "H")
 (use "IHl")
@@ -1199,7 +1248,7 @@ allnc phi^(
 (ng #t)
 (use "Hyp")
 (ng #t)
-(use "Truth-Axiom")
+(use "Truth")
 ;; Step
 (assume "n" "IH" "(list boole=>boole)^" "Hyp")
 (ng #t)
@@ -1389,4 +1438,4 @@ allnc phi^(
 ;; Proof finished.
 (save "ListBooleEqTotal")
 
-(remove-var-name "x" "xs" "phi" "y" "ys" "z" "zs")
+(remove-var-name "x" "xs" "phi" "psi" "y" "ys" "z" "zs")

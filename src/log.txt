@@ -1,6 +1,31 @@
 ;; $Id: log.txt 2704 2014-04-04 13:45:03Z schwicht $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-05-07
+
+In lib/list.scm
+
+ListTotalVar ListSTotalVar ListIfTotal and ListIfSTotal added
+
+In src/ets.scm
+
+In ALG-NAME-AND-NC-INDICATOR-TO-ALG-NAME new entry identity #t -> nulltype
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-04-19
+
+In doc/tutor.tex and in examples/tutor.scm
+
+Variable names U V W replaced by u v w to avoid clash with idpc U
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-04-18
+
+In doc/tutor.tex
+
+Parsing example included.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-04-04
 
 In doc/tutor.tex
