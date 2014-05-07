@@ -88,6 +88,18 @@
 ;; 	STotalListConsMR:
 ;; allnc x^,xs^,n^(STotalListMR n^ xs^ --> STotalListMR(Succ n^)(x^ ::xs^))
 
+;; ListSTotalVar
+(set-goal "all xs STotalList xs")
+(use "AllTotalIntro")
+(assume "xs^" "Txs")
+(elim "Txs")
+(use "STotalListNil")
+(assume "x^" "Tx" "xs^0" "Txs0" "STxs0")
+(use "STotalListCons")
+(use "STxs0")
+;; Proof finished.
+(save "ListSTotalVar")
+
 (add-program-constant
  "ListAppend" (py "list alpha=>list alpha=>list alpha") t-deg-zero 'const 1)
 
