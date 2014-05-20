@@ -28,6 +28,37 @@
 (pp (number-and-idpredconst-to-et-constr-term 1 ltree-idpc))
 ;; (LBranch alpha426)
 
+(define ltlist-idpc-nc (predicate-form-to-predicate
+			(pf "(RTotalLtlist (cterm (n^) T))(ltlist nat)^")))
+(pp (number-and-idpredconst-to-et-constr-term 0 ltlist-idpc-nc))
+;; ok, algebra ltlistnc added
+;; ok, algebra ltreenc added
+;; LEmptyNc
+
+(pp (number-and-idpredconst-to-et-constr-term 1 ltlist-idpc-nc))
+;; LTconsNc
+
+(define ltree-idpc-nc (predicate-form-to-predicate
+		       (pf "(RTotalLtree (cterm (n^) T))(ltree nat)^")))
+(pp (number-and-idpredconst-to-et-constr-term 0 ltree-idpc-nc))
+;; LLeafNc
+
+(pp (number-and-idpredconst-to-et-constr-term 1 ltree-idpc-nc))
+;; LBranchNc
+
+(define pione-idpc
+  (predicate-form-to-predicate
+   (pf "(PiOne (cterm (x^, x^1) (Pvar alpha alpha)x^ x^1))x^")))
+
+(pp (number-and-idpredconst-to-et-constr-term 0 pione-idpc))
+;; [alpha614^4062]alpha614^4062
+
+(define pione-idpc
+  (predicate-form-to-predicate (pf "(PiOne (cterm (x^, x^1) T))x^")))
+
+(number-and-idpredconst-to-et-constr-term 0 pione-idpc)
+;; eps
+
 ;; Tests for axiom-to-extracted-term .  This is the only place where
 ;; number-and-idpredconst-to-et-constr-term is used, in Intro case
 

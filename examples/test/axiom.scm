@@ -188,6 +188,65 @@
 
 (define idpc
   (idpredconst-name-and-types-and-cterms-to-idpredconst
+   "RTotalList" (list (py "nat"))
+   (list (make-cterm (pv "n^") (pf "Total n^")))))
+
+(define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
+(pp (aconst-to-formula aconst0))
+;; (RTotalList (cterm (n^4046) Total n^4046))(Nil nat)
+
+(define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
+(pp (term-to-type eterm0))
+;; list nat
+(pp eterm0)
+;; (Nil nat)
+
+(define aconst1 (number-and-idpredconst-to-intro-aconst 1 idpc))
+(pp (aconst-to-formula aconst1))
+;; allnc n^4050(
+;;  Total n^4050 ->
+;;  allnc (list nat)^4051(
+;;   (RTotalList (cterm (n^4052) Total n^4052))(list nat)^4051 ->
+;;   (RTotalList (cterm (n^4053) Total n^4053))(n^4050::(list nat)^4051)))
+
+(define eterm1 (proof-to-extracted-term (make-proof-in-aconst-form aconst1)))
+(pp (term-to-type eterm1))
+;; nat=>list nat=>list nat
+(pp eterm1)
+;; (Cons nat)
+
+(define idpc
+  (idpredconst-name-and-types-and-cterms-to-idpredconst
+   "RTotalList" (list (py "alpha"))
+   (list (make-cterm (pv "x^") (pf "T")))))
+
+(define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
+(pp (aconst-to-formula aconst0))
+;; (RTotalList (cterm (n^4048) T))(Nil alpha)
+
+(define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
+;; ok, algebra listnc added
+(pp (term-to-type eterm0))
+;; listnc
+(pp eterm0)
+;; NilNc
+
+(define aconst1 (number-and-idpredconst-to-intro-aconst 1 idpc))
+(pp (aconst-to-formula aconst1))
+;; allnc alpha^1985(
+;;  T ->
+;;  allnc (list alpha)^1986(
+;;   (RTotalList (cterm (x^4060) T))(list alpha)^1986 ->
+;;   (RTotalList (cterm (x^4060) T))(alpha^1985::(list alpha)^1986)))
+
+(define eterm1 (proof-to-extracted-term (make-proof-in-aconst-form aconst1)))
+(pp (term-to-type eterm1))
+;; listnc=>listnc
+(pp eterm1)
+;; ConsNc
+
+(define idpc
+  (idpredconst-name-and-types-and-cterms-to-idpredconst
    "EqD" (list (py "alpha")) '()))
 
 (define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
@@ -245,7 +304,7 @@
 
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm0))
-;; nat=>nat yprod unit
+;; nat=>nat
 
 (define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> k=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
@@ -276,6 +335,19 @@
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm0))
 ;; alpha146=>alpha146
+
+(define idpc
+  (predicate-form-to-predicate
+   (pf "(PiOne (cterm (x^1535,x^1534) T))x^")))
+(idpredconst-to-string idpc)
+;; "(PiOne (cterm (x^1535,x^1534) T))"
+
+(define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
+(pp (rename-variables (aconst-to-formula aconst0)))
+;; all x^,y^(R x^ y^ -> (PiOne (cterm (x^0,x^1) T))x^)
+
+(proof-to-extracted-term (make-proof-in-aconst-form aconst0))
+;; eps
 
 (define aconst
   (imp-formulas-to-elim-aconst
@@ -352,7 +424,7 @@
 
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm0))
-;; nat=>nat yprod unit
+;; nat=>nat
 
 (define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> k=0")))
 (pp (rename-variables (aconst-to-formula aconst)))

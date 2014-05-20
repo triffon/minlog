@@ -635,9 +635,7 @@
 			 (myerror "axiom-to-extracted-term"
 				  "opt-alg-name expected"
 				  idpc))))
-	(if (string=? "identity" string)
-	    (identity-idpredconst-to-intro-et-term idpc)
-	    (apply number-and-idpredconst-to-et-constr-term number-and-idpc))))
+	(apply number-and-idpredconst-to-et-constr-term number-and-idpc)))
      ((string=? "Elim" name)
       (let* ((uninst-fla (aconst-to-uninst-formula aconst))
 	     (kernel (all-allnc-form-to-final-kernel uninst-fla))
@@ -1024,18 +1022,6 @@
 	      "global assumption expected"
 	      name))))
 
-(define (identity-idpredconst-to-intro-et-term idpc)
-  (let* ((name (idpredconst-to-name idpc))
-	 (opt-alg-name (idpredconst-name-to-opt-alg-name name))) ;"identity"
-    (if (or (null? opt-alg-name)
-	    (not (string=? "identity" (car opt-alg-name))))
-	(myerror "identity-idpredconst-to-intro-et-term"
-		 "identity idpredconst expected"
-		 idpc))
-    (let* ((et-type (idpredconst-to-et-type idpc))
-	   (var (type-to-new-partial-var et-type)))
-      (make-term-in-abst-form var (make-term-in-var-form var)))))
-
 (define (all-formulas-to-et-rec-const . all-formulas)
   (if (nested-alg-name?
        (alg-form-to-name (var-to-type (all-form-to-var (car all-formulas)))))
@@ -1156,7 +1142,6 @@
 	 (alg-name (if (pair? opt-alg-name) (car opt-alg-name)
 		       (myerror "number-and-idpredconst-to-et-constr-term"
 				"alg name expected for" name)))
-	 (known-alg-name? (not (string=? (string-append "alg" name) alg-name)))
 	 (clauses (idpredconst-name-to-clauses name))
 	 (clause
 	  (if (and (integer? i) (not (negative? i)) (< i (length clauses)))
@@ -1165,21 +1150,11 @@
 		       "should be an index of a clause for" name)))
 	 (clauses-with-names (idpredconst-name-to-clauses-with-names name))
 	 (clause-with-name (list-ref clauses-with-names i))
-	 (constr-name
-	  (if known-alg-name?
-	      (car (list-ref (alg-name-to-typed-constr-names alg-name) i))
-	      (if (< 1 (length clause-with-name))
-		  (string-append "C" (cadr clause-with-name))
-		  (myerror "number-and-idpredconst-to-et-constr-term"
-			   "constr name missing for" clause))))
-	 (constr (constr-name-to-constr constr-name))
 	 (types (idpredconst-to-types idpc))
 	 (cterms (idpredconst-to-cterms idpc))
 	 (tvars (idpredconst-name-to-tvars name))
 	 (idpc-pvars (idpredconst-name-to-pvars name))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
-	 (et-types (map formula-to-et-type clauses))
-	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
 	 (simidpc-names (idpredconst-name-to-simidpc-names name))
 	 (simidpc-clauses
 	  (apply union (map idpredconst-name-to-clauses simidpc-names)))
@@ -1205,89 +1180,39 @@
 			  (if (and
 			       (pvar-with-positive-content? pvar)
 			       (member (PVAR-TO-TVAR pvar) simidpc-et-tvars))
-			      (if (nulltype? cterm-et-type)
-				  (cons (make-alg "unit") res)
-				  (cons cterm-et-type res))
+			      (cons cterm-et-type res)
 			      res))))
 	      ((null? l1) (reverse res))))
 	 (val-types (append relevant-types relevant-cterm-types))
-	 (alg-tvars (alg-name-to-tvars alg-name))
-	 (tsubst (make-substitution alg-tvars val-types))
-	 (subst-constr (const-substitute constr tsubst #t))
-	 (intro-aconst (number-and-idpredconst-to-intro-aconst i idpc))
-	 (uninst-intro-fla (aconst-to-uninst-formula intro-aconst))
-	 (inst-intro-fla (aconst-to-inst-formula intro-aconst))
-	 (et-argvars-and-argterms
-	  (do ((fla uninst-intro-fla
-		    (case (tag fla)
-		      ((all) (all-form-to-kernel fla))
-		      ((allnc) (allnc-form-to-kernel fla))
-		      ((imp) (imp-form-to-conclusion fla))
-		      ((impnc) (impnc-form-to-conclusion fla))
-		      (else (myerror "number-and-idpredconst-to-et-constr-term"
-				     "unexpected formula" fla))))
-	       (inst-fla inst-intro-fla
-			 (case (tag inst-fla)
-			   ((all) (all-form-to-kernel inst-fla))
-			   ((allnc) (allnc-form-to-kernel inst-fla))
-			   ((imp) (imp-form-to-conclusion inst-fla))
-			   ((impnc) (impnc-form-to-conclusion inst-fla))
-			   (else (myerror "number-and-idpredconst-to-et-constr-term"
-					  "unexpected formula" inst-fla))))
-	       (res
-		'()
-		(case (tag fla)
-		  ((all) (let* ((var (all-form-to-var inst-fla))
-				(type (var-to-type var))
-				(new-var (type-to-new-var type)))
-			   (cons (list new-var (make-term-in-var-form new-var))
-				 res)))
-		  ((allnc) res)
-		  ((imp)
-		   (let* ((prem (imp-form-to-premise fla))
-			  (inst-prem (imp-form-to-premise inst-fla))
-			  (type (formula-to-et-type inst-prem)))
-		     (if
-		      (and (predicate-form? prem)
-			   (pvar-form? (predicate-form-to-predicate prem)))
-		      (let ((pvar (predicate-form-to-predicate prem)))
-			(if
-			 (and (pvar-with-positive-content? pvar)
-			      (member (PVAR-TO-TVAR pvar) simidpc-et-tvars))
-			 (if
-			  (nulltype? type)
-			  (cons (list #f (make-term-in-const-form
-					  (constr-name-to-constr "Dummy")))
-				res)
-			  (let ((new-var (type-to-new-var type)))
-			    (cons (list new-var
-					(make-term-in-var-form new-var))
-				  res)))
-			 res))
-		      (let ((new-var (type-to-new-var type)))
-			(cons (list new-var (make-term-in-var-form new-var))
-			      res)))))
-		  ((impnc) res)
-		  (else (myerror "number-and-idpredconst-to-et-constr-term"
-				 "unexpected formula" fla)))))
-	      ((not (member (tag fla) '(all allnc imp impnc)))
-	       (let* ((revres (reverse res))
-		      (et-argvars-with-f (map car revres))
-		      (argterms (map cadr revres))
-		      (et-argvars (list-transform-positive et-argvars-with-f
-				    var-form?)))
-		 (list et-argvars-with-f et-argvars argterms)))))
-	 (et-argvars-with-f (car et-argvars-and-argterms))
-	 (et-argvars (cadr et-argvars-and-argterms))
-	 (argterms (caddr et-argvars-and-argterms)))
-    (if
-     (member #f et-argvars-with-f) ;else subst-constr
-     (apply mk-term-in-abst-form
-	    (append et-argvars
-		    (list (apply mk-term-in-app-form
-				 (make-term-in-const-form subst-constr)
-				 argterms))))
-     (make-term-in-const-form subst-constr))))
+	 (nc-indicator (map nulltype? val-types))
+	 (alg-name-et
+	  (alg-name-and-nc-indicator-to-alg-name alg-name nc-indicator)))
+    (cond
+     ((string=? "identity" alg-name-et)
+      (let* ((et-type (idpredconst-to-et-type idpc))
+	     (var (type-to-new-partial-var et-type)))
+	(make-term-in-abst-form var (make-term-in-var-form var))))
+     ((string=? "nulltype" alg-name-et) 'eps)
+     (else
+      (let* ((known-alg-name?
+	      (not (string=? (string-append "alg" name) alg-name)))
+	     (alg-tvars (alg-name-to-tvars alg-name))
+	     (tsubst (make-substitution alg-tvars val-types))
+	     (constr-name
+	      (cond
+	       (known-alg-name?
+		(car (list-ref (alg-name-to-typed-constr-names alg-name-et) i)))
+	       ((< 1 (length clause-with-name))
+		(let ((suffixes
+		       (if (string=? alg-name alg-name-et)
+			   '()
+			   (map (lambda (b) (if b "Nc" "Cr")) nc-indicator))))
+		  (apply string-append "C" (cadr clause-with-name) suffixes)))
+	       (else (myerror "number-and-idpredconst-to-et-constr-term"
+			      "constr name missing for" clause))))
+	     (constr (constr-name-to-constr constr-name))
+	     (subst-constr (const-substitute constr tsubst #t)))
+	(make-term-in-const-form subst-constr))))))
 
 ;; imp-formulas is a list of formulas I xs^ -> A[xs^].  uninst-elim-formula
 ;; is Ij xs^ -> K1[Xs,Ps] -> .. -> Kk[Xs,Ps] -> Pj xs^

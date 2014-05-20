@@ -11,6 +11,8 @@
 (pp (formula-to-undec-formula (pf "ex boole T") #t)) ;ex boole T
 (pp (formula-to-undec-formula (pf "exd boole T") #t)) ;exu boole T
 
+(add-pvar-name "S" (make-arity (py "alpha") (py "alpha") (py "alpha")))
+
 (define testformulas
   (list
    (pf "p^1=p^2")
