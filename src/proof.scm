@@ -7106,7 +7106,7 @@
      (let ((left (proof-in-and-intro-form-to-left proof))
 	   (right (proof-in-and-intro-form-to-right proof)))
        (make-proof-in-and-intro-form
-	(apply expand-theorems cons left opt-name-test)
+	(apply expand-theorems left opt-name-test)
 	(apply expand-theorems right opt-name-test))))
     ((proof-in-and-elim-left-form)
      (let ((kernel (proof-in-and-elim-left-form-to-kernel proof)))

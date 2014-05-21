@@ -4388,7 +4388,9 @@
 	  ((and (var-form? arg) (term-form? val)) var-term-equal?)
 	  ((and (pvar? arg) (cterm-form? val)) pvar-cterm-equal?)
 	  (else (myerror "cterm-subst" "unexpected arg" arg "and val" val)))))
-    (cterm-substitute cterm (make-subst-wrt equality? arg val))))(define (formula-substitute formula topsubst)
+    (cterm-substitute cterm (make-subst-wrt equality? arg val))))
+
+(define (formula-substitute formula topsubst)
   (let* ((tsubst (list-transform-positive topsubst
 		   (lambda (x) (tvar-form? (car x)))))
 	 (tosubst (list-transform-positive topsubst

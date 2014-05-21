@@ -1,6 +1,13 @@
 ;; $Id: log.txt 2704 2014-04-04 13:45:03Z schwicht $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-05-18
+
+In src/proof.scm
+
+In definition of expand-theorems superfluous cons removed (l. 7109)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-05-07
 
 In lib/list.scm
