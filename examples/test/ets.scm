@@ -589,3 +589,129 @@
 (assume "n" "u")
 (use "u")
 (extraction-test-etd (current-proof))
+
+;; proof-to-soundness-proof
+(add-mr-ids "OrU")
+(add-mr-ids "OrR")
+(add-mr-ids "OrD")
+
+(add-co "TotalBoole")
+(add-mr-ids "TotalBoole")
+(add-co "TotalBooleMR")
+(add-co "TotalNat")
+(add-co "TotalNatMR")
+(add-totality "bin")
+(add-mr-ids "TotalBin")
+(add-co "TotalBin")
+(add-co "TotalBinMR")
+(add-totality "ordl")
+(add-mr-ids "TotalOrdl")
+(add-co "TotalOrdl")
+(add-co "TotalOrdlMR")
+(add-totality "intv")
+(add-mr-ids "TotalIntv")
+(add-co "TotalIntv")
+(add-co "TotalIntvMR")
+(add-co "TotalList")
+(add-co "TotalListMR")
+(add-mr-ids "RTotalList")
+(add-co "RTotalList")
+(add-co "RTotalListMR")
+(add-totality "ntree")
+(add-co "TotalNtree")
+(add-mr-ids "TotalNtree")
+(add-co "TotalNtreeMR")
+(add-totality "ltlist")
+(add-mr-ids "TotalLtlist")
+(add-co "TotalLtlist")
+(add-co "TotalLtlistMR")
+(add-mr-ids "RTotalLtlist")
+(add-co "RTotalLtlist")
+(add-co "RTotalLtlistMR")
+
+(set! COMMENT-FLAG #f)
+;; closure axioms
+(define coidpc (predicate-form-to-predicate (pf "CoTotalBoole boole^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalNat nat^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalBin bin^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalList (list alpha)^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc
+  (predicate-form-to-predicate
+   (pf "(CoRTotalList (cterm (nat^) TotalNat nat^))(list nat)^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc
+  (predicate-form-to-predicate
+   (pf "(CoRTotalList (cterm (alpha^) (Pvar alpha)alpha^))(list alpha)^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalNtree ntree^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalIntv intv^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalOrdl ordl^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalLtlist(ltlist alpha)^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc (predicate-form-to-predicate (pf "CoTotalLtree(ltree alpha)^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc
+  (predicate-form-to-predicate
+   (pf "(CoRTotalLtlist (cterm (alpha^) (Pvar alpha)alpha^))(ltlist alpha)^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+(define coidpc
+  (predicate-form-to-predicate
+   (pf "(CoRTotalLtree (cterm (alpha^) (Pvar alpha)alpha^))(ltree alpha)^")))
+(define proof (coidpredconst-to-closure-mr-proof coidpc))
+(cdp proof)
+
+;; gfp axioms
+(define imp-formulas
+  (list (pf "(Pvar boole)boole^ -> CoTotalBoole boole^")))
+(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+(cdp proof)
+
+(define imp-formulas (list (pf "(Pvar nat)n^ -> CoTotalNat n^")))
+(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+(cdp proof)
+
+(define imp-formulas (list (pf "(Pvar bin)bin^ -> CoTotalBin bin^")))
+(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+(cdp proof)
+
+(define imp-formulas (list (pf "(Pvar intv)intv^ -> CoTotalIntv intv^")))
+(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+(cdp proof)
+
+(define imp-formulas
+  (list (pf "(Pvar (list nat))(list nat)^ -> (CoRTotalList (cterm (n^) (Pvar nat)n^))list nat^")))
+(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+(cdp proof)
+
+(set! COMMENT-FLAG #t)

@@ -11046,6 +11046,23 @@
 	   "formula-to-proof-of-ex-red-formula-imp-formula" "formula expected"
 	   formula))))
 
+;; 10-7-1. And proofs
+
+(define (and-formula-and-concl-to-and-elim-proof and-formula concl)
+  (let* ((and-avar (formula-to-new-avar and-formula))
+	 (and-proof (make-proof-in-avar-form and-avar))
+	 (lft-proof (make-proof-in-and-elim-left-form and-proof))
+	 (rht-proof (make-proof-in-and-elim-right-form and-proof))
+	 (step-fla (apply mk-imp (list (and-form-to-left and-formula)
+				       (and-form-to-right and-formula)
+				       concl)))
+	 (step-avar (formula-to-new-avar step-fla))
+	 (concl-proof
+	  (apply
+	   mk-proof-in-elim-form
+	   (list (make-proof-in-avar-form step-avar) lft-proof rht-proof))))
+    (apply mk-proof-in-intro-form (list and-avar step-avar concl-proof))))
+
 ;; 10-8. Basic proof constructions
 ;; ===============================
 

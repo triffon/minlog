@@ -22,6 +22,24 @@
 ;; (zip '(1 3 5 ) '(2 4 6 ))
 ;; (1 2 3 4 5 6)
 
+(define (rac xs)
+  (let ((ys (cdr xs)))
+    (if (null? ys) (car xs) (rac ys))))
+
+(define (rdc xs)
+  (let ((ys (cdr xs)))
+    (if (null? ys) ys (cons (car xs) (rdc ys)))))
+
+(define (snoc xs x)
+  (if (null? xs)
+      (list x)
+      (cons (car xs) (snoc (cdr xs) x))))
+
+(define (repeated f n)
+  (cond ((= n 0) (lambda (x) x)) 
+	((= n 1) f)
+	(else (lambda (x) (f ((repeated f (- n 1)) x))))))
+
 (define (remove x list)
   (do ((l list (cdr l))
        (res '() (if (equal? x (car l))
