@@ -483,6 +483,7 @@
   (if (not (aconst-form? x))
       (myerror "check-aconst" "aconst expected" x))
   (if (not (list? x))
+
       (myerror "check-aconst" "list expected" x))
   (if (not (<= 5 (length x)))
       (myerror "check-aconst" "list of length at least 5 expected" x))
@@ -524,29 +525,6 @@
 					    (list uninst-formula)))))
 	(apply myerror "check-aconst" "admissible substitution expected"
 	       (cons uninst-formula tpsubst)))
-    (let ((ignore-deco-flag (if (pair? opt-ignore-deco-flag)
-				 (car opt-ignore-deco-flag)
-				 #t)))
-      (if (not ignore-deco-flag)
-	  (let* ((et-type (formula-to-et-type uninst-formula))
-		 (et-tvars (type-to-tvars et-type))
-		 (rel-pvars
-		  (list-transform-positive (formula-to-pvars uninst-formula)
-		    (lambda (pvar)
-		      (member (PVAR-TO-TVAR pvar) et-tvars))))
-		 (rel-psubst (list-transform-positive psubst
-			       (lambda (p) (member (car p) rel-pvars))))
-		 (violating-psubst
-		  (list-transform-positive rel-psubst
-		    (lambda (p)
-		      (and (h-deg-zero? (pvar-to-h-deg (car p)))
-			   (formula-of-nulltype?
-			    (cterm-to-formula (cadr p))))))))
-	    (if (and (pair? violating-psubst)
-		     (not (member name (list "Ex-Intro" "Ex-Elim" "Gfp"))))
-		(apply myerror "check-aconst" name
-		       "computationally relevant formulas expected"
-		       (map cterm-to-formula (map cadr violating-psubst)))))))
     (let ((violating-pvars
 	   (list-transform-positive (formula-to-pvars uninst-formula)
 	     (lambda (pvar)

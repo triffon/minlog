@@ -1,6 +1,12 @@
 ;; $Id: log.txt 2704 2014-04-04 13:45:03Z schwicht $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-06-04
+
+In axiom scm
+
+In check-aconst inexact substitutions allowed.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-05-23
 
     number-and-idpredconst-to-et-constr-term changed to handle an idpc
@@ -9,6 +15,8 @@ Done 2014-05-23
     axiom-to-extracted-term simplified.
     Examples are added to test program extraction involving idpcs with nc
     predicate parameters.  (Work by Kenji Miyamoto)
+
+    In check-aconst inexact substitutions allowed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-05-18
