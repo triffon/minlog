@@ -6,6 +6,7 @@ Done 2014-06-04
 In axiom scm
 
 In check-aconst inexact substitutions allowed.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-05-23
 
