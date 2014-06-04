@@ -3194,10 +3194,10 @@
 			  step-types))
 	 (f-or-us (map (lambda (f-or-type)
 			 (if f-or-type
-			     (type-to-new-var f-or-type)
+			     (type-to-new-partial-var f-or-type)
 			     #f))
 		       f-or-types))
-	 (vs (map type-to-new-var step-types))
+	 (vs (map type-to-new-partial-var step-types))
 	 (product-types-list (map (lambda (step-type arg-types-list)
 				    (ysum-without-unit-to-components
 				     (if (arrow-form? step-type)
@@ -3207,11 +3207,11 @@
 				  step-types arg-types-list-list))
 	 (ys-list ;each ys is a list of new vars of product types
 	  (map (lambda (product-types)
-		 (map type-to-new-var product-types))
+		 (map type-to-new-partial-var product-types))
 	       product-types-list))
 					;variables n and prev
-	 (n (type-to-new-var (make-alg "nat")))
-	 (prev (type-to-new-var product-type))
+	 (n (type-to-new-partial-var (make-alg "nat")))
+	 (prev (type-to-new-partial-var product-type))
 					;step term
 	 (prev-comps (term-to-components (make-term-in-var-form prev)))
 	 (alg-names-with-prev-comps
@@ -3236,9 +3236,9 @@
 	  (map (lambda (alg f-or-type prev-comp)
 		 (if
 		  f-or-type
-		  (let ((test-var (type-to-new-var (make-ysum alg f-or-type)))
-			(alg-var (type-to-new-var alg))
-			(pd-var (type-to-new-var f-or-type)))
+		  (let ((test-var (type-to-new-partial-var (make-ysum alg f-or-type)))
+			(alg-var (type-to-new-partial-var alg))
+			(pd-var (type-to-new-partial-var f-or-type)))
 		    (make-term-in-abst-form
 		     test-var
 		     (make-term-in-if-form
@@ -3250,8 +3250,8 @@
 			     (apply mk-term-in-app-form
 				    prev-comp (make-term-in-var-form pd-var)
 				    (map make-term-in-var-form vs)))))))
-		  (let ((test-var (type-to-new-var (make-ysumu alg)))
-			(alg-var (type-to-new-var alg)))
+		  (let ((test-var (type-to-new-partial-var (make-ysumu alg)))
+			(alg-var (type-to-new-partial-var alg)))
 		    (make-term-in-abst-form
 		     test-var
 		     (make-term-in-if-form
@@ -3855,6 +3855,14 @@
 	    (uninst-grecguardop-type-etc-to-grecguard-const
 	     uninst-type restricted-tsubst
 	   (type-substitute uninst-type restricted-tsubst) 0 m)))
+	 ((string=? "CoRec" name)
+	  (let* ((uninst-alg-or-arrow-types
+		  (corec-const-to-uninst-alg-or-arrow-types const))
+		 (inst-alg-or-arrow-types
+		  (map (lambda (x) (type-substitute x restricted-tsubst))
+		       uninst-alg-or-arrow-types)))
+	    (car (apply alg-or-arrow-types-to-corec-consts
+			inst-alg-or-arrow-types))))
 	 ((string=? "SE" name)
 	  (let* ((inst-type (type-substitute uninst-type restricted-tsubst))
 		 (sfinalg (arrow-form-to-arg-type inst-type)))

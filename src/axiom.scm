@@ -2541,6 +2541,10 @@
 	 (rel-coidpc-names (map idpredconst-to-name rel-coidpcs))
 	 (coidpc (car rel-coidpcs))
 	 (name (car rel-coidpc-names))
+	 (nc-coidpc?
+	   (apply and-op (map (lambda (n) (nc-idpredconst-name? n))
+			      rel-coidpc-names)))
+	 (mr-coidpc? (mr-idpredconst-name? name))
 	 (coidpc-names-with-pvars-and-opt-alg-names
 	  (idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names name))
 	 (names (map car coidpc-names-with-pvars-and-opt-alg-names))
@@ -2581,6 +2585,15 @@
 	       rel-uninst-coidpcs new-var-lists))
 					;now for sorted-strengthened-coclauses
 	 (uninst-var-lists (map all-allnc-form-to-vars sorted-rel-coclauses))
+	 (argvar-lists
+	   (if mr-coidpc?
+	       (map (lambda (vars)
+		      (let* ((l (- (length vars) 1))
+			     (mr-var (list-ref vars l))
+			     (head-vars (list-head vars l)))
+			(cons mr-var head-vars)))
+		    uninst-var-lists)
+	       uninst-var-lists))
 	 (disjuncts-list (map (lambda (coclause)
 				(or-form-to-disjuncts
 				 (imp-impnc-form-to-conclusion
@@ -2594,12 +2607,13 @@
 				sorted-rel-coclauses))
 	 (sorted-shortened-coclauses
 	  (map
-	   (lambda (vars pvars disjuncts)
+	   (lambda (vars argvars pvars disjuncts)
 	     (letrec
 		 ((and-ex-fla-to-shortened-fla
 		   (lambda (fla)
 		     (cond
 		      ((prime-predicate-form? fla) fla)
+		      ((atom-form? fla) fla)
 		      ((and (bicon-form? fla)
 			    (memq (bicon-form-to-bicon fla)
 				  '(andd andl andr andu and)))
@@ -2625,15 +2639,16 @@
 		(append
 		 vars (list (make-imp
 			     (apply make-predicate-formula
-				    pvars (map make-term-in-var-form vars))
-			     (apply mk-ori (map and-ex-fla-to-shortened-fla
-						disjuncts))))))))
-	   uninst-var-lists sorted-rel-pvars disjuncts-list))
+				    pvars (map make-term-in-var-form argvars))
+			     (apply (if nc-coidpc? mk-ornc mk-ori)
+				    (map and-ex-fla-to-shortened-fla
+					 disjuncts))))))))
+	   uninst-var-lists argvar-lists sorted-rel-pvars disjuncts-list))
 	 (sorted-rel-pvar-formulas
 	  (map (lambda (pvar vars)
 		 (apply make-predicate-formula
 			pvar (map make-term-in-var-form vars)))
-	       sorted-rel-pvars uninst-var-lists))
+	       sorted-rel-pvars argvar-lists))
 	 (sorted-rel-uninst-coidpcs
 	  (map (lambda (name) (make-idpredconst name tvars param-pvar-cterms))
 	       sorted-rel-coidpc-names))
@@ -2641,7 +2656,7 @@
 	  (map (lambda (uninst-coidpc vars)
 		 (apply make-predicate-formula
 			uninst-coidpc (map make-term-in-var-form vars)))
-	       sorted-rel-uninst-coidpcs uninst-var-lists))
+	       sorted-rel-uninst-coidpcs argvar-lists))
 	 (arg-lists (map predicate-form-to-args concls))
 	 (var-lists
 	  (map (lambda (args)
@@ -2667,14 +2682,16 @@
 			   var-lists prems))
 	 (disjs
 	  (map (lambda (rel-uninst-coidpc-formula rel-pvar-formula prem-cterm)
-		 ((if (formula-of-nulltype? (cterm-to-formula prem-cterm))
-		      make-orl make-ord)
+		 ((if nc-coidpc?
+		      make-ornc
+		      (if (formula-of-nulltype? (cterm-to-formula prem-cterm))
+			  make-orl make-ord))
 		  rel-uninst-coidpc-formula rel-pvar-formula))
 	       sorted-rel-uninst-coidpc-formulas
 	       sorted-rel-pvar-formulas prem-cterms))
 	 (disj-cterms (map (lambda (vars disj)
 			     (apply make-cterm (append vars (list disj))))
-			   uninst-var-lists disjs))
+			   argvar-lists disjs))
 	 (pvars-to-disjs-psubst
 	  (make-substitution-wrt pvar-cterm-equal?
 				 sorted-rel-pvars disj-cterms))
@@ -2691,8 +2708,10 @@
 			(right-disjunct
 			 (cond ((ord-form? disj) (ord-form-to-right disj))
 			       ((orl-form? disj) (orl-form-to-right disj))
+			       ((ornc-form? disj) (ornc-form-to-right disj))
 			       (else
-				(myerror "ord od orl form expected" disj)))))
+				(myerror "ord, orl or ornc form expected"
+					 disj)))))
 		   (apply
 		    mk-allnc
 		    (append vars (list (make-imp right-disjunct str-concl))))))

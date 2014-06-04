@@ -1381,6 +1381,70 @@
       x
       (make-exi x (apply mk-exi rest))))
 
+(define (exi-form? formula)
+  (and (predicate-form? formula)
+       (let ((pred (predicate-form-to-predicate formula)))
+	 (and (idpredconst-form? pred)
+	      (member
+	       (idpredconst-to-name pred)
+	       (list ;;"ExNc"
+		"ExU" "ExL" "ExR" "ExD"))))))
+
+(define (exi-mr-exi-form? formula)
+  (and (predicate-form? formula)
+       (let ((pred (predicate-form-to-predicate formula)))
+	 (and (idpredconst-form? pred)
+	      (member
+	       (idpredconst-to-name pred)
+	       (list ;;"ExNc"
+		"ExU" "ExL" "ExR" "ExD"
+		"ExUMR" "ExLMR" "ExRMR" "ExDMR"))))))
+
+(define (exi-mr-exi-form-to-vars formula)
+  (if (exi-mr-exi-form? formula)
+      (let ((cterm
+	     (car (idpredconst-to-cterms
+		   (predicate-form-to-predicate formula)))))
+	(append (cterm-to-vars cterm)
+		(exi-mr-exi-form-to-vars (cterm-to-formula cterm))))
+      '()))
+
+(define (exi-mr-exi-form-to-final-kernel formula)
+  (if (exi-mr-exi-form? formula)
+      (let ((cterm
+	     (car (idpredconst-to-cterms
+		   (predicate-form-to-predicate formula)))))
+	(exi-mr-exi-form-to-final-kernel (cterm-to-formula cterm)))
+      formula))
+
+(define (and-andi-ex-exi-formula-to-vars-and-conjuncts formula . x)
+  (let* ((rest (if (null? x) (list '() '()) x))
+	 (vars (car rest))
+	 (conjs (cadr rest)))
+    (cond ((and-form? formula)
+	   (apply and-andi-ex-exi-formula-to-vars-and-conjuncts
+	    (and-form-to-right formula)
+	    (list vars (snoc conjs (and-form-to-left formula)))))
+	  ((andi-form? formula)
+	   (let ((flas (map cterm-to-formula
+			    (idpredconst-to-cterms
+			     (predicate-form-to-predicate formula)))))
+	     (apply and-andi-ex-exi-formula-to-vars-and-conjuncts
+	      (cadr flas)
+	      (list vars (snoc conjs (car flas))))))
+	  ((ex-form? formula)
+	   (apply and-andi-ex-exi-formula-to-vars-and-conjuncts
+	    (ex-form-to-kernel formula)
+	    (list (snoc vars (ex-form-to-var formula)) conjs)))
+	  ((exi-form? formula)
+	   (let ((cterm
+		  (car (idpredconst-to-cterms
+			(predicate-form-to-predicate formula)))))
+	     (apply and-andi-ex-exi-formula-to-vars-and-conjuncts
+	      (cterm-to-formula cterm)
+	      (list (append vars (cterm-to-vars cterm)) conjs))))
+	  (else (list vars (snoc conjs formula))))))
+
 (define (make-exnci var kernel)
   (if (formula-of-nulltype? kernel)
       (make-exu var kernel)
@@ -1858,6 +1922,15 @@
 	((null? (cdr x)) (car x))
 	(else (make-ori (car x) (apply mk-ori (cdr x))))))
 
+(define (ori-mr-ori-form? formula)
+  (and (predicate-form? formula)
+       (let ((pred (predicate-form-to-predicate formula)))
+	 (and (idpredconst-form? pred)
+	      (member
+	       (idpredconst-to-name pred)
+	       (list "OrNc" "OrU" "OrL" "OrR" "OrD"
+		     "OrUMR" "OrLMR" "OrRMR" "OrDMR"))))))
+
 (define (make-andd formula1 formula2)
   (make-predicate-formula
    (make-idpredconst
@@ -1985,6 +2058,49 @@
 	(else
 	 (make-andi (car x) (apply mk-andi-for-sorted-formulas (cdr x))))))
 
+(define (andi-form? formula)
+  (and (predicate-form? formula)
+       (let ((pred (predicate-form-to-predicate formula)))
+	 (and (idpredconst-form? pred)
+	      (member
+	       (idpredconst-to-name pred)
+	       (list ;;"AndNc"
+		"AndU" "AndL" "AndR" "AndD"))))))
+
+(define (andi-mr-andi-form? formula)
+  (and (predicate-form? formula)
+       (let ((pred (predicate-form-to-predicate formula)))
+	 (and (idpredconst-form? pred)
+	      (member
+	       (idpredconst-to-name pred)
+	       (list ;;"AndNc"
+		"AndU" "AndL" "AndR" "AndD"
+		"AndUMR" "AndLMR" "AndRMR" "AndDMR"))))))
+
+(define (andi-mr-andi-form-to-conjuncts formula)
+  (if (andi-mr-andi-form? formula)
+      (let* ((cterms
+	      (idpredconst-to-cterms
+	       (predicate-form-to-predicate formula)))
+	     (flas (map cterm-to-formula cterms)))
+	(cons (car flas)
+	      (andi-mr-andi-form-to-conjuncts (cadr flas))))
+      (list formula)))
+
+(define (and-andi-mr-andi-form-to-conjuncts formula)
+  (cond ((andi-mr-andi-form? formula)
+	 (let* ((cterms
+		 (idpredconst-to-cterms
+		  (predicate-form-to-predicate formula)))
+		(flas (map cterm-to-formula cterms)))
+	   (cons (car flas)
+		 (and-andi-mr-andi-form-to-conjuncts (cadr flas)))))
+	((and-form? formula)
+	 (cons (and-form-to-left formula)
+	       (and-andi-mr-andi-form-to-conjuncts
+		(and-form-to-right formula))))
+	(else (list formula))))
+
 (define (make-andr-without-truth formula1 formula2)
   (cond ((formula=? formula1 truth) formula2)
 	((formula=? formula2 truth) formula1)
@@ -2006,6 +2122,13 @@
 	      (make-idpredconst "EqD" (list type1) '())
 	      (myerror "make-eqd" "equal types expected" type1 type2))))
     (make-predicate-formula equal-idpredconst term1 term2)))
+
+(define (eqd-form? formula)
+  (and (predicate-form? formula)
+       (let ((pred (predicate-form-to-predicate formula)))
+	 (and (idpredconst? pred)
+	      (string=? "EqD"
+			(idpredconst-to-name pred))))))
 
 (define (make-bicon bicon formula1 formula2)
   (case bicon

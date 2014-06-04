@@ -379,6 +379,10 @@
   (make-pvar arity (+ 1 MAXPVARINDEX) h-deg-zero n-deg-one
 	     (default-pvar-name arity)))
 
+(define (arity-to-new-harrop-pvar arity)
+  (make-pvar arity (+ 1 MAXPVARINDEX) h-deg-one n-deg-one
+	     (default-pvar-name arity)))
+
 (define (arity-to-new-general-pvar arity)
   (make-pvar arity (+ 1 MAXPVARINDEX) h-deg-zero n-deg-zero
 	     (default-pvar-name arity)))
@@ -1028,6 +1032,11 @@
 (define (mr-idpredconst-name? x)
   (and (string? x) (final-substring? "MR" x) (not (string=? "MR" x))))
 
+(define (nc-idpredconst-name? name)
+  (let ((info (assoc name IDS)))
+    (and (pair? info)
+	 (null? (cddr (assoc name (cadr info)))))))
+
 (define (mr-idpredconst-name-to-orig-idpredconst-name mr-idpc-name)
   (if (mr-idpredconst-name? mr-idpc-name)
       (substring mr-idpc-name 0 (- (string-length mr-idpc-name)
@@ -1185,7 +1194,21 @@
        (arities (map cadr idpc-names-with-arities-and-opt-alg-names))
        (clause-strings (map car clause-strings-with-opt-names))
        (opt-names (map cdr clause-strings-with-opt-names))
-       (idpc-pvars (map arity-to-new-general-pvar arities))
+       (temporal-pvar-names (do ((l1 idpc-names (cdr l1))
+				 (l2 arities (cdr l2)))
+				((null? l1))
+			      (add-pvar-name (car l1) (car l2))))
+       (clauses (map pf clause-strings))
+       (special-nc-idpc?
+	(and (= 1 (length clauses))
+	     (predicate-form?
+	      (impnc-form-to-final-conclusion
+	       (allnc-form-to-final-kernel (car clauses))))))
+       (remove-temporal-pvar-names (apply remove-pvar-name idpc-names))
+       (idpc-pvars
+	(map (if (or all-with-content? special-nc-idpc?)
+		 arity-to-new-general-pvar
+		 arity-to-new-harrop-pvar) arities))
        (var-lists
 	(map (lambda (arity)
 	       (map type-to-new-partial-var (arity-to-types arity)))
@@ -1199,17 +1222,12 @@
 					;temporarily add idpc-names as
 					;pvars to parse clause-strings
        (clauses-with-idpc-pvars
-	(begin (do ((l1 idpc-names (cdr l1))
-		    (l2 arities (cdr l2)))
-		   ((null? l1))
-		 (add-pvar-name (car l1) (car l2)))
-	       (let* ((pvars
-		       (map (lambda (x y)
-			      (make-pvar x -1 h-deg-zero n-deg-zero y))
-			    arities idpc-names))
-		      (psubst (map list pvars cterms)))
-		 (map (lambda (x) (formula-substitute (pf x) psubst))
-		      clause-strings))))
+	(let* ((pvars
+		(map (lambda (x y)
+		       (make-pvar x -1 h-deg-zero n-deg-zero y))
+		     arities idpc-names))
+	       (psubst (map list pvars cterms)))
+	  (map (lambda (x) (formula-substitute x psubst)) clauses)))
        (param-pvars (set-minus (apply union (map formula-to-pvars
 						 clauses-with-idpc-pvars))
 			       idpc-pvars))
@@ -1782,7 +1800,7 @@
 				    (arity-to-types
 				     (predicate-to-arity pvar)))))
 			(mr-idpc-pvar
-			 (arity-to-new-general-pvar mr-idpc-arity)))
+			 (arity-to-new-harrop-pvar mr-idpc-arity)))
 		   (set! assoc-list
 			 (cons (list pvar mr-idpc-pvar) assoc-list))
 		   mr-idpc-pvar))))))
@@ -2026,10 +2044,10 @@
 	    (type2 (formula-to-et-type-for-mr-clauses
 		    concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))
 	    (m-imp (if (and (eq? 'imp (tag formula))
-			    (pair? (intersection (formula-to-pvars prem)
-						 idpc-pvars)))
-		       make-imp
-		       make-impnc)))
+	    		    (pair? (intersection (formula-to-pvars prem)
+	    					 idpc-pvars)))
+	    	       make-imp
+	    	       make-impnc)))
        (cond
 	((nulltype? type1)
 	 (m-imp (real-and-idpc-clause-to-mr-idpc-clause
@@ -2039,7 +2057,7 @@
 	((nulltype? type2)
 	 (let*  ((var (type-to-new-partial-var type1))
 		 (varterm (make-term-in-var-form var)))
-	   (make-all
+	   (make-allnc
 	    var (m-imp
 		 (real-and-idpc-clause-to-mr-idpc-clause
 		  varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
@@ -2051,7 +2069,7 @@
 		 (appterm (if (imp-form? formula)
 			      (make-term-in-app-form real varterm)
 			      real)))
-	   (make-all
+	   (make-allnc
 	    var (m-imp
 		 (real-and-idpc-clause-to-mr-idpc-clause
 		  varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
@@ -2094,11 +2112,11 @@
 		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
        (if
 	(nulltype? type)
-	(make-all var (real-and-idpc-clause-to-mr-idpc-clause
+	(make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
 		       'eps kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar))
 	(let* ((varterm (make-term-in-var-form var))
 	       (appterm (make-term-in-app-form real varterm)))
-	  (make-all var (real-and-idpc-clause-to-mr-idpc-clause
+	  (make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
 			 appterm kernel
 			 mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))
     ((allnc)
@@ -3039,20 +3057,36 @@
 				 (map car idpc-clauses-with-names))
 			       idpc-clauses-with-names-list))
        (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag)))
-       (clauses ;one for each of idpc-names
+       (mr-idpc? (mr-idpredconst-name? idpc-name))
+       (nc-idpc? (nc-idpredconst-name? idpc-name))
+       (clauses-with-fvars ;one for each of idpc-names
 	(map
 	 (lambda (vars pvar idpc-clauses)
 	   (letrec
-	       ((clause-to-exand-fla-and-c-flag
+	       ((make-cr-or-nc-andl (if mr-idpc? make-andu make-andl))
+		(make-cr-or-nc-andr (if mr-idpc? make-andu make-andr))
+		(make-cr-or-nc-andd
+		 (if prim-prod? make-and (if mr-idpc? make-andu make-andd)))
+		(m-andu (if prim-prod? mk-and mk-andu))
+		(make-cr-or-nc-exl (if mr-idpc? make-exu make-exl))
+		(make-cr-or-nc-exr (if mr-idpc? make-exu make-exr))
+		(make-cr-or-nc-exd
+		 (if prim-prod? make-ex (if mr-idpc? make-exu make-exd)))
+		(clause-to-exand-fla-and-c-flag
 		 (lambda (fla)
 		   (cond
 		    ((and (predicate-form? fla)
 			  (equal? pvar (predicate-form-to-predicate fla)))
-		     (list (apply mk-andu
-				  (map make-eqd
-				       (map make-term-in-var-form vars)
-				       (predicate-form-to-args fla)))
-			   #f))
+		     (let ((eqd-list (map make-eqd
+					  (map make-term-in-var-form vars)
+					  (predicate-form-to-args fla))))
+		       (list
+			(apply
+			 m-andu
+			 (if mr-idpc? ; change the order of eqd formulas
+			     (append (cdr eqd-list) (list (car eqd-list)))
+			     eqd-list))
+			#f)))
 		    ((imp-impnc-form? fla)
 		     (let* ((prem (imp-impnc-form-to-premise fla))
 			    (concl (imp-impnc-form-to-conclusion fla))
@@ -3060,18 +3094,19 @@
 		       (if
 			(and (predicate-form? concl)
 			     (equal? pvar (predicate-form-to-predicate concl)))
-			(if (not (formula-of-nulltype? prem))
-			    (list (make-andl prem (car prev)) #t)
-			    (list (make-andu prem (car prev)) #f))
+			(if (or (not (formula-of-nulltype? prem))
+				(intersection (formula-to-pvars prem) pvars))
+			    (list (make-cr-or-nc-andl prem (car prev)) #t)
+			    (list (m-andu prem (car prev)) #f))
 			(if (and (imp-form? fla)
-				 (not (formula-of-nulltype? prem)))
+				 (or (not (formula-of-nulltype? prem))
+				     (intersection (formula-to-pvars prem) pvars)))
 			    (if (cadr prev)
-				(list ((if prim-prod? make-and make-andd)
-				       prem (car prev)) #t)
-				(list (make-andl prem (car prev)) #t))
+				(list (make-cr-or-nc-andd prem (car prev)) #t)
+				(list (make-cr-or-nc-andl prem (car prev)) #t))
 			    (if (cadr prev)
-				(list (make-andr prem (car prev)) #t)
-				(list (make-andu prem (car prev)) #f))))))
+				(list (make-cr-or-nc-andr prem (car prev)) #t)
+				(list (m-andu prem (car prev)) #f))))))
 		    ((all-allnc-form? fla)
 		     (let* ((var (all-allnc-form-to-var fla))
 			    (kernel (all-allnc-form-to-kernel fla))
@@ -3080,33 +3115,41 @@
 			(and (predicate-form? kernel)
 			     (equal? pvar (predicate-form-to-predicate kernel)))
 			(if (all-form? fla)
-			    (list (make-exl var (car prev)) #t)
+			    (list (make-cr-or-nc-exl var (car prev)) #t)
 			    (list (make-exu var (car prev)) #f))
 			(if (all-form? fla)
 			    (if (cadr prev)
-				(list ((if prim-prod? make-ex make-exd)
-				       var (car prev)) #t)
-				(list (make-exl var (car prev)) #t))
+				(list (make-cr-or-nc-exd var (car prev)) #t)
+				(list (make-cr-or-nc-exl var (car prev)) #t))
 			    (if (cadr prev)
-				(list (make-exr var (car prev)) #t)
+				(list (make-cr-or-nc-exr var (car prev)) #t)
 				(list (make-exu var (car prev)) #f))))))
 		    (else (myerror "clause-to-exand-fla-and-c-flag"
 				   "unexpected formula" fla))))))
 	     (let* ((exand-fla-and-c-flag-list
 		     (map clause-to-exand-fla-and-c-flag idpc-clauses))
 		    (exand-fla-list (map car exand-fla-and-c-flag-list)))
+	       (make-imp
+		(apply make-predicate-formula
+		       pvar (map make-term-in-var-form vars))
+		(apply (if nc-idpc? mk-ornc mk-ori)
+		       exand-fla-list)))))
+	 var-lists pvars idpc-clauses-list))
+       (param-tvars (apply union (map formula-to-tvars clauses-with-fvars)))
+       (clauses
+	(map (lambda (vars clause-with-fvars)
 	       (apply
 		mk-allnc
 		(append
-		 vars (list (make-imp
-			     (apply make-predicate-formula
-				    pvar (map make-term-in-var-form vars))
-			     (apply mk-ori exand-fla-list))))))))
-	 var-lists pvars idpc-clauses-list))
-       (param-tvars (apply union (map formula-to-tvars clauses)))
+		 (if mr-idpc?
+		     (append (cdr vars) (list (car vars)))
+		     vars)
+		 (list clause-with-fvars))))
+	     var-lists clauses-with-fvars))
        (param-pvars
-	(set-minus (apply union (map formula-to-pvars clauses)) pvars)))
-					;add coidpcs
+	(set-minus
+	 (apply union (map formula-to-pvars clauses))
+	 pvars)))
     (for-each
      (lambda (coidpc-name clause-name clause arity)
        (let ((non-inferable-param-tvars
