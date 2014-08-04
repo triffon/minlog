@@ -2777,7 +2777,10 @@
        ((pvar-form? pred) (PVAR-TO-TVAR pred))
        ((predconst-form? pred) (make-tconst "prop"))
        ((idpredconst-form? pred)
-	(let* ((name (idpredconst-to-name pred))
+	(let* ((idpc-or-coidpc-name (idpredconst-to-name pred))
+	       (name (if (assoc idpc-or-coidpc-name COIDS)
+			 (substring idpc-or-coidpc-name 2)
+			 idpc-or-coidpc-name))
 	       (types (idpredconst-to-types pred))
 	       (param-cterms (idpredconst-to-cterms pred))
 	       (param-cterm-types
