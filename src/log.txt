@@ -1,6 +1,17 @@
 ;; $Id: log.txt 2704 2014-04-04 13:45:03Z schwicht $
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-08-20
+
+In formula.scm
+
+nbe-formula-to-type corrected in case of a coinductive predicate
+
+In examples/analysis
+
+ishihara.scm added
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-06-04
 
 In axiom scm
