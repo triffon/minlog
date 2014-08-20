@@ -1,11 +1,12 @@
-# $Id: Makefile 2013-01-01 miyamoto $
+# $Id: Makefile 2014-08-20 miyamoto $
 # Makefile for analysis
 
 # The targets to be tested. Use .FILE.test-passed as target, if
 # FILE.scm has to be tested. Use DIR/.TEST as target if a subdir has
 # to be tested
 
-.TEST:  .ivt.test-passed .cauchysds.test-passed .average.test-passed
+.TEST:  .ivt.test-passed .cauchysds.test-passed .average.test-passed \
+        .ishihara.test-passed
 	touch .TEST
 
 # The relative path to the toplevel Minlog-Dir
