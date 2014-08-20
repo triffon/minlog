@@ -2779,7 +2779,8 @@
        ((idpredconst-form? pred)
 	(let* ((idpc-or-coidpc-name (idpredconst-to-name pred))
 	       (name (if (assoc idpc-or-coidpc-name COIDS)
-			 (substring idpc-or-coidpc-name 2)
+			 (substring idpc-or-coidpc-name
+				    2 (string-length idpc-or-coidpc-name))
 			 idpc-or-coidpc-name))
 	       (types (idpredconst-to-types pred))
 	       (param-cterms (idpredconst-to-cterms pred))
