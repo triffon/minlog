@@ -16,11 +16,6 @@
     (setq minlogpath (getenv "MINLOGPATH"))
   (setq minlogpath "---MINLOGPATH---"))
 
-; Minlog minor mode
-(load "---MINLOGELPATH---/minlog-mode.el")
-(add-hook 'scheme-mode-hook 'minlog-font-lock-mode 'append)
-(add-hook 'inferior-scheme-mode-hook 'minlog-font-lock-mode 'append)
-
 ; which scheme to use ?
 (cond ((getenv "SCHEME") (setq scheme (getenv "SCHEME")))
       ((and (file-readable-p "/usr/bin/petite")
