@@ -893,12 +893,20 @@
 			  (list name uninst-pconst new-comprules rewrules
 				new-tsubst-obj-alist))
 		      pconsts-except-name))
-	  (if (not (member name (list "Inhab" "AndConst" "ImpConst"
-				      "OrConst" "NegConst"
-				      "PairOne" "PairTwo")))
-	      (comment
-	       "ok, computation rule " (term-to-string lhs) " -> "
-	       (term-to-string embedded-rhs) " added")))))))
+	  (let* ((n (length comprules))
+		 (proof (pconst-name-and-number-to-comprule-proof name n))
+		 (thm-name
+		  (string-append name (number-to-string n) "CompRule")))
+	    (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+	    (set! COMMENT-FLAG #f)
+	    (add-theorem thm-name proof)
+	    (set! COMMENT-FLAG OLD-COMMENT-FLAG)
+	    (if (not (member name (list "Inhab" "AndConst" "ImpConst"
+					"OrConst" "NegConst"
+					"PairOne" "PairTwo")))
+		(comment
+		 "ok, computation rule " (term-to-string lhs) " -> "
+		 (term-to-string embedded-rhs) " added"))))))))
 
 (define (constr-type-to-constr-param-types constr-type)
   (let* ((alg-name (alg-form-to-name
@@ -1026,10 +1034,18 @@
 			(list name uninst-pconst comprules new-rewrules
 			      new-alist-for-name))
 		    pconsts-except-name))
-	(if (not (member name
-			 (list "AndConst" "ImpConst" "OrConst" "NegConst")))
-	    (comment "ok, rewrite rule " (term-to-string lhs) " -> "
-		     (term-to-string embedded-rhs) " added"))))))
+	(let* ((n (length rewrules))
+	       (proof (pconst-name-and-number-to-rewrule-proof name n))
+	       (thm-name
+		(string-append name (number-to-string n) "RewRule")))
+	  (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+	  (set! COMMENT-FLAG #f)
+	  (add-theorem thm-name proof)
+	  (set! COMMENT-FLAG OLD-COMMENT-FLAG)
+	  (if (not (member name
+			   (list "AndConst" "ImpConst" "OrConst" "NegConst")))
+	      (comment "ok, rewrite rule " (term-to-string lhs) " -> "
+		       (term-to-string embedded-rhs) " added")))))))
 
 (define (change-t-deg-to-one name)
   (let ((info (assoc name PROGRAM-CONSTANTS)))
@@ -1077,6 +1093,15 @@
 		      (list name new-pconst '() '() inst-objs))
 		  pconsts-except-name))
       (remove-token name)
+      (set! THEOREMS ;remove all with names like NatPlus1...
+	    (list-transform-positive THEOREMS
+	      (lambda (x)
+		(let* ((thm-name (car x))
+		       (first-name (string-to-first-name thm-name))
+		       (l (string-length first-name)))
+		  (not (and (string=? name first-name)
+			    (< l (string-length thm-name))
+			    (char-numeric? (string-ref thm-name l))))))))
       (if (null? (type-to-tvars uninst-type))
 	  (add-token name
 		     (const-to-token-type pconst)
@@ -1212,6 +1237,14 @@
 	    (cons (list name uninst-pconst new-comprules rewrules
 			new-alist-for-name)
 		  pconsts-except-name))
+      (set! THEOREMS
+	    (list-transform-positive THEOREMS
+	      ;; remove those with string-to-first-name = name and
+	      ;; string-to-last-name = CompRule
+	      (lambda (x)
+		(let ((thm-name (car x)))
+		  (or (not (string=? (string-to-last-name thm-name) "CompRule"))
+		      (not (string=? (string-to-first-name thm-name) name)))))))
       (comment "ok, computation rules of the form " (term-to-string lhs)
 	       " removed"))))
 
@@ -1256,6 +1289,14 @@
 	    (cons (list name uninst-pconst comprules new-rewrules
 			new-alist-for-name)
 		  pconsts-except-name))
+      (set! THEOREMS
+	    (list-transform-positive THEOREMS
+	      ;; remove those with string-to-first-name = name and
+	      ;; string-to-last-name = CompRule
+	      (lambda (x)
+		(let ((thm-name (car x)))
+		  (or (not (string=? (string-to-last-name thm-name) "RewRule"))
+		      (not (string=? (string-to-first-name thm-name) name)))))))
       (comment "ok, rewrite rules with lhs of the form "
 	       (term-to-string lhs)
 	       " removed"))))
