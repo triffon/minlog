@@ -2048,9 +2048,14 @@ optional.  The default for the name string is the value returned by
   &\texttt{(default-var-name \textsl{type})}.%
   \index{default-var-name@\texttt{default-var-name}}
 \end{alignat*}
-If there is no default name, a numerated variable is created.  The
-default for the totality is \inquotes{total}.
-
+If there is no default name, a numerated variable is created.
+%% The default for the totality is \inquotes{total}.
+One can view the already chosen default variable names for some
+types by
+\begin{align*}
+  &\texttt{(display-default-varnames .\ \textsl{types})}.%
+  \index{display-default-varnames@\texttt{display-default-varnames}}
+\end{align*}
 Using the empty string as the name, we can create so called numerated
 variables.  We further require that we can test whether a given
 variable belongs to those special ones, and that from every numerated
@@ -7112,13 +7117,15 @@ It is a practical problem to find existing theorems or global
 assumptions relevant for the situation at hand.  To help searching
 for those we provide
 \begin{equation*}
-  \texttt{(search-about \textsl{string})}.%
+  \texttt{(search-about \textsl{symbol-or-string} .\ \textsl{opt-strings})}.%
   \index{search-about@\texttt{search-about}}
 \end{equation*}
 It searches in \texttt{THEOREMS}\index{THEOREMS@\texttt{THEOREMS}} and
 \texttt{GLOBAL-ASSUMPTIONS}%
 \index{GLOBAL-ASSUMPTIONS@\texttt{GLOBAL-ASSUMPTIONS}} for all items
-whose name contains \textsl{string}.
+whose name contains each of the strings given, excluding the strings
+Total Partial CompRule RewRule Sound.  It one wants to list all these as
+well, take the symbol 'all as first argument.
 
 \section{Proofs}
 \label{S:Proof}
@@ -8436,7 +8443,7 @@ display string.  It should be closed; if not, universal quantifiers
 are inserted automatically.
 
 \subsection{normalize-goal}
-\texttt{(normalize-goal .
+\texttt{(normalize-goal .\
   \textsl{ng-info})}\index{normalize-goal@\texttt{normalize-goal}}
 (short: \texttt{ng}\index{ng@\texttt{ng}}) takes optional
 arguments \texttt{ng-info}.  If there are none, the goal formula and
