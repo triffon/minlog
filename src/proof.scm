@@ -12057,3 +12057,79 @@
   (let* ((avar (formula-to-new-avar fla))
 	 (proof (fold-to-unfold (make-proof-in-avar-form avar))))
     (make-proof-in-imp-intro-form avar proof)))
+
+;; (proof-and-formula-to-proof proof formula) replaces the end formula
+;; of proof by formula.  It should only be applied when both are equal
+;; in the sense of having a common reduct.  However, a test via
+;; (classical-formula=? (proof-to-formula proof) formula) involves
+;; normalization and can lead to non-termination, e.g. for Fix
+
+(define (proof-and-formula-to-proof proof formula)
+  ;; (if (not (classical-formula=? (proof-to-formula proof) formula))
+  ;;     (myerror "proof-and-formula-to-proof" "equal formulas expected"
+  ;; 	       (proof-to-formula proof) formula))
+  (cons (tag proof) (cons formula (cddr proof))))
+
+(define (pconst-name-and-number-to-comprule-proof name n)
+  (let* ((comprules (pconst-name-to-comprules name)) ;involves check
+	 (rule (if (< n (length comprules))
+		   (list-ref comprules n)
+		   (myerror "pconst-name-and-number-to-comprule-proof"
+			    "out of range" n)))
+	 (lhs (rule-to-lhs rule))
+	 (rhs (rule-to-rhs rule))
+	 (lhs-with-partial-vars (term-to-term-with-partial-vars lhs))
+	 (rhs-with-partial-vars (term-to-term-with-partial-vars rhs))
+	 (partial-vars (term-to-free lhs-with-partial-vars))
+	 (type (term-to-type lhs))
+	 (idpc (make-idpredconst "EqD" (list type) '()))
+	 (initeqd-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+	 (eqd-fla (make-eqd lhs-with-partial-vars rhs-with-partial-vars)))
+    (apply mk-proof-in-intro-form
+	   (append
+	    partial-vars
+	    (list (proof-and-formula-to-proof
+		   (mk-proof-in-elim-form
+		    (make-proof-in-aconst-form initeqd-aconst)
+		    lhs-with-partial-vars)
+		   eqd-fla))))))
+
+(define (pconst-name-and-number-to-rewrule-proof name n)
+  (let* ((rewrules (pconst-name-to-rewrules name)) ;involves check
+	 (rule (if (< n (length rewrules))
+		   (list-ref rewrules n)
+		   (myerror "pconst-name-and-number-to-rewrule-proof"
+			    "out of range" n)))
+	 (lhs (rule-to-lhs rule))
+	 (rhs (rule-to-rhs rule))
+	 (vars (term-to-free lhs))
+	 (type (term-to-type lhs)))
+    (if
+     (finalg? type)
+     (let* ((idpc (make-idpredconst "EqD" (list (make-alg "boole")) '()))
+	    (initeqd-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+	    (=-term (make-=-term lhs rhs))
+	    (eqd-fla (make-eqd =-term (make-term-in-const-form true-const))))
+       (apply mk-proof-in-intro-form
+	      (append
+	       vars
+	       (list (mk-proof-in-elim-form
+		      (make-proof-in-aconst-form eqd-true-to-atom-aconst)
+		      =-term
+		      (proof-and-formula-to-proof
+		       (mk-proof-in-elim-form
+			(make-proof-in-aconst-form initeqd-aconst)
+			=-term)
+		       eqd-fla))))))
+					;else as in comprule case
+     (let* ((idpc (make-idpredconst "EqD" (list type) '()))
+	    (initeqd-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+	    (eqd-fla (make-eqd lhs rhs)))
+       (apply mk-proof-in-intro-form
+	      (append
+	       vars
+	       (list (proof-and-formula-to-proof
+		      (mk-proof-in-elim-form
+		       (make-proof-in-aconst-form initeqd-aconst)
+		       lhs)
+		      eqd-fla))))))))
