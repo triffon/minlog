@@ -2259,131 +2259,6 @@
     (idpredconst-name-and-types-and-cterms-to-idpredconst ;involves some tests
      idpredconst-name types cterms)))
 
-(define (alg-and-cterm-to-rftotality-idpredconst alg cterm)
-  (let* ((alg-name (alg-form-to-name alg))
-	 (types (alg-form-to-types alg))
-	 (idpredconst-name (alg-name-to-rftotality-idpredconst-name alg-name))
-	 (param-pvars (idpredconst-name-to-param-pvars idpredconst-name)))
-    (if (not (= (length param-pvars) 1))
-	(apply myerror "alg-and-cterms-to-rftotality-idpredconst"
-	       "alg-name with exactly one param-pvar expected" alg-name))
-    (idpredconst-name-and-types-and-cterms-to-idpredconst ;involves some tests
-     idpredconst-name types (list cterm))))
-
-(define (alg-and-cterm-to-rltotality-idpredconst alg cterm)
-  (let* ((alg-name (alg-form-to-name alg))
-	 (types (alg-form-to-types alg))
-	 (idpredconst-name (alg-name-to-rltotality-idpredconst-name alg-name))
-	 (param-pvars (idpredconst-name-to-param-pvars idpredconst-name)))
-    (if (not (= (length param-pvars) 1))
-	(apply myerror "alg-and-cterms-to-rltotality-idpredconst"
-	       "alg-name with exactly one param-pvar expected" alg-name))
-    (idpredconst-name-and-types-and-cterms-to-idpredconst ;involves some tests
-     idpredconst-name types (list cterm))))
-
-(define (term-and-alist-to-totality-formula term type-to-pred-alist)
-  (let ((type (term-to-type term)))
-    (cond
-     ((tvar-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if info
-	    (make-predicate-formula (cadr info) term)
-	    (make-total term))))
-     ((alg-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if
-	 info ;idpc-pvar, needed in add-totality for add-ids-aux
-	 (make-predicate-formula (cadr info) term)
-	 (let* ((types (alg-form-to-types type))
-		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
-				     (lambda (item) (alg-form? (car item)))))
-		(alist-alg-names (map alg-form-to-name
-				      (map car alg-to-pvar-alist)))
-		(alg-names-list (map type-to-alg-names types))
-		(intersections
-		 (map (lambda (alg-names)
-			(intersection alist-alg-names alg-names))
-		      alg-names-list)))
-	   (cond
-	    ((apply and-op (map null? intersections))
-	     (make-predicate-formula (alg-to-totality-idpredconst type) term))
-	    ((apply and-op (map pair? intersections))
-	     (let* ((vars (map type-to-new-partial-var types))
-		    (varterms (map make-term-in-var-form vars))
-		    (prevs (map (lambda (varterm)
-				  (term-and-alist-to-totality-formula
-				   varterm type-to-pred-alist))
-				varterms))
-		    (cterms (map make-cterm vars prevs)))
-	       (make-predicate-formula
-		(alg-and-cterms-to-rtotality-idpredconst type cterms) term)))
-	    ((and (pair? types)
-		  (pair? (intersection
-			  alist-alg-names (type-to-alg-names (car types)))))
-	     (let* ((first-type (car types))
-		    (var (type-to-new-partial-var first-type))
-		    (varterm (make-term-in-var-form var))
-		    (prev (term-and-alist-to-totality-formula
-			   varterm type-to-pred-alist))
-		    (cterm (make-cterm var prev)))
-	       (make-predicate-formula
-		(alg-and-cterm-to-rftotality-idpredconst type cterm)
-		term)))
-	    ((and (pair? types)
-		  (pair? (intersection
-			  alist-alg-names (type-to-alg-names
-					   (car (last-pair types))))))
-	     (let* ((last-type (car (last-pair types)))
-		    (var (type-to-new-partial-var last-type))
-		    (varterm (make-term-in-var-form var))
-		    (prev (term-and-alist-to-totality-formula
-			   varterm type-to-pred-alist))
-		    (cterm (make-cterm var prev)))
-	       (make-predicate-formula
-		(alg-and-cterm-to-rltotality-idpredconst type cterm)
-		term)))
-	    (else (apply myerror "term-and-alist-to-totality-formula"
-			 "not implemented for term" term
-			 "and type-to-pred-alist" type-to-pred-alist)))))))
-     ((arrow-form? type)
-      (let* ((arg-type (arrow-form-to-arg-type type))
-	     (var (type-to-new-partial-var arg-type))
-	     (varterm (make-term-in-var-form var))
-	     (appterm (make-term-in-app-form term varterm))
-	     (arg-formula
-	      (term-and-alist-to-totality-formula varterm type-to-pred-alist))
-	     (val-formula
-	      (term-and-alist-to-totality-formula appterm type-to-pred-alist)))
-	(make-allnc var (make-imp arg-formula val-formula))))
-     ((star-form? type)
-      (let ((left (if (term-in-pair-form? term)
-		      (term-in-pair-form-to-left term)
-		      (make-term-in-lcomp-form term)))
-	    (right (if (term-in-pair-form? term)
-		       (term-in-pair-form-to-right term)
-		       (make-term-in-rcomp-form term))))
-	(make-and
-	 (term-and-alist-to-totality-formula left type-to-pred-alist)
-	 (term-and-alist-to-totality-formula right type-to-pred-alist))))
-     (else (myerror "term-and-alist-to-totality-formula" "type expected" type
-		    "of term" term)))))
-
-(define (term-to-totality-formula term)
-  (term-and-alist-to-totality-formula term '()))
-
-(define (alg-to-totality-idpredconst alg)
-  (let* ((alg-name (alg-form-to-name alg))
-	 (types (alg-form-to-types alg))
-	 (idpredconst-name (alg-name-to-totality-idpredconst-name alg-name)))
-    (idpredconst-name-and-types-and-cterms-to-idpredconst
-     idpredconst-name types '())))
-
-(define (alg-name-to-totality-idpredconst-name alg-name)
-  (let* ((char-list (string->list alg-name))
-	 (capitalized-alg-name
-	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
-    (string-append "Total" capitalized-alg-name)))
-
 (define (alg-name-to-totality-clauses-and-pvars alg-name)
   (let* ((alg-names (alg-name-to-simalg-names alg-name))
 	 (tvars (alg-name-to-tvars alg-name))
@@ -2527,6 +2402,86 @@
 		 idpc-tvars
 		 opt-names)))
 
+;; For add-totality we need the following auxiliary functions
+
+(define (alg-name-to-totality-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "Total" capitalized-alg-name)))
+
+(define (alg-to-totality-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-totality-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (term-and-alist-to-totality-formula term type-to-pred-alist)
+  (let ((type (term-to-type term)))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term)
+	    (make-total term))))
+     ((alg-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if
+	 info ;idpc-pvar, needed in add-totality for add-ids-aux
+	 (make-predicate-formula (cadr info) term)
+	 (let* ((types (alg-form-to-types type))
+		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
+				     (lambda (item) (alg-form? (car item)))))
+		(alist-alg-names (map alg-form-to-name
+				      (map car alg-to-pvar-alist)))
+		(alg-names-list (map type-to-alg-names types))
+		(intersections
+		 (map (lambda (alg-names)
+			(intersection alist-alg-names alg-names))
+		      alg-names-list)))
+	   (cond
+	    ((apply and-op (map null? intersections))
+	     (make-predicate-formula (alg-to-totality-idpredconst type) term))
+	    ((apply and-op (map pair? intersections))
+	     (let* ((vars (map type-to-new-partial-var types))
+		    (varterms (map make-term-in-var-form vars))
+		    (prevs (map (lambda (varterm)
+				  (term-and-alist-to-totality-formula
+				   varterm type-to-pred-alist))
+				varterms))
+		    (cterms (map make-cterm vars prevs)))
+	       (make-predicate-formula
+		(alg-and-cterms-to-rtotality-idpredconst type cterms) term)))
+	    (else (apply myerror "term-and-alist-to-totality-formula"
+			 "not implemented for term" term
+			 "and type-to-pred-alist" type-to-pred-alist)))))))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var (type-to-new-partial-var arg-type))
+	     (varterm (make-term-in-var-form var))
+	     (appterm (make-term-in-app-form term varterm))
+	     (arg-formula
+	      (term-and-alist-to-totality-formula varterm type-to-pred-alist))
+	     (val-formula
+	      (term-and-alist-to-totality-formula appterm type-to-pred-alist)))
+	(make-allnc var (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left (if (term-in-pair-form? term)
+		      (term-in-pair-form-to-left term)
+		      (make-term-in-lcomp-form term)))
+	    (right (if (term-in-pair-form? term)
+		       (term-in-pair-form-to-right term)
+		       (make-term-in-rcomp-form term))))
+	(make-and
+	 (term-and-alist-to-totality-formula left type-to-pred-alist)
+	 (term-and-alist-to-totality-formula right type-to-pred-alist))))
+     (else (myerror "term-and-alist-to-totality-formula" "type expected" type
+		    "of term" term)))))
+
+(define (term-to-totality-formula term)
+  (term-and-alist-to-totality-formula term '()))
+
 (define (add-rtotality alg-name)
   (if (not (assoc alg-name ALGEBRAS))
       (myerror "add-rtotality" "alg-name expected" alg-name))
@@ -2586,52 +2541,59 @@
 ;; We could use (RTotalList (cterm (x^) T))xs^ for STotalList xs^.
 ;; However, STotalList is just convenient.
 
+;; For add-rtotality we need the following auxiliary function
+
 (define (alg-name-to-rtotality-idpredconst-name alg-name)
   (let* ((char-list (string->list alg-name))
 	 (capitalized-alg-name
 	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
     (string-append "RTotal" capitalized-alg-name)))
 
-(define (terms-to-mr-totality-formula term1 term2)
-  (let ((type (term-to-type term1)))
-    (if (not (equal? type (term-to-type term2)))
-	(myerror "terms-to-mr-totality-formula"
-		 "terms of equal type expected"
-		 term1 term2
-		 "which have types"
-		 type (term-to-type term2)))
+;; term-to-unfolded-totality-formula uses
+;; alg-name-to-rtotality-idpredconst-name in case alg has parameters.
+;; This is needed when normalizing proofs with elim for totality.
+
+(define (term-to-unfolded-totality-formula term)
+  (let ((type (term-to-type term)))
     (cond
-     ((tvar-form? type) (make-totalmr term1 term2))
+     ((tvar-form? type) (make-total term))
      ((alg-form? type)
-      (make-predicate-formula
-       (alg-to-mr-totality-idpredconst type) term1 term2))
+      (let* ((alg-name (alg-form-to-name type))
+	     (types (alg-form-to-types type))
+	     (idpredconst-name
+	      (if (zero? (alg-name-to-arity alg-name))
+		  (alg-name-to-totality-idpredconst-name alg-name)
+		  (alg-name-to-rtotality-idpredconst-name alg-name)))
+	     (cterms (map (lambda (type)
+			    (let* ((var (type-to-new-partial-var type))
+				   (idpredconst-formula
+				    (term-to-unfolded-totality-formula
+				     (make-term-in-var-form var))))
+			      (make-cterm var idpredconst-formula)))
+			  types)))
+	(make-predicate-formula
+	 (idpredconst-name-and-types-and-cterms-to-idpredconst
+	  idpredconst-name types cterms)
+	 term)))
      ((arrow-form? type)
       (let* ((arg-type (arrow-form-to-arg-type type))
 	     (var (type-to-new-partial-var arg-type))
 	     (varterm (make-term-in-var-form var))
-	     (appterm1 (make-term-in-app-form term1 varterm))
-	     (appterm2 (make-term-in-app-form term2 varterm))
-	     (arg-formula (term-to-totality-formula varterm))
-	     (val-formula (terms-to-mr-totality-formula appterm1 appterm2)))
+	     (appterm (make-term-in-app-form term varterm))
+	     (arg-formula (term-to-unfolded-totality-formula varterm))
+	     (val-formula (term-to-unfolded-totality-formula appterm)))
 	(make-allnc var (make-imp arg-formula val-formula))))
      ((star-form? type)
-      (make-and
-       (terms-to-mr-totality-formula (make-term-in-lcomp-form term1)
-				     (make-term-in-lcomp-form term2))
-       (terms-to-mr-totality-formula (make-term-in-rcomp-form term1)
-				     (make-term-in-rcomp-form term2))))
-     (else (myerror "terms-to-mr-totality-formula" "type expected" type)))))
-
-(define (alg-to-mr-totality-idpredconst alg)
-  (let* ((alg-name (alg-form-to-name alg))
-	 (types (alg-form-to-types alg))
-	 (idpredconst-name
-	  (alg-name-to-mr-totality-idpredconst-name alg-name)))
-    (idpredconst-name-and-types-and-cterms-to-idpredconst
-     idpredconst-name types '())))
-
-(define (alg-name-to-mr-totality-idpredconst-name alg-name)
-  (string-append (alg-name-to-totality-idpredconst-name alg-name) "MR"))
+      (let ((left (if (term-in-pair-form? term)
+		      (term-in-pair-form-to-left term)
+		      (make-term-in-lcomp-form term)))
+	    (right (if (term-in-pair-form? term)
+		       (term-in-pair-form-to-right term)
+		       (make-term-in-rcomp-form term))))
+	(make-and (term-to-unfolded-totality-formula left)
+		  (term-to-unfolded-totality-formula right))))
+     (else (myerror "term-to-unfolded-totality-formula" "unexpected type" type
+		    "of term" term)))))
 
 ;; There is no add-stotality for structural totality.  Instead one
 ;; should use add-ids with the proper clauses for e.g. STotalList.
@@ -2686,115 +2648,52 @@
 	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
     (string-append "STotal" capitalized-alg-name)))
 
-;; term-to-unfolded-totality-formula uses
-;; alg-name-to-rtotality-idpredconst-name in case alg has parameters.
-;; This is needed when normalizing proofs with elim for totality.
-
-(define (term-to-unfolded-totality-formula term)
-  (let ((type (term-to-type term)))
+(define (terms-to-mr-totality-formula term1 term2)
+  (let ((type (term-to-type term1)))
+    (if (not (equal? type (term-to-type term2)))
+	(myerror "terms-to-mr-totality-formula"
+		 "terms of equal type expected"
+		 term1 term2
+		 "which have types"
+		 type (term-to-type term2)))
     (cond
-     ((tvar-form? type) (make-total term))
+     ((tvar-form? type) (make-totalmr term1 term2))
      ((alg-form? type)
-      (let* ((alg-name (alg-form-to-name type))
-	     (types (alg-form-to-types type))
-	     (idpredconst-name
-	      (if (zero? (alg-name-to-arity alg-name))
-		  (alg-name-to-totality-idpredconst-name alg-name)
-		  (alg-name-to-rtotality-idpredconst-name alg-name)))
-	     (cterms (map (lambda (type)
-			    (let* ((var (type-to-new-partial-var type))
-				   (idpredconst-formula
-				    (term-to-unfolded-totality-formula
-				     (make-term-in-var-form var))))
-			      (make-cterm var idpredconst-formula)))
-			  types)))
-	(make-predicate-formula
-	 (idpredconst-name-and-types-and-cterms-to-idpredconst
-	  idpredconst-name types cterms)
-	 term)))
+      (make-predicate-formula
+       (alg-to-mr-totality-idpredconst type) term1 term2))
      ((arrow-form? type)
       (let* ((arg-type (arrow-form-to-arg-type type))
 	     (var (type-to-new-partial-var arg-type))
 	     (varterm (make-term-in-var-form var))
-	     (appterm (make-term-in-app-form term varterm))
-	     (arg-formula (term-to-unfolded-totality-formula varterm))
-	     (val-formula (term-to-unfolded-totality-formula appterm)))
+	     (appterm1 (make-term-in-app-form term1 varterm))
+	     (appterm2 (make-term-in-app-form term2 varterm))
+	     (arg-formula (term-to-totality-formula varterm))
+	     (val-formula (terms-to-mr-totality-formula appterm1 appterm2)))
 	(make-allnc var (make-imp arg-formula val-formula))))
      ((star-form? type)
-      (let ((left (if (term-in-pair-form? term)
-		      (term-in-pair-form-to-left term)
-		      (make-term-in-lcomp-form term)))
-	    (right (if (term-in-pair-form? term)
-		       (term-in-pair-form-to-right term)
-		       (make-term-in-rcomp-form term))))
-	(make-and (term-to-unfolded-totality-formula left)
-		  (term-to-unfolded-totality-formula right))))
-     (else (myerror "term-to-unfolded-totality-formula" "unexpected type" type
-		    "of term" term)))))
+      (make-and
+       (terms-to-mr-totality-formula (make-term-in-lcomp-form term1)
+				     (make-term-in-lcomp-form term2))
+       (terms-to-mr-totality-formula (make-term-in-rcomp-form term1)
+				     (make-term-in-rcomp-form term2))))
+     (else (myerror "terms-to-mr-totality-formula" "type expected" type)))))
+
+(define (alg-to-mr-totality-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name
+	  (alg-name-to-mr-totality-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (alg-name-to-mr-totality-idpredconst-name alg-name)
+  (string-append (alg-name-to-totality-idpredconst-name alg-name) "MR"))
 
 ;; (add-var-name "ns" (py "list nat"))
 ;; (pp (rename-variables (term-to-unfolded-totality-formula (pt "ns^"))))
 ;; (RTotalList (cterm (n^) TotalNat n^))ns^
 
 ;; To do: term-to-unfolded-mr-totality-formula
-
-(define (term-and-alist-to-totality-formula term type-to-pred-alist)
-  (let ((type (term-to-type term)))
-    (cond
-     ((tvar-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if info
-	    (make-predicate-formula (cadr info) term)
-	    (make-total term))))
-     ((alg-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if
-	 info ;idpc-pvar, needed in add-totality for add-ids-aux
-	 (make-predicate-formula (cadr info) term)
-	 (let* ((types (alg-form-to-types type))
-		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
-				     (lambda (item) (alg-form? (car item)))))
-		(alist-alg-names (map alg-form-to-name
-				      (map car alg-to-pvar-alist)))
-		(alg-names-list (map type-to-alg-names types))
-		(intersections
-		 (map (lambda (alg-names)
-			(intersection alist-alg-names alg-names))
-		      alg-names-list)))
-	   (if
-	    (apply and-op (map null? intersections))
-	    (make-predicate-formula (alg-to-totality-idpredconst type) term)
-	    (let* ((vars (map type-to-new-partial-var types))
-		   (varterms (map make-term-in-var-form vars))
-		   (prevs (map (lambda (varterm)
-				 (term-and-alist-to-totality-formula
-				  varterm type-to-pred-alist))
-			       varterms))
-		   (cterms (map make-cterm vars prevs)))
-	      (make-predicate-formula
-	       (alg-and-cterms-to-rtotality-idpredconst type cterms) term)))))))
-     ((arrow-form? type)
-      (let* ((arg-type (arrow-form-to-arg-type type))
-	     (var (type-to-new-partial-var arg-type))
-	     (varterm (make-term-in-var-form var))
-	     (appterm (make-term-in-app-form term varterm))
-	     (arg-formula
-	      (term-and-alist-to-totality-formula varterm type-to-pred-alist))
-	     (val-formula
-	      (term-and-alist-to-totality-formula appterm type-to-pred-alist)))
-	(make-allnc var (make-imp arg-formula val-formula))))
-     ((star-form? type)
-      (let ((left (if (term-in-pair-form? term)
-		      (term-in-pair-form-to-left term)
-		      (make-term-in-lcomp-form term)))
-	    (right (if (term-in-pair-form? term)
-		       (term-in-pair-form-to-right term)
-		       (make-term-in-rcomp-form term))))
-	(make-and
-	 (term-and-alist-to-totality-formula left type-to-pred-alist)
-	 (term-and-alist-to-totality-formula right type-to-pred-alist))))
-     (else (myerror "term-and-alist-to-totality-formula" "type expected" type
-		    "of term" term)))))
 
 (define (display-idpc . x)
   (if
