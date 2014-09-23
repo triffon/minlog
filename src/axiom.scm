@@ -2887,11 +2887,17 @@
 		 (term (make-term-in-const-form pconst))
 		 (totality-formula (term-to-totality-formula term))
 		 (t-deg (const-to-t-deg pconst)))
-	    (if (not (formula=? formula totality-formula))
-		(begin (remove-theorem string)
-		       (myerror "add-theorem" "formula of theorem" formula
-				"should be equal to the totality formula"
-				totality-formula)))
+	    (if
+	     (and (not (formula=? formula (term-to-totality-formula term)))
+		  (not (formula=? formula
+				  (term-to-unfolded-totality-formula term))))
+	     (begin
+	       (remove-theorem string)
+	       (myerror "add-theorem" "formula of theorem" formula
+			"should be equal to the totality formula"
+			(term-to-totality-formula term)
+			"or the unfolded totality formula"
+			(term-to-unfolded-totality-formula term))))
 	    (if (t-deg-one? t-deg)
 		(comment "Warning: pconst " name
 			 " should have been added with t-deg zero"))
@@ -3193,18 +3199,66 @@
       (new-global-assumption-name-aux string (+ n 1))
       (string-append string (number-to-string n))))
 
-;; (search-about string) searches in THEOREMS and GLOBAL-ASSUMPTIONS
-;; for all items whose name contains string.
+;; (search-about string1 ...) searches for theorems or global
+;; assumptions whose name contains each of the strings given,
+;; excluding Total Partial CompRule RewRule Sound.  It one wants to list
+;; all these as well, take the symbol 'all as first argument.
 
-(define (search-about string)
-  (let ((thms (list-transform-positive THEOREMS
-		(lambda (x) (substring? string (car x)))))
-	(gas (list-transform-positive GLOBAL-ASSUMPTIONS
-		(lambda (x) (substring? string (car x))))))
-    (if (null? thms)
-	(comment "No theorems with name containing " string)
+(define (search-about string-or-symbol . strings)
+  (if (not (or (and (symbol? string-or-symbol) (eq? 'all string-or-symbol))
+	       (string? string-or-symbol)))
+      (myerror "search-about" "string of symbol 'all expected"
+	       string-or-symbol))
+  (if (not (for-each string? strings))
+      (apply myerror (cons "search-about" (cons "strings expected" strings))))
+  (let* ((all-flag (and (symbol? string-or-symbol) (eq? 'all string-or-symbol)))
+	 (search-strings (if (symbol? string-or-symbol)
+			     strings
+			     (cons string-or-symbol strings)))
+	 (combined-search-strings
+	  (if (null? search-strings)
+	      (apply myerror (cons "search-about" (cons "strings expected"
+							strings)))
+	      (apply string-append
+		     (cons
+		      (car search-strings)
+		      (map (lambda (string)
+			     (string-append " and " string))
+			   (cdr search-strings))))))
+	 (excluded-strings
+	  (list "Total" "Partial" "CompRule" "RewRule" "Sound"))
+	 (relevant-thms
+	  (list-transform-positive THEOREMS
+	    (lambda (x)
+	      (apply and-op (map (lambda (string)
+				   (substring? string (car x)))
+				 search-strings)))))
+	 (shortened-relevant-thms
+	  (if all-flag
+	      relevant-thms
+	      (list-transform-positive relevant-thms
+		(lambda (x)
+		  (apply and-op (map (lambda (string)
+				       (not (substring? string (car x))))
+				     excluded-strings))))))
+	 (relevant-gas
+	  (list-transform-positive GLOBAL-ASSUMPTIONS
+	    (lambda (x)
+	      (apply and-op (map (lambda (string)
+				   (substring? string (car x)))
+				 search-strings)))))
+	 (shortened-relevant-gas
+	  (if all-flag
+	      relevant-gas
+	      (list-transform-positive relevant-gas
+		(lambda (x)
+		  (apply and-op (map (lambda (string)
+				       (not (substring? string (car x))))
+				     excluded-strings)))))))
+    (if (null? shortened-relevant-thms)
+	(comment "No theorems with name containing " combined-search-strings)
 	(begin
-	  (comment "Theorems with name containing " string)
+	  (comment "Theorems with name containing " combined-search-strings)
 	  (for-each (lambda (x)
 		      (comment (car x))
 		      (display-comment
@@ -3213,11 +3267,13 @@
 			(- PP-WIDTH (string-length COMMENT-STRING))
 			(aconst-to-formula (cadr x))))
 		      (newline))
-		    thms)))
-    (if (null? gas)
-	(comment "No global assumptions with name containing " string)
+		    shortened-relevant-thms)))
+    (if (null? shortened-relevant-gas)
+	(comment "No global assumptions with name containing "
+		 combined-search-strings)
 	(begin
-	  (comment "Global assumptions with name containing " string)
+	  (comment "Global assumptions with name containing "
+		   combined-search-strings)
 	  (for-each (lambda (x)
 		      (comment (car x))
 		      (display-comment
@@ -3226,5 +3282,6 @@
 			(- PP-WIDTH (string-length COMMENT-STRING))
 			(aconst-to-formula (cadr x))))
 		      (newline))
-		    gas)))))
+		    shortened-relevant-gas)))))
+
 
