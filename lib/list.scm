@@ -71,6 +71,45 @@
 ;; Proof finished.
 (save "ListTotalVar")
 
+;; RTotalListMon
+(set-goal "allnc x^((Pvar alpha)_1 x^ -> (Pvar alpha)_2 x^) ->
+ allnc xs^((RTotalList (cterm (x^) (Pvar alpha)_1 x^))xs^ ->
+           (RTotalList (cterm (x^) (Pvar alpha)_2 x^))xs^)")
+(assume "MonHyp" "xs^")
+(elim)
+(intro 0)
+(assume "x^" "Yx" "xs^1" "RTYxs1" "RTZxs1")
+(intro 1)
+(use "MonHyp")
+(use "Yx")
+(use "RTZxs1")
+;; Proof finished.
+(save "RTotalListMon")
+
+;; RTotalListToTotalList
+(set-goal "allnc xs^((RTotalList (cterm (x^) Total x^)) xs^ -> TotalList xs^)")
+(assume "xs^" "RTxs")
+(elim "RTxs")
+(use "TotalListNil")
+(assume "x^" "Tx" "xs^1" "Txs1" "IH")
+(use "TotalListCons")
+(use "Tx")
+(use "IH")
+;; Proof finished.
+(save "RTotalListToTotalList")
+
+;; TotalListToRTotalList
+(set-goal "allnc xs^(TotalList xs^ -> (RTotalList (cterm (x^) Total x^)) xs^)")
+(assume "xs^" "Txs")
+(elim "Txs")
+(use "RTotalListNil")
+(assume "x^" "Tx" "xs^1" "Txs1" "IH")
+(use "RTotalListCons")
+(use "Tx")
+(use "IH")
+;; Proof finished.
+(save "TotalListToRTotalList")
+
 (add-ids (list (list "STotalList" (make-arity (py "list alpha")) "nat"))
 	 '("STotalList(Nil alpha)" "STotalListNil")
 	 '("allnc x^,xs^(
@@ -128,7 +167,7 @@
 ;; Proof finished.
 (save "ListAppendTotal")
 
-;; ListAppendTotalSound
+;; ListAppendTotalReal
 (set-goal (real-and-formula-to-mr-formula
 	   (pt "(ListAppend alpha)")
 	   (proof-to-formula (theorem-name-to-proof "ListAppendTotal"))))
@@ -164,7 +203,7 @@
 ;; (pp (rename-variables (proof-to-extracted-term "ListAppendSTotal")))
 ;; [n,n0](Rec nat=>nat)n n0([n1,n2]Succ n2)
 
-;; ListAppendSTotalSound
+;; ListAppendSTotalReal
 (set-goal (real-and-formula-to-mr-formula
 	   (nt (proof-to-extracted-term "ListAppendSTotal"))
 	   (proof-to-formula (theorem-name-to-proof "ListAppendSTotal"))))
@@ -176,7 +215,7 @@
 (use "STotalListConsMR")
 (use "IH")
 ;; Proof finished.
-(save "ListAppendSTotalSound")
+(save "ListAppendSTotalReal")
 
 ;; ListAppendNil
 (set-goal "all xs xs:+:(Nil alpha)eqd xs")
@@ -254,7 +293,7 @@
 ;; allnc xs^(
 ;;  STotalList xs^ -> allnc xs^0(STotalList xs^0 -> STotalList(xs^ ++xs^0)))
 
-;; ListAppdTotalSound
+;; ListAppdTotalReal
 (set-goal (real-and-formula-to-mr-formula
 	   (pt "(ListAppd alpha)")
 	   (proof-to-formula (theorem-name-to-proof "ListAppdTotal"))))
@@ -282,7 +321,7 @@
 ;; Proof finished.
 (save "ListAppdSTotal")
 
-;; ListAppdSTotalSound
+;; ListAppdSTotalReal
 (set-goal (real-and-formula-to-mr-formula
 	   (nt (proof-to-extracted-term "ListAppdSTotal"))
 	   (proof-to-formula (theorem-name-to-proof "ListAppdSTotal"))))
@@ -294,9 +333,19 @@
 (use "STotalListConsMR")
 (use "IH")
 ;; Proof finished.
-(save "ListAppdSTotalSound")
+(save "ListAppdSTotalReal")
 
-;; ListAppdNil
+(set-goal "all xs1,x^2,xs^2 xs1++x^2: ++xs^2 eqd xs1++(x^2::xs^2)")
+(ind)
+(assume "x^2" "xs^2")
+(use "InitEqD")
+(assume "x" "xs1" "IHxs1" "x^2" "xs^2")
+(ng)
+(simp "IHxs1")
+(use "InitEqD")
+;; Proof finished.
+(add-rewrite-rule "xs1++x^2: ++xs^2" "xs1++(x^2::xs^2)")
+
 (set-goal "all xs xs++(Nil alpha)eqd xs")
 (ind)
 (use "InitEqD")
@@ -345,6 +394,21 @@
 (use "InitEqD")
 ;; Proof finished.
 (save "ListAppdAssoc")
+
+;; ListAppdAssocPartial
+(set-goal "all xs^1(STotalList xs^1 ->
+  all xs^2,xs^3 xs^1++(xs^2++xs^3)eqd xs^1++xs^2++xs^3)")
+(assume "xs^1" "STxs1")
+(elim "STxs1")
+(assume "xs^2" "xs^3")
+(use "InitEqD")
+(assume "x^" "xs^" "STxs" "IH")
+(ng #t)
+(assume "xs^2" "xs^3")
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "ListAppdAssocPartial")
 
 ;; We could add associativity as a rewrite rule by executing
 ;; (add-rewrite-rule "xs1++(xs2++xs3)" "xs1++xs2++xs3")
@@ -397,7 +461,7 @@
 ;; Proof finished.
 (save "ListLengthTotal")
 
-;; ListLengthTotalSound
+;; ListLengthTotalReal
 (set-goal (real-and-formula-to-mr-formula
 	   (pt "(ListLength alpha)")
 	   (proof-to-formula (theorem-name-to-proof "ListLengthTotal"))))
@@ -427,7 +491,7 @@
 (pp (rename-variables (proof-to-extracted-term "ListLengthSTotal")))
 ;; [n](Rec nat=>nat)n 0([n0,n1]Succ n1)
 
-;; ListLengthSTotalSound
+;; ListLengthSTotalReal
 (set-goal (real-and-formula-to-mr-formula
 	   (proof-to-extracted-term "ListLengthSTotal")
 	   (proof-to-formula (theorem-name-to-proof "ListLengthSTotal"))))
@@ -440,9 +504,9 @@
 (use "TotalNatSuccMR")
 (use "IH")
 ;; Proof finished.
-(save "ListLengthSTotalSound")
+(save "ListLengthSTotalReal")
 
-;; LhZeroImpNil
+;; LhZeroToEqNil
 (set-goal "all xs(Lh xs=0 -> xs eqd(Nil alpha))")
 (cases)
 (assume "Useless")
@@ -451,7 +515,19 @@
 (use "Efq")
 (use "Absurd")
 ;; Proof finished.
-(save "LhZeroImpNil")
+(save "LhZeroToEqNil")
+
+;; LhZeroToEqNilPartial
+(set-goal "all xs^(STotalList xs^ -> Lh xs^ =0 -> xs^ eqd(Nil alpha))")
+(assume "xs^" "STxs")
+(elim "STxs")
+(assume "Useless")
+(use "InitEqD")
+(assume "x^" "xs^1" "STxs1" "IH" "Absurd")
+(use "Efq")
+(use "Absurd")
+;; Proof finished.
+(save "LhZeroToEqNilPartial")
 
 ;; LhAppend
 (set-goal "all xs1,xs2 Lh(xs1:+:xs2)=Lh xs1+Lh xs2")
@@ -557,7 +633,7 @@
 ;; Proof finished.
 (save "ListProjTotal")
 
-;; ListProjTotalSound
+;; ListProjTotalReal
 (set-goal (real-and-formula-to-mr-formula
 	   (pt "(ListProj alpha)")
 	   (proof-to-formula (theorem-name-to-proof "ListProjTotal"))))
@@ -580,6 +656,35 @@
 (use "TMRx20x2")
 ;; Proof finished.
 (save "ListProjTotalReal")
+
+;; ListProjAppdLeft
+(set-goal "all xs1,n,xs2(n<Lh xs1 -> (n thof(xs1++xs2))eqd(n thof xs1))")
+(ind)
+(assume "n" "xs2" "Absurd")
+(use "Efq")
+(use "Absurd")
+(assume "x1" "xs1" "IHxs1")
+(ng)
+(cases)
+(ng)
+(strip)
+(use "InitEqD")
+(ng)
+(use "IHxs1")
+;; Proof finished.
+(save "ListProjAppdLeft")
+
+;; ListProjAppdRight
+(set-goal "all xs1,xs2,n(n<Lh xs2 -> (Lh xs1+n thof(xs1++xs2))eqd(n thof xs2))")
+(ind)
+(ng)
+(strip)
+(use "InitEqD")
+(assume "x1" "xs1" "IHxs1")
+(ng)
+(use "IHxs1")
+;; Proof finished.
+(save "ListProjAppdRight")
 
 (add-program-constant
  "ListFBar" (py "(nat=>alpha)=>nat=>list alpha") t-deg-zero)
@@ -725,7 +830,7 @@
 (assume "x" "xs" "Lh xs=0")
 (ng #t)
 (assert "xs eqd(Nil alpha)")
- (use "LhZeroImpNil")
+ (use "LhZeroToEqNil")
  (use "Lh xs=0")
 (assume "xs=Nil")
 (simp "xs=Nil")
@@ -745,17 +850,17 @@
 (save "BarAppdLast")
 
 ;; FBarAppdLast
-(set-goal "all n,(nat=>alpha)(
-       (nat=>alpha)fbar(Succ n) eqd
-       ((nat=>alpha)fbar n)++((nat=>alpha)n):)")
+(set-goal "all n,(nat=>alpha)^(
+       (nat=>alpha)^ fbar(Succ n)eqd
+       ((nat=>alpha)^ fbar n)++((nat=>alpha)^ n):)")
 (ind)
-(assume "nat=>alpha")
+(assume "(nat=>alpha)^")
 (ng #t)
 (use "InitEqD")
 ;; Step
-(assume "n" "IHn" "nat=>alpha")
-(assert "((nat=>alpha)fbar Succ(Succ n))eqd
-         (nat=>alpha)0::([n](nat=>alpha)(Succ n))fbar Succ n")
+(assume "n" "IHn" "(nat=>alpha)^")
+(assert "((nat=>alpha)^ fbar Succ(Succ n))eqd
+         (nat=>alpha)^ 0::([n](nat=>alpha)^ (Succ n))fbar Succ n")
  (ng #t)
  (use "InitEqD")
 (assume "Equality")
@@ -1225,18 +1330,6 @@
 ;; Proof finished.
 (save "AllBListTotal")
 
-;; ListLhZero
-(set-goal "all xs^(STotalList xs^ -> Lh xs^ =0 -> xs^ eqd(Nil alpha))")
-(assume "xs^" "STxs")
-(elim "STxs")
-(assume "Useless")
-(use "InitEqD")
-(assume "x^" "xs^1" "STxs1" "IH" "Absurd")
-(use "Efq")
-(use "Absurd")
-;; Proof finished.
-(save "ListLhZero")
-
 ;; AllBListIntro
 (set-goal "all n,(list boole=>boole)^(
         all (list boole)^(
@@ -1437,5 +1530,801 @@
 (use "Tps5")
 ;; Proof finished.
 (save "ListBooleEqTotal")
+
+(add-program-constant "ListRev" (py "list alpha=>list alpha") t-deg-zero)
+(add-prefix-display-string "ListRev" "Rev")
+(add-computation-rules
+ "Rev(Nil alpha)" "(Nil alpha)"
+ "Rev(x::xs)" "Rev xs++x:")
+
+;; ListRevTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "(ListRev alpha)"))))
+(use "AllTotalElim")
+(ind)
+(use "TotalListNil")
+(assume "x" "xs" "IH")
+(ng #t)
+(use "ListAppdTotal")
+(use "IH")
+(use "ListTotalVar")
+;; Proof finished.
+(save "ListRevTotal")
+
+;; ListRevSTotal
+(set-goal (rename-variables (term-to-stotality-formula (pt "(ListRev alpha)"))))
+(assume "xs^" "STxs")
+(elim "STxs")
+(use "STotalListNil")
+(assume "x^1" "xs^1" "STxs1" "IH")
+(ng #t)
+(use "ListAppdSTotal")
+(use "IH")
+(use "STotalListCons")
+(use "STotalListNil")
+;; Proof finished.
+(save "ListRevSTotal")
+
+;; ListLengthRev
+(set-goal "all xs Lh Rev xs eqd Lh xs")
+(ind)
+(use "InitEqD")
+(assume "x" "xs" "IH")
+(ng)
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "ListLengthRev")
+
+;; ListRevAppd
+(set-goal "all xs1,xs2 Rev(xs1++xs2)eqd Rev xs2++Rev xs1")
+(ind)
+(ng #t)
+(strip)
+(use "InitEqD")
+(assume "x" "xs" "IH")
+(ng #t)
+(assume "xs2")
+(simp "IH")
+(simp "ListAppdAssoc")
+(use "InitEqD")
+;; Proof finished.
+(save "ListRevAppd")
+
+;; ListRevAppdPartial
+(set-goal "all xs^1(STotalList xs^1 -> all xs^2(STotalList xs^2 ->
+                   Rev(xs^1 ++xs^2)eqd Rev xs^2 ++Rev xs^1))")
+(assume "xs^1" "STxs1")
+(elim "STxs1")
+(ng #t)
+(assume "xs^2" "STxs2")
+(simp "ListAppdNilPartial")
+(use "InitEqD")
+(use "ListRevSTotal")
+(use "STxs2")
+(assume "x^" "xs^" "STxs" "IH")
+(ng #t)
+(assume "xs^2" "STxs2")
+(simp "IH")
+(simp "ListAppdAssocPartial")
+(use "InitEqD")
+(use "ListRevSTotal")
+(use "STxs2")
+(use "STxs2")
+;; Proof finished.
+(save "ListRevAppdPartial")
+
+;; ListRevInvol
+(set-goal "all xs Rev(Rev xs)eqd xs")
+(ind)
+(use "InitEqD")
+(assume "x" "xs" "IH")
+(ng #t)
+(simp "ListRevAppd")
+(simp "IH")
+(ng #t)
+(use "InitEqD")
+;; Proof finished.
+(save "ListRevInvol")
+
+;; ListRevInvolPartial
+(set-goal "all xs^(STotalList xs^ -> Rev(Rev xs^)eqd xs^)")
+(assume "xs^" "STxs")
+(elim "STxs")
+(ng #t)
+(use "InitEqD")
+(assume "x^1" "xs^1" "STxs1" "IH")
+(ng #t)
+(simp "ListRevAppdPartial")
+(simp "IH")
+(ng #t)
+(use "InitEqD")
+(use "STotalListCons")
+(use "STotalListNil")
+(use "ListRevSTotal")
+(use "STxs1")
+;; Proof finished.
+(save "ListRevInvolPartial")
+
+;; ListProjRev
+(set-goal "all xs,n(n<Lh xs -> (n thof Rev xs)eqd(Pred(Lh xs--n)thof xs))")
+(assert "all xs,n(n<Lh xs -> (n thof xs)eqd(Pred(Lh xs--n)thof Rev xs))")
+ (ind)
+ (ng)
+ (assume "n" "Absurd")
+ (use "InitEqD")
+ (assume "x" "xs" "IH")
+ (ng #t)
+ (cases)
+ (ng #t)
+ (assume "Useless")
+ (assert "Lh xs eqd Lh Rev xs+0")
+  (simp "ListLengthRev")
+  (use "InitEqD")
+ (assume "EqHyp")
+ (simp "EqHyp")
+ (simp "ListProjAppdRight")
+ (use "InitEqD")
+ (use "Truth")
+;; Case Succ n
+ (ng #t)
+ (assume "n" "n<Lh xs")
+ (simp "ListProjAppdLeft")
+ (use "IH")
+ (use "n<Lh xs")
+;; ?_22:Pred(Lh xs--n)<Lh Rev xs
+ (simp "ListLengthRev")
+ (cases (pt "Lh xs"))
+ (assume "Lh xs=0")
+ (simphyp-with-to "n<Lh xs" "Lh xs=0" "Absurd")
+ (use "Efq")
+ (use "Absurd")
+ (assume "n0" "Lh xs=Sn0")
+ (ng #t)
+ (use "NatLeLtTrans" (pt "n0"))
+ (use "Truth")
+ (use "Truth")
+(assume "ListProjRevAux" "xs" "n" "n<Lh xs")
+(inst-with-to "ListProjRevAux" (pt "Rev xs") (pt "n") "Aux")
+(assert "Rev Rev xs eqd xs")
+ (use "ListRevInvol")
+(assume "Assertion")
+(simphyp-with-to "Aux" "Assertion" "SimpAux")
+(assert "Lh Rev xs eqd Lh xs")
+ (use "ListLengthRev")
+(assume "Lh Rev xs eqd Lh xs")
+(simphyp-with-to "SimpAux" "Lh Rev xs eqd Lh xs" "SimpSimpAux")
+(use "SimpSimpAux")
+(use "n<Lh xs")
+;; Proof finished.
+(save "ListProjRev")
+
+;; ListRevFBarSucc
+(set-goal "all n,(nat=>alpha) 
+   Rev((nat=>alpha)fbar Succ n)eqd((nat=>alpha)n::Rev((nat=>alpha)fbar n))")
+(assume "n" "(nat=>alpha)")
+(simp "FBarAppdLast")
+(simp "ListRevAppd")
+(ng)
+(use "InitEqD")
+;; Proof finished.
+(save "ListRevFBarSucc")
+
+;; Similar to Pred in nat.scm we define Head and Tail.  They are
+;; easier to handle than the general (Destr list alpha).
+
+(add-program-constant "ListHead" (py "list alpha=>alpha") t-deg-zero)
+(add-prefix-display-string "ListHead" "Head")
+(add-computation-rules
+ "Head(Nil alpha)" "(Inhab alpha)"
+ "Head(x::xs)" "x")
+
+;; ListHeadTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "(ListHead alpha)"))))
+(assume "xs^" "Txs")
+(elim "Txs")
+(ng #t)
+(use "InhabTotal")
+(assume "x^" "Tx" "xs^1" "Txs1" "IH")
+(ng #t)
+(use "Tx")
+;; Proof finished.
+(save "ListHeadTotal")
+
+(add-program-constant "ListTail" (py "list alpha=>list alpha") t-deg-zero)
+(add-prefix-display-string "ListTail" "Tail")
+(add-computation-rules
+ "Tail(Nil alpha)" "(Inhab list alpha)"
+ "Tail(x::xs)" "xs")
+
+;; ListTailTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "(ListTail alpha)"))))
+(assume "xs^" "Txs")
+(elim "Txs")
+(ng #t)
+(use "InhabTotal")
+(assume "x^" "Tx" "xs^1" "Txs1" "IH")
+(ng #t)
+(use "Txs1")
+;; Proof finished.
+(save "ListTailTotal")
+
+;; ZeroLtLhToHeadTailId
+(set-goal "all xs(0<Lh xs -> (Head xs::Tail xs)eqd xs)")
+(cases)
+(ng)
+(use "Efq")
+(assume "x" "xs" "Useless")
+(use "InitEqD")
+;; Proof finished.
+(save "ZeroLtLhToHeadTailId")
+
+(add-program-constant "ListLast" (py "list alpha=>alpha") t-deg-zero)
+(add-prefix-display-string "ListLast" "Last")
+(add-computation-rules
+ "Last(Nil alpha)" "(Inhab alpha)"
+ "Last(x::xs)" "[if (Lh xs=0) x (Last xs)]")
+
+;; ListLastTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "(ListLast alpha)"))))
+(assume "xs^" "Txs")
+(elim "Txs")
+(ng #t)
+(use "InhabTotal")
+(assume "x^" "Tx" "xs^1" "Txs1" "IH")
+(ng #t)
+(use "BooleIfTotal")
+(use "NatEqTotal")
+(use "ListLengthTotal")
+(use "Txs1")
+(use "TotalNatZero")
+(use "Tx")
+(use "IH")
+;; Proof finished.
+(save "ListLastTotal")
+
+(add-program-constant "ListMain" (py "list alpha=>list alpha") t-deg-zero)
+(add-prefix-display-string "ListMain" "Main")
+(add-computation-rules
+ "Main(Nil alpha)" "(Inhab list alpha)"
+ "Main(x::xs)" "[if (Lh xs=0) (Nil alpha) (x::Main xs)]")
+
+;; ListMainTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "(ListMain alpha)"))))
+(assume "xs^" "Txs")
+(elim "Txs")
+(ng #t)
+(use "InhabTotal")
+(assume "x^" "Tx" "xs^1" "Txs1" "IH")
+(ng #t)
+(use "BooleIfTotal")
+(use "NatEqTotal")
+(use "ListLengthTotal")
+(use "Txs1")
+(use "TotalNatZero")
+(use "TotalListNil")
+(use "TotalListCons")
+(use "Tx")
+(use "IH")
+;; Proof finished.
+(save "ListMainTotal")
+
+;; ZeroLtLhToMainLastId
+(set-goal "all xs(0<Lh xs -> Main xs++(Last xs):eqd xs)")
+(assert "all n,xs(Lh xs<=n -> 0<Lh xs -> Main xs++(Last xs):eqd xs)")
+(ind)
+(assume "xs")
+(ng)
+(assume "Lh xs=0")
+(simp "Lh xs=0")
+(ng)
+(use "Efq")
+(assume "n" "IHn")
+(cases)
+(ng)
+(assume "Useless")
+(use "Efq")
+(assume "x" "xs" "LhBound" "Useless")
+(ng)
+(cases (pt "Lh xs=0"))
+(assume "Lh xs=0")
+(assert "xs eqd(Nil alpha)")
+ (use "LhZeroToEqNilPartial")
+ (use "ListSTotalVar")
+ (use "Lh xs=0")
+(assume "xs eqd(Nil alpha)")
+(simp "xs eqd(Nil alpha)")
+(ng)
+(use "InitEqD")
+(assume "0=Lh xs -> F")
+(ng)
+(simp "IHn")
+(use "InitEqD")
+(cases (pt "Lh xs"))
+(assume "Lh xs=0")
+(use "0=Lh xs -> F")
+(use "Lh xs=0")
+(strip)
+(use "Truth")
+(use "LhBound")
+;; Now the assrtion is proved.
+(assume "Assertion" "xs")
+(use "Assertion" (pt "Lh xs"))
+(use "Truth")
+;; Proof finished.
+(save "ZeroLtLhToMainLastId")
+
+(add-program-constant "ListHeads" (py "list list alpha=>list alpha") t-deg-zero)
+(add-prefix-display-string "ListHeads" "Heads")
+(add-computation-rules
+ "Heads(Nil list alpha)" "(Nil alpha)"
+ "Heads(xs::(list list alpha))" "Head xs::Heads(list list alpha)")
+
+;; ListHeadsTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "(ListHeads alpha)"))))
+(assume "(list list alpha)^" "Txss")
+(elim "Txss")
+(use "TotalListNil")
+(assume "xs^" "Txs" "(list list alpha)^1" "Txss1" "IH")
+(ng #t)
+(use "TotalListCons")
+(use "ListHeadTotal")
+(use "Txs")
+(use "IH")
+;; Proof finished.
+(save "ListHeadsTotal")
+
+(add-program-constant "ListInit" (py "nat=>list alpha=>list alpha") t-deg-zero)
+(add-infix-display-string "ListInit" "init" 'mul-op)
+(add-computation-rules
+ "0 init xs" "(Nil alpha)"
+ "Succ n init(Nil alpha)" "(Nil alpha)"
+ "Succ n init(x::xs)" "x::n init xs")
+
+;; In lib/list.scm there is a similar ListBar.  Difference: in case
+;; the number n is larger than the length, ListInit returns the
+;; original list whereas ListBar appends Inhab's.
+
+;; (pp (nt (pt "7 init(0::1::2::3::4:)")))
+;; 0::1::2::3::4:
+
+;; (pp (nt (pt "(0::1::2::3::4:)bar 7")))
+;; 0::1::2::3::4::(Inhab nat)::(Inhab nat):
+
+;; ListInitTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "(ListInit alpha)"))))
+(use "AllTotalElim")
+(ind)
+(ng)
+(strip)
+(use "TotalListNil")
+(assume "n" "IHn" "xs^" "Txs")
+(elim "Txs")
+(ng)
+(use "TotalListNil")
+(assume "x^" "Tx" "xs^1" "Txs1" "Useless")
+(ng)
+(use "TotalListCons")
+(use "Tx")
+(use "IHn")
+(use "Txs1")
+;; Proof finished.
+(save "ListInitTotal")
+
+(add-program-constant "ListRest" (py "nat=>list alpha=>list alpha") t-deg-zero)
+(add-infix-display-string "ListRest" "rest" 'mul-op)
+(add-computation-rules
+ "0 rest xs" "xs"
+ "Succ n rest(Nil alpha)" "(Nil alpha)"
+ "Succ n rest(x::xs)" "n rest xs")
+
+;; ListRestTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "(ListRest alpha)"))))
+(use "AllTotalElim")
+(ind)
+(ng)
+(assume "xs^" "Txs")
+(use "Txs")
+(assume "n" "IHn" "xs^" "Txs")
+(elim "Txs")
+(ng)
+(use "TotalListNil")
+(assume "x^" "Tx" "xs^1" "Txs1" "Useless")
+(ng)
+(use "IHn")
+(use "Txs1")
+;; Proof finished.
+(save "ListRestTotal")
+
+;; (pp (nt (pt "1 init(5::6::7::8::9:)")))
+;; 5:
+;; (pp (nt (pt "1 rest(5::6::7::8::9:)")))
+;; 6::7::8::9:
+
+;; (pp (nt (pt "7 init(5::6::7::8::9:)")))
+;; (pp (nt (pt "7 rest(5::6::7::8::9:)")))
+;; (pp (nt (pt "0 init(5::6::7::8::9:)")))
+;; (pp (nt (pt "0 rest(5::6::7::8::9:)")))
+
+;; ListAppdInitRest
+(set-goal "all n,xs xs eqd n init xs++(n rest xs)")
+(ind)
+(ng)
+(assume "xs")
+(use "InitEqD")
+(assume "n" "IHn")
+(ind)
+(ng)
+(use "InitEqD")
+(assume "x" "xs" "IHxs")
+(ng)
+(simp "<-" "IHn")
+(use "InitEqD")
+;; Proof finished
+(save "ListAppdInitRest")
+
+;; ListAppdInitRestPartial
+(set-goal "all n,xs^(STotalList xs^ -> xs^ eqd n init xs^ ++(n rest xs^))")
+(ind)
+(ng)
+(assume "xs^" "STxs")
+(elim "STxs")
+(use "InitEqD")
+(strip)
+(use "InitEqD")
+(assume "n" "IHn" "xs^" "STxs")
+(elim "STxs")
+(ng)
+(use "InitEqD")
+(assume "x^1" "xs^1" "STxs1" "IH")
+(ng)
+(simp "<-" "IHn")
+(use "InitEqD")
+(use "STxs1")
+;; Proof finished
+(save "ListAppdInitRestPartial")
+
+;; ListInitLh
+(set-goal "all xs Lh xs init xs eqd xs")
+(ind)
+(use "InitEqD")
+(assume "x" "xs" "IHxs")
+(ng)
+(simp "IHxs")
+(use "InitEqD")
+;; Proof finished.
+(save "ListInitLh")
+(add-rewrite-rule "Lh xs init xs" "xs")
+
+;; ListRestLh
+(set-goal "all xs Lh xs rest xs eqd(Nil alpha)")
+(ind)
+(use "InitEqD")
+(assume "x" "xs" "IHxs")
+(ng)
+(simp "IHxs")
+(use "InitEqD")
+;; Proof finished.
+(save "ListRestLh")
+(add-rewrite-rule "Lh xs rest xs" "(Nil alpha)")
+
+;; ListLhInit
+(set-goal "all xs,n(n<=Lh xs -> Lh(n init xs)=n)")
+(ind)
+(ng)
+(assume "n" "n=0")
+(simp "n=0")
+(use "Truth")
+(assume "x" "xs" "IHxs")
+(ng)
+(cases)
+(ng)
+(assume "Trivial")
+(use "Trivial")
+(use "IHxs")
+;; Proof finished.
+(save "ListLhInit")
+
+;; ListLhRest
+(set-goal "all xs,n(n<=Lh xs -> Lh(n rest xs)=Lh xs--n)")
+(ind)
+(ng)
+(assume "n" "n=0")
+(simp "n=0")
+(use "Truth")
+(assume "x" "xs" "IHxs")
+(ng)
+(cases)
+(ng)
+(assume "Trivial")
+(use "Trivial")
+(use "IHxs")
+;; Proof finished.
+(save "ListLhRest")
+
+;; ListInitAppd
+(set-goal "all xs1,xs2 Lh xs1 init(xs1++xs2) eqd xs1")
+(ind)
+(ng)
+(assume "xs")
+(use "InitEqD")
+(assume "x" "xs" "IH" "xs2")
+(ng)
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "ListInitAppd")
+
+;; ListInitAppdPartial
+(set-goal "all xs^1,xs^2(
+ STotalList xs^1 -> Lh xs^1 init(xs^1++xs^2) eqd xs^1)")
+(assume "xs^1" "xs^2" "Txs1")
+(elim "Txs1")
+(ng)
+(use "InitEqD")
+(assume "x^" "xs^" "Txs" "IH")
+(ng)
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "ListInitAppdPartial")
+
+;; ListInitAppdGen
+(set-goal "all n,xs1,xs2(n<=Lh xs1 -> n init(xs1++xs2)eqd n init xs1)")
+(ind)
+(ng)
+(strip)
+(use "InitEqD")
+(assume "n" "IHn")
+(cases)
+(ng #t)
+(assume "xs1")
+(use "Efq")
+(assume "x" "xs1" "xs2")
+(ng)
+(assume "n<=Lh xs1")
+(simp "IHn")
+(use "InitEqD")
+(use "n<=Lh xs1")
+;; Proof finished.
+(save "ListInitAppdGen")
+
+;; ListRestAppd
+(set-goal "all xs1,xs2 Lh xs1 rest(xs1++xs2) eqd xs2")
+(ind)
+(ng)
+(assume "xs")
+(use "InitEqD")
+(assume "x" "xs" "IH" "xs2")
+(ng)
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "ListRestAppd")
+
+;; ListRestAppdPartial
+(set-goal "all xs^1,xs^2(
+ STotalList xs^1 -> Lh xs^1 rest(xs^1++xs^2) eqd xs^2)")
+(assume "xs^1" "xs^2" "Txs1")
+(elim "Txs1")
+(ng)
+(use "InitEqD")
+(assume "x^" "xs^" "Txs" "IH")
+(ng)
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "ListRestAppdPartial")
+
+;; ListRestAppdGen
+(set-goal "all n^,xs1,xs^2 (n^ +Lh xs1)rest(xs1++xs^2) eqd n^ rest xs^2")
+(assume "n^")
+(ind)
+(ng)
+(assume "xs^2")
+(use "InitEqD")
+(assume "x" "xs1" "IHxs1" "xs^2")
+(ng)
+(use "IHxs1")
+;; Proof finished.
+(save "ListRestAppdGen")
+
+;; Now ListFilter
+
+(add-program-constant
+ "ListFilter" (py "(alpha=>boole)=>list alpha=>list alpha") t-deg-zero)
+(add-infix-display-string "ListFilter" "filter" 'pair-op) ;right associative
+(add-computation-rules
+ "(alpha=>boole)filter(Nil alpha)" "(Nil alpha)"
+ "(alpha=>boole)filter x::xs" "[if ((alpha=>boole)x)
+                                   (x::(alpha=>boole)filter xs)
+                                   ((alpha=>boole)filter xs)]")
+
+;; ListFilterTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "(ListFilter alpha)"))))
+(assume "(alpha=>boole)^" "Tf")
+(assume "xs^" "Txs")
+(elim "Txs")
+(ng)
+(use "TotalListNil")
+(assume "x^" "Tx")
+(ng)
+(assume "xs^1" "Txs1")
+(assume "IH")
+(use "BooleIfTotal")
+(use "Tf")
+(use "Tx")
+(use "TotalListCons")
+(use "Tx")
+(use "IH")
+(use "IH")
+;; Proof finished.
+(save "ListFilterTotal")
+
+;; (Foldl bin-op init-val list).  If list is empty, return init-val.
+;; If not, apply ListFoldl with (i) initial value: the result of
+;; applying bin-op to init-val and the head of list and (ii) the tail
+;; of the list.
+
+(add-program-constant
+ "Foldl" (py "(alpha1=>alpha2=>alpha1)=>alpha1=>list alpha2=>alpha1")
+ t-deg-zero)
+(add-computation-rules
+ "(Foldl alpha1 alpha2)(alpha1=>alpha2=>alpha1)y(Nil alpha2)" "y"
+ "(Foldl alpha1 alpha2)(alpha1=>alpha2=>alpha1)y(z::zs)"
+ "(Foldl alpha1 alpha2)(alpha1=>alpha2=>alpha1)
+                       ((alpha1=>alpha2=>alpha1)y z)zs")
+
+;; FoldlTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "(Foldl alpha1 alpha2)"))))
+(assume "(alpha1=>alpha2=>alpha1)^" "Tf")
+(assert "allnc zs^(
+          TotalList zs^ -> 
+          allnc y^(
+            Total y^ -> 
+            Total((Foldl alpha1 alpha2)(alpha1=>alpha2=>alpha1)^ y^ zs^)))")
+(assume "zs^" "Tzs")
+(elim "Tzs")
+(ng)
+(assume "y^" "Ty")
+(use "Ty")
+(assume "z^" "Tz" "zs^1" "Tzs1" "IHzs1" "y^" "Ty")
+(ng)
+(use "IHzs1")
+(use "Tf")
+(use "Ty")
+(use "Tz")
+(assume "Assertion" "y^" "Ty" "zs^" "Tzs")
+(use "Assertion")
+(use "Tzs")
+(use "Ty")
+;; Proof finished.
+(save "FoldlTotal")
+
+;; (Foldr bin-op init-val list).  If list is empty, return init-val.
+;; If not, apply bin-op to the head of list and the result of applying
+;; Foldr to bin-op, init-val and the tail of the list.
+
+(add-program-constant
+ "Foldr" (py "(alpha1=>alpha2=>alpha2)=>alpha2=>list alpha1=>alpha2")
+ t-deg-zero)
+(add-computation-rules
+ "(Foldr alpha1 alpha2)(alpha1=>alpha2=>alpha2)z(Nil alpha1)" "z"
+ "(Foldr alpha1 alpha2)(alpha1=>alpha2=>alpha2)z(y::ys)"
+ "(alpha1=>alpha2=>alpha2)y
+  ((Foldr alpha1 alpha2)(alpha1=>alpha2=>alpha2)z ys)") 
+
+;; FoldrTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "(Foldr alpha1 alpha2)"))))
+(assume "(alpha1=>alpha2=>alpha2)^" "Tf" "z^" "Tz" "ys^" "Tys")
+(elim "Tys")
+(ng)
+(use "Tz")
+(assume "y^" "Ty" "ys^1" "Tys1" "IHys1")
+(ng)
+(use "Tf")
+(use "Ty")
+(use "IHys1")
+;; Proof finished.
+(save "FoldrTotal")
+
+;; ListFrom m n returns the list of increasing natural numbers
+;; starting from m of length n.
+
+(add-program-constant "ListFrom" (py "nat=>nat=>list nat") t-deg-zero)
+(add-computation-rules
+ "ListFrom m 0" "(Nil nat)"
+ "ListFrom m(Succ n)" "m::ListFrom(Succ m)n")
+
+;; (pp (nt (pt "ListFrom 2 5")))
+;; 2::3::4::5::6:
+
+;; ListFromTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "ListFrom"))))
+(assert "all n,m TotalList(ListFrom m n)")
+ (ind)
+ (assume "m")
+ (use "TotalListNil")
+ (assume "n" "IH" "m")
+ (ng)
+ (use "TotalListCons")
+ (use "NatTotalVar")
+ (use "IH")
+(assume "Assertion")
+(use "AllTotalElim")
+(assume "n")
+(use "AllTotalElim")
+(assume "m")
+(use "Assertion")
+;; Proof finished.
+(save "ListFromTotal")
+
+;; Some important concepts for list depend on a decidable equality for
+;; the list elements and hence are defined for finitary algebras only.
+
+(add-program-constant "ListNatIn" (py "nat=>list nat=>boole") t-deg-zero)
+(add-infix-display-string "ListNatIn" "in" 'pair-op)
+(add-computation-rules
+ "n in(Nil nat)" "False"
+ "n in(m::(list nat))" "[if (n=m) True (n in (list nat))]")
+
+;; "ListNatInTotal"
+(set-goal (rename-variables (term-to-totality-formula (pt "ListNatIn"))))
+(use "AllTotalElim")
+(assume "n")
+(use "AllTotalElim")
+(ind)
+(use "TotalBooleFalse")
+(assume "m" "(list nat)" "IHn")
+(ng)
+(cases (pt "n=m"))
+(strip)
+(use "TotalBooleTrue")
+(strip)
+(use "IHn")
+;; Proof finished.
+(save "ListNatInTotal")
+
+;; ListListNatEqToEqD
+(set-goal "all (list list nat)_1,(list list nat)_2(
+ (list list nat)_1=(list list nat)_2 ->
+ (list list nat)_1 eqd (list list nat)_2)")
+(ind)
+(cases)
+(assume "Useless")
+(use "InitEqD")
+(assume "(list nat)_1" "(list list nat)_1" "Absurd")
+(use "EFEqD")
+(use "AtomToEqDTrue")
+(use "Absurd")
+(assume "(list nat)_1" "(list list nat)_1" "IH")
+(cases)
+(assume "Absurd")
+(use "EFEqD")
+(use "AtomToEqDTrue")
+(use "Absurd")
+(ng)
+(assume "(list nat)_2" "(list list nat)_2" "Conj")
+(inst-with-to "Conj" 'left "(list nat)_1=(list nat)_2")
+(inst-with-to "Conj" 'right "(list list nat)_1=(list list nat)_2")
+(drop "Conj")
+(assert "(list nat)_1 eqd (list nat)_2")
+ (use "ListNatEqToEqD")
+ (use "(list nat)_1=(list nat)_2")
+(assume "(list nat)_1 eqd (list nat)_2")
+(assert "(list list nat)_1 eqd (list list nat)_2")
+ (use "IH")
+ (use "(list list nat)_1=(list list nat)_2")
+(assume "(list list nat)_1 eqd (list list nat)_2")
+(elim "(list list nat)_1 eqd (list list nat)_2")
+(assume "(list list nat)^1")
+(elim "(list nat)_1 eqd (list nat)_2")
+(assume "(list nat)^")
+(use "InitEqD")
+;; Proof finished.
+(save "ListListNatEqToEqD")
 
 (remove-var-name "x" "xs" "phi" "psi" "y" "ys" "z" "zs")
