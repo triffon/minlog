@@ -1,4 +1,4 @@
-%% $Id: tutor.tex 2702 2014-04-04 13:43:39Z schwicht $
+%% $Id: tutor.tex 2702 2014-09-18 13:43:39Z schwicht $
 
 \documentclass[12pt]{amsart}
 \usepackage{amssymb,enumerate}
@@ -7,6 +7,8 @@
 \newcommand{\allnc}{\forall^{\mathrm{nc}}} %no computational content
 \newcommand{\ex}{\exists} %constructive
 \newcommand{\excl}{\tilde{\exists}} %classical, with logical falsum
+\newcommand{\exu}{\exists^{\mathrm{u}}} %constructive, no comp. content
+\newcommand{\tonc}{\to^{\mathrm{nc}}}
 \newcommand{\falsum}{\bot}
 \newcommand{\GTotal}{T} %obsolete, to be replaced by \Total
 
@@ -25,7 +27,7 @@
 \newcommand{\falsityF}{\mathbf{F}}
 \newcommand{\inquotes}[1]{``#1''}
 \newcommand{\listappend}{\mathbin{\ast}}
-\newcommand{\listrev}{\mathrm{Rev}}
+\newcommand{\listrev}{\mathrm{Rv}}
 \newcommand{\set}[2]{\{\,#1\mid#2\,\}}
 \newcommand{\subst}[3]{#1[#2:= #3]}
 \newcommand{\true}{\mathsf{t\kern-0.14em t}}
@@ -49,6 +51,7 @@
 
 \hyphenation{appro-xi-ma-ted}
 \hyphenation{cha-rac-te-rize}
+\hyphenation{cor-res-pon-ding}
 \hyphenation{de-fi-ni-tions}
 \hyphenation{fa-ci-li-tate}
 \hyphenation{ge-ne-ra-ted}
@@ -64,6 +67,7 @@
 %% \input{minlog.mac}
 \author[L. Crosilla, M. Seisenberger, H. Schwichtenberg]
 {Laura Crosilla, Monika Seisenberger, Helmut Schwichtenberg}
+\date{\today}
 
 \thanks{This tutorial extends and completes a previous tutorial by L. Crosilla
 distributed with version 4.0 of \mi}
@@ -233,7 +237,7 @@ it as our goal.
 To set a goal, we can use the command \texttt{set-goal} followed by
 the formula.  In the present case:
 \begin{verbatim}
-(set-goal "(A -> B -> C) -> (A -> B) -> A -> C"))
+(set-goal "(A -> B -> C) -> (A -> B) -> A -> C")
 \end{verbatim}
 Alternatively, we can first give a name to the formula we wish to
 prove and then use this name to set the goal.  In the present case,
@@ -1206,6 +1210,7 @@ We here wish to introduce a more complex example for the use of
 $f$ is a continuous function then $f$ composed with itself is also a
 continuous function.  We suggest to solve the problem as follows.
 \begin{verbatim}
+;; (add-var-name "x" "y" (py "alpha"))
 (add-tvar-name "beta")
 (add-var-name "u" "v" "w" (py "beta"))
 (add-program-constant "In" (py "alpha=>beta=>boole"))
@@ -1218,7 +1223,6 @@ continuous function.  We suggest to solve the problem as follows.
  all x,w(f(f x)in w ->
   excl u(x in u & all y(y in u -> f(f y)in w))))")
 (search)
-(dnp)
 \end{verbatim}
 Note that one can switch on a verbose form of search by letting:
 \texttt{(set! VERBOSE-SEARCH \#t)} before calling \texttt{search}. In
@@ -1230,9 +1234,23 @@ with infix notation for the program constant\footnote{Similarly there
   are commands for prefix and postfix use, for example:
   \texttt{add-prefix-display-string}.}.
 
-
 \section{Datatypes and inductively defined predicates}
 \label{Datatypes}
+At this point we prefer to slightly change our style how goals appear
+on the screen.  The reason is that from now on our proofs become
+somewhat more complex, and then the new style is more readable.
+\begin{itemize}
+\item For somewhat longer contexts it is clearer to list them first
+  and the goal below it, separated by a line.  The command to switch
+  to this display style is
+\begin{verbatim}
+(set! COQ-GOAL-DISPLAY #t)
+\end{verbatim}
+\item We avoid using numbers to identify hypotheses and rather use
+  strings indicating what kind of a hypothesis we have.  For example
+  \inquotes{IHn} tells us that this is the hypothesis of an induction
+  over $n$.
+\end{itemize}
 
 \subsection{The natural numbers}
 \label{NaturalNumbers}
@@ -1393,19 +1411,23 @@ cases: one for Zero and one for Successor.  \mi's reply will be
 something like this:
 \begin{verbatim}
 ok, ?_1 can be obtained from
-; ?_3: all n(Double n=n+n -> Double(Succ n)=Succ n+Succ n) from
-;   n924
 
-; ?_2: Double 0=0+0 from
-;   n924
+  n2218
+-------------------------------------------------------
+?_3:all n(Double n=n+n -> Double(Succ n)=Succ n+Succ n)
+
+  n2218
+-------------------------------------------------------
+?_2:Double 0=0+0
 \end{verbatim}
 
 We then replace the goal with its normal form by letting:
 \begin{verbatim}
 (normalize-goal)
 
-; ?_4: T from
-;   n924
+  n2218
+-------------------------------------------------------
+?_4:T
 \end{verbatim}
 
 The latter command can be abbreviated with \texttt{ng} and it
@@ -1422,8 +1444,10 @@ indicated by \texttt{T}.  It comes equipped with an axiom
 (use "Truth")
 
 ok, ?_4 is proved.  The active goal now is
-?_3: all n(Double n=n+n -> Double(Succ n)=Succ n+Succ n) from
-  n924
+  n2218
+-------------------------------------------------------
+?_3:all n(Double n=n+n -> Double(Succ n)=Succ n+Succ n)
+
 \end{verbatim}
 
 As to the step, we make use of the induction hypothesis, \texttt{IH},
@@ -1433,12 +1457,14 @@ and write:
 (ng)
 (use "IH")
 
-ok, we now have the new goal
-?_5: Double(Succ n)=Succ n+Succ n from
-  n924  n  IH:Double n=n+n
+> ok, we now have the new goal 
+  n2218  n  IH:Double n=n+n
+-------------------------------------------------------
+?_5:Double(Succ n)=Succ n+Succ n
 > ok, the normalized goal is
-?_6: Double n=n+n from
-  n924  n  IH:Double n=n+n
+  n2218  n  IH:Double n=n+n
+-------------------------------------------------------
+?_6:Double n=n+n
 > ok, ?_6 is proved.  Proof finished.
 \end{verbatim}
 
@@ -1509,7 +1535,7 @@ The steps of the proof are self--explanatory:
 We wish to give an example of distinction by cases, and for simplicity
 we shall consider a trivial example on the booleans.
 
-We wish to prove that for any boolean $p$, if $p$ is not false than it
+We wish to prove that for any boolean $p$, if $p$ is not false then it
 is true.  We add a variable \texttt{p} of type boolean and set the
 goal:
 \begin{verbatim}
@@ -1587,26 +1613,32 @@ $\listrev$ are the following:
 \\
 \listrev\,(a::w) &= (\listrev\, w) \listappend (a{:})
 \end{align*}
-where, according to the notation in \texttt{list.scm}, $\nil\, \alpha$
+where, according to the notation in \texttt{list.scm}, $(\nil\, \alpha)$
 denotes the empty list over the type $\alpha$, $a::w$ denotes the list
 obtained by adding the object $a$ of type $\alpha$ to the list $w$
 (over $\alpha$), while $a{:}$ is the one element list obtained from
 $a$.  We thus write:
 \begin{verbatim}
-(add-program-constant "ListRev"
+(add-program-constant "ListRv"
             (py "list alpha => list alpha") t-deg-one)
-(add-prefix-display-string "ListRev" "Rev")
+(add-prefix-display-string "ListRv" "Rv")
 
 (add-computation-rules
- "Rev(Nil alpha)" "(Nil alpha)"
- "Rev(x::xs)" "Rev xs++x:")
+ "Rv(Nil alpha)" "(Nil alpha)"
+ "Rv(x::xs)" "Rv xs++x:")
 \end{verbatim}
 
-Note that for simplicity we have stated that \texttt{ListRev} is a
+Note that for simplicity we have stated that \texttt{ListRv} is a
 total function.  \mi's output will include a warning, to remind us
-that we might wish to separately prove that \texttt{ListRev} is in
-fact total.  Also, \texttt{add-prefix-display-string} allows us to
-define a token for the program constant.
+that we should have separately proved before that \texttt{ListRv} is
+in fact total.  Also, \texttt{add-prefix-display-string} allows us to
+define a token for the program constant\footnote{In the file
+  \texttt{list.scm} there already exists a program constant
+  \texttt{ListRev} with display string \texttt{Rev} defined exactly as
+  our \texttt{ListRv}.  Here we have just duplicated the definition
+  for pedagogical reasons, since it is a nice and easy example.
+  However, we had to choose a different name to avoid a clash with the
+  already loaded \texttt{list.scm}.}.
 
 The following proof makes use of a program constant,
 \texttt{ListAppd}, already available within the file
@@ -1628,7 +1660,7 @@ To check \texttt{ListAppd} we type:
 
 Now we can set the goal and start the proof by calling \texttt{ind}:
 \begin{verbatim}
-(set-goal "all v,w Rev(v++w)eqd Rev w++Rev v")
+(set-goal "all v,w Rv(v++w)eqd Rv w++Rv v")
 (ind)
 \end{verbatim}
 
@@ -1662,19 +1694,26 @@ Then we carry on by
 \end{verbatim}
 
 \subsubsection{Exercise}
-Prove that the program constant \verb|map|, defined in \texttt{list.scm}
-by the computation rules
+In \texttt{list.scm} \texttt{ListMap} is introduced by
 \begin{verbatim}
+(add-program-constant
+ "ListMap" (py "(alpha1=>alpha2)=>list alpha1=>list alpha2"))
+
+(add-infix-display-string "ListMap" "map" 'pair-op)
+
+(add-var-name "phi" (py "alpha1=>alpha2"))
+
 (add-computation-rules
  "phi map(Nil alpha1)" "(Nil alpha2)"
  "phi map y::ys" "phi y::phi map ys")
 \end{verbatim}
-commutes with \texttt{Rev}
-
+Prove that \verb|map| commutes with \texttt{Rv}:
 \begin{verbatim}
 (av "f" (py "alpha=>alpha"))
-(set-goal "all f,xs (f map (Rev xs) eqd Rev (f map xs))")
+(set-goal "all f,xs (f map Rv xs)eqd Rv(f map xs)")
 \end{verbatim}
+In the proof it is helful to use the theorem \texttt{MapAppd}, which
+can be found in \texttt{list.scm}.
 
 \subsection{Defining algebras: binary trees}
 We now wish to show how to introduce new algebras; we shall also give
@@ -1698,7 +1737,8 @@ consisting of the labels in the tree, starting with the root label.
 (apc "Flatten" (py "bintree=>list nat"))
 (add-computation-rules
  "Flatten(Null)" "(Nil nat)"
- "Flatten(Con ltree n rtree)" "n: ++Flatten ltree++Flatten rtree")
+ "Flatten(Con ltree n rtree)"
+ "n: ++Flatten ltree++Flatten rtree")
 \end{verbatim}
 
 To see how this works, one can for example type:
@@ -1724,10 +1764,11 @@ inductively is as follows:
 The two closure axioms of this inductive definition are
 \texttt{InitEvenI:} \texttt{EvenI 0} and \texttt{GenEvenI: allnc n(
   EvenI n -> EvenI(n + 2))}.  In the latter, we have made use of the
-\inquotes{non-computational} quantifier \texttt{allnc}.  We briefly
-recall that a non-computational quantifier may be used in cases where
-the variable it quantifies on will not be used (freely) in any term in
-the proof.\footnote{Consequently, extracted programs (see the next
+\inquotes{non-computational} quantifier \texttt{allnc}%
+\index{allnc@\texttt{allnc}}.  We briefly recall that a
+non-computational quantifier may be used in cases where the variable
+it quantifies on will not be used (freely) in any term in the
+proof.\footnote{Consequently, extracted programs (see the next
   chapter) will not depend on these variables.}  Seen purely logically
 there is no difference between the \texttt{all} and \texttt{allnc}
 quantifier.  With \texttt{algEvenI}, we provide a name for an algebra,
@@ -1742,12 +1783,13 @@ of \texttt{list} is followed by only one item.
 
 Let's now see a proof which uses the closure axioms for
 \texttt{EvenI}.  This makes essential use of the command
-\texttt{intro}.  The command \texttt{(intro i .\ terms)} expects as
-goal a formula which can be proved using the i-th closure axiom.  This
-axiom is then applied, via \texttt{use}, hence \texttt{terms} may have
-to be provided.  For example, below by calling \texttt{intro 0} we
-apply the first closure axiom for EvenI, and by calling \texttt{intro
-  1} we apply the second closure axiom.
+\texttt{intro}\index{intro@\texttt{intro}}.  The command
+\texttt{(intro i .\ terms)} expects as goal a formula which can be
+proved using the i-th closure axiom.  This axiom is then applied, via
+\texttt{use}, hence \texttt{terms} may have to be provided.  For
+example, below by calling \texttt{intro 0} we apply the first closure
+axiom for EvenI, and by calling \texttt{intro 1} we apply the second
+closure axiom.
 \begin{verbatim}
 (set-goal "all n EvenI(n+n)")
 (ind)
@@ -1762,31 +1804,31 @@ apply the first closure axiom for EvenI, and by calling \texttt{intro
 To conclude this section, we present a proof using induction on the
 predicate \texttt{EvenI}.
 \begin{verbatim}
-(set-goal "allnc n (EvenI n -> ex m m+m=n)")
-(assume "n")
-(elim)
+(set-goal "allnc n(EvenI n -> ex m m+m=n)")
+(assume "n" "En")
+(elim "En")
 \end{verbatim}
-
-Here \texttt{elim} applies the induction axiom for the inductive
-definition.  For example, if the goal is \texttt{all n(EvenI n -> P
-  n)}, we obtain the new goals: \texttt{P 0} and \texttt{all n((EvenI
-  n \& P n) -> P(n+2))}.  The commands for the rest of the proof have
-been explained before.
+Here \texttt{elim}\index{elim@\texttt{elim}} applies the induction
+axiom for the inductive definition.  For example, if the goal is
+\texttt{all n(EvenI n -> P n)}, we obtain the new goals: \texttt{P 0}
+and \texttt{all n((EvenI n \& P n) -> P(n+2))}.  The commands for the
+rest of the proof have been explained before.
 \begin{verbatim}
 (ex-intro (pt "0"))
-(prop)
+(use "Truth")
 
-(assume "n1" 2 3)
-(by-assume 3 "m0" 4)
+(assume "n1" "En1" "IH")
+(by-assume "IH" "m0" "m0Prop")
 (ex-intro (pt "m0+1"))
-(simp "<-" 4)
+(simp "<-" "m0Prop")
 (use "Truth")
 \end{verbatim}
 
-As an exercise, we recommend to prove the above statement using a
-simultaneous inductive definition of Even/Odd.  The simultaneous
-definition and a hint of how to apply the \verb|elim| command can be
-found in the reference manual.
+%% The following exercise seems to be too difficult.
+%% As an exercise, we recommend to prove the above statement using a
+%% simultaneous inductive definition of Even/Odd.  The simultaneous
+%% definition and a hint of how to apply the \verb|elim| command can be
+%% found in the reference manual.
 
 \subsection{Totality of program constants}
 \label{SS:Totality}
@@ -1863,7 +1905,7 @@ After the lemma with this name is saved \mi\ will know that
 \texttt{Double} is total.
 
 \section{Program extraction from proofs}
-\label{RevI}
+\label{S:RevI}
 In this section we give some basic examples of program extraction from
 proofs.  We should perhaps mention at this point that program
 extraction was one of the main original motivations in the development
@@ -1876,6 +1918,8 @@ this tutorial.  See for example \cite{BergerBuchholzSchwichtenberg02,%
   BenlBergerSchwichtenbergSeisenbergerZuber98,%
   SchwichtenbergWainer12}.
 
+\subsection{List reversal}
+\label{SS:ListReversal}
 For our first example of program extraction from proofs, we introduce
 an inductively defined predicate \texttt{RevI} (without computational
 content) as follows:
@@ -1889,24 +1933,64 @@ content) as follows:
 ;; (add-var-name "v" "w" "u" "xs" (py "list alpha"))
 
 (add-ids
- (list (list "RevI" (make-arity (py "list alpha")
-                                (py "list alpha"))))
- '("RevI(Nil alpha)(Nil alpha)" "InitRevI")
+ (list (list "RevI"(make-arity (py "list alpha")
+                               (py "list alpha"))))
+ '("RevI(Nil alpha)(Nil alpha)" "InitRev")
  '("all a,v,w(RevI v w  -> RevI(v++a:)(a::w))" "GenRevI"))
 \end{verbatim}
-
-Then we add a symmetry axiom for \texttt{RevI}:
+%% (add-ids
+%%  (list (list "RevI"(make-arity (py "list alpha")
+%%                                (py "list alpha"))))
+%%  '("RevI(Nil alpha)(Nil alpha)" "InitRev")
+%%  '("all a,v,w(RevI v w  -> RevI(a::v)(w++a:))" "GenRevI"))
+%% \end{verbatim}
+We first prove that \texttt{RevI} satisfies a variant
+clause\footnote{We did not take this variant as the defining clause
+  since our definition will be useful in section~\ref{SS:ExtrClass}.}:
 \begin{verbatim}
-(aga "RevSym" "all v,w(RevI v w -> RevI w v)")
+(set-goal "all a,v,w(RevI v w  -> RevI(a::v)(w++a:))")
+(assume "a" "v" "w" "Rvw")
+(elim "Rvw")
+(ng)
+;; RevI(a:)(a:)
+(use-with "GenRevI" (pt "a") (pt "(Nil alpha)") (pt "(Nil alpha)")
+          "InitRevI")
+(assume "a1" "v1" "w1" "Rv1w1" "Hyp")
+(assert "(a::v1++a1:)eqd(a::v1)++a1:")
+ (ng #t)
+ (use "InitEqD")
+(assume "Assertion1")
+(simp "Assertion1")
+(assert "(a1::w1)++a:eqd(a1::w1++a:)")
+ (ng #t)
+ (use "InitEqD")
+(assume "Assertion2")
+(simp "Assertion2")
+(use "GenRevI")
+(use "Hyp")
+;; Proof finished.
+(save "RevIConsAppd")
 \end{verbatim}
-And finally set the goal:
+Using \texttt{RevIConsAppd} we can prove symmetry of \texttt{RevI}
+\begin{verbatim}
+(set-goal "all v,w(RevI v w -> RevI w v)")
+(assume "v" "w" "Rvw")
+(elim "Rvw")
+(use "InitRevI")
+(assume "a" "v1" "w1" "Rv1w1" "Rw1v1")
+(use "RevIConsAppd")
+(use "Rw1v1")
+;; Proof finished.
+(save "RevISym")
+\end{verbatim}
+Then we set the goal:
 \begin{verbatim}
 (set-goal "all v ex w RevI v w")
 \end{verbatim}
-The proof proceeds by structural induction on lists.  We first of all
-call \texttt{ind}.  Subsequently, we tackle the base case by first of
-all providing a witness, \texttt{Nil} of type $\alpha$, and then by
-using the first closure axiom for \texttt{RevI}.
+The proof proceeds by structural induction on lists.  We first call
+\texttt{ind}.  Subsequently, we tackle the base case by first of all
+providing a witness, \texttt{Nil} of type $\alpha$, and then by using
+the first closure axiom for \texttt{RevI}.
 \begin{verbatim}
 (ind)
 (ex-intro (pt "(Nil alpha)"))
@@ -1915,16 +1999,16 @@ using the first closure axiom for \texttt{RevI}.
 
 The step is proved by first of all calling some standard commands
 (\texttt{assume, by-assume}), then by providing a witness, and
-finally by making use of \texttt{RevSym} (twice).  The second closure
-axiom is called as usual by an \texttt{intro} command.
+finally the second closure axiom is called as usual by an \texttt{intro}
+command.
 \begin{verbatim}
-(assume "a" "v" 1)
-(by-assume 1 "w" 2)
-(ex-intro (pt "w ++ a:"))
-(use "RevSym")
+(assume "a" "v" "IH")
+(by-assume "IH" "w" "wProp")
+(ex-intro (pt "w++a:"))
+(use "RevISym")
 (intro 1)
-(use "RevSym")
-(use 2)
+(use "RevISym")
+(use "wProp")
 \end{verbatim}
 
 We can finally name the proof we have just completed by writing:
@@ -1987,14 +2071,13 @@ Reverse (x :: xs)=(Reverse xs) ++ x:
 
 Note that we could have also displayed the program by using the
 command \texttt{term-to-scheme-expr}, which produces the
-$\lambda$--term corresponding to the program.
+$\lambda$-term corresponding to the program.
 
 To test the program we can \inquotes{run} it on input \texttt{[a,b,c,d]}:
 \begin{verbatim}
 (pp (nt (make-term-in-app-form neterm (pt "a::b::c::d:"))))
 \end{verbatim}
 and obtain the result: \texttt{d::c::b::a:}
-
 
 \subsection{Program extraction from proofs using inductive
   definitions with computational content} In this section we wish to
@@ -2011,7 +2094,7 @@ algebra on the program side.  Thus we need to provide a name for such
 an algebra, if a new one has to be generated.  However, if there is an
 already existing algebra with fitting constructors, the name of this
 algebra can be provided as well.  I.e., in our example on the even
-numbers, which we recall below, we could alse take \texttt{nat}.  The
+numbers, which we recall below, we could also take \texttt{nat}.  The
 types of the algebra's constructors corresponds to the clauses of the
 inductive definition, named \texttt{InitEven} and \texttt{GenEven}.
 \begin{verbatim}
@@ -2023,14 +2106,14 @@ inductive definition, named \texttt{InitEven} and \texttt{GenEven}.
 We recall our proof and extract a program:
 \begin{verbatim}
 (set-goal "allnc n(EvenI n -> ex m m+m=n)")
-(assume "n")
-(elim)
+(assume "n" "En")
+(elim "En")
 (ex-intro (pt "0"))
-(prop)
-(assume "n1" 2 3)
-(by-assume 3 "m0" 4)
+(use "Truth")
+(assume "n1" "En1" "IH")
+(by-assume "IH" "m0" "m0Prop")
 (ex-intro (pt "m0+1"))
-(simp "<-" 4)
+(simp "<-" "m0Prop")
 (use "Truth")
 
 (define eterm (proof-to-extracted-term (current-proof)))
@@ -2044,9 +2127,12 @@ Here, the extracted program essentially corresponds to the identity
 function.  For comparison we recommend to extract a program using the
 earlier defined program constants \verb|Even/Odd|.
 \begin{verbatim}
-(set-goal "all n ex m((Even n -> 2*m = n) &
+(set-goal "all n ex m((Even n -> 2*m=n) &
                       (Odd n -> 2*m+1=n))")
 \end{verbatim}
+One first has to prove totality of \verb|Even| and \verb|Odd|, then
+prove their disjointness and finally prove the goal above.  A solution
+to this exercise can be found in Appendix~\ref{SS:EvenOdd}.
 
 As mentioned, we can define the even predicate by an inductive
 definition without computational content.
@@ -2055,10 +2141,32 @@ definition without computational content.
 	 '("EvenNC 0" "InitEvenNC")
 	 '("allnc n(EvenNC n -> EvenNC(n+2))" "GenEvenNC"))
 \end{verbatim}
-We leave it to the reader to prove a non-computational version of the
-lemma above, using the command \verb|exnc-intro| in the proof:
+Generally, for non-computational (n.c.)\ inductively defined
+predicates no algebra name is provided.  Important special cases are
+the \inquotes{uniform one clause defined}%
+\index{uniform one clause defined} inductive predicates\footnote{ An
+  inductive predicates is called uniform one clause defined if it has
+  just one clause with $\allnc$ and $\tonc$ (an n.c.\ variant of
+  $\to$) only; see the reference manual for details.}
+which are non-computational.  Examples are Leibniz equality%
+\index{Leibniz equality} \texttt{EqD}\index{EqD}, and uniform variants
+\texttt{ExU}\index{ExU} and \texttt{AndU}\index{AndU} of the
+existential quantifier and conjunction.
+
+One can prove a non-computational version of the lemma above, where
+we only need to replace the \texttt{ex-intro} command by the general
+\texttt{intro}, since \texttt{ExU} is inductively defined.
 \begin{verbatim}
-(set-goal "allnc n(EvenNC n -> exnc m m+m=n)")
+(set-goal "allnc n(EvenNC n -> exu m m+m=n)")
+(assume "n" "En")
+(elim "En")
+(intro 0 (pt "0"))
+(use "Truth")
+(assume "n1" "En1" "IH")
+(by-assume "IH" "m0" "m0Prop")
+(intro 0 (pt "m0+1"))
+(simp "<-" "m0Prop")
+(use "Truth")
 \end{verbatim}
 
 %% \subsection{Another example}
@@ -2164,9 +2272,247 @@ Consider the problem of recognizing whether a list of left and right
 parentheses is balanced, and if so produce a generating tree
 (a.k.a.\ parse tree).  Usually one tackles this problem by the
 write-and-verify method: one writes such a parser as a shift-reduce
-syntax analyser, and verifies that it is correct and complete.  Here
-we take this problem as an example for the prove-and-extract method.
+syntax analyser, and verifies that it is correct and complete.  But we
+can view it also as a good test for the prove-and-extract method.
+However, since this example is rather complicated we have relegated
+its treatment into Appendix~\ref{SS:Parsing}.
 
+\subsection{Program extraction from classical proofs}
+\label{SS:ExtrClass}
+Finally, we wish to exemplify how to extract programs from classical
+proofs.  Once more, an account of the theory underlying this example
+exceeds the modest aims of this tutorial, so that we can but refer the
+inquisitive reader to the literature already mentioned above.
+
+The goal is to prove a classical variant of the statement in
+Section~\ref{SS:ListReversal}.  Quite concisely, we set the goal and
+produce a proof:
+\begin{verbatim}
+(set-goal "all v excl w RevI v w")
+
+(assume "v0" "AllNegHyp")
+(cut "all u allnc v(v++u eqd v0 ->
+                   all w(RevI v w -> bot))")
+
+(assume "claim")
+\end{verbatim}
+
+Now we can make use of the \texttt{claim} to prove the goal:
+\begin{verbatim}
+(use "claim"
+     (pt "v0") (pt "(Nil alpha)") (pt "(Nil alpha)"))
+(ng)
+(use "InitEqD")
+(intro 0)
+\end{verbatim}
+
+And prove the \texttt{claim} by induction:
+\begin{verbatim}
+(ind)
+\end{verbatim}
+
+The base case is tackled as follows:
+\begin{verbatim}
+(assume "v")
+(ng)
+(assume "v=v0" "w")
+(simp "v=v0")
+(use "AllNegHyp")
+\end{verbatim}
+
+As to the step we write:
+\begin{verbatim}
+(assume "a" "u" "IH" "v" "EqDHyp" "w" "RHyp")
+(use "IH" (pt "v++a:") (pt "a::w"))
+(ng)
+(use "EqDHyp")
+(intro 1)
+(use "RHyp")
+\end{verbatim}
+
+Finally we name the proof, which we conveniently call \texttt{class-proof}:
+\begin{verbatim}
+(define class-proof (np (current-proof)))
+\end{verbatim}
+Finally we add a variable \texttt{g}:
+\begin{verbatim}
+(av "g" (py "list alpha=>list alpha"))
+\end{verbatim}
+The reasons for this are purely cosmetic. In fact, \texttt{g} will be
+the default name in case the extracted program needs a variable of
+type \texttt{list alpha=>list alpha}.  Otherwise the program would use
+a default variable.
+\begin{verbatim}
+(define eterm
+  (atr-min-excl-proof-to-structured-extracted-term
+   class-proof))
+(define neterm (rename-variables (nt eterm)))
+\end{verbatim}
+%% Note that this contains still a term \texttt{cEqDCompatRev} which
+%% denotes a lemma used in the above proof (when we called the command
+%% \texttt{simp}).
+
+%% In general, if we extract a program from a proof which makes use of a
+%% lemma that we previously proved, then the proof will contain the name
+%% of such lemma.  We have two possible ways of eliminating such
+%% reference to the lemma.
+%% \begin{itemize}
+%% \item Replace the name of the lemma by its actual proof.  In the
+%%   present context, this could be achieved by executing the command:
+%%   \texttt{(expand-theorems (current-proof))}.
+%% \item Alternatively, on the program side, we can replace the name of
+%%   the lemma by the name of a corresponding subprogram.  This is
+%%   achieved by use of the command \texttt{animate}, which has the
+%%   effect of adding a computation rule.
+%% \end{itemize}
+
+%% In the present case, we replace \texttt{cEqDCompatRev} by its program:
+%% \begin{verbatim}
+%% (animate "EqDCompatRev")
+%% \end{verbatim}
+
+%% This will produce the output:
+%% \begin{verbatim}
+%% ok, computation rule (cEqDCompatRev alpha7)
+%%         -> [alpha7_0]alpha7_0 added
+%% \end{verbatim}
+
+We display the program and obtain the output:
+\begin{verbatim}
+(pp neterm)
+
+[xs]
+ (Rec list alpha=>list alpha=>list alpha)xs([xs0]xs0)
+ ([x,xs0,g,xs1]g(x::xs1))
+ (Nil alpha)
+\end{verbatim}
+
+Finally:
+\begin{verbatim}
+(pp (nt (make-term-in-app-form neterm (pt "a::b::c:"))))
+\end{verbatim}
+This gives the result:
+\begin{verbatim}
+c::b::a:
+\end{verbatim}
+
+To conclude, we would like to remark that this program differs from
+that obtained in section~\ref{SS:ListReversal}.  In fact, the program
+above could be written in a more readable form as follows:
+\begin{verbatim}
+Reverse xs0 = reverse-acc xs0 Nil
+
+reverse-acc Nil xs1 = xs1
+reverse-acc (x1::xs2) xs4 = reverse-acc xs2 (x1::xs4)
+\end{verbatim}
+The reader can see that this program is linear, hence better than the
+previous one which is quadratic.
+
+\newpage
+\begin{appendix}
+
+\section{Extraction examples}
+\label{S:Extraction}
+
+\subsection{Even and Odd}
+\label{SS:EvenOdd}
+We first need to prove totality of Even and Odd
+\begin{verbatim}
+;; NatEvenOddTotal
+(set-goal "allnc n^(TotalNat n^ -> TotalBoole(Even n^) &
+                                   TotalBoole(Odd n^))")
+(assume "n^" "Tn")
+(elim "Tn")
+(split)
+(use "TotalBooleTrue")
+(use "TotalBooleFalse")
+(assume "n^1" "Tn1" "IHn1")
+(split)
+(ng #t)
+(use "IHn1")
+(ng #t)
+(use "IHn1")
+;; Proof finished.
+(save "NatEvenOddTotal")
+
+;; EvenTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "Even"))))
+(assume "n^" "Tn")
+(use "NatEvenOddTotal")
+(use "Tn")
+;; Proof finished.
+(save "EvenTotal")
+
+;; OddTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "Odd"))))
+(assume "n^" "Tn")
+(use "NatEvenOddTotal")
+(use "Tn")
+;; Proof finished.
+(save "OddTotal")
+\end{verbatim}
+Next we prove that Even and Odd are disjoint.
+\begin{verbatim}
+;; NatEvenOddDisjunct
+(set-goal "all n(Even n -> Odd n -> F)")
+(ind)
+;; Base
+(ng)
+(assume "Useless" "Absurd")
+(use "Absurd")
+;; Step
+(assume "n" "IHn" "E(n+1)" "O(n+1)")
+(use-with "IHn" "O(n+1)" "E(n+1)")
+;; Proof finished.
+(save "NatEvenOddDisjunct")
+\end{verbatim}
+Finally we can prove our goal and extract.
+\begin{verbatim}
+(set-goal
+ "all n ex m((Even n -> 2*m=n) & (Odd n -> 2*m+1=n))")
+(ind)
+;; Base
+(ex-intro "0")
+(split)
+(assume "Useless")
+(use "Truth")
+(assume "Absurd")
+(use "Absurd")
+;; Step
+(assume "n" "IHn")
+(by-assume "IHn" "m" "mProp")
+(ex-intro "[if (Even n) m (Succ m)]")
+(split)
+;; Case Odd n
+(assume "E(n+1)")
+(assert "Even n -> F")
+ (assume "En")
+ (use "NatEvenOddDisjunct" (pt "n"))
+ (use "En")
+ (use "E(n+1)")
+(assume "Even n -> F")
+(simp "Even n -> F")
+(ng #t)
+(use "mProp")
+(use "E(n+1)")
+;; Case Even n
+(assume "O(n+1)")
+(simp "O(n+1)")
+(ng #t)
+(use "mProp")
+(use "O(n+1)")
+;; Proof finished.
+
+(define eterm (proof-to-extracted-term (current-proof)))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n](Rec nat=>nat)n 0([n0,n1][if (Even n0) n1 (Succ n1)])
+\end{verbatim}
+
+\subsection{Parsing}
+\label{SS:Parsing}
 Let $E$ range over expressions formed as lists of left and right
 parentheses $L,R$.  We are interested in the \cite{Dyck82}\index{Dyck}
 language of balanced lists of $L$ and $R$.  It is generated by either
@@ -2176,13 +2522,13 @@ of the grammars
   \\
   \hbox{grammar S}: &\qquad E \BNFdef \nil \BNFor LER \BNFor EE
 \end{align*}
-One can see easily to see that both grammars generate the same
+It is not too difficult to see that both grammars generate the same
 expressions.  $S$ appears to be more natural, but its generation trees
 are not unique: one can always append the empty list $\nil$.  This can
-be repaired easily by only dealing with non-empty lists.  However,
-a drawback then is that one often wants to specialize general
-lemmas (like the closure poperty of $U$ below) to the empty list.
-Therefore we restrict attention to $U$.
+be repaired easily by only dealing with non-empty lists.  However, a
+drawback then is that one often wants to specialize general lemmas
+(like the closure poperty of $U$ below) to the empty list.  Therefore
+we restrict attention to $U$.
 
 First we formulate the grammar $U$ as an inductively defined predicate
 over lists $x,y,z$ of parentheses $L,R$ given by the clauses
@@ -2214,6 +2560,72 @@ of parentheses, we need the library file \verb|list.scm|.
 (add-var-name "p" (py "boole"))
 (add-var-name "x" "y" "z" (py "list par"))
 \end{verbatim}
+As a preparatory step we first have to prove that ordinary equality $=$
+(a boolean valued function) implies Leibniz equality, for the two types
+\texttt{par} and \texttt{list\ par}.
+\begin{verbatim}
+;; ParEqToEqD
+(set-goal "all par1,par2(par1=par2 -> par1 eqd par2)")
+(cases)
+(cases)
+(assume "Useless")
+(use "InitEqD")
+(assume "L=R")
+(use "EFEqD")
+(use "AtomToEqDTrue")
+(use "L=R")
+(cases)
+(assume "R=L")
+(use "EFEqD")
+(use "AtomToEqDTrue")
+(use "R=L")
+(assume "Useless")
+(use "InitEqD")
+;; Proof finished.
+(save "ParEqToEqD")
+
+;; ListParEqToEqD
+(set-goal "all x1,x2(x1=x2 -> x1 eqd x2)")
+(ind)
+(cases)
+(assume "Useless")
+(use "InitEqD")
+(assume "par1" "x1" "Absurd")
+(use "EFEqD")
+(use "AtomToEqDTrue")
+(use "Absurd")
+(assume "par1" "x1" "IH")
+(cases)
+(assume "Absurd")
+(use "EFEqD")
+(use "AtomToEqDTrue")
+(use "Absurd")
+(assume "par2" "x2" "=Hyp")
+(ng "=Hyp")
+(assert "x1=x2")
+ (use "=Hyp")
+(assume "x1=x2")
+(assert "par1=par2")
+ (use "=Hyp")
+(assume "par1=par2")
+(drop "=Hyp")
+(assert "x1 eqd x2")
+ (use "IH")
+ (use "x1=x2")
+(assume "x1 eqd x2")
+(assert "par1 eqd par2")
+ (use "ParEqToEqD")
+ (use "par1=par2")
+(assume "par1 eqd par2")
+(elim "x1 eqd x2")
+(assume "x^3")
+(elim "par1 eqd par2")
+(assume "par^3")
+(use "InitEqD")
+;; Proof finished.
+(save "ListParEqToEqD")
+\end{verbatim}
+
 Now we inductively define a predicate (grammar) $U$ over lists of
 parentheses.
 \begin{verbatim}
@@ -2383,14 +2795,43 @@ Conversely one can easily prove $U(y) \to \mathrm{LP}(0,y)$ by
 induction on $U$.  One needs a property of \verb|LP| first
 \begin{verbatim}
 ;; LPProp
-(set-goal "all x,y,n,m(LP n x -> LP m y -> LP(n+m)(x++y))")
+(set-goal
+ "all x,y,n,m(LP n x -> LP m y -> LP(n+m)(x++y))")
 (ind)
 (ind)
 (cases)
 (cases)
-...
+(auto)
+(ng)
+(cases)
+(assume "y" "IHy")
+(ng)
+(assume "n" "m" "Hyp1" "Hyp2")
+(use-with "IHy" (pt "n") (pt "Succ m") "Hyp1" "Hyp2")
+(assume "y" "IHy" "n")
+(cases)
+(assume "Hyp1" "Absurd")
+(use "Efq")
+(use "Absurd")
+(ng)
+(use "IHy")
+
+(cases)
+(assume "x" "IHx")
+(ng)
+(assume "y" "n" "m" "Hyp1" "Hyp2")
+(use-with
+ "IHx" (pt "y") (pt "Succ n") (pt "m") "Hyp1" "Hyp2")
+(assume "x" "IHx" "y")
+(cases)
+(assume "m" "Absurd" "Hyp1")
+(use "Efq")
+(use "Absurd")
+(use "IHx")
+;; Proof finished.
+(save "LPProp")
 \end{verbatim}
-The rest is left as an exercise.  Using \verb|LPProp| one can prove
+Using \verb|LPProp| one can prove
 \begin{verbatim}
 ;; Soundness
 (set-goal "allnc y(U y -> LP 0 y)")
@@ -2522,10 +2963,81 @@ If the input $x$ is empty, in case the stack $\as$ is empty as well
 the current parse tree $a$ is returned, and otherwise the empty parse
 tree $O$.
 
-We can test or extracted \verb|parser-term|:
+To test our extracted \verb|parser-term| we use some simple Scheme
+functions.  \verb|(generate-seq n)| generates a list of $2^n$ infinite
+sequences starting with all possible variations of $n$ digits and
+continuing with $0$.
+\begin{verbatim}
+(define (generate-seq n)
+  (if (= n 0)
+      (list (lambda (n) 0))
+      (foldr (lambda (f l)
+               (cons (lambda (n) (if (= n 0) 0 (f (- n 1))))
+                     (cons (lambda (n) (if (= n 0) 1 (f (- n 1))))
+                           l)))
+             '()
+             (generate-seq (- n 1)))))
+\end{verbatim}
+\verb|(first f n)| returns a list of (f 0),(f 1),...,(f n-1).
+\begin{verbatim}
+(define (first f n)
+  (if (= n 0)
+      '()
+       (cons (f 0)
+             (first (lambda (n) (f (+ n 1))) (- n 1)))))
+\end{verbatim}
+We also use
+\begin{verbatim}
+(define (blist-to-lpar-term blist)
+  (if (null? blist)
+      (pt "(Nil par)")
+      (mk-term-in-app-form
+       (pt "(Cons par)")
+       (if (zero? (car blist)) (pt "L") (pt "R"))
+       (blist-to-lpar-term (cdr blist)))))
+
+(define (generate-lpar-terms n)
+  (let* ((seq (generate-seq n))
+         (01lists (map (lambda (f) (first f n)) seq))
+         (reduced-01lists
+          (list-transform-positive 01lists
+            (lambda (l)
+              (and (zero? (car l))
+                   (not (zero? (car (last-pair l)))))))))
+    (map blist-to-lpar-term reduced-01lists)))
+\end{verbatim}
+Now we can test \texttt{parser-term} on all lpar-terms of length $l$. 
+\begin{verbatim}
+(define (test-parser-term parser-term . l)
+  (let ((len (if (null? l) 4 (car l))))
+    (map (lambda (lpar-term)
+           (display "Testing on ")
+           (display (term-to-string lpar-term))
+           (let* ((pairterm (nt (make-term-in-app-form
+                                 parser-term lpar-term)))
+                  (lterm
+                   (term-in-pair-form-to-left pairterm))
+                  (rterm
+                   (term-in-pair-form-to-right pairterm)))
+             (if (and (term-in-const-form? lterm)
+                      (string=?
+                       "True"
+                       (const-to-name
+                        (term-in-const-form-to-const
+                         lterm))))
+                 (begin (display " Parse tree: ")
+                        (display (term-to-string rterm)))
+                 (display " No"))
+             (newline)))
+         (generate-lpar-terms len)))
+    *the-non-printing-object*)
+\end{verbatim}
+We obtain for $l=6$
 \begin{verbatim}
 (test-parser-term parser-term 6)
-
+\end{verbatim}
+The result is
+\begin{verbatim}
 Testing on L::R::R::R::R::R: No
 Testing on L::L::R::R::R::R: No
 Testing on L::R::L::R::R::R: No
@@ -2544,177 +3056,39 @@ Testing on L::R::L::L::L::R: No
 Testing on L::L::L::L::L::R: No
 \end{verbatim}
 
-\subsection{Program extraction from classical proofs}
-Finally, we wish to exemplify how to extract programs from classical
-proofs.  Once more, an account of the theory underlying this example
-exceeds the modest aims of this tutorial, so that we can but refer the
-inquisitive reader to the literature already mentioned above.
-
-The goal is to prove a classical variant of the statement in section
-\ref{RevI}.  Quite concisely, we set the goal and produce a proof:
-\begin{verbatim}
-(set-goal "all v excl w RevI v w")
-
-(assume "v0" 1)
-(cut "all u allnc v(v++u eqd v0 ->
-                   all w (RevI v w -> bot))")
-
-(assume "claim")
-\end{verbatim}
-
-Now we can make use of the \texttt{claim} to prove the goal:
-\begin{verbatim}
-(use "claim"
-     (pt "v0") (pt "(Nil alpha)") (pt "(Nil alpha)"))
-(ng)
-(use "InitEqD")
-(intro 0)
-\end{verbatim}
-
-And prove the \texttt{claim} by induction:
-\begin{verbatim}
-(ind)
-\end{verbatim}
-
-The base case is tackled as follows:
-\begin{verbatim}
-(assume "v")
-(ng)
-(assume 2 "w")
-(simp 2)
-(use 1)
-\end{verbatim}
-
-As to the step we write:
-\begin{verbatim}
-(assume "a" "u" "IH" "v" 3 "w" 4)
-(use "IH" (pt "v++a:") (pt "a::w"))
-(ng)
-(use 3)
-(intro 1)
-(use 4)
-\end{verbatim}
-
-Finally we name the proof, which we conveniently call \texttt{class-proof}:
-\begin{verbatim}
-(define class-proof (np (current-proof)))
-\end{verbatim}
-Finally we add a variable \texttt{g}:
-\begin{verbatim}
-(av "g" (py "list alpha=>list alpha"))
-\end{verbatim}
-The reasons for this are purely cosmetic. In fact, \texttt{g} will be
-the default name in case the extracted program needs a variable of
-type \texttt{list alpha=>list alpha}.  Otherwise the program would use
-a default variable.
-\begin{verbatim}
-(define eterm
-  (atr-min-excl-proof-to-structured-extracted-term
-   class-proof))
-(define neterm (rename-variables (nt eterm)))
-\end{verbatim}
-%% Note that this contains still a term \texttt{cEqDCompatRev} which
-%% denotes a lemma used in the above proof (when we called the command
-%% \texttt{simp}).
-
-%% In general, if we extract a program from a proof which makes use of a
-%% lemma that we previously proved, then the proof will contain the name
-%% of such lemma.  We have two possible ways of eliminating such
-%% reference to the lemma.
-%% \begin{itemize}
-%% \item Replace the name of the lemma by its actual proof.  In the
-%%   present context, this could be achieved by executing the command:
-%%   \texttt{(expand-theorems (current-proof))}.
-%% \item Alternatively, on the program side, we can replace the name of
-%%   the lemma by the name of a corresponding subprogram.  This is
-%%   achieved by use of the command \texttt{animate}, which has the
-%%   effect of adding a computation rule.
-%% \end{itemize}
-
-%% In the present case, we replace \texttt{cEqDCompatRev} by its program:
-%% \begin{verbatim}
-%% (animate "EqDCompatRev")
-%% \end{verbatim}
-
-%% This will produce the output:
-%% \begin{verbatim}
-%% ok, computation rule (cEqDCompatRev alpha7)
-%%         -> [alpha7_0]alpha7_0 added
-%% \end{verbatim}
-
-We display the program and obtain the output:
-\begin{verbatim}
-(pp neterm)
-
-[xs]
- (Rec list alpha=>list alpha=>list alpha)xs([xs0]xs0)
- ([x,xs0,g,xs1]g(x::xs1))
- (Nil alpha)
-\end{verbatim}
-
-Finally:
-\begin{verbatim}
-(pp (nt (make-term-in-app-form program (pt "a::b::c:"))))
-\end{verbatim}
-This gives the result:
-\begin{verbatim}
-c::b::a:
-\end{verbatim}
-
-To conclude, we would like to remark that this program differs from
-that obtained in section \ref{RevI}.  In fact, the program above could
-be written in a more readable form as follows:
-\begin{verbatim}
-Reverse xs0 = reverse-acc xs0 Nil
-
-reverse-acc Nil xs1 = xs1
-reverse-acc (x1::xs2) xs4 = reverse-acc xs2 (x1::xs4)
-\end{verbatim}
-The reader can see that this program is linear, hence better than the
-previous one which is quadratic.
-
-\newpage
-
-
-\section{Appendix: Useful Commands for Emacs and Petite Scheme}
-
-\subsection{Emacs}\label{emacs}
+\section{Useful Commands}
+\label{S:Commands}
+\subsection{Emacs}
+\label{SS:Emacs}
 \begin{itemize}
-\item Start Emacs: \texttt{emacs \&}\\
-\item Leave Emacs: C-x C-c\\
-\item Split a window in two: \texttt{C-x 2}\\
+\item Start Emacs: \texttt{emacs \&}
+\item Leave Emacs: C-x C-c
+\item Split a window in two: \texttt{C-x 2}
 \item Move to another Buffer: \texttt{C-x b}
-(then specify the Buffer's name)\\
-\item Move to another window: \texttt{C-x o}\\
+(then specify the Buffer's name)
+\item Move to another window: \texttt{C-x o}
 \item Load a file: \texttt{C-x C-f}
-(then give a name of a file with extension \texttt{.scm})\\
-\item Save a file: \texttt{C-x C-s}\\
-\item Exit from the Minibuffer: \texttt{C-g}\\
+(then give a name of a file with extension \texttt{.scm})
+\item Save a file: \texttt{C-x C-s}
+\item Exit from the Minibuffer: \texttt{C-g}
 \end{itemize}
 
-\begin{center}
-\begin{large}
-Scheme\\
-\end{large}
-\end{center}
-\vspace{3 mm}
-
+\subsection{Scheme}
+\label{SS:Scheme}
 \begin{itemize}
-\item Load  (Petite) Scheme:  \texttt{M-x run-petite}\\
-\item Evaluate a Scheme expression: \texttt{C-x C-e}\\
-\item Evaluate a region: mark the region and then \texttt{C-c C-r}\\
-\item Kill a process: \texttt{C-c C-c} \\
-\item Leave the Debug: \texttt{r}\\
-\item End a Scheme session: \texttt{(exit)}\\
-\item Comment: \texttt{;}\\
+\item Load  (Petite) Scheme:  \texttt{M-x run-petite}
+\item Evaluate a Scheme expression: \texttt{C-x C-e}
+\item Evaluate a region: mark the region and then \texttt{C-c C-r}
+\item Kill a process: \texttt{C-c C-c} 
+\item Leave the Debug: \texttt{r}
+\item End a Scheme session: \texttt{(exit)}
+\item Comment: \texttt{;}
 \end{itemize}
 \texttt{C = Control} (or \texttt{Strg}), \texttt{M = Meta} (or
 \texttt{Edit} or \texttt{Esc} or \texttt{Alt}).
 
-
-\newpage
-
-\subsection{Useful Commands: \mi}
+\subsection{Minlog}
+\label{SS:Minlog}
 The following is a list of commands which could be used in a
 \inquotes{standard} interactive proof with \mi. Rather than explaining
 the commands in detail (many of them have been demonstrated in the
@@ -2722,32 +3096,27 @@ above tutorial), we shall write them down, often with a short
 description of their use gathered from the reference manual.  The
 reader is advised to check the full details with the reference manual.
 
-
 \subsubsection{Some declarations needed to start a proof}
 \begin{enumerate}[]
 \item \texttt{(add-tvar-name \textsl{name1} \dots)}%
-\index{add-tvar-name@\texttt{add-tvar-name}}\\
+\index{add-tvar-name@\texttt{add-tvar-name}}
 \item \texttt{(add-algs \dots)}\index{add-algs@\texttt{add-algs}}
-%% , and also \\
-%% \texttt{(add-param-alg \dots)}%
-%% \index{add-param-alg@\texttt{add-param-alg}}
-\\
 \item \texttt{(add-var-name \textsl{name1} \dots\ \textsl{type})}%
-\index{add-var-name@\texttt{add-var-name}}\\
+\index{add-var-name@\texttt{add-var-name}}
 \item \texttt{(add-predconst-name \textsl{name1} \dots\ \textsl{arity})}%
-\index{add-predconst-name@\texttt{add-predconst-name}}\\
+\index{add-predconst-name@\texttt{add-predconst-name}}
 \item \texttt{(add-pvar-name \textsl{name1} \dots\ \textsl{type})}%
-\index{add-var-name@\texttt{add-pvar-name}}\\
+\index{add-var-name@\texttt{add-pvar-name}}
 \item \texttt{(add-program-constant \textsl{name} \textsl{type}
   <\textsl{rest}>)}%
-\index{add-program-constant@\texttt{add-program-constant}}\\
+\index{add-program-constant@\texttt{add-program-constant}}
 \item \texttt{(add-computation-rule \textsl{lhs} \textsl{rhs})}%
-\index{add-computation-rule@\texttt{add-computation-rule}}\\
+\index{add-computation-rule@\texttt{add-computation-rule}}
 \item \texttt{(add-rewrite-rule \textsl{lhs} \textsl{rhs})}%
-\index{add-rewrite-rule@\texttt{add-rewrite-rule}}\\
+\index{add-rewrite-rule@\texttt{add-rewrite-rule}}
 \item \texttt{(add-global-assumption \textsl{name} \textsl{formula})}%
 \index{add-global-assumption@\texttt{add-global-assumption}}
-  \quad \hbox{(abbr. \texttt{aga}\index{aga@\texttt{aga}})}\\
+  \quad \hbox{(abbr. \texttt{aga}\index{aga@\texttt{aga}})}
 \end{enumerate}
 For each introduction command above there corresponds another one
 having the effect of removing the item so introduced (constants,
@@ -2755,23 +3124,23 @@ variables,  etc). For example:
 
 \texttt{(remove-predconst-name \textsl{name1} \dots)}%
 \index{remove-predconst-name@\texttt{remove-predconst-name}}\\
-There are also numerous display commands, in particular the following:\\
-
-\texttt{(display-pconst \textsl{name1} \dots)}%
-\index{display-pconst@\texttt{display-pconst}}.\\
-
-\texttt{(display-alg \textsl{alg-name1} \dots)}%
-\index{display-alg@\texttt{display-alg}}\\
-
-\texttt{(display-idpc \textsl{idpc-name1} \dots)}%
-\index{display-idpc@\texttt{display-idpc}}\\
-
-\texttt{(display-global-assumptions \textsl{string1} \dots)}%
-\index{display-global-assumptions@\texttt{display-global-assumptions}}\\
-
-\texttt{(display-theorems \textsl{string1} \dots)}%
-\index{display-theorems@\texttt{display-theorems}}
-
+There are also numerous display commands, in particular the following:
+\begin{align*}
+  &\texttt{(display-pconst \textsl{name1} \dots)}%
+  \index{display-pconst@\texttt{display-pconst}}.
+  \\
+  &\texttt{(display-alg \textsl{alg-name1} \dots)}%
+  \index{display-alg@\texttt{display-alg}}
+  \\
+  &\texttt{(display-idpc \textsl{idpc-name1} \dots)}%
+  \index{display-idpc@\texttt{display-idpc}}
+  \\
+  &\texttt{(display-global-assumptions \textsl{string1} \dots)}%
+  \index{display-global-assumptions@\texttt{display-global-assumptions}}
+  \\
+  &\texttt{(display-theorems \textsl{string1} \dots)}%
+  \index{display-theorems@\texttt{display-theorems}}
+\end{align*}
 For types, terms and formulas there is a command \texttt{(pp
   \textsl{object})}\index{pp@\texttt{pp}} (for pretty-print), which
 tries to insert useful line breaks.  Variants are \texttt{(ppc
@@ -2784,23 +3153,25 @@ display) and \texttt{(pp-subst \textsl{substitution})}%
 variables in terms, formulas and comprehension terms.
 
 \subsubsection{Goals}
-
-\texttt{(set-goal \textsl{formula})}\index{set-goal@\texttt{set-goal}}
-where \textsl{formula} needs to be closed (if it not so, then
-universal quantifiers will be inserted automatically).\\
-
-\texttt{(normalize-goal \textsl{goal})}%
-\index{normalize-goal@\texttt{normalize-goal}}  (abbr.\
-\texttt{ng}\index{ng@\texttt{ng}})
-replaces the goal by its normal form.\\
-
-\texttt{(display-current-goal)}%
-\index{display-current-goal@\texttt{display-current-goal}}
- (abbr.\ \texttt{dcg}\index{dcg@\texttt{dcg}})
-
+\begin{enumerate}
+\item \texttt{(set-goal \textsl{formula})}%
+  \index{set-goal@\texttt{set-goal}} where
+  \textsl{formula} needs to be closed (if it not so, then universal
+  quantifiers will be inserted automatically).
+\item \texttt{(normalize-goal .\ \textsl{ng-info})}%
+  \index{normalize-goal@\texttt{normalize-goal}}
+  (abbr.\ \texttt{ng}\index{ng@\texttt{ng}}) takes optional arguments
+  \texttt{ng-info}.  If there are none, the goal formula and all
+  hypotheses are normalized.  Otherwise exactly those among the
+  hypotheses and the goal formula are normalized whose numbers (or
+  names, or just \verb+#t+ for the goal formula) are listed as
+  additional arguments.
+\item \texttt{(display-current-goal)}%
+  \index{display-current-goal@\texttt{display-current-goal}}
+  (abbr.\ \texttt{dcg}\index{dcg@\texttt{dcg}}).
+\end{enumerate}
 
 \subsubsection{Generating interactive proofs}
-
 \underline{Implication}
 
 \texttt{(assume \textsl{x1}\dots)}\index{assume@\texttt{assume}}\\
@@ -2817,19 +3188,19 @@ where \textsl{x} is
 \item the name of a theorem or global assumption.
 \item a closed proof,
 \item a formula with free variables from the context, generating a new
-goal.\\
+  goal.
 \end{itemize}
 
 \underline{Conjunction}
 
 \texttt{(split)}\index{split@\texttt{split}}\\
 expects a conjunction $A \land B$ as goal and splits it into
-two new goals, $A$ and $B$.\\
+two new goals, $A$ and $B$.
 
 \texttt{(use \textsl{x} . \textsl{elab-path})}\\
 where \textsl{x} is as in the description of the \texttt{use}
 command for implication and \textsl{elab-path} consists of \texttt{'left}
-or \texttt{'right}.\\
+or \texttt{'right}.
 
 \underline{Universal Quantifier}
 
@@ -2915,9 +3286,11 @@ with $A$ to be proved first.
 \texttt{(ind)}\index{ind@\texttt{ind}}\\
 expects a goal $\forall_{x^\rho} A$ with $\rho$ an algebra.  If $c_1,
 \dots, c_n$ are the constructors of the algebra $\rho$, then
-\texttt{(ind)} will generate $n$ new goals: \sloppy
-$\forall_{\vec{x}_i} (\subst{A}{x}{x_{1i}} \to \dots \to
-\subst{A}{x}{x_{ki}} \to \subst{A}{x}{c_i \vec{x}_i})$.
+\texttt{(ind)} will generate $n$ new goals:
+\begin{equation*}
+  \forall_{\vec{x}_i} (\subst{A}{x}{x_{1i}} \to \dots \to
+  \subst{A}{x}{x_{ki}} \to \subst{A}{x}{c_i \vec{x}_i}).
+\end{equation*}
 
 \texttt{(simind \textsl{all-formula1}\dots)}%
 \index{simind@\texttt{simind}}\\
@@ -3047,8 +3420,8 @@ presented as the new goal.  \texttt{auto} takes the same arguments as
 There are many ways to display a proof.  We normally use
 \texttt{display-proof} for a linear representation, showing the
 formulas and the rules used.  We also provide a (hopefully) readable
-type-free lambda expression via \texttt{proof-to-expr}, and can add
-useful information with one of \texttt{proof-to-expr-with-formulas},
+type-free lambda expression via \texttt{proof-to-expr}, and we can add
+useful information with either \texttt{proof-to-expr-with-formulas} or
 \texttt{proof-to-expr-with-aconsts}.  In case the optional proof
 argument is not present, the current proof is taken instead.
 \begin{alignat*}{2}
@@ -3087,13 +3460,15 @@ It is a practical problem to find existing theorems or global
 assumptions relevant for the situation at hand.  To help searching
 for those we provide
 \begin{equation*}
-  \texttt{(search-about \textsl{string})}.%
+  \texttt{(search-about \textsl{symbol-or-string} .\ \textsl{opt-strings})}.%
   \index{search-about@\texttt{search-about}}
 \end{equation*}
 It searches in \texttt{THEOREMS}\index{THEOREMS@\texttt{THEOREMS}} and
 \texttt{GLOBAL-ASSUMPTIONS}%
 \index{GLOBAL-ASSUMPTIONS@\texttt{GLOBAL-ASSUMPTIONS}} for all items
-whose name contains \textsl{string}.
+whose name contains each of the strings given, excluding the strings
+Total Partial CompRule RewRule Sound.  It one wants to list all these as
+well, take the symbol 'all as first argument.
 
 %% \texttt{(display-proof\ . \textsl{opt-proof})}
 %% \index{display-proof@\texttt{display-proof}}
@@ -3117,6 +3492,7 @@ whose name contains \textsl{string}.
 
 %% \texttt{(display-normalized-eterm . \textsl{opt-proof})}
 %% (abbr. \texttt{dnet})
+\end{appendix}
 
 \bibliography{minlog}
 \bibliographystyle{amsplain}
