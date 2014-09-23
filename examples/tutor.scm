@@ -224,7 +224,6 @@
  all x,v(f x in v -> excl u(x in u & all y(y in u -> f y in v))) ->
  all x,w(f(f x)in w -> excl u(x in u & all y(y in u -> f(f y)in w))))")
 (search)
-(dnp)
 
 (remove-var-name "x" "y" "f" "u" "v" "w")
 
@@ -233,6 +232,8 @@
 ;; (set! COMMENT-FLAG #f)
 ;; (libload "nat.scm")
 ;; (set! COMMENT-FLAG #t)
+
+(set! COQ-GOAL-DISPLAY #t)
 
 (display-alg "nat")
 (display-pconst "NatPlus")
@@ -243,7 +244,7 @@
 
 ;; Defining program constants.
 
-(add-program-constant  "Double" (py "nat=>nat"))
+(add-program-constant "Double" (py "nat=>nat"))
 (add-computation-rule (pt "Double 0") (pt "0"))
 (add-computation-rule (pt "Double(Succ n)")
                       (pt "Succ(Succ(Double n))"))
@@ -324,13 +325,13 @@
 (add-var-name "x" "a" "b" "c" "d" (py "alpha"))
 (add-var-name "xs" "ys" "v" "w" "u" (py "list alpha"))
 
-(add-program-constant "ListRev" (py "list alpha=>list alpha") t-deg-one)
-(add-prefix-display-string "ListRev" "Rev")
+(add-program-constant "ListRv" (py "list alpha=>list alpha") t-deg-one)
+(add-prefix-display-string "ListRv" "Rv")
 (add-computation-rules
- "Rev(Nil alpha)" "(Nil alpha)"
- "Rev(x::xs)" "Rev xs++x:")
-;; (add-computation-rule (pt "Rev(Nil alpha)") (pt "(Nil alpha)"))
-;; (add-computation-rule (pt "Rev(x::xs)") (pt "Rev xs++x:"))
+ "Rv(Nil alpha)" "(Nil alpha)"
+ "Rv(x::xs)" "Rv xs++x:")
+;; (add-computation-rule (pt "Rv(Nil alpha)") (pt "(Nil alpha)"))
+;; (add-computation-rule (pt "Rv(x::xs)") (pt "Rv xs++x:"))
 
 (display-pconst "ListAppd")
 
@@ -342,7 +343,7 @@
 ;; 	xs++(Nil alpha)	xs
 ;; 	xs1++x2: ++xs2	xs1++(x2::xs2)
 
-(set-goal "all v,w Rev(v++w)eqd Rev w++Rev v")
+(set-goal "all v,w Rv(v++w)eqd Rv w++Rv v")
 (ind)
 ;; Base
 (ng)
@@ -357,10 +358,21 @@
 ;; Proof finished.
 
 ;; Exercises:
-(av "fun" (py "alpha=>alpha"))
+(av "f" (py "alpha=>alpha"))
 
-(set-goal "all fun,ys,xs (fun map (xs++ys) eqd(fun map xs)++(fun map ys))")
-(set-goal "all fun,xs (fun map (Rev xs) eqd Rev (fun map xs))")
+(set-goal "all f,ys,xs (f map (xs++ys) eqd(f map xs)++(f map ys))")
+(set-goal "all f,xs (f map (Rv xs) eqd Rv (f map xs))")
+(assume "f")
+(ind)
+(ng)
+(use "InitEqD")
+(assume "x" "xs" "IHxs")
+(ng #t)
+(simp "MapAppd")
+(simp "IHxs")
+(use "InitEqD")
+
+(remove-var-name "f")
 
 ;; Defining algebras: Binary trees.
 
@@ -404,16 +416,16 @@
 ;; Proof using induction on the predicate Even:
 
 (set-goal "all n(EvenI n -> ex m m+m=n)")
-(assume "n")
-(elim)
+(assume "n" "En"))
+(elim "En")
 
 (ex-intro (pt "0"))
-(prop)
+(use "Truth")
 
-(assume "n1" 2 3)
-(by-assume 3 "m0" 4)
+(assume "n1" "En1" "IH")
+(by-assume "IH" "m0" "m0Prop")
 (ex-intro (pt "m0+1"))
-(simp "<-" 4)
+(simp "<-" "m0Prop")
 (use "Truth")
 
 ;; Totality of program constants
@@ -437,7 +449,6 @@
 ;; Proof finished.
 (save "DoubleTotal")
 
-
 ;; Program extraction from proofs
 
 ;; (add-var-name "x" "a" "b" "c" "d" (py "alpha"))
@@ -445,23 +456,66 @@
 
 (add-ids (list (list "RevI"
                      (make-arity (py "list alpha") (py "list alpha"))))
-         '("RevI(Nil alpha)(Nil alpha)" "InitRev")
-         '("all a,v,w(RevI v w  -> RevI(v++a:)(a::w))" "GenRev"))
+         '("RevI(Nil alpha)(Nil alpha)" "InitRevI")
+         '("all a,v,w(RevI v w  -> RevI(v++a:)(a::w))" "GenRevI"))
 
-(aga "RevSym" "all v,w(RevI v w -> RevI w v)")
+;; RevIConsAppd
+(set-goal "all a,v,w(RevI v w  -> RevI(a::v)(w++a:))")
+(assume "a" "v" "w" "Rvw")
+(elim "Rvw")
+(ng)
+;; RevI(a:)(a:)
+(use-with "GenRevI" (pt "a") (pt "(Nil alpha)") (pt "(Nil alpha)") "InitRevI")
+(assume "a1" "v1" "w1" "Rv1w1" "Hyp")
+(assert "(a::v1++a1:)eqd(a::v1)++a1:")
+ (ng #t)
+ (use "InitEqD")
+(assume "Assertion1")
+(simp "Assertion1")
+(assert "(a1::w1)++a:eqd(a1::w1++a:)")
+ (ng #t)
+ (use "InitEqD")
+(assume "Assertion2")
+(simp "Assertion2")
+(use "GenRevI")
+(use "Hyp")
+;; Proof finished.
+(save "RevIConsAppd")
+
+;; (display-pconst "ListAppd")
+
+;; Better: instead of the assertions simplify with ListAppdCompOne
+;; (Called ListAppdDef in higwqo.scm; rename there)
+;; (set-goal "all x^1,xs^1,xs^2 (x^1::xs^1)++xs^2 eqd(x^1::xs^1++xs^2)")
+;; (assume "x^1" "xs^1" "xs^2")
+;; (ng)
+;; (use "InitEqD")
+;; ;; Proof finished.
+;; (save "ListAppdDef")
+
+;; RevISym
+(set-goal "all v,w(RevI v w -> RevI w v)")
+(assume "v" "w" "Rvw")
+(elim "Rvw")
+(use "InitRevI")
+(assume "a" "v1" "w1" "Rv1w1" "Rw1v1")
+(use "RevIConsAppd")
+(use "Rw1v1")
+;; Proof finished.
+(save "RevISym")
 
 (set-goal "all v ex w RevI v w")
 (ind)
 (ex-intro (pt "(Nil alpha)"))
 (intro 0)
 ;; Step
-(assume "a" "v" 1)
-(by-assume 1 "w" 2)
+(assume "a" "v" "IH")
+(by-assume "IH" "w" "wProp")
 (ex-intro (pt "w++a:"))
-(use "RevSym")
+(use "RevISym")
 (intro 1)
-(use "RevSym")
-(use 2)
+(use "RevISym")
+(use "wProp")
 ;; Proof finished.
 
 (define constr-proof (current-proof))
@@ -470,7 +524,9 @@
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
 
-(term-to-expr neterm)
+;; [xs](Rec list alpha=>list alpha)xs(Nil alpha)([x,xs0,xs1]xs1++x:)
+
+(term-to-scheme-expr neterm)
 
 (pp (nt (make-term-in-app-form
 	 neterm (pt "a::b::c::d:"))))
@@ -484,7 +540,7 @@
 (assume "n")
 (elim)
 (ex-intro (pt "0"))
-(prop)
+(use "Truth")
 (assume "n1" 2 3)
 (by-assume 3 "m0" 4)
 (ex-intro (pt "m0+1"))
@@ -499,17 +555,23 @@
 ;; Exercise: compare the above extracted program with a program from
 ;; a proof where Even/Odd are program constants with computation rules.
 
-(set-goal (pf "all n ex m ((Even n -> 2*m = n) & (Odd n -> 2*m+1=n))"))
-
 ;; Inductive Definition of Even, without computational content
 
 (add-ids (list (list "EvenNC" (make-arity (py "nat"))))
 	 '("EvenNC 0" "InitEvenNC")
 	 '("allnc n(EvenNC n -> EvenNC(n+2))" "GenEvenNC"))
 
-;; Exercise: Prove the following statement, using exnc-intro.
-
-(set-goal "allnc n(EvenNC n -> exnc m m+m=n)")
+;; Exercise: Prove the following statement
+(set-goal "allnc n(EvenNC n -> exu m m+m=n)")
+(assume "n" "En")
+(elim "En")
+(intro 0 (pt "0"))
+(use "Truth")
+(assume "n1" "En1" "IH")
+(by-assume "IH" "m0" "m0Prop")
+(intro 0 (pt "m0+1"))
+(simp "<-" "m0Prop")
+(use "Truth")
 
 ;; Parsing example
 
@@ -889,13 +951,15 @@
 
 (add-var-name "a"  (py "alpha"))
 
+;; Following tutor.tex
+
 (set-goal "all v excl w RevI v w")
-
-(assume "v0" 1)
-(cut "all u allnc v(v++u eqd v0 -> all w(RevI v w -> bot))")
-
+(assume "v0" "AllNegHyp")
+(cut "all u allnc v(v++u eqd v0 ->
+                    all w(RevI v w -> bot))")
 (assume "claim")
-(use "claim" (pt "v0") (pt "(Nil alpha)") (pt "(Nil alpha)"))
+(use "claim"
+     (pt "v0") (pt "(Nil alpha)") (pt "(Nil alpha)"))
 (ng)
 (use "InitEqD")
 (intro 0)
@@ -903,17 +967,17 @@
 ;; Base
 (assume "v")
 (ng)
-(assume 2 "w")
-(simp 2)
-(use 1)
+(assume "v=v0" "w")
+(simp "v=v0")
+(use "AllNegHyp")
 ;; Step
-(assume "a" "u" "IH" "v" 3 "w" 4)
+(assume "a" "u" "IH" "v" "EqDHyp" "w" "RHyp")
 (use "IH" (pt "v++a:") (pt "a::w"))
 (ng)
-(use 3)
+(use "EqDHyp")
 (intro 1)
-(use 4)
-
+(use "RHyp")
+;; Proof finished.
 (define class-proof (np (current-proof)))
 
 (av "g" (py "list alpha=>list alpha"))
@@ -921,11 +985,99 @@
 (define eterm
   (atr-min-excl-proof-to-structured-extracted-term class-proof))
 (define neterm (rename-variables (nt eterm)))
-
 (pp neterm)
 
 ;; [xs]
 ;;  (Rec list alpha=>list alpha=>list alpha)xs([xs0]xs0)
-;;  ([x,xs0,g,xs1]g(x::xs1))
+;;  ([a,xs0,g,xs1]g(a::xs1))
+;;  (Nil alpha)
 
 (pp (nt (make-term-in-app-form neterm (pt "a::b::c:"))))
+
+;; We first need to prove totality of Even and Odd
+
+;; NatEvenOddTotal
+(set-goal "allnc n^(TotalNat n^ -> TotalBoole(Even n^) & TotalBoole(Odd n^))")
+(assume "n^" "Tn")
+(elim "Tn")
+(split)
+(use "TotalBooleTrue")
+(use "TotalBooleFalse")
+(assume "n^1" "Tn1" "IHn1")
+(split)
+(ng #t)
+(use "IHn1")
+(ng #t)
+(use "IHn1")
+;; Proof finished.
+(save "NatEvenOddTotal")
+
+;; EvenTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "Even"))))
+(assume "n^" "Tn")
+(use "NatEvenOddTotal")
+(use "Tn")
+;; Proof finished.
+(save "EvenTotal")
+
+;; OddTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "Odd"))))
+(assume "n^" "Tn")
+(use "NatEvenOddTotal")
+(use "Tn")
+;; Proof finished.
+(save "OddTotal")
+
+;; NatEvenOddDisjunct
+(set-goal "all n(Even n -> Odd n -> F)")
+(ind)
+;; Base
+(ng)
+(assume "Useless" "Absurd")
+(use "Absurd")
+;; Step
+(assume "n" "IHn" "E(n+1)" "O(n+1)")
+(use-with "IHn" "O(n+1)" "E(n+1)")
+;; Proof finished.
+(save "NatEvenOddDisjunct")
+
+(set-goal "all n ex m((Even n -> 2*m=n) & (Odd n -> 2*m+1=n))")
+(ind)
+;; Base
+(ex-intro "0")
+(split)
+(assume "Useless")
+(use "Truth")
+(assume "Absurd")
+(use "Absurd")
+;; Step
+(assume "n" "IHn")
+(by-assume "IHn" "m" "mProp")
+(ex-intro "[if (Even n) m (Succ m)]")
+(split)
+;; Case Odd n
+(assume "E(n+1)")
+(assert "Even n -> F")
+ (assume "En")
+ (use "NatEvenOddDisjunct" (pt "n"))
+ (use "En")
+ (use "E(n+1)")
+(assume "Even n -> F")
+(simp "Even n -> F")
+(ng #t)
+(use "mProp")
+(use "E(n+1)")
+;; Case Even n
+(assume "O(n+1)")
+(simp "O(n+1)")
+(ng #t)
+(use "mProp")
+(use "O(n+1)")
+;; Proof finished.
+
+(define eterm (proof-to-extracted-term (current-proof)))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n](Rec nat=>nat)n 0([n0,n1][if (Even n0) n1 (Succ n1)])
+
+;; The parsing example is in git/minlog/examples/parsing/parens.scm
