@@ -1,5 +1,107 @@
 ;; $Id: log.txt 2704 2014-04-04 13:45:03Z schwicht $
 
+2014-09-23
+
+In var.scm
+
+(display-default-varnames . opt-types) added
+
+In typ.scm
+
+string-to-first-name added.  For NatPlus1CompRule it returns NatPlus
+
+In pconst.scm
+
+add-computation-rule now creates a theorem expressing the rule:
+NatPlus1CompRule: all n^,m^ n^ +Succ m^eqd Succ(n^ +m^).  Similarly
+add-rewrite-rule now creates a theorem expressing the rule:
+NatPlus0RewRule: all n 0+n=n.  In change-t-deg-to-one all theorems
+with names like NatPlus1...  are removed, since the following
+add-computation rule will add them again.  In
+(remove-computation-rules-for name) remove those (automatically
+generated) theorems with string-to-first-name = name and
+string-to-last-name = CompRule.  Similarly for
+remove-rewrite-rules-for .
+
+In term.scm
+
+(term-to-term-with-partial-vars term) changes all total vars free
+in term into partial vars.
+
+In formula.scm
+
+In formula=-aux? Total n^ and TotalNat n^ considered equal, as in
+unfold-formula .  var-and-vars-to-new-var takes as relevant variables
+(i.e., in need of a new index) only those with the same name (as
+before), t-deg and type (new).  var-and-vars-to-new-var now also takes
+the t-deg and the type into account to determine relevant-vars.
+
+In psym.scm
+
+Removed obsolete alg-and-cterm-to-rftotality-idpredconst and
+alg-and-cterm-to-rltotality-idpredconst .
+term-and-alist-to-totality-formula simplified, double occurrence
+removed.
+
+In boole.scm
+
+add-computation-rules for AndConst etc moved to ets.scm, since
+construction of the proofs for their rules needs EqD
+
+In axiom.scm
+
+(search-about string1 ...) searches for theorems or global assumptions
+whose name contains each of the strings given, excluding Total Partial
+CompRule RewRule Sound.  It one wants to list all these as well, take
+the symbol all as first argument.  In add-theorem error messages for
+totality proofs improved.
+
+In proof.scm
+
+(proof-and-formula-to-proof proof formula) replaces the end formula of
+proof by formula.  It should only be applied when both are equal in
+the sense of having a common reduct.
+
+In ets.scm
+
+BooleTotalVar YprodTotalVar YsumTotalVar added as initial theorems.
+add-computation-rules for AndConst etc moved from boole.scm to here,
+since construction of the proofs for their rules needs EqD
+
+In pp.scm
+
+In token-tree-tag-to-precedence alg-typeop mnow has precedence
+immediately below prefix-typeop.  Reason: the type list(lntree nat)
+with list a prefix-typeop and lntree an alg-typeop is printed as list
+lntree nat
+
+In doc/ref.tex
+
+display-default-varnames inserted.
+
+In doc/tutor.tex
+
+Hideki Tsuiki's suggested corrections and changes inserted.
+
+In lib/nat.scm
+
+NatLeToEq added, with rewrite rule nat<=0 -> nat=0.  ExBNat added
+NatDoubleDefSucc removed.  Use the automatically generated
+NatDouble1CompRule instaed
+
+In lib/list.scm
+
+FBarAppdLast formulated with (nat=>alpha)^ .  Extensions from bar/higwqo
+added.
+
+In lib/numbers.scm
+
+NatDoubleDefSucc replaced by NatDouble1CompRule
+
+In lib/real.scm
+
+In RealPosChar1 allnc as changed to all as
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-08-20
 
