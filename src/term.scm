@@ -3398,7 +3398,7 @@ intDestr n | n > 0  = Left n
 
 (define |cId| (lambda (x) x))
 
-;; Code discarded 2014-01-06
+;; The following have been moved to term.scm
 ;; (define |AndConst| (lambda (p) (lambda (q) (and p q))))
 ;; (define |ImpConst| (lambda (p) (lambda (q) (or (not p) q))))
 (define |OrConst| (lambda (p) (lambda (q) (or p q))))
@@ -4502,74 +4502,6 @@ intDestr n | n > 0  = Left n
 	      if-term
 	      (term-to-term-with-eta-expanded-if-terms if-term)))
 	(apply mk-term-in-app-form op args))))
-
-;; Code discarded 2014-01-28
-;; (define (rec-op-and-args-to-if-term op args)
-;;   (let* ((rec-const (term-in-const-form-to-const op))
-;; 	 (rec-arg (car args))
-;; 	 (rest-args (cdr args))
-;; 	 (uninst-type (const-to-uninst-type rec-const))
-;; 	 (alg-name (alg-form-to-name (arrow-form-to-arg-type uninst-type)))
-;; 	 (uninst-step-types
-;; 	  (arrow-form-to-arg-types (arrow-form-to-val-type uninst-type)))
-;; 	 (xis (map arrow-form-to-final-val-type uninst-step-types))
-;; 	 (val-tvar (arrow-form-to-final-val-type uninst-type))
-;; 	 (tsubst (const-to-tsubst rec-const)) ;for tparams and val-tvars
-;; 					;select the relevant step args
-;; 					;and uninst step types
-;; 	 (rel-step-args-and-uninst-step-types
-;; 	  (do ((l1 rest-args (cdr l1))
-;; 	       (l2 uninst-step-types (cdr l2))
-;; 	       (res '() (if (equal? (arrow-form-to-final-val-type (car l2))
-;; 				    val-tvar)
-;; 			    (cons (list (car l1) (car l2)) res)
-;; 			    res)))
-;; 	      ((null? l2) (reverse res))))
-;; 	 (rel-step-args (map car rel-step-args-and-uninst-step-types))
-;; 	 (rel-uninst-step-types (map cadr rel-step-args-and-uninst-step-types))
-;; 	 (rel-uninst-step-arg-types
-;; 	  (map arrow-form-to-arg-types rel-uninst-step-types))
-;; 	 (rel-uninst-step-alg-arg-types ;((ss1->xi1 .. ssn->xin) ..)
-;; 	  (map (lambda (l)
-;; 		 (list-transform-positive l
-;; 		   (lambda (y)
-;; 		     (let ((val-type (arrow-form-to-final-val-type y)))
-;; 		       (member val-type xis)))))
-;; 	       rel-uninst-step-arg-types))
-;; 	 (rel-uninst-step-alg-arg-lengths
-;; 	  (map length rel-uninst-step-alg-arg-types))
-;; 	 (param-types-list
-;; 	  (map (lambda (l n) (list-head l (- (length l) (* 2 n))))
-;; 	       rel-uninst-step-arg-types rel-uninst-step-alg-arg-lengths))
-;; 	 (param-types-list-lengths (map length param-types-list))
-;; 	 (k (length uninst-step-types))
-;; 	 (val-args (list-tail rest-args k))
-;; 	 (arg-vars-list (map term-in-abst-form-to-vars rel-step-args))
-;; 	 (arg-kernels (map term-in-abst-form-to-final-kernel rel-step-args))
-;; 	 (prev-arg-vars-list
-;; 	  (map (lambda (p arg-vars n)
-;; 		 (list-tail (list-head arg-vars (+ p (* 2 n)))
-;; 			    (+ p n)))
-;; 	       param-types-list-lengths
-;; 	       arg-vars-list
-;; 	       rel-uninst-step-alg-arg-lengths)))
-;;     (if
-;;      (apply and-op (map (lambda (vs arg-kernel)
-;; 			  (null? (intersection vs (term-to-free arg-kernel))))
-;; 			prev-arg-vars-list arg-kernels))
-;;      (let* ((simplified-rel-step-args
-;; 	     (map (lambda (vs ws arg-kernel)
-;; 		    (apply mk-term-in-abst-form
-;; 			   (append (set-minus ws vs) (list arg-kernel))))
-;; 		  prev-arg-vars-list arg-vars-list arg-kernels))
-;; 	    (if-term (apply mk-term-in-app-form
-;; 			    (make-term-in-if-form
-;; 			     rec-arg simplified-rel-step-args)
-;; 			    val-args)))
-;;        (if (null? val-args)
-;; 	   if-term
-;; 	   (term-to-term-with-eta-expanded-if-terms if-term)))
-;;      (apply mk-term-in-app-form op args))))
 
 (define (term-in-if-normal-form? term)
   (case (tag term)
@@ -5905,129 +5837,6 @@ intDestr n | n > 0  = Left n
 	  #t))))
    (else (myerror "check-term" "term expected" x))))
 
-;; Code discarded 2014-01-28
-;; (define (check-term x)
-;;   (if (not (pair? x)) (myerror "check-term" "term expected"))
-;;   (cond
-;;    ((term-in-var-form? x)
-;;     (let ((var (term-in-var-form-to-var x)))
-;;       (if (not (var? var))
-;; 	  (myerror "check term" "variable expected" var))
-;;       (if (not (equal? (term-to-type x) (var-to-type var)))
-;; 	  (myerror "check-term" "equal types expected"
-;; 		   (term-to-type x) (var-to-type var))))
-;;     #t)
-;;    ((term-in-const-form? x)
-;;     (let ((const (term-in-const-form-to-const x)))
-;;       (if (not (const? const))
-;; 	  (myerror "check-term" "constant expected" const))
-;;       (if (not (equal? (term-to-type x) (const-to-type const)))
-;; 	  (myerror "check-term" "equal types expected"
-;; 		   (term-to-type x) (const-to-type const))))
-;;     #t)
-;;    ((term-in-abst-form? x)
-;;     (let ((var (term-in-abst-form-to-var x))
-;; 	  (kernel (term-in-abst-form-to-kernel x)))
-;;       (if (not (var? var))
-;; 	  (myerror "check-term" "variable expected" var))
-;;       (check-term kernel)
-;;       (let ((var-type (var-to-type var))
-;; 	    (kernel-type (term-to-type kernel)))
-;; 	(if (not (equal? (make-arrow var-type kernel-type)
-;; 			 (term-to-type x)))
-;; 	    (myerror "check-term" "equal types expected"
-;; 		     (make-arrow var-type kernel-type)
-;; 		     (term-to-type x)))))
-;;     #t)
-;;    ((term-in-app-form? x)
-;;     (let ((op (term-in-app-form-to-op x))
-;; 	  (arg (term-in-app-form-to-arg x)))
-;;       (check-term op)
-;;       (check-term arg)
-;;       (let ((op-type (term-to-type op))
-;; 	    (arg-type (term-to-type arg)))
-;; 	(if (not (arrow-form? op-type))
-;; 	    (myerror "check-term" "arrow type expected" op-type))
-;; 	(if (not (equal? (arrow-form-to-arg-type op-type) arg-type))
-;; 	    (myerror "check-term" "equal types expected"
-;; 		     (arrow-form-to-arg-type op-type)
-;; 		     arg-type))
-;; 	(if (not (equal? (term-to-type x)
-;; 			 (arrow-form-to-val-type op-type)))
-;; 	    (myerror "check-term" "equal types expected"
-;; 		     (term-to-type x)
-;; 		     (arrow-form-to-val-type op-type)))))
-;;     #t)
-;;    ((term-in-pair-form? x)
-;;     (let ((left (term-in-pair-form-to-left x))
-;; 	  (right (term-in-pair-form-to-right x)))
-;;       (check-term left)
-;;       (check-term right)
-;;       (let ((left-type (term-to-type left))
-;; 	    (right-type (term-to-type right)))
-;; 	(if (not (equal? (term-to-type x)
-;; 			 (make-star left-type right-type)))
-;; 	    (myerror "check-term" "equal types expected"
-;; 		     (term-to-type x)
-;; 		     (make-star left-type right-type)))))
-;;     #t)
-;;    ((term-in-lcomp-form? x)
-;;     (let ((kernel (term-in-lcomp-form-to-kernel x)))
-;;       (check-term kernel)
-;;       (let ((kernel-type (term-to-type kernel)))
-;; 	(if (not (star-form? kernel-type))
-;; 	    (myerror "check-term" "star form expected" kernel-type))
-;; 	(if (not (equal? (term-to-type x)
-;; 			 (star-form-to-left-type kernel-type)))
-;; 	    (myerror "check-term" "equal types expected"
-;; 		     (term-to-type x)
-;; 		     (star-form-to-left-type kernel-type)))))
-;;     #t)
-;;    ((term-in-rcomp-form? x)
-;;     (let ((kernel (term-in-rcomp-form-to-kernel x)))
-;;       (check-term kernel)
-;;       (let ((kernel-type (term-to-type kernel)))
-;; 	(if (not (star-form? kernel-type))
-;; 	    (myerror "check-term" "star form expected" kernel-type))
-;; 	(if (not (equal? (term-to-type x)
-;; 			 (star-form-to-right-type kernel-type)))
-;; 	    (myerror "check-term" "equal types expected"
-;; 		     (term-to-type x)
-;; 		     (star-form-to-right-type kernel-type)))))
-;;     #t)
-;;    ((term-in-if-form? x)
-;;     (let ((test (term-in-if-form-to-test x))
-;; 	  (alts (term-in-if-form-to-alts x))
-;; 	  (rest (term-in-if-form-to-rest x)))
-;;       (check-term test)
-;;       (map check-term alts)
-;;       (let ((test-type (term-to-type test))
-;; 	    (alts-types (map term-to-type alts)))
-;; 	(if (not (alg-form? test-type))
-;; 	    (myerror "check-term" "algebra form expected" test-type))
-;; 	(let* ((alg-name (alg-form-to-name test-type))
-;; 	       (typed-constr-names
-;; 		(alg-name-to-typed-constr-names alg-name))
-;; 	       (constr-types
-;; 		(map typed-constr-name-to-type
-;; 		     typed-constr-names))
-;; 	       (lengths-of-arg-types
-;; 		(map (lambda (x)
-;; 		       (length (arrow-form-to-arg-types x)))
-;; 		     constr-types))
-;; 	       (types (map (lambda (alt l)
-;; 			     (arrow-form-to-final-val-type
-;; 			      (term-to-type alt) l))
-;; 			   alts lengths-of-arg-types)))
-;; 	  (if (not (apply and-op (map (lambda (x) (equal? x (car types)))
-;; 				      types)))
-;; 	      (myerror "check-term" "equal types expected" types))
-;; 	  (if (not (equal? (term-to-type x) (car types)))
-;; 	      (myerror "check-term" "equal types expected"
-;; 		       (term-to-type x) (car types))))))
-;;     #t)
-;;    (else (myerror "check-term" "term expected" x))))
-
 ;; term? is a complete test for terms.  Returns true or false.
 
 (define (term? x)
@@ -6309,6 +6118,23 @@ intDestr n | n > 0  = Left n
 
 (define (term-gen-subst term term1 term2)
   (term-gen-substitute term (list (list term1 term2))))
+
+;; (term-to-term-with-partial-vars term) changes all total vars free
+;; in term into partial vars.
+
+(define (term-to-term-with-partial-vars term)
+  (let* ((vars (term-to-free term))
+	 (total-vars (list-transform-positive vars
+		       (lambda (var) (t-deg-one? (var-to-t-deg var)))))
+	 (partial-vars (map (lambda (var)
+			      (make-var (var-to-type var)
+					(var-to-index var)
+					t-deg-zero
+					(var-to-name var)))
+			    total-vars))
+	 (subst (make-substitution
+		 total-vars (map make-term-in-var-form partial-vars))))
+    (term-substitute term subst)))
 
 ;; 6-8. First order unification
 ;; ============================
