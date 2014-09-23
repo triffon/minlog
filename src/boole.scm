@@ -187,11 +187,15 @@
 
 (add-program-constant "AndConst" (py "boole=>boole=>boole"))
 
-(add-computation-rules
- "AndConst True boole^" "boole^"
- "AndConst boole^ True" "boole^"
- "AndConst False boole^" "False"
- "AndConst boole^ False" "False")
+;; The computation rules for the constants introduced here can be
+;; added only later in ets.scm, since the construction of the proofs
+;; for their rules needs EqD.
+
+;; (add-computation-rules
+;;  "AndConst True boole^" "boole^"
+;;  "AndConst boole^ True" "boole^"
+;;  "AndConst False boole^" "False"
+;;  "AndConst boole^ False" "False")
 
 ;; We add infix notation "andb" (also "and") (left associative) for AndConst.
 ;; Coq has "/\"
@@ -228,10 +232,10 @@
 
 (add-program-constant "ImpConst" (py "boole=>boole=>boole"))
 
-(add-computation-rules
- "ImpConst False boole^" "True"
- "ImpConst True boole^" "boole^"
- "ImpConst boole^ True" "True")
+;; (add-computation-rules
+;; "ImpConst False boole^" "True"
+;; "ImpConst True boole^" "boole^"
+;; "ImpConst boole^ True" "True")
 
 ;; We add an infix notation "impb" (left associative) for ImpConst
 
@@ -261,11 +265,11 @@
 
 (add-program-constant "OrConst" (py "boole=>boole=>boole"))
 
-(add-computation-rules
- "OrConst True boole^" "True"
- "OrConst boole^ True" "True"
- "OrConst False boole^" "boole^"
- "OrConst boole^ False" "boole^")
+;; (add-computation-rules
+;; "OrConst True boole^" "True"
+;; "OrConst boole^ True" "True"
+;; "OrConst False boole^" "boole^"
+;; "OrConst boole^ False" "boole^")
 
 ;; We add an infix notation "orb" (left associative) for OrConst
 ;; Coq has "\/"
@@ -296,9 +300,9 @@
 
 (add-program-constant "NegConst" (py "boole=>boole"))
 
-(add-computation-rules
- "NegConst True" "False"
- "NegConst False" "True")
+;; (add-computation-rules
+;; "NegConst True" "False"
+;; "NegConst False" "True")
 
 ;; We add a prefix notation "negb" for NegConst
 
@@ -701,7 +705,7 @@
 
 ;; (pp (pt "lft(boole1 pair boole2)"))
 
-(add-computation-rule "lft(alpha1 pair alpha2)" "alpha1")
+;; (add-computation-rule "lft(alpha1 pair alpha2)" "alpha1")
 
 ;; (pp (nt (pt "lft(boole1 pair boole2)")))
 
@@ -740,7 +744,7 @@
 
 ;; (pp (pt "rht(boole1 pair boole2)"))
 
-(add-computation-rule "rht(alpha1 pair alpha2)" "alpha2")
+;; (add-computation-rule "rht(alpha1 pair alpha2)" "alpha2")
 
 ;; (pp (nt (pt "rht(boole1 pair boole2)")))
 
