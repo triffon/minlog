@@ -72,6 +72,7 @@
 (add-program-constant "NatMax" (py "nat=>nat=>nat") t-deg-zero)
 (add-program-constant "NatMin" (py "nat=>nat=>nat") t-deg-zero)
 (add-program-constant "AllBNat" (py "nat=>(nat=>boole)=>boole") t-deg-zero)
+(add-program-constant "ExBNat" (py "nat=>(nat=>boole)=>boole") t-deg-zero)
 (add-program-constant "NatLeast" (py "nat=>(nat=>boole)=>nat") t-deg-zero)
 (add-program-constant "NatLeastUp" (py "nat=>nat=>(nat=>boole)=>nat")
 		      t-deg-zero)
@@ -247,6 +248,18 @@
 (add-computation-rules
  "AllBNat 0 nat=>boole" "True"
  "AllBNat(Succ nat)nat=>boole" "AllBNat nat nat=>boole andb (nat=>boole)nat")
+
+;; For ExBNat
+
+(add-computation-rules
+ "ExBNat 0 nat=>boole" "False"
+ "ExBNat(Succ nat)nat=>boole" "[if ((nat=>boole)nat)
+                                   True
+                                   (ExBNat nat nat=>boole)]")
+
+;; For efficiency reasons if is preferred over orb (i.e., over the
+;; term (ExBNat nat nat=>boole orb (nat=>boole)nat), since it computes
+;; its arguments only when necessary.
 
 ;; For NatLeast
 
@@ -619,6 +632,16 @@
 (use "Tnat4")
 ;; Proof finished.
 (save "NatLeTotal")
+
+;; NatLeToEq
+(set-goal "all nat (nat<=0)=(nat=0)")
+(cases)
+(use "Truth")
+(assume "nat")
+(use "Truth")
+;; Proof finished.
+(save "NatLeToEq")
+(add-rewrite-rule "nat<=0" "nat=0")
 
 (set-goal "all nat nat<=nat")
 (ind)
@@ -1342,6 +1365,98 @@
 ;; Proof finished.
 (save "AllBNatElim")
 
+;; Properties of ExBNat
+
+;; ExBNatTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "ExBNat"))))
+(assume "nat^" "Tnat")
+(elim "Tnat")
+(assume "(nat=>boole)^" "Useless")
+(ng #t)
+(use "TotalBooleFalse")
+(assume "nat^1" "Tnat1" "IH" "(nat=>boole)^" "Hyp")
+(ng #t)
+(use "BooleIfTotal")
+(use "Hyp")
+(use "Tnat1")
+(use "TotalBooleTrue")
+(use "IH")
+(use "Hyp")
+;; Proof finished.
+(save "ExBNatTotal")
+
+;; ExBNatIntro
+(set-goal "all (nat=>boole),nat2(
+      ex nat1(nat1<nat2 & (nat=>boole)nat1) ->
+      ExBNat nat2([nat1](nat=>boole)nat1))")
+(assume "(nat=>boole)")
+(ind)
+(assume "ExHyp")
+(by-assume "ExHyp" "nat1" "Conj")
+(assert "F")
+(use "Conj")
+(assume "Absurd")
+(use "Absurd")
+(assume "nat2" "IH" "ExHyp")
+(ng)
+(by-assume "ExHyp" "nat1" "Conj")
+(assert "nat1<Succ nat2")
+(use "Conj")
+(assume "n1<Sn2")
+(use "NatLtSuccCases" (pt "nat2") (pt "nat1"))
+(use "n1<Sn2")
+(assume "n1<n2")
+(cases (pt "(nat=>boole)nat2"))
+(strip)
+(use "Truth")
+(assume "(nat=>boole)nat2 -> F")
+(ng)
+(use "IH")
+(ex-intro (pt "nat1"))
+(split)
+(use "n1<n2")
+(use "Conj")
+(assume "n1=n2")
+(assert "(nat=>boole)nat2")
+ (simp "<-" "n1=n2")
+ (use "Conj")
+(assume "(nat=>boole)nat2")
+(simp "(nat=>boole)nat2")
+(use "Truth")
+;; Proof finished.
+(save "ExBNatIntro")
+
+;; ExBNatElim
+(set-goal "all (nat=>boole),nat2(
+      ExBNat nat2(nat=>boole) ->
+      ex nat1(nat1<nat2 & (nat=>boole)nat1))")
+(assume "(nat=>boole)")
+(ind)
+(ng)
+(use "Efq")
+(assume "nat2" "IH")
+(ng)
+(cases (pt "(nat=>boole)nat2"))
+(assume "(nat=>boole)nat2" "Useless")
+(ex-intro "nat2")
+(split)
+(use "Truth")
+(use "(nat=>boole)nat2")
+(ng)
+(assume "Useless" "ExBNatHyp")
+(assert "ex nat0(nat0<nat2 & (nat=>boole)nat0)")
+ (use-with "IH" "ExBNatHyp")
+(assume "ExHyp")
+(by-assume "ExHyp" "nat1" "Conj")
+(ex-intro "nat1")
+(split)
+(use "NatLtTrans" (pt "nat2"))
+(use "Conj")
+(use "Truth")
+(use "Conj")
+;; Proof finished.
+(save "ExBNatElim")
+
 ;; NatLeastTotal
 (set-goal (rename-variables (term-to-totality-formula (pt "NatLeast"))))
 (assume "nat^" "Tnat")
@@ -2034,13 +2149,6 @@
 (use "IH")
 ;; Proof finished.
 (save "NatDoubleTotal")
-
-;; NatDoubleDefSucc
-(set-goal "all nat NatDouble(Succ nat)=Succ(Succ(NatDouble nat))")
-(assume "nat")
-(use "Truth")
-;; Proof finished.
-(save "NatDoubleDefSucc")
 
 (add-program-constant "NatEven" (py "nat=>boole"))
 
