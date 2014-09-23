@@ -37,6 +37,18 @@
 (define (set-default-var-name type string)
   (set! DEFAULT-VAR-NAMES (cons (list type string) DEFAULT-VAR-NAMES)))
 
+(define (display-default-varnames . opt-types)
+  (let ((alist (if (null? opt-types)
+		   DEFAULT-VAR-NAMES
+		   (list-transform-positive DEFAULT-VAR-NAMES
+		     (lambda (x) (member (car x) opt-types))))))
+    (for-each (lambda (p)
+		(display (cadr p))
+		(display ": ") (display tab)
+		(display (type-to-string (car p)))
+		(newline))
+	      alist)))
+
 (define VARIABLES '())
 (define VARIABLE-NAMES '())
 
