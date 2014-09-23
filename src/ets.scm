@@ -1434,6 +1434,35 @@
 	 '("Pvar1 -> OrNc" "InlOrNc")
 	 '("Pvar2 -> OrNc" "InrOrNc"))
 
+;; The computation rules for the constants introduced in boole.scm can
+;; be added only here, since the construction of the proofs for their
+;; rules needs EqD.
+
+(add-computation-rules
+ "AndConst True boole^" "boole^"
+ "AndConst boole^ True" "boole^"
+ "AndConst False boole^" "False"
+ "AndConst boole^ False" "False")
+
+(add-computation-rules
+"ImpConst False boole^" "True"
+"ImpConst True boole^" "boole^"
+"ImpConst boole^ True" "True")
+
+(add-computation-rules
+"OrConst True boole^" "True"
+"OrConst boole^ True" "True"
+"OrConst False boole^" "boole^"
+"OrConst boole^ False" "boole^")
+
+(add-computation-rules
+"NegConst True" "False"
+"NegConst False" "True")
+
+(add-computation-rule "lft(alpha1 pair alpha2)" "alpha1")
+
+(add-computation-rule "rht(alpha1 pair alpha2)" "alpha2")
+
 ;; atom-to-eqd-true-aconst and eqd-true-to-atom-aconst can be added
 ;; only here, because they need EqD.
 
@@ -2459,6 +2488,84 @@
 		proof-true proof-false)))))
 
 (add-theorem "BooleEqTotal" boole-eq-total-proof)
+
+(define boole-total-var-proof
+  (let* ((boolevar (make-var (make-alg "boole") -1 t-deg-zero ""))
+	 (total-boole-formula
+	  (make-predicate-formula
+	   (make-idpredconst "TotalBoole" '() '())
+	   (make-term-in-var-form boolevar)))
+	 (avar (make-avar total-boole-formula -1 "u")))
+    (mk-proof-in-elim-form
+     (make-proof-in-aconst-form
+      (aconst-substitute
+       alltotal-intro-aconst
+       (append
+	(make-subst (make-tvar -1 "alpha") (make-alg "boole"))
+	(make-subst
+	 (make-pvar (make-arity '(tvar -1 "alpha")) -1 h-deg-zero n-deg-zero "")
+	 (make-cterm boolevar total-boole-formula)))))
+     (make-proof-in-allnc-intro-form
+      boolevar (make-proof-in-imp-intro-form
+		avar (make-proof-in-avar-form avar))))))
+
+(add-theorem "BooleTotalVar" boole-total-var-proof)
+
+(define yprod-total-var-proof
+  (let* ((yprodvar
+	  (make-var
+	   (make-alg "yprod" (make-tvar 1 "alpha") (make-tvar 2 "alpha"))
+	   -1 t-deg-zero ""))
+	 (total-yprod-formula
+	  (make-predicate-formula
+	   (make-idpredconst
+	    "TotalYprod" (list (make-tvar 1 "alpha") (make-tvar 2 "alpha")) '())
+	   (make-term-in-var-form yprodvar)))
+	 (avar (make-avar total-yprod-formula -1 "u")))
+    (mk-proof-in-elim-form
+     (make-proof-in-aconst-form
+      (aconst-substitute
+       alltotal-intro-aconst
+       (append
+	(make-subst
+	 (make-tvar -1 "alpha")
+	 (make-alg "yprod" (make-tvar 1 "alpha") (make-tvar 2 "alpha")))
+	(make-subst
+	 (make-pvar (make-arity '(tvar -1 "alpha")) -1 h-deg-zero n-deg-zero "")
+	 (make-cterm yprodvar total-yprod-formula)))))
+     (make-proof-in-allnc-intro-form
+      yprodvar (make-proof-in-imp-intro-form
+		avar (make-proof-in-avar-form avar))))))
+
+(add-theorem "YprodTotalVar" yprod-total-var-proof)
+
+(define ysum-total-var-proof
+  (let* ((ysumvar
+	  (make-var
+	   (make-alg "ysum" (make-tvar 1 "alpha") (make-tvar 2 "alpha"))
+	   -1 t-deg-zero ""))
+	 (total-ysum-formula
+	  (make-predicate-formula
+	   (make-idpredconst
+	    "TotalYsum" (list (make-tvar 1 "alpha") (make-tvar 2 "alpha")) '())
+	   (make-term-in-var-form ysumvar)))
+	 (avar (make-avar total-ysum-formula -1 "u")))
+    (mk-proof-in-elim-form
+     (make-proof-in-aconst-form
+      (aconst-substitute
+       alltotal-intro-aconst
+       (append
+	(make-subst
+	 (make-tvar -1 "alpha")
+	 (make-alg "ysum" (make-tvar 1 "alpha") (make-tvar 2 "alpha")))
+	(make-subst
+	 (make-pvar (make-arity '(tvar -1 "alpha")) -1 h-deg-zero n-deg-zero "")
+	 (make-cterm ysumvar total-ysum-formula)))))
+     (make-proof-in-allnc-intro-form
+      ysumvar (make-proof-in-imp-intro-form
+		avar (make-proof-in-avar-form avar))))))
+
+(add-theorem "YsumTotalVar" ysum-total-var-proof)
 
 (set! COMMENT-FLAG #t)
 
