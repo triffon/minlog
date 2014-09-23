@@ -1,4 +1,4 @@
-;; $Id: numbers.scm 2679 2014-01-08 10:05:44Z schwicht $
+; $Id: numbers.scm 2679 2014-01-08 10:05:44Z schwicht $
 
 '(
 (load "~/git/minlog/init.scm")
@@ -1908,19 +1908,19 @@ allnc p^,p^0(
 ;; Proof finished.
 (save "PosToNatTotal")
 
-;; PosToNatDefSZero
-(set-goal "all pos PosToNat(SZero pos)=NatDouble(PosToNat pos)")
-(assume "pos")
-(use "Truth")
-;; Proof finished.
-(save "PosToNatDefSZero")
+;; PosToNatDefSZero is obsolete.  Use PosToNat1CompRule instead.
+;; (set-goal "all pos PosToNat(SZero pos)=NatDouble(PosToNat pos)")
+;; (assume "pos")
+;; (use "Truth")
+;; ;; Proof finished.
+;; (save "PosToNatDefSZero")
 
-;; PosToNatDefSOne
-(set-goal "all pos PosToNat(SOne pos)=Succ(PosToNat(SZero pos))")
-(assume "pos")
-(use "Truth")
-;; Proof finished.
-(save "PosToNatDefSOne")
+;; PosToNatDefSOne is obsolete.  Use PosToNat2CompRule instead.
+;; (set-goal "all pos PosToNat(SOne pos)=Succ(PosToNat(SZero pos))")
+;; (assume "pos")
+;; (use "Truth")
+;; ;; Proof finished.
+;; (save "PosToNatDefSOne")
 
 (replace-item-in-algebra-edge-to-embed-term-alist
          "pos" "nat"
@@ -1964,17 +1964,6 @@ allnc p^,p^0(
 (use "Tnat")
 ;; Proof finished.
 (save "NatToPosStepTotal")
-
-;; NatToPosStepDef
-(set-goal "all nat,(nat=>pos)
-  NatToPosStep nat(nat=>pos)=
-  [if (NatEven nat)
-  (SZero((nat=>pos)(NatHalf nat)))
-  [if (nat=Succ Zero) 1 (SOne((nat=>pos)(NatHalf nat)))]]")
-(assume "nat" "(nat=>pos)")
-(use "Truth")
-;; Proof finished.
-(save "NatToPosStepDef")
 
 (add-program-constant "NatToPos" (py "nat=>pos"))
 
@@ -2334,7 +2323,7 @@ allnc p^,p^0(
  (use "Enat")
 (assume "NatToPos nat=SZero(NatToPos(NatHalf nat))")
 (simp "NatToPos nat=SZero(NatToPos(NatHalf nat))")
-(simp "PosToNatDefSZero")
+(simp "PosToNat1CompRule")
 (simp "Prog")
 (use "NatDoubleHalfEven")
 (use "Enat")
@@ -2361,7 +2350,7 @@ allnc p^,p^0(
  (use "nat=1 -> F")
 (assume "NatToPos nat=SOne(NatToPos(NatHalf nat))")
 (simp "NatToPos nat=SOne(NatToPos(NatHalf nat))")
-(simp "PosToNatDefSOne")
+(simp "PosToNat2CompRule")
 (cases (pt "nat"))
 (assume "nat=0")
 (use "Efq")
@@ -2369,7 +2358,7 @@ allnc p^,p^0(
 (use "Absurd")
 (use "Truth")
 (assume "nat1" "nat=Succ nat1")
-(simp "PosToNatDefSZero")
+(simp "PosToNat1CompRule")
 (assert "NatEven nat1")
 (use "NatOddSuccToEven")
 (simp "<-" "nat=Succ nat1")
@@ -2377,7 +2366,7 @@ allnc p^,p^0(
 (assume "Enat1")
 (simp "NatHalfSuccEven")
 (assert "PosToNat(SZero(NatToPos(NatHalf nat1)))=nat1")
- (simp "PosToNatDefSZero")
+ (simp "PosToNat1CompRule")
  (simp "Prog")
  (use "NatDoubleHalfEven")
  (use "Enat1")
@@ -2506,20 +2495,6 @@ allnc p^,p^0(
 ;; Proof finished.
 (save "NatToPosToNatId")
 
-;; PosSDefSZero
-(set-goal "all pos PosS(SZero pos)=SOne pos")
-(assume "pos")
-(use "Truth")
-;; Proof finished
-(save "PosSDefSZero")
-
-;; PosSDefSOne
-(set-goal "all pos PosS(SOne pos)=SZero(PosS pos)")
-(assume "pos")
-(use "Truth")
-;; Proof finished
-(save "PosSDefSOne")
-
 ;; SuccPosS
 (set-goal "all nat(Zero<nat -> NatToPos(Succ nat)=PosS(NatToPos nat))")
 (assert "all nat(Zero<nat -> Succ nat=PosToNat(PosS(NatToPos nat)))")
@@ -2528,9 +2503,9 @@ allnc p^,p^0(
 (cases (pt "NatEven nat")) ;4,5
 (assume "En")
 (simp "NatToPosEqSZeroNatToPosHalf")
-(simp "PosSDefSZero")
-(simp "PosToNatDefSOne")
-(simp "PosToNatDefSZero")
+(simp "PosS1CompRule")
+(simp "PosToNat2CompRule")
+(simp "PosToNat1CompRule")
 (simp "PosToNatToPosId")
 (simp "NatDoubleHalfEven")
 (use "Truth")
@@ -2551,10 +2526,10 @@ allnc p^,p^0(
 (use "Truth")
 (assume "n=/=1")
 (simp "NatToPosEqSOneNatToPosHalf")
-(simp "PosSDefSOne")
-(simp "PosToNatDefSZero")
+(simp "PosS2CompRule")
+(simp "PosToNat1CompRule")
 (simp "<-" "Prog")
-(simp "NatDoubleDefSucc")
+(simp "NatDouble1CompRule")
 (ng #t)
 (simp "NatDoubleHalfOdd")
 (use "Truth")
@@ -4237,18 +4212,6 @@ allnc p^,p^0(
 (add-global-assumption
  "PosNotLtToLe"
  "all pos1,pos2((pos1<pos2 -> F) -> pos2<=pos1)")
-
-;; Code discarded 2014-01-08
-;; ;; PosNotLtToLe
-;; (set-goal "all pos1,pos2((pos1<pos2 -> F) -> pos2<=pos1)")
-;; (assume "pos1" "pos2" "p1<p2 -> F")
-;; (use "Stab-Atom")
-;; (assume "p2<=p1 -> F")
-;; (use "p1<p2 -> F")
-;; (use "PosNotLeToLt")
-;; (use "p2<=p1 -> F")
-;; ;; Proof finished.
-;; (save "PosNotLtToLe")
 
 ;; Rules for PosMax
 
@@ -7338,11 +7301,11 @@ allnc p^,p^0(
 (cases) ;65-67
 (ng #t)
 (split)
-(assert "NatDouble(PosToNat pos1)<=Zero -> F")
+(assert "NatDouble(PosToNat pos1)=Zero -> F")
  (use "NatLeSOneOne")
  (use "NatLt0Pos")
-(assume "NatDouble(PosToNat pos1)<=Zero -> F")
-(simp "NatDouble(PosToNat pos1)<=Zero -> F")
+(assume "NatDouble(PosToNat pos1)=Zero -> F")
+(simp "NatDouble(PosToNat pos1)=Zero -> F")
 (use "Truth")
 (use "Truth")
 ;; 66
