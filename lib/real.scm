@@ -690,7 +690,7 @@
                 (IntN One/2**int2)<=rat1)")
 
 ;; RealPosChar1
-(set-goal "allnc as 
+(set-goal "all as 
       all M,k(
        Cauchy as M -> 
        RealPos(RealConstr as M)k -> ex l,n0 all n(n0<=n -> (1/2**l)<=as n))")
