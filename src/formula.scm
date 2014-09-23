@@ -4034,6 +4034,20 @@
 	 (equal? pred1 pred2))
 	((and (predconst-form? pred1) (predconst-form? pred2))
 	 (equal? pred1 pred2))
+	((and (predconst-form? pred1) (idpredconst-form? pred2))
+	 (let ((unfolded-formula1 (unfold-formula formula1)))
+	   (and (predicate-form? unfolded-formula1)
+		(idpredconst-form?
+		 (predicate-form-to-predicate unfolded-formula1))
+		(formula=-aux? unfolded-formula1 formula2
+			       alist alistrev ignore-deco-flag))))
+	((and (idpredconst-form? pred1) (predconst-form? pred2))
+	 (let ((unfolded-formula2 (unfold-formula formula2)))
+	   (and (predicate-form? unfolded-formula2)
+		(idpredconst-form?
+		 (predicate-form-to-predicate unfolded-formula2))
+		(formula=-aux? formula1 unfolded-formula2
+			       alist alistrev ignore-deco-flag))))
 	(else #f)))))
    ((and (atom-form? formula1) (atom-form? formula2))
     (term=-aux? (atom-form-to-kernel formula1)
@@ -4175,8 +4189,12 @@
   (let* ((name (var-to-name var))
 	 (type (var-to-type var))
 	 (t-deg (var-to-t-deg var))
-	 (relevant-vars (list-transform-positive vars
-			  (lambda (x) (string=? name (var-to-name x)))))
+	 (relevant-vars
+	  (list-transform-positive vars
+	    (lambda (x)
+	      (and (string=? name (var-to-name x))
+		   (= t-deg (var-to-t-deg x))
+		   (equal? type (var-to-type x))))))
 	 (relevant-indices (map var-to-index relevant-vars))
 	 (new-index (do ((i -1 (+ i 1))
 			 (is relevant-indices (remove i is)))
