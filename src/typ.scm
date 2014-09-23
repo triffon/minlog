@@ -1424,6 +1424,15 @@
       ((or (null? l) (not (char-alphabetic? (car l))))
        (list->string res))))
 
+(define (string-to-first-name string)
+  (do ((l (string->list string) (cdr l))
+       (res '() (cons (car l) res)))
+      ((or (null? l) (not (char-alphabetic? (car l))))
+       (list->string (reverse res)))))
+
+;; (string-to-last-name "NatPlus1CompRule") ;"CompRule"
+;; (string-to-first-name "NatPlus1CompRule") ;"NatPlus"
+
 (define (type-string-to-new-tvar type-string)
   (let ((tvar (new-tvar)))
     (if (substring? (tvar-to-string tvar) type-string)
