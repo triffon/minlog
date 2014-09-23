@@ -308,10 +308,10 @@
     ((mul-op) 8)
     ((exp-op) 9)
     ((appterm) 10)
-    ((prefix-typeop prefix-op) 11)
-    ((postfix-typeop postfix-op) 12)
-    ((predapp) 13)
-    ((alg-typeop) 14)
+    ((alg-typeop) 11)
+    ((prefix-typeop prefix-op) 12)
+    ((postfix-typeop postfix-op) 13)
+    ((predapp) 14)
     ((alg atomic-type atomic-term const var number if-op case-op
 	  pvar predconst idpredconst atom
 	  all-op ex-op allnc-op exnc-op exd-op exl-op exr-op exu-op
