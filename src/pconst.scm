@@ -734,14 +734,25 @@
 (define (remove-program-constant . strings)
   (define (rpc1 pconst-name)
     (if (assoc pconst-name PROGRAM-CONSTANTS)
-	(begin (do ((l PROGRAM-CONSTANTS (cdr l))
-		    (res '() (if (string=? pconst-name (caar l))
-				 res
-				 (cons (car l) res))))
-		   ((null? l) (set! PROGRAM-CONSTANTS (reverse res))))
-	       (remove-token pconst-name)
-	       (comment
-		"ok, program constant " pconst-name " removed"))
+	(begin
+	  (do ((l PROGRAM-CONSTANTS (cdr l))
+	       (res '() (if (string=? pconst-name (caar l))
+			    res
+			    (cons (car l) res))))
+	      ((null? l) (set! PROGRAM-CONSTANTS (reverse res))))
+	  
+	  (set! THEOREMS
+		(list-transform-positive THEOREMS
+		  ;; remove those with string-to-first-name = name and
+		  ;; string-to-last-name = CompRule or = RewRule
+		  (lambda (x)
+		    (let ((thm-name (car x)))
+		      (or (not (member (string-to-last-name thm-name)
+				       (list "CompRule" "RewRule")))
+			  (not (string=? (string-to-first-name thm-name)
+					 pconst-name)))))))
+	  (remove-token pconst-name)
+	  (comment "ok, program constant " pconst-name " removed"))
 	(multiline-comment "remove-program-constant"
 			   "program constant expected" pconst-name)))
   (for-each rpc1 strings))
