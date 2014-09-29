@@ -791,7 +791,7 @@
 ;; right hand sides.
 ;; (remove-program-constant "Rhts")
 (add-program-constant
- "Rhts" (py "list(list list nat yprod list nat)=>list list nat")) t-deg-zero)
+ "Rhts" (py "list(list list nat yprod list nat)=>list list nat") t-deg-zero)
 (add-computation-rules "Rhts vsass" "([vsas]rht vsas)map vsass")
 
 ;; RhtsTotal
