@@ -507,7 +507,7 @@
 		   (impnc-form-to-conclusion formula) (- n 1))))
 	   ((all-form? formula)
 	    (imp-impnc-all-allnc-form-to-premises
-	     (all-form-to-kernel formula n)))
+	     (all-form-to-kernel formula) n))
 	   ((allnc-form? formula)
 	    (imp-impnc-all-allnc-form-to-premises
 	     (allnc-form-to-kernel formula) n))
@@ -3101,7 +3101,7 @@
   (predicate-form-to-predicate (cterm-to-formula cterm)))
 
 ;; formula-to-undec-formula prepares for decoration.  It changes all
-;; occurrences of imp, all into impnc, allnc, and in case id-deco?  is
+;; occurrences of imp, all into impnc, allnc, and in case id-deco? is
 ;; true, (i) every existential quantification exd, exl, exr into exu,
 ;; (ii) every total existential quantification exdt, exlt, exrt into
 ;; exut, (iii) every conjunction andd, andl, andr into andu (andb is
@@ -3453,10 +3453,10 @@
 	    (or (eq? bicon1 bicon2)
 		(case bicon2
 		  ((andu) (memq bicon1 '(andl andr andd)))
-		  ((andl) (eq? bicon1 andd))
-		  ((andr) (eq? bicon1 andd))
+		  ((andl) (eq? bicon1 'andd))
+		  ((andr) (eq? bicon1 'andd))
 		  ((oru) (memq bicon1 '(orl orr ord)))
-		  ((orl orr) (eq? bicon1 ord))
+		  ((orl orr) (eq? bicon1 'ord))
 		  (else #f)))))
       (cond
        (positive-bicon-strengthening-test
@@ -3841,8 +3841,8 @@
 	  (map (lambda (imp-formula)
 		 (let ((prem (imp-form-to-premise imp-formula))
 		       (conc (imp-form-to-conclusion imp-formula)))
-		   (make-imp (formula-to-undec-formula prem)
-			     (formula-to-undec-formula conc))))
+		   (make-imp (formula-to-undec-formula prem #t)
+			     (formula-to-undec-formula conc #t))))
 	       imp-formulas)))
     (apply imp-formulas-to-elim-aconst undec-imp-formulas)))
 
