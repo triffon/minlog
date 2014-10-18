@@ -335,6 +335,10 @@
 ;; Proof finished.
 (save "ListAppdSTotalReal")
 
+;; x: ++xs converts into x::xs.  However, xs1++x2: ++xs2 does not rewrite,
+;; because ++ associates to the left.  But we can add the corresponding
+;; rule:
+
 (set-goal "all xs1,x^2,xs^2 xs1++x^2: ++xs^2 eqd xs1++(x^2::xs^2)")
 (ind)
 (assume "x^2" "xs^2")
@@ -345,6 +349,10 @@
 (use "InitEqD")
 ;; Proof finished.
 (add-rewrite-rule "xs1++x^2: ++xs^2" "xs1++(x^2::xs^2)")
+
+;; In the other direction this rule would lead to non-termination, if
+;; we also had associativity as a rewrite rule.  x2: is x2::(Nil par),
+;; and this again is a redex for associativity.
 
 (set-goal "all xs xs++(Nil alpha)eqd xs")
 (ind)
@@ -418,25 +426,6 @@
 ;; Both are normal, since rewriting (pt "(L::t)++R:") into (pt
 ;; "L::t++R:") is blocked by the leading s++ and the fact that ++
 ;; associates to the left.
-
-;; x: ++xs converts into x::xs.  However, xs1++x2: ++xs2 does not rewrite,
-;; because ++ associates to the left.  But we can add the corresponding
-;; rule:
-
-(set-goal "all xs1,x2,xs2 xs1++x2: ++xs2 eqd xs1++(x2::xs2)")
-(ind)
-(assume "x2" "xs2")
-(use "InitEqD")
-(assume "x" "xs1" "IHxs1" "x2" "xs2")
-(ng)
-(simp "IHxs1")
-(use "InitEqD")
-;; Proof finished.
-(add-rewrite-rule "xs1++x2: ++xs2" "xs1++(x2::xs2)")
-
-;; In the other direction this rule would lead to non-termination, if
-;; we also had associativity as a rewrite rule.  x2: is x2::(Nil par),
-;; and this again is a redex for associativity.
 
 (add-program-constant "ListLength" (py "list alpha=>nat") t-deg-zero)
 (add-prefix-display-string "ListLength" "Lh")
@@ -1873,6 +1862,36 @@
 (use "IH")
 ;; Proof finished.
 (save "ListHeadsTotal")
+
+;; We also define ListPHeads (p for proper), which ignores heads of
+;; empty lists.
+
+(add-program-constant
+ "ListPHeads" (py "list list alpha=>list alpha") t-deg-zero)
+(add-prefix-display-string "ListPHeads" "PHeads")
+(add-computation-rules
+ "PHeads(Nil list alpha)" "(Nil alpha)"
+ "PHeads((Nil alpha)::(list list alpha))" "PHeads(list list alpha)"
+ "PHeads((x::xs)::(list list alpha))" "x::PHeads(list list alpha)")
+
+;; ListPHeadsTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "(ListPHeads alpha)"))))
+(assume "(list list alpha)^" "Txss")
+(elim "Txss")
+(use "TotalListNil")
+(assume "xs^" "Txs")
+(elim "Txs")
+(assume "(list list alpha)^1" "Txss1" "IH")
+(ng #t)
+(use "IH")
+(assume "x^" "Tx" "xs^1" "Txs1" "Useless" "(list list alpha)^1" "Txss1" "IH")
+(ng #t)
+(use "TotalListCons")
+(use "Tx")
+(use "IH")
+;; Proof finished.
+(save "ListPHeadsTotal")
 
 (add-program-constant "ListInit" (py "nat=>list alpha=>list alpha") t-deg-zero)
 (add-infix-display-string "ListInit" "init" 'mul-op)
