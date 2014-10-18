@@ -2323,7 +2323,7 @@
 (assume "R wqo a w=(Head(R wqo a w)::Tail(R wqo a w))")
 (simp "R wqo a w=(Head(R wqo a w)::Tail(R wqo a w))")
 (drop "R wqo a w=(Head(R wqo a w)::Tail(R wqo a w))")
-(simp "<-" "ListAppd2RewRule")
+(simp "<-" "ListAppd0RewRule")
 (use "IHv")
 (use "EmbR wqo v Tail(R wqo a w)")
 ;; Case 2
@@ -5078,7 +5078,7 @@
 (add-global-assumption
  "FPH" "all m,(nat=>nat)(all i(i<=Succ m -> (nat=>nat)i<=m) ->
         ex i,j(i<j & j<=Succ m & (nat=>nat)i=(nat=>nat)j))")
-;; This is proved in temp/examplesarithfph.scm.  Its computational
+;; This is proved in examples/arith/fph.scm.  Its computational
 ;; content is irrelevant here, since it is only used in the
 ;; n.c. GoodAREqMod
 
