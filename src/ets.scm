@@ -974,10 +974,10 @@
 			(term-to-string term))
 	       term) ;else first unfold
 	     (proof-to-extracted-term-aux
-	      (proof-of-stab-log-at concl) avar-to-var)))
+	      (proof-of-stab-log-at concl) avar-to-var #f)))
 	   ((imp impnc and all allnc) ;first unfold
 	    (proof-to-extracted-term-aux
-	     (proof-of-stab-log-at concl) avar-to-var))
+	     (proof-of-stab-log-at concl) avar-to-var #f))
 	   (else (myerror "global-assumption-to-extracted-term"
 			  "formula expected"
 			  concl)))))
@@ -995,10 +995,10 @@
 			   (term-to-string term))
 		  term) ;else first unfold
 		(proof-to-extracted-term-aux
-		 (proof-of-efq-log-at concl) avar-to-var)))
+		 (proof-of-efq-log-at concl) avar-to-var #f)))
 	   ((imp impnc and all allnc) ;first unfold
 	    (proof-to-extracted-term-aux
-	     (proof-of-efq-log-at concl) avar-to-var))
+	     (proof-of-efq-log-at concl) avar-to-var #f))
 	   (else (myerror
 		  "global-assumption-to-extracted-term" "formula expected"
 		  concl)))))
@@ -6696,7 +6696,7 @@
       (exnc-formula-to-exnc-intro-mr-proof
        (car (aconst-to-repro-data aconst))))
      ((string=? "Eq-Compat" name) ;obsolete
-      (compat-aconst-to-mr-compat-proof aconst pvar-to-mr-pvar))
+      (compat-aconst-to-mr-compat-proof aconst))
      (else (myerror "axiom-to-soundness-proof" "unexpected axiom" name)))))
 
 (define (theorem-to-soundness-proof aconst)
