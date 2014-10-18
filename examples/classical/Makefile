@@ -4,7 +4,9 @@
 # FILE.scm has to be tested. Use DIR/.TEST as target if a subdir has
 # to be tested
 
-.TEST:  .fib.test-passed .euclid.test-passed
+.TEST:  .wftest.test-passed .tape.test-passed .root.test-passed \
+        .rev.test-passed .hsh.test-passed .fib.test-passed \
+        .euclid.test-passed .gcd.test-passed .dickson.test-passed
 	touch .TEST
 
 # The relative path to the toplevel Minlog-Dir
