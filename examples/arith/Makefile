@@ -4,7 +4,9 @@
 # FILE.scm has to be tested. Use DIR/.TEST as target if a subdir has
 # to be tested
 
-.TEST: .quotrem.test-passed .sqrttwo.test-passed
+.TEST: .fib.test-passed .bundeswett.test-passed \
+       .quotrem.test-passed .sqrttwo.test-passed \
+       .fph.test-passed .dickson.test-passed
 	touch .TEST
 
 # The relative path to the toplevel Minlog-Dir
