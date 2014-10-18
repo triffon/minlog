@@ -2883,7 +2883,8 @@
 	 (extended-aconst
 	  (apply make-aconst
 		 name kind uninst-fla extended-tpsubst
-		 extended-aconst-without-repro-data))
+		 (aconst-to-computed-repro-data
+		  extended-aconst-without-repro-data)))
 	 (extended-inst-formula (aconst-to-inst-formula extended-aconst))
 	 (free (formula-to-free extended-inst-formula))
 	 (prefix (all-allnc-form-to-prefix decfla (length free))))
@@ -9025,14 +9026,16 @@
 	    (kernel (ex-form-to-kernel formula))
 	    (prev (formula-to-efq-proof-or-f kernel)))
        (if prev
-	   (make-proof-in-ex-intro-form var prev)
+	   (make-proof-in-ex-intro-form
+	    (make-term-in-var-form var) formula prev)
 	   #f)))
     ((exnc) ;obsolete
      (let* ((var (exnc-form-to-var formula))
 	    (kernel (exnc-form-to-kernel formula))
 	    (prev (formula-to-efq-proof-or-f kernel)))
        (if prev
-	   (make-proof-in-exnc-intro-form var prev)
+	   (make-proof-in-exnc-intro-form
+	    (make-term-in-var-form var) formula prev)
 	   #f)))
     ((exca excl)
      (myerror "formula-to-efq-proof-or-f" "unfolded formula expected" formula))
