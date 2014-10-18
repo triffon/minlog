@@ -6,7 +6,7 @@
 
 ;; We prove "all n,m(n*n=D(m*m) -> n=0)", using general induction GInd.
 
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
