@@ -8797,7 +8797,7 @@
      (if (and VERBOSE-SEARCH (not (equal? empty-subst rho)))
 	 (begin (display-comment (make-string n #\.))
 		(display "Unifier: ")
-		(display (substitution-to-string rho))
+		(display (pp-subst rho))
 		(apply display-prefix new-prefix)
 		(newline)))
      (let* ((new-clauses (append
@@ -8815,7 +8815,7 @@
 		      (begin
 			(display-comment (make-string n #\.))
 			(display "Star_o_rho: ")
-			(display (substitution-to-string star_o_rho))
+			(display (pp-subst star_o_rho))
 			(newline)))))
        (if
 	(not (apply formula-and-elims-to-t-deg-ok?
