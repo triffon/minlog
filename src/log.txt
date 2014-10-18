@@ -1,6 +1,154 @@
-;; $Id: log.txt 2704 2014-04-04 13:45:03Z schwicht $
+;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
-2014-09-26
+2014-10-18
+
+In formula.scm
+
+Typos found by guile corrected
+
+In proof.scm
+
+aconst-and-decfla-to-proof corrected: repro-data were not computed
+correctly.  Typos found by guile corrected
+
+In pproof.scm
+
+In select-unif substitution-to-string replaced by pp-subst
+
+In ets.scm
+
+Typos found by guile corrected
+
+In lib/list.scm
+
+ListPHeads (p for proper) added, which ignores heads of empty lists.
+Double occurrence of xs1++x^2: ++xs^2 eqd xs1++(x^2::xs^2) as a
+rewrite rule removed.
+
+In examples/arith/sqrttwo.scm
+
+git added in load command
+
+In examples/arith
+
+fib bundeswett fph dickson included in Makefile
+
+In examples/bar
+
+Makefile added, with bar higman01 higfin higwqo included
+
+In examples/bar/higwqo.scm
+
+Reference to fph.scm now points examples/arith/
+Reference to a list rewrite rule updated
+
+In examples/analysis
+
+ratsds.scm and readme-ratsds.txt added.  Moreover readwrite.scm added.
+B n m f written explicitly as all a ex b sub f a n b m.  Variable
+names made compatible with numbers.scm.  AxUcfInputSucc and AxUcfId
+replaced by the more general AxUcfWeak.
+
+In examples/classical
+
+tape.scm root.scm rev.scm hsh.scm gcd.scm dickson.scm added.  Makefile
+extended accordingly.
+
+In examples
+
+Directory dc added, Makefile extended accordingly.
+
+In examples/dc
+
+dc-first.scm added.
+
+In examples
+
+Directory fan added, Makefile extended accordingly.
+
+In examples/fan
+
+fanwklu.scm added.
+
+In examples
+
+Directory quant added, Makefile extended accordingly.
+
+In examples/quant
+
+quant.scm orevkov.scm hofmann.scm lnf.scm los.scm added.
+
+In examples
+
+Directory prop added, Makefile extended accordingly.
+
+In examples/prop
+
+prop.scm added.
+
+In examples
+
+Directory hounif added, Makefile extended accordingly.
+
+In examples/hounif
+
+nipkow.scm added.
+
+In examples
+
+Directory lambda added, Makefile extended accordingly.
+
+In examples/lambda
+
+dbsub.scm added.
+
+In examples
+
+Directory pruning added, Makefile extended accordingly.
+
+In examples/pruning
+
+maxseg.scm binpack.scm added.
+
+In examples
+
+Directory warshall added, Makefile extended accordingly.
+
+In examples/warshall
+
+warshall.scm added.
+
+In examples
+
+Directory dijkstra added, Makefile extended accordingly.
+
+In examples/dijkstra
+
+count.scm dijkstra.scm pick.scm wf.scm added.
+
+In examples
+
+Directory deco added, Makefile extended accordingly.
+
+In examples/deco
+
+maxseg.scm rev.scm fib.scm euler.scm added
+
+In examples/test/proof.scm
+
+Tests for remove-predecided-if-theorems added
+
+In examples/classical/euclid.scm
+
+Totality proofs improved
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-10-01
+
+reftree.el added, in a new directory util under minlog
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done 2014-09-26
 
 In pconst.scm
 
