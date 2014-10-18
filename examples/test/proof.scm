@@ -1,4 +1,4 @@
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 (load "names.scm")
 
 ; 10. Proofs
@@ -508,6 +508,127 @@
 ;; P 0 -> allnc n^(Even n^ -> P n^ -> P(n^ +2)) -> P(2+2) by imp intro u2182
 
 (remove-pvar-name "P")
+
+;; Tests for remove-predecided-if-theorems
+
+(add-var-name "i" "j" (py "nat"))
+
+;; TestThm
+(set-goal "all i,j ex k(i<=k & j<=k)")
+(assume "i" "j")
+(use "If" (pt "i<=j"))
+(assume "PosHyp1")
+(ex-intro "j")
+(split)
+(use "PosHyp1")
+(use "Truth")
+(assume "NegHyp1")
+(use "If" (pt "i<=j"))
+(assume "PosHyp2")
+(use "Efq")
+(use "NegHyp1")
+(use "PosHyp2")
+(assume "NegHyp2")
+(ex-intro "i")
+(split)
+(use "Truth")
+(use "NatLtToLe")
+(use "NatNotLeToLt")
+(use "NegHyp2")
+;; Proof finished
+(save "TestThm")
+
+(define testproof (theorem-name-to-proof "TestThm"))
+(proof-to-expr-with-formulas testproof)
+(pp (rename-variables (nt (proof-to-extracted-term testproof))))
+;; [n,n0][if (n<=n0) n0 [if (n<=n0) 0 n]]
+
+(define rem-testproof (remove-predecided-if-theorems testproof))
+(proof-to-expr rem-testproof)
+(pp (rename-variables (nt (proof-to-extracted-term rem-testproof))))
+;; [n,n0][if (n<=n0) n0 n]
+
+;; TestThm1
+(set-goal "all i,j ex k(i<=k & j<=k)")
+(assume "i" "j")
+(use "If" (pt "i<=j"))
+(assume "PosHyp1")
+(ex-intro "j")
+(split)
+(use "PosHyp1")
+(use "Truth")
+(assume "NegHyp1")
+(use "If" (pt "i<=j--Pred i"))
+(assume "PosHyp2")
+(use "Efq")
+(use "NegHyp1")
+(use "NatLeTrans" (pt "j--Pred i"))
+(use "PosHyp2")
+(ng)
+(use "Truth")
+(assume "NegHyp2")
+(ex-intro "i")
+(split)
+(use "Truth")
+(use "NatLtToLe")
+(use "NatNotLeToLt")
+(use "NegHyp1")
+;; Proof finished
+(save "TestThm1")
+
+(define testproof1 (theorem-name-to-proof "TestThm1"))
+(proof-to-expr-with-formulas testproof1)
+(pp (rename-variables (nt (proof-to-extracted-term testproof1))))
+;; [n0,n1][if (n0<=n1) n1 [if (n0<=n1--Pred n0) 0 n0]]
+
+(define rem-testproof1 (remove-predecided-if-theorems testproof1))
+(proof-to-expr rem-testproof1)
+(pp (nt (proof-to-extracted-term rem-testproof1)))
+;; [n,n0][if (n<=n0) n0 [if (n<=n0--Pred n) 0 n]]
+
+;; TestThm2
+(set-goal "all i,j ex k(i<=k & j<=k)")
+(assume "i" "j")
+(use "If" (pt "i<=j--Pred i"))
+(assume "PosHyp1")
+(ex-intro "j")
+(split)
+(use "NatLeTrans" (pt "j--Pred i"))
+(use "PosHyp1")
+(ng)
+(use "Truth")
+(use "Truth")
+(assume "NegHyp1")
+(use "If" (pt "i<=j--Pred i--Pred(Pred i)"))
+(assume "PosHyp2")
+(use "Efq")
+(use "NegHyp1")
+(use "NatLeTrans" (pt "j--Pred i--Pred(Pred i)"))
+(use "PosHyp2")
+(use "NatLeTrans" (pt "j--Pred i--0"))
+(use "NatLeMonMinus")
+(use "Truth")
+(use "Truth")
+(use "Truth")
+(assume "NegHyp2")
+(ex-intro "i+j")
+(split)
+(ng)
+(use "Truth")
+(ng)
+(use "Truth")
+;; Proof finished
+(save "TestThm2")
+
+(define testproof2 (theorem-name-to-proof "TestThm2"))
+(proof-to-expr-with-formulas testproof2)
+(pp (rename-variables (nt (proof-to-extracted-term testproof2))))
+;; [n,n0][if (n<=n0--Pred n) n0 [if (n<=n0--(Pred n+Pred(Pred n))) 0 (n+n0)]]
+
+(define rem-testproof2 (remove-predecided-if-theorems testproof2))
+(proof-to-expr rem-testproof2)
+(pp (rename-variables (nt (proof-to-extracted-term rem-testproof2))))
+;; [n,n0][if (n<=n0--Pred n) n0 (n+n0)]
 
 ;; Tests for proof-to-one-step-reduct formula-and-psubsts-to-mon-proof
 
