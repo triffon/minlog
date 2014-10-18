@@ -5,8 +5,9 @@
 # FILE.scm has to be tested. Use DIR/.TEST as target if a subdir has
 # to be tested
 
-.TEST:  .ivt.test-passed .cauchysds.test-passed .average.test-passed \
-        .ishihara.test-passed
+.TEST:  .ivt.test-passed .ishihara.test-passed .ratsds.test-passed \
+        .cauchysds.test-passed .average.test-passed \
+        .readwrite.test-passed
 	touch .TEST
 
 # The relative path to the toplevel Minlog-Dir
