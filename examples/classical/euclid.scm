@@ -15,7 +15,7 @@
 ;; reason might be that we have kept a1,a2 fixed in our proof whereas
 ;; Euclid changes a1 to a2 and a2 to r(a1,a2) provided r(a1,a2)>0
 ;; (using the fact that this doesn't change the ideal).  (ii) In
-;; neterm Lin a1 a2 k1 k2 appears many times.  An attempt to take i
+;; neterm Lin a1 a2 k1 k2 appears many times.  An attempt to take it
 ;; out via let failed.
 
 ;; (load "~/git/minlog/init.scm")
@@ -25,24 +25,20 @@
 (set! COMMENT-FLAG #t)
 
 (add-program-constant "Dist" (py "nat=>nat=>nat"))
-
 (add-computation-rules
  "Dist nat1 nat2" "[if (nat2<nat1) (nat1--nat2) (nat2--nat1)]")
 
 ;; DistTotal
 (set-goal (rename-variables (term-to-totality-formula (pt "Dist"))))
-(assume "n^1" "Tn1" "n^2" "Tn2")
-(ng #t)
+(use "AllTotalElim")
+(assume "nat1")
+(use "AllTotalElim")
+(assume "nat2")
+(ng)
 (use "BooleIfTotal")
-(use "NatLtTotal")
-(use "Tn2")
-(use "Tn1")
-(use "NatMinusTotal")
-(use "Tn1")
-(use "Tn2")
-(use "NatMinusTotal")
-(use "Tn2")
-(use "Tn1")
+(use "BooleTotalVar")
+(use "NatTotalVar")
+(use "NatTotalVar")
 ;; Proof finished.
 (save "DistTotal")
 
@@ -144,7 +140,7 @@
 (use "TotalNatZero")
 (use "TotalNatZero")
 (assume "n^1" "Tn1" "IH")
-(assert (pf "QuotRem(Succ n^1)m^ eqd QuotRemPair m^(QuotRem n^1 m^)"))
+(assert "QuotRem(Succ n^1)m^ eqd QuotRemPair m^(QuotRem n^1 m^)")
  (use "InitEqD")
 (assume "EqdHyp")
 (simp "EqdHyp")
@@ -181,7 +177,7 @@
 
 ;; (pp (nt (pt "QuotRem 777 13")))
 
-;; QuotRemCorrec
+;; QuotRemCorrect
 (set-goal "all m,n(0<m -> n=(Quot n m)*m+Rem n m & Rem n m<m)")
 (assume "m")
 (ind)
@@ -239,53 +235,34 @@
 (save "LR")
 
 (add-program-constant "Lin" (py "nat=>nat=>nat=>nat=>nat"))
-
 (add-computation-rules
  "Lin a1 a2 0 k2" "k2*a2"
  "Lin a1 a2(Succ k1)k2" "Dist(Succ k1*a1)(k2*a2)")
 
 ;; LinTotal
 (set-goal (rename-variables (term-to-totality-formula (pt "Lin"))))
-(assume "a^1" "Ta1" "a^2" "Ta2" "k^0" "Tk0" "k^2" "Tk2")
-(elim "Tk0")
+(use "AllTotalElim")
+(assume "a1")
+(use "AllTotalElim")
+(assume "a2")
+(use "AllTotalElim")
+(cases)
+(use "AllTotalElim")
+(assume "k2")
 (ng #t)
-(use "NatTimesTotal")
-(use "Tk2")
-(use "Ta2")
-(assume "k^1" "Tk1" "Useless")
-(drop "Useless")
+(use "NatTotalVar")
+(assume "k1")
+(use "AllTotalElim")
+(assume "k2")
 (ng #t)
 (use "BooleIfTotal")
-(use "NatLtTotal")
-(use "NatTimesTotal")
-(use "Tk2")
-(use "Ta2")
-(use "NatTimesTotal")
-(use "TotalNatSucc")
-(use "Tk1")
-(use "Ta1")
-
-(use "NatMinusTotal")
-(use "NatTimesTotal")
-(use "TotalNatSucc")
-(use "Tk1")
-(use "Ta1")
-(use "NatTimesTotal")
-(use "Tk2")
-(use "Ta2")
-
-(use "NatMinusTotal")
-(use "NatTimesTotal")
-(use "Tk2")
-(use "Ta2")
-(use "NatTimesTotal")
-(use "TotalNatSucc")
-(use "Tk1")
-(use "Ta1")
+(use "BooleTotalVar")
+(use "NatTotalVar")
+(use "NatTotalVar")
 ;; Proof finished.
 (save "LinTotal")
 
-;; LinDis
+;; LinDist
 (set-goal "all a1,a2,k1,k2 Lin a1 a2 k1 k2=Dist(k1*a1)(k2*a2)")
 (assume "a1" "a2")
 (cases)
@@ -297,40 +274,30 @@
 (save "LinDist")
 
 (add-program-constant "Step" (py "nat=>nat=>nat=>nat=>nat=>nat"))
-
 (add-computation-rules
  "Step a1 a2 k1 k2 0" "1"
  "Step a1 a2 k1 k2(Succ q)" "[if (k2*a2<k1*a1) ((q+1)*k1--1) ((q+1)*k1+1)]")
 
 ;; StepTotal
 (set-goal (rename-variables (term-to-totality-formula (pt "Step"))))
-(assume "a^1" "Ta1" "a^2" "Ta2" "k^1" "Tk1" "k^2" "Tk2" "q^" "Tq")
-(elim "Tq")
-(drop "Tq")
-(use "TotalNatSucc")
-(use "TotalNatZero")
-(assume "q^1" "Tq1" "Useless")
-(drop "Useless")
+(use "AllTotalElim")
+(assume "a1")
+(use "AllTotalElim")
+(assume "a2")
+(use "AllTotalElim")
+(assume "k1")
+(use "AllTotalElim")
+(assume "k2")
+(use "AllTotalElim")
+(cases)
+(ng)
+(use "NatTotalVar")
+(assume "q")
+(ng)
 (use "BooleIfTotal")
-(use "NatLtTotal")
-(use "NatTimesTotal")
-(use "Tk2")
-(use "Ta2")
-(use "NatTimesTotal")
-(use "Tk1")
-(use "Ta1")
-
-(use "PredTotal")
-(use "NatTimesTotal")
-(use "TotalNatSucc")
-(use "Tq1")
-(use "Tk1")
-
-(use "TotalNatSucc")
-(use "NatTimesTotal")
-(use "TotalNatSucc")
-(use "Tq1")
-(use "Tk1")
+(use "BooleTotalVar")
+(use "NatTotalVar")
+(use "NatTotalVar")
 ;; Proof finished.
 (save "StepTotal")
 
@@ -504,7 +471,7 @@
 ;; a common divisor of a1 and a2 since otherwise the remainder r(ai,c)
 ;; would be a smaller positive element of the ideal.
 
-;; Note that the number c in (a1,a2) dividing a1 and a2 is the greates
+;; Note that the number c in (a1,a2) dividing a1 and a2 is the greatest
 ;; common divisor since any common divisor of a1 and a2 must also be a
 ;; divisor of c.
 
@@ -574,7 +541,7 @@
 
 ;; A-Translation
 
-(min-excl-formula? (proof-to-formula euclid-proof)) ;#
+(min-excl-formula? (proof-to-formula euclid-proof)) ;#t
 
 (define expanded-euclid-proof
   (rm-exc (expand-thm euclid-proof "NatZeroLeCases")))
@@ -595,7 +562,7 @@
 
 (add-var-name "f" (py "nat=>nat=>nat@@nat"))
 (define neterm-a (rename-variables (nt eterm-a)))
-(pp neterm-a)
+;; (pp neterm-a)
 
 ;; [n,n0]
 ;;  (GRecGuard nat nat nat@@nat)(Lin n n0)0 1
@@ -611,7 +578,7 @@
 ;;       (left(QuotRem n(Lin n n0 n1 n2))*n2))])
 ;;  True
 
-(ppc neterm-a)
+;; (ppc neterm-a)
 ;; [n,n0]
 ;;  (GRecGuard nat nat nat@@nat)(Lin n n0)0 1
 ;;  ([n1,n2,f]
@@ -626,9 +593,8 @@
 ;;      f(Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2)))
 ;;      (left(QuotRem n(Lin n n0 n1 n2))*n2))])
 ;;  True
-(define expr (term-to-scheme-expr neterm-a))
 
-expr
+(define expr (term-to-scheme-expr neterm-a))
 ;; (lambda (n)
 ;;   (lambda (n0)
 ;;     (((((natnatGrecGuard ((Lin n) n0)) 0) 1)
@@ -700,3 +666,4 @@ expr
 	   64054234673215404826126312490371176469332895761600445428910505279082534624473340409473605046902412014730816801846174116697197908256354135172259226980862139233252320749317923445420881218662400000000000000000)))
 
 ;; 176478618764
+
