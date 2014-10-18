@@ -1,4 +1,60 @@
-;; $Id: todo.scm 2675 2014-01-08 10:01:56Z schwicht $
+;; 2014-10-18.  todo.scm
+
+;; 2014-10-18.
+;; Check expand-theorems
+
+;; 2014-10-13.
+;; Should we always use general variables in inductive definitions?
+;; Problem: when proving that a competitor satisfies the clauses we
+;; then have to prove all xs^ ... without knowing STotalList xs^ .
+;; This can block applications of necessary lemmas.  Example:
+
+;; (add-ids
+;;  (list (list "RevI" (make-arity (py "list alpha") (py "list alpha"))))
+;;  '("RevI(Nil alpha)(Nil alpha)" "InitRev")
+;;  '("all x^,xs^,ys^(RevI xs^ ys^ -> RevI(xs^ ++x^ :)(x^ ::ys^))" "GenRev"))
+
+;; RevIUnique
+;; (set-goal "all xs,ys(RevI xs ys -> ys eqd Rev xs)")
+;; (assume "xs" "ys" "Rxsys")
+;; (elim "Rxsys")
+;; (use "InitEqD")
+;; (assume "x^" "xs^1" "ys^1" "Rxsys1" "ys1=Rxs1")
+
+;;   xs  ys  Rxsys:RevI xs ys
+;;   x^  xs^1  ys^1  Rxsys1:RevI xs^1 ys^1
+;;   ys1=Rxs1:ys^1 eqd Rev xs^1
+;; -----------------------------------------------------------------------------
+;; ?_5:(x^ ::ys^1)eqd Rev(xs^1++x^ :)
+
+;; (simp "ListRevAppdPartial")
+;; is applicable, but requires STotalList xs^1 which we don't have.
+
+;; Cure: use STotalList xs^ as additional assumptions
+
+;; (add-ids
+;;  (list (list "RevI" (make-arity (py "list alpha") (py "list alpha"))))
+;;  '("RevI(Nil alpha)(Nil alpha)" "InitRev")
+;;  '("all x^,xs^(STotalList xs^ -> 
+;;     all ys^(STotalList ys^ -> 
+;;             RevI xs^ ys^ -> RevI(xs^ ++x^ :)(x^ ::ys^)))" "GenRev"))
+
+;; add-ids
+;; non-computational-invariant clause expected
+
+;; (add-ids
+;;  (list (list "RevI" (make-arity (py "list alpha") (py "list alpha"))))
+;;  '("RevI(Nil alpha)(Nil alpha)" "InitRev")
+;;  '("allnc x^,xs^(STotalList xs^ -> 
+;;     allnc ys^(STotalList ys^ -> 
+;;             RevI xs^ ys^ -> RevI(xs^ ++x^ :)(x^ ::ys^)))" "GenRev"))
+
+;; add-ids
+;; non-computational-invariant clause expected
+;; This has to be corrected.
+
+;; 2014-01-15.  Replace min-excl-proof? by a property of the proven
+;; formula.   (Done 2014-01)
 
 ;; 2014-01-07.  Insert readme-parens.txt in tutor.
 
