@@ -31,7 +31,7 @@
 (assume "i" "n<i+1" "f i<f n")
 (use-with "MinH1" (pt "i") "f i<f n" "Truth")
 
-;; By a third application of the minimum principle we choose the nex
+;; By a third application of the minimum principle we choose the next
 ;; left-minimum w.r.t. f
 
 (by-assume-minimal-wrt (pf "excl l i < l") "j" (pt "f") "MinH3" "H3")
