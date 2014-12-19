@@ -186,7 +186,7 @@
 ;; to prove simultaneously the existence of a maximal end segment.  
 
 ;; To prepare for later application of decorate w.r.t. "L" and "LMon":
-;; where "L" is used we want have "Mon" as well as "ESn" among the
+;; where "L" is used we want to have "Mon" as well as "ESn" among the
 ;; available avars.  Hence we add the (for L) unnecessary hypothesis
 ;; "Mon".  To make "ESn" available we assert it at an appropriate
 ;; place.
@@ -318,40 +318,35 @@
 
 ;; (cdp (theorem-name-to-proof "MaxSegMon"))
 (define eterm (proof-to-extracted-term (theorem-name-to-proof "MaxSegMon")))
+(add-var-name "ijk" (py "nat@@nat@@nat"))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
 
 ;; [le,seg,n]
 ;;  (Rec nat=>nat@@nat@@nat)n(0@0@0)
-;;  ([n0,(nat@@nat@@nat)]
-;;    [if (le(seg left(nat@@nat@@nat)right right(nat@@nat@@nat))
+;;  ([n0,ijk]
+;;    [if (le(seg left ijk right right ijk)
 ;;          (seg((cL alpha)le seg n0(Succ n0))(Succ n0)))
 ;;      ((cL alpha)le seg n0(Succ n0))
-;;      (left(nat@@nat@@nat))]@
+;;      (left ijk)]@
 ;;    (cL alpha)le seg n0(Succ n0)@
-;;    [if (le(seg left(nat@@nat@@nat)right right(nat@@nat@@nat))
+;;    [if (le(seg left ijk right right ijk)
 ;;          (seg((cL alpha)le seg n0(Succ n0))(Succ n0)))
 ;;      (Succ n0)
-;;      (right right(nat@@nat@@nat))])
-
-;; 4.  Extraction
-;; ==============
-
-(add-var-name "ijk" (py "nat@@nat@@nat"))
+;;      (right right ijk)])
 
 ;; Recall
 
-(pp (nt (rename-variables
+(pp (rename-variables (nt
 	 (proof-to-extracted-term (theorem-name-to-proof "L")))))
 
-;; [le0,seg1,n2,n3]
-;;  (Rec nat=>nat)n3 0
-;;  ([n4,n5][if (le0(seg1 n5(Succ n2))(seg1(Succ n4)(Succ n2))) (Succ n4) n5])
+;; [le,seg,n,n0]
+;;  (Rec nat=>nat)n0 0
+;;  ([n1,n2][if (le(seg n2(Succ n))(seg(Succ n1)(Succ n))) (Succ n1) n2])
 
 ;; The two nested recursions give a quadratic algorithm.
 
-
-;; 5. Extraction after decoration
+;; 4. Extraction after decoration
 ;; ==============================
 
 (define decproof (decorate (theorem-name-to-proof "MaxSegMon") "L" "LMon"))
