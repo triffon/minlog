@@ -1,4 +1,4 @@
-;; higwqo.scm 2014-09-23
+;; higwqo.scm.  2014-10-27
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -4353,20 +4353,20 @@
 ;; BarFNew (Lemma 5.3)
 (set-goal
  "all wqo(BarA wqo(Nil nat) ->
-  allnc ws(BarW wqo ws -> 0<Lh ws ->
-  all as(Incr wqo as ->  BarF wqo((NewTree(ws pair as)):))))")
+  allnc ws(BarW wqo ws -> 
+  all as BarF wqo((NewTree(ws pair as)):)))")
 (assume "wqo" "BarANil" "ws0" "Bws0")
 ;; Ind(BarA)
 (elim "Bws0")
 ;; 1.1
-(assume "vs" "Gvs" "0<Lh ws" "as0" "Ias0")
+(assume "vs" "Gvs" "as0")
 (use "InitBarF" (pt "0"))
 (use "Truth")
 (ng)
 (use "GoodWToGoodWR")
 (use "Gvs")
 ;; 1.2
-(assume "ws" "BHyp" "IH1" "0<Lh ws" "as0" "Ias0")
+(assume "ws" "BHyp" "IH1" "as0")
 ;; We show more generally
 (assert "allnc as(
  BarA wqo as -> 
@@ -4425,7 +4425,7 @@
  InsertT wqo(vsas%ts)v a = (vsas%InsertF wqo ts v a))")
  (strip)
  (ng #t)
- (simp 19)
+ (simp 17)
  (ng #t)
  (use "Truth")
 (assume "Assertion")
@@ -4449,7 +4449,7 @@
  InsertT wqo(vsas%ts)v a = (vsas%NewTree((v::lft vsas)pair a::rht vsas)::ts))")
  (strip)
  (ng #t)
- (simp 19)
+ (simp 17)
  (ng #t)
  (use "Truth")
 (assume "Assertion")
@@ -4471,10 +4471,6 @@
 (assume "BarF wqo ts1")
 (assert "BarF wqo((NewTree((v::lft(ws pair as0))pair a::rht(ws pair as0))):)")
 (use "IH1")
-(use "Truth")
-(use "IncrCons")
-(use "GHyp")
-(use "Ias0")
 (assume "BarF wqo((NewTree((v::lft(ws pair as0))pair a::rht(ws pair as0))):)")
 ;; Now we can use 5.2
 (use "BarFAppd" (pt "Lh Subtrees Head tas"))
@@ -4757,9 +4753,6 @@
 (use "BarFNew")
 (use "BarANil")
 (use "IH3")
-(use "Truth")
-;; Incr wqo a:
-(use "Truth")
 (use "BarF wqo ts")
 ;; Lh tas=Lh ts
 (simp "tasDef")
