@@ -1,6 +1,34 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
-2014-10-18
+2014-12-19
+
+In term.scm
+
+nbe-term-to-object corrected in case term-in-if-form.  There is a
+special treatment for an if term with the same alternatives, so that
+the term reduces to an alternative without checking the condition.  In
+order to check the equality of the alternatives, they are normalized
+and referred to by norm-alts in the source code.  The old
+implementation unexpectedly used this norm-alts to compute the final
+result.  It repeated substitution once more using the same variable
+bindings, and caused a wrong result (problem observed by Masahiko
+Sato, correction done to Kenji Miyamoto).
+
+In examples/classical/dickson.scm
+
+Typo corrected.
+
+In examples/bar/higwqo.scm
+
+In BarFNew superfluous assumptions 0<Lh ws0 and Incr as0 removed
+(noted by Franziskus Wiesnet).
+
+In examples/deco/maxseg.scm
+
+ijk introduced earlier as variable name.  Minor text changes.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2014-10-18
 
 In formula.scm
 
