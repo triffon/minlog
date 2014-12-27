@@ -1,6 +1,26 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
-2014-12-19
+Done 2014-12-27
+
+In axiom.scm
+
+In add-theorem unnecessary definition of totality-formula removed
+
+In term.scm
+
+Kenji Miyamoto noted that in the Haskell translation simplified
+corecursion (CoRec iv) is not covered (in term-to-external-expr).
+Christian Ittner repaired this, as follows.  The constant CoRec can
+have a simplified type.  Haskell does not support this form of
+overloading, hence for export into Haskell in case of a simplified
+CoRec we must choose a new function name.  Therefore (1) in
+term-to-external-expr the definition of uninst-arrow-types had to be
+corrected, (2) the generation of (co)recursion operators had to be
+modified to recognize simplified corecursion operators, (3) the
+function alg-and-rel-simalgs-to-haskell-corec-const had to be adapted.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2014-12-19
 
 In term.scm
 
