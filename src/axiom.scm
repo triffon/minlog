@@ -2885,7 +2885,6 @@
 					      (string-length "Total"))))
 		 (pconst (pconst-name-to-pconst name))
 		 (term (make-term-in-const-form pconst))
-		 (totality-formula (term-to-totality-formula term))
 		 (t-deg (const-to-t-deg pconst)))
 	    (if
 	     (and (not (formula=? formula (term-to-totality-formula term)))
