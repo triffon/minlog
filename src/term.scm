@@ -1171,16 +1171,21 @@
 	     (type (const-to-type const))
 	     (prevs (apply append (map term-to-consts-info args))))
         (cond
-         ((member name '("Rec" "CoRec"))
-          (let* ((algs
-                  (cond
-                   ((string=? name "Rec")
-                    (map arrow-form-to-arg-type
-                         (rec-const-to-uninst-arrow-types const)))
-                   ((string=? name "CoRec")
-                    (map arrow-form-to-final-val-type
-                         (corec-const-to-uninst-alg-or-arrow-types const))))))
-            (append (map (lambda (x) (list kind name x algs)) algs) prevs)))
+         ((string=? name "Rec")
+          (let* ((algs (map arrow-form-to-arg-type
+			    (rec-const-to-uninst-arrow-types const))))
+	    (append (map (lambda (x) (list kind name x algs)) algs) prevs)))
+         ((string=? name "CoRec")
+          (let* (
+		 (uninst-alg-or-arrow-types 
+                  (corec-const-to-uninst-alg-or-arrow-types const))
+		 (algs 
+                  (map arrow-form-to-final-val-type uninst-alg-or-arrow-types))
+		 (rel-algs (map arrow-form-to-final-val-type 
+				(list-transform-positive uninst-alg-or-arrow-types
+				  arrow-form?))))
+	    ;; (filter arrow-form? uninst-alg-or-arrow-types))))
+            (append (map (lambda (x) (list kind name x rel-algs)) algs) prevs)))
          ((string=? name "Destr")
           (let* ((alg (destr-const-to-alg const)))
             (cons (list kind name alg '()) prevs)))
@@ -1906,8 +1911,12 @@
 		    ((haskell) (string-downcase-first destr-name)))))
 	    (non-null-list-to-app-expr lang (cons destr-symbol prevs))))
 	 ((string=? name "CoRec")
-	  (let* ((uninst-arrow-types (corec-const-to-uninst-alg-or-arrow-types
-				      const))
+	  (let* ((uninst-alg-or-arrow-types 
+		  (corec-const-to-uninst-alg-or-arrow-types const))
+                 (uninst-arrow-types 
+		  (list-transform-positive uninst-alg-or-arrow-types
+		    arrow-form?))
+		 ;; (filter arrow-form? uninst-alg-or-arrow-types))
 		 (alg (arrow-form-to-final-val-type (const-to-type const)))
 		 (type-name (alg-form-to-name alg))
                  (all-simalg-names (alg-name-to-simalg-names type-name))
@@ -2744,18 +2753,24 @@ intDestr n | n > 0  = Left n
            (constrs (alg-name-to-typed-constr-names alg-name))
            (uninst-alg (arrow-form-to-final-val-type
                         (typed-constr-name-to-type (car constrs))))
-           (simalg-forms
-            (map (compose arrow-form-to-final-val-type
-			  typed-constr-name-to-type
-			  car
-			  alg-name-to-typed-constr-names)
-                 (cons alg-name
-                       (remove alg-name rel-simalg-names)))) ;put alg first
+           (alg-or-arrow
+	    ((lambda (x) (if (member alg-name rel-simalg-names)
+			     (make-arrow (new-tvar) x) x))
+	     (arrow-form-to-final-val-type
+	      (typed-constr-name-to-type
+	       (car 
+		(alg-name-to-typed-constr-names
+		 alg-name))))))
+           (rel-simalg-arrows (map (compose
+				    (lambda (x) (make-arrow (new-tvar) x))
+				    arrow-form-to-final-val-type
+				    typed-constr-name-to-type
+				    car
+				    alg-name-to-typed-constr-names)
+				   (remove alg-name rel-simalg-names)))
+           (corec-const (apply alg-or-arrow-types-to-corec-const
+			       (cons alg-or-arrow rel-simalg-arrows)))
            (simp? (< (length rel-simalg-names) (length all-simalg-names)))
-           (corec-const
-	    (apply alg-or-arrow-types-to-corec-const
-		   (map (lambda (x) (make-arrow (new-tvar) x))
-			simalg-forms)))
            (type (const-to-type corec-const))
            (relalg-names (apply string-append "_"
                                 (map haskellify-string rel-simalg-names)))
@@ -3901,7 +3916,7 @@ intDestr n | n > 0  = Left n
 		(nbe-term-to-object test bindings))
 	       ((constant-alts? norm-alts typed-constr-names)
 		(nbe-term-to-object
-		 (constants-alts-to-const-term alts typed-constr-names)
+		 (constants-alts-to-const-term norm-alts typed-constr-names)
 		 bindings))
 	       (else
 		(nbe-reflect
