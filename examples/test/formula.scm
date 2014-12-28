@@ -343,11 +343,11 @@
 (pp (make-injection (py "alpha1 ysum alpha2 ysum alpha3") 0))
 ;; (InL alpha1 (alpha2 ysum alpha3))
 
-(pp (make-injection (py "alpha1 ysum alpha2 ysum alpha3") 1))
-;; [alpha2_82](InR (alpha2 ysum alpha3) alpha1)((InL alpha2 alpha3)alpha2_82)
+(pp (rename-variables (make-injection (py "alpha1 ysum alpha2 ysum alpha3") 1)))
+;; [alpha2](InR (alpha2 ysum alpha3) alpha1)((InL alpha2 alpha3)alpha2)
 
-(pp (make-injection (py "alpha1 ysum alpha2 ysum alpha3") 2))
-;; [alpha3_83](InR (alpha2 ysum alpha3) alpha1)((InR alpha3 alpha2)alpha3_83)
+(pp (rename-variables (make-injection (py "alpha1 ysum alpha2 ysum alpha3") 2)))
+;; [alpha3](InR (alpha2 ysum alpha3) alpha1)((InR alpha3 alpha2)alpha3)
 
 (pp (make-injection (py "uysum alpha") 0))
 ;; (DummyL alpha)
@@ -355,26 +355,43 @@
 (pp (make-injection (py "uysum alpha") 1))
 ;; (InrUysum alpha)
 
+(pp (make-injection (py "alpha ysumu") 0))
+;; (InlYsumu alpha)
+
+(pp (make-injection (py "alpha ysumu") 1))
+;; (DummyR alpha)
+
 (pp (make-injection (py "uysum(alpha1 ysum alpha2)") 0))
 ;; (DummyL alpha1 ysum alpha2)
 
-(pp (make-injection (py "uysum(alpha1 ysum alpha2)") 1))
-;; [alpha1_84]Inr((InL alpha1 alpha2)alpha1_84)
+(pp (rename-variables (make-injection (py "uysum(alpha1 ysum alpha2)") 1)))
+;; [alpha1]Inr((InL alpha1 alpha2)alpha1)
 
-(pp (make-injection (py "uysum(alpha1 ysum alpha2)") 2))
-;; [alpha2_81]Inr((InR alpha2 alpha1)alpha2_81)
+(pp (rename-variables (make-injection (py "uysum(alpha1 ysum alpha2)") 2)))
+;; [alpha2]Inr((InR alpha2 alpha1)alpha2)
+
+(pp (make-injection (py "alpha1 ysum alpha2 ysumu") 0))
+;; (InL alpha1 (alpha2 ysumu))
+
+(pp (rename-variables (make-injection (py "alpha1 ysum alpha2 ysumu") 1)))
+;; [alpha2](InR (alpha2 ysumu) alpha1)Inl alpha2
+
+(pp (make-injection (py "alpha1 ysum alpha2 ysumu") 2))
+;; (InR (alpha2 ysumu) alpha1)(DummyR alpha2)
 
 (pp (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 0))
 ;; (DummyL alpha1 ysum alpha2 ysum alpha3)
 
-(pp (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 1))
-;; [alpha1_82]Inr((InL alpha1 (alpha2 ysum alpha3))alpha1_82)
+(pp (rename-variables
+     (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 1)))
+;; [alpha1]Inr((InL alpha1 (alpha2 ysum alpha3))alpha1)
 
-(pp (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 2))
-;; [alpha2_84]
-;;  Inr(([alpha2_83]
-;;        (InR (alpha2 ysum alpha3) alpha1)((InL alpha2 alpha3)alpha2_83))
-;;      alpha2_84)
+(pp (rename-variables
+     (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 2)))
+;; [alpha2]
+;;  Inr(([alpha2_0]
+;;        (InR (alpha2 ysum alpha3) alpha1)((InL alpha2 alpha3)alpha2_0))
+;;      alpha2)
 
 (pp (nt (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 2)))
 ;; [alpha2_0]
@@ -383,4 +400,5 @@
 (pp (nt (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 3)))
 ;; [alpha3_0]
 ;;  Inr((InR (alpha2 ysum alpha3) alpha1)((InR alpha3 alpha2)alpha3_0))
+
 
