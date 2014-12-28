@@ -1,5 +1,16 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done 2014-12-28
+
+In boole.scm
+
+make-injection extended to ysumu
+
+In examples/test/formula.scm
+
+Tests for make-injection extended
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2014-12-27
 
 In axiom.scm
