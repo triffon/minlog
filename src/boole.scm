@@ -1064,7 +1064,7 @@
       (cond
        ((zero? n) (make-term-in-const-form true-const))
        ((= 1 n) (make-term-in-const-form false-const))
-       (else "make-injection" "0 or 1 expected" n)))
+       (else (myerror "make-injection" "0 or 1 expected" n))))
      ((string=? "uysum" name)
       (let* ((right-type (car (alg-form-to-types ysum-without-unit)))
 	     (inl-constr (constr-name-to-constr "DummyL"))
@@ -1084,6 +1084,25 @@
 	  right-injection)
 	 (else (compose-or-apply
 		right-injection (make-injection right-type (- n 1)))))))
+     ((string=? "ysumu" name)
+      (let* ((left-type (car (alg-form-to-types ysum-without-unit)))
+	     (inl-constr (constr-name-to-constr "InlYsumu"))
+	     (inr-constr (constr-name-to-constr "DummyR"))
+	     (tvars (alg-name-to-tvars "ysumu"))
+	     (tsubst (make-substitution tvars (list left-type)))
+	     (subst-inl-constr (const-substitute inl-constr tsubst #t))
+	     (subst-inr-constr (const-substitute inr-constr tsubst #t))
+	     (left-injection (make-term-in-const-form subst-inl-constr))
+	     (right-dummy (make-term-in-const-form subst-inr-constr)))
+	(cond
+	 ((and (zero? n) ;and left-type atomic
+	       (not (and (alg-form? left-type)
+			 (member (alg-form-to-name left-type)
+				 '("ysum" "uysum" "ysumu" "boole")))))
+	  left-injection)
+	 ((= 1 n) right-dummy)
+	 (else (compose-or-apply
+		left-injection (make-injection left-type 0))))))
      ((string=? "ysum" name)
       (let* ((left-type (ysum-form-to-left-type ysum-without-unit))
 	     (right-type (ysum-form-to-right-type ysum-without-unit))
