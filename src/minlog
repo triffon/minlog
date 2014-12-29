@@ -1,16 +1,20 @@
 #!/bin/bash
 MINLOGEL="---MINLOGPATH---/minlog.el"
-MINLOGTITEL="MINLOG"
-WINDOWTITEL=$MINLOGTITEL:$1
 
 # Which Emacs to use
 if [ -z $EMACS ]; then
     EMACS="emacs";
 fi
 
+if [ -z "$1" ]; then
+    RUNMINLOG="(run-minlog)";
+else
+    RUNMINLOG="(run-minlog \"$1\")";
+fi
+
 # Starting MINLOG
 if [ -z $FONTSET ]; then
-    $EMACS -i -title $WINDOWTITEL -l $MINLOGEL $1
+    $EMACS -i -l $MINLOGEL --exec "$RUNMINLOG"
 else
-    $EMACS -fn $FONTSET -i -title $WINDOWTITEL -l $MINLOGEL $1;
+    $EMACS -fn $FONTSET -i -l $MINLOGEL --exec "$RUNMINLOG";
 fi
