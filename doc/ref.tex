@@ -8836,6 +8836,7 @@ $(\atom(t) \to \falsityF) \to A(\false)$.
 %% and if $t$ is not total also $\mathtt{STotal} \ t$.
 
 \subsection{simp}
+\label{SS:simp}
 In \texttt{(simp \textsl{opt-dir} \textsl{x} .\
   \textsl{elab-path-and-terms})}\index{simp@\texttt{simp}}, the
 optional argument \textsl{opt-dir} is either the string
@@ -8859,7 +8860,30 @@ is to be an atom, a negated atom or $t \approx s$.  If it as a
 present in the goal.  If so, it is replaced by \texttt{T} (or
 \texttt{F}).  If it is an equality $t=s$ or $t \approx s$ with $t$ or
 its normal form present in the goal, $t$ is replaced by $s$.  In case
-\inquotes{\texttt{<-}} exchange $t$ and $s$.
+\inquotes{\texttt{<-}} exchange $t$ and $s$.  Example: for \texttt{f}
+of type \texttt{nat=>boole} consider the situation
+\begin{verbatim}
+  f  n  m  EqHyp:n=m
+  fHyp:f n
+-----------------------------
+?_2:[if (f m) False True]=f n
+\end{verbatim}
+Then the command
+\begin{verbatim}
+(simp "EqHyp")
+\end{verbatim}
+generates the a new goal with \texttt{n} replaced by \texttt{m}:
+\begin{verbatim}
+[if (f m) False True]=f m
+\end{verbatim}
+We can also change the direction: the command
+\begin{verbatim}
+(simp "<-" "EqHyp")
+\end{verbatim}
+generates the a new goal with \texttt{m} replaced by \texttt{n}:
+\begin{verbatim}
+[if (f n) False True]=f n
+\end{verbatim}
 
 \subsection{simp-with}
 This is a more verbose form of \texttt{simp}, where the terms are not
@@ -8882,14 +8906,14 @@ So in \texttt{(simp-with \textsl{opt-dir} \textsl{x} .\
   variable.
 \end{enumeratei}
 
-\subsection{simphyp-with}
-\texttt{simphyp-with}\index{simphyp-with@\texttt{simphyp-with}} does
-for forward chaining the same as \texttt{simp-with} for backward
-chaining.  It replaces the present goal by a new one, with one
-additional hypothesis obtained by simplifying a previous one.  Notice
-that this effect could also be obtained by \texttt{cut} or
-\texttt{assert}.  In \texttt{(simphyp-with \textsl{opt-dir}
-  \textsl{hyp} .\ \textsl{x-list})}, \textsl{hyp} is one of the
+\subsection{simphyp, simphyp-to}
+\texttt{simphyp}\index{simphyp@\texttt{simphyp}} does for forward
+chaining the same as \texttt{simp} for backward chaining.  It replaces
+the present goal by a new one, with one additional hypothesis obtained
+by simplifying a previous one.  Notice that this effect could also be
+obtained by \texttt{cut} or \texttt{assert}.  In \texttt{(simphyp
+  \textsl{hyp} \textsl{opt-dir} \textsl{x}
+  .\ \textsl{elab-path-and-terms})}, \textsl{hyp} is one of the
 following.
 \begin{enumeratei}
 \item A number or string identifying a hypothesis form the context.
@@ -8898,30 +8922,70 @@ following.
 \item A closed proof.
 \item A formula with free variables from the context, generating a new goal.
 \end{enumeratei}
-\textsl{x-list} is a list consisting of
-\begin{enumeratei}
-\item a number or string identifying a hypothesis form the context,
-\item the name of a theorem or global assumption,
-\item a closed proof,
-\item the string \inquotes{?} (value of \texttt{DEFAULT-GOAL-NAME}),
-  generating a new goal,
-\item a symbol \texttt{left} or \texttt{right},
-\item a term, whose free variables are added to the context,
-\item a type, which is substituted for the first type variable,
-\item a comprehension term, which is substituted for the first predicate
-  variable.
-\end{enumeratei}
-This generates a used formula, which is to be an atom, a negated atom
-or $t \approx s$.  If it as a (negated) atom, it is checked whether
-the kernel or its normal form is present in the goal.  If so, it is
-replaced by \texttt{T} (or \texttt{F}).  If it is an equality $t=s$ or
-$t \approx s$ with $t$ or its normal form present in the goal, $t$ is
-replaced by $s$.  In case \inquotes{\texttt{<-}} exchange $t$ and $s$.
-
-\subsection{simphyp-with-to}
-\texttt{simphyp-with-to}\index{simphyp-with-to@\texttt{simphyp-with-to}}
+\texttt{simphyp-to}\index{simphyp-to@\texttt{simphyp-to}}
 expects a string as its last argument, which is used (via
 \texttt{name-hyp}) to name the newly introduced simplified hypothesis.
+Example: if in the situation in \ref{SS:simp} above we type
+\begin{verbatim}
+(simphyp-to "fHyp" "EqHyp" "fHypSimp")
+\end{verbatim}
+we obtain as new goal
+\begin{verbatim}
+  f  n  m  EqHyp:n=m
+  fHyp:f n
+  fHypSimp:f m
+-----------------------------
+?_2:[if (f m) False True]=f n
+\end{verbatim}
+
+\subsection{simphyp-with, simphyp-with-to}
+\texttt{simphyp-with}\index{simphyp-with@\texttt{simphyp-with}} is a
+more verbose form of \texttt{simphyp}, where the terms are not
+inferred via matching, but have to be given explicitly.
+\texttt{simphyp-with-to}\index{simphyp-with-to@\texttt{simphyp-with-to}}
+again expects a string as its last argument, to be used as name for
+the newly introduced simplified hypothesis.
+
+%% \subsection{simphyp-with}
+%% \texttt{simphyp-with}\index{simphyp-with@\texttt{simphyp-with}} does
+%% for forward chaining the same as \texttt{simp-with} for backward
+%% chaining.  It replaces the present goal by a new one, with one
+%% additional hypothesis obtained by simplifying a previous one.  Notice
+%% that this effect could also be obtained by \texttt{cut} or
+%% \texttt{assert}.  In \texttt{(simphyp-with \textsl{opt-dir}
+%%   \textsl{hyp} .\ \textsl{x-list})}, \textsl{hyp} is one of the
+%% following.
+%% \begin{enumeratei}
+%% \item A number or string identifying a hypothesis form the context.
+%% \item The name of a theorem or global assumption, but not one whose final
+%%   conclusion is a predicate variable.
+%% \item A closed proof.
+%% \item A formula with free variables from the context, generating a new goal.
+%% \end{enumeratei}
+%% \textsl{x-list} is a list consisting of
+%% \begin{enumeratei}
+%% \item a number or string identifying a hypothesis form the context,
+%% \item the name of a theorem or global assumption,
+%% \item a closed proof,
+%% \item the string \inquotes{?} (value of \texttt{DEFAULT-GOAL-NAME}),
+%%   generating a new goal,
+%% \item a symbol \texttt{left} or \texttt{right},
+%% \item a term, whose free variables are added to the context,
+%% \item a type, which is substituted for the first type variable,
+%% \item a comprehension term, which is substituted for the first predicate
+%%   variable.
+%% \end{enumeratei}
+%% This generates a used formula, which is to be an atom, a negated atom
+%% or $t \approx s$.  If it as a (negated) atom, it is checked whether
+%% the kernel or its normal form is present in the goal.  If so, it is
+%% replaced by \texttt{T} (or \texttt{F}).  If it is an equality $t=s$ or
+%% $t \approx s$ with $t$ or its normal form present in the goal, $t$ is
+%% replaced by $s$.  In case \inquotes{\texttt{<-}} exchange $t$ and $s$.
+
+%% \subsection{simphyp-with-to}
+%% \texttt{simphyp-with-to}\index{simphyp-with-to@\texttt{simphyp-with-to}}
+%% expects a string as its last argument, which is used (via
+%% \texttt{name-hyp}) to name the newly introduced simplified hypothesis.
 
 \subsection{min-pr}
 In \texttt{(min-pr \textsl{x} \textsl{measure})}%
