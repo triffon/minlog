@@ -1324,3 +1324,32 @@
 (pp (mk-imp-impnc-formula (pf "T") #f (pf "Pvar") #t (pf "bot")))
 ;; T -> Pvar --> bot
 
+;; Tests for simp and simphyp-to
+
+(add-var-name "f" (py "nat=>boole"))
+
+(set-goal "all f,n,m(n=m -> f n -> [if (f m) False True]=f n)")
+(assume "f" "n" "m" "EqHyp" "fHyp")
+
+;;   f  n  m  EqHyp:n=m
+;;   fHyp:f n
+;; -----------------------------------------------------------------------------
+;; ?_2:[if (f m) False True]=f n
+
+(simp "EqHyp")
+
+;; [if (f m) False True]=f m
+
+(undo)
+(simp "<-" "EqHyp")
+
+;; [if (f n) False True]=f n
+
+(undo)
+(simphyp-to "fHyp" "EqHyp" "fHypSimp")
+
+;;   f  n  m  EqHyp:n=m
+;;   fHyp:f n
+;;   fHypSimp:f m
+;; -----------------------------------------------------------------------------
+;; ?_4:[if (f m) False True]=f n
