@@ -696,7 +696,8 @@
   (display " and ")
   (display a2)
   (display " is ")
-  (display (time (h (((ev (term-to-expr gcd-term)) a1) a2))))
+  (display (h (((ev (term-to-expr gcd-term)) a1) a2)))
+  ;; (display (time (h (((ev (term-to-expr gcd-term)) a1) a2))))
   (newline))
 	
 ;; Tests
