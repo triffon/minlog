@@ -1,5 +1,29 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2014-12-31
+
+In pproof.scm
+
+fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data extended to
+also cover andd andl andr andu.  simphyp-to and simphyp-to-intern
+added, to simplify a given hypothesis and add it with the given name
+to the context.
+
+In examples/classical/gcd.scm
+
+In display-gcd time measurement switched off
+
+In examples/test/pproof.scm
+
+Examples for simp and simphyp-to added.
+
+In doc/ref.tex
+
+simphyp-to and simphyp-to-intern added.  Examples for simp and
+simphyp-to added.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2014-12-28
 
 In boole.scm
