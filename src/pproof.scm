@@ -5248,37 +5248,38 @@
     (if
      match-res
      (list '() '() match-res)
-     (case (tag used-formula)
-       ((atom predicate ex) #f)
-       ((imp)
-	(let* ((concl (imp-form-to-conclusion used-formula))
-	       (prev
-		(apply
-		 fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-		 concl sig-tvars-and-sig-vars
-		 goal-formula left-to-right
-		 elab-path)))
-	  (if (not prev)
-	      #f
-	      (let* ((xs (car prev))
-		     (vars (cadr prev))
-		     (toinst (caddr prev)))
-		(list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
-       ((impnc)
-	(let* ((concl (impnc-form-to-conclusion used-formula))
-	       (prev
-		(apply
-		 fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-		 concl sig-tvars-and-sig-vars
-		 goal-formula left-to-right
-		 elab-path)))
-	  (if (not prev)
-	      #f
-	      (let* ((xs (car prev))
-		     (vars (cadr prev))
-		     (toinst (caddr prev)))
-		(list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
-       ((all)
+     (cond
+      ((atom-form? used-formula) #f)
+      ((ex-form? used-formula) #f)
+      ((imp-form? used-formula)
+       (let* ((concl (imp-form-to-conclusion used-formula))
+	      (prev
+	       (apply
+		fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
+		concl sig-tvars-and-sig-vars
+		goal-formula left-to-right
+		elab-path)))
+	 (if (not prev)
+	     #f
+	     (let* ((xs (car prev))
+		    (vars (cadr prev))
+		    (toinst (caddr prev)))
+	       (list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
+      ((impnc-form? used-formula)
+       (let* ((concl (impnc-form-to-conclusion used-formula))
+	      (prev
+	       (apply
+		fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
+		concl sig-tvars-and-sig-vars
+		goal-formula left-to-right
+		elab-path)))
+	 (if (not prev)
+	     #f
+	     (let* ((xs (car prev))
+		    (vars (cadr prev))
+		    (toinst (caddr prev)))
+	       (list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
+       ((all-form? used-formula)
 	(let* ((var (all-form-to-var used-formula))
 	       (kernel (all-form-to-kernel used-formula))
 	       (new-var (var-to-new-var var))
@@ -5304,7 +5305,7 @@
 		  (cons (make-term-in-var-form new-var) xs)
 		  (cons new-var vars)
 		  toinst))))))
-       ((allnc)
+       ((allnc-form? used-formula)
 	(let* ((var (allnc-form-to-var used-formula))
 	       (kernel (allnc-form-to-kernel used-formula))
 	       (new-var (var-to-new-var var))
@@ -5330,9 +5331,13 @@
 		  (cons (make-term-in-var-form new-var) xs)
 		  (cons new-var vars)
 		  toinst))))))
-       ((and)
-	(let ((left-conjunct (and-form-to-left used-formula))
-	      (right-conjunct (and-form-to-right used-formula)))
+       ((or (and-form? used-formula)
+	    (andd-form? used-formula)
+	    (andl-form? used-formula)
+	    (andr-form? used-formula)
+	    (andu-form? used-formula))
+	(let ((left-conjunct (bicon-form-to-left used-formula))
+	      (right-conjunct (bicon-form-to-right used-formula)))
 	  (if
 	   (pair? elab-path)
 	   (let* ((direction (car elab-path))
@@ -5372,6 +5377,7 @@
 			   (toinst (caddr prev2)))
 		      (list (cons 'right xs) vars toinst))
 		    #f)))))))
+       ((predicate-form? used-formula) #f)
        (else (myerror
 	      "fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data"
 	      "formula expected"
@@ -6220,23 +6226,14 @@
 (define (simphyp-with-to-intern num-goals proof maxgoal
 				hyp . opt-dir-and-xs-and-name)
   (if (null? (cdr opt-dir-and-xs-and-name))
-      (myerror "simphyp-with-to" "more arguments expected"))
+      (myerror "simphyp-with-to-intern" "more arguments expected"))
   (if (member DEFAULT-GOAL-NAME opt-dir-and-xs-and-name)
       (myerror "? illegal for simphyp-with-to; use simphyp-with instead"))
-  (let* ((opt-dir (car opt-dir-and-xs-and-name))
-	 (name (car (last-pair opt-dir-and-xs-and-name)))
-	 (left-to-right (not (and (string? opt-dir) (string=? "<-" opt-dir))))
+  (let* ((name (car (last-pair opt-dir-and-xs-and-name)))
 	 (opt-dir-and-xs (list-head opt-dir-and-xs-and-name
-				    (- (length opt-dir-and-xs-and-name) 1)))
-	 (x-and-x-list (if left-to-right
-			   opt-dir-and-xs
-			   (cdr opt-dir-and-xs)))
-	 (x (if (null? x-and-x-list)
-		(myerror "simphyp-with-to-intern" "more arguments expected")
-		(car x-and-x-list)))
-	 (x-list (cdr x-and-x-list)))
+				    (- (length opt-dir-and-xs-and-name) 1))))
     (if (not (string? name))
-	(myerror "simphyp-with-to" "string expected" name))
+	(myerror "simphyp-with-to-intern" "string expected" name))
     (let* ((pproof-state1
 	    (apply simphyp-with-intern
 		   num-goals proof maxgoal hyp opt-dir-and-xs))
@@ -6248,8 +6245,6 @@
 	   (maxhyp (length avars)))
       (apply name-hyp-intern
 	     (append pproof-state1 (list maxhyp name))))))
-
-;; For backwards compatibility we also have simphyp
 
 (define (simphyp hyp opt-dir . rest)
   (let* ((num-goals (pproof-state-to-num-goals))
@@ -6372,6 +6367,49 @@
 			  (append types subst-xs))
 		  (append (list num-goals proof maxgoal hyp "<-" x)
 			  (append types subst-xs))))))))
+
+;; simphyp-to and simphyp-to-intern simplify a given hypothesis and
+;; add it with the given name to the context.
+
+(define (simphyp-to hyp opt-dir-or-x . xs-and-name)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (number (num-goal-to-number (car num-goals)))
+	 (simphyp-result
+	  (apply simphyp-to-intern
+		 num-goals proof maxgoal hyp opt-dir-or-x
+		 xs-and-name)))
+    (if (not simphyp-result)
+	(begin (display-comment "no simplification possible")
+	       (if COMMENT-FLAG (newline)))
+	(begin
+	  (set! PPROOF-STATE simphyp-result)
+	  (pproof-state-history-push PPROOF-STATE)
+	  (display-new-goals num-goals number)))))
+
+(define (simphyp-to-intern num-goals proof maxgoal
+			   hyp . opt-dir-and-xs-and-name)
+  (if (null? (cdr opt-dir-and-xs-and-name))
+      (myerror "simphyp-to-intern" "more arguments expected"))
+  (if (member DEFAULT-GOAL-NAME opt-dir-and-xs-and-name)
+      (myerror "? illegal for simphyp-to; use simphyp instead"))
+  (let* ((name (car (last-pair opt-dir-and-xs-and-name)))
+	 (opt-dir-and-xs (list-head opt-dir-and-xs-and-name
+				    (- (length opt-dir-and-xs-and-name) 1))))
+    (if (not (string? name))
+	(myerror "simphyp-to-intern" "string expected" name))
+    (let* ((pproof-state1
+	    (apply simphyp-intern
+		   num-goals proof maxgoal hyp opt-dir-and-xs))
+	   (num-goals (pproof-state-to-num-goals pproof-state1))
+	   (num-goal (car num-goals))
+	   (goal (num-goal-to-goal num-goal))
+	   (context (goal-to-context goal))
+	   (avars (context-to-avars context))
+	   (maxhyp (length avars)))
+      (apply name-hyp-intern
+	     (append pproof-state1 (list maxhyp name))))))
 
 ;; Now we provide some tactics to generate classical proofs.
 
