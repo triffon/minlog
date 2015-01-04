@@ -13,11 +13,11 @@
 (if (not (member "lib/cont.scm" LOADED-FILES))
     (myerror "First load lib/cont.scm"))
 
-(time (pp (nt (pt "(IntN 2#9)+(2*((IntP 7#9)-(IntN 2#9)))/4"))))
+;; (time (pp (nt (pt "(IntN 2#9)+(2*((IntP 7#9)-(IntN 2#9)))/4"))))
 ;; 5#18 ;7ms
-(time (pp (nt (pt "(IntN 2#9)+((IntP 7#9)-(IntN 2#9))/2")))) ;5#18 ;6ms
-(time (pp (nt (pt "((IntN 2#9)+(7#9))/2")))) ;5#18 ;4ms
-(time (pp (nt (pt "((IntN 2#9)+(7#9))")))) ;5#9 ;3ms
+;; (time (pp (nt (pt "(IntN 2#9)+((IntP 7#9)-(IntN 2#9))/2")))) ;5#18 ;6ms
+;; (time (pp (nt (pt "((IntN 2#9)+(7#9))/2")))) ;5#18 ;4ms
+;; (time (pp (nt (pt "((IntN 2#9)+(7#9))")))) ;5#9 ;3ms
 
 ;; For further speed-up we provide an external version of +
 
@@ -215,14 +215,14 @@
 (define a-sq-minus-two
   (pt "ContConstr 1 2([a0,n1]a0*a0-2)([k]Zero)([k]k+3)"))
 
-(time (pp (nt
-   (apply mk-term-in-app-form
-	  (list (proof-to-extracted-term (theorem-name-to-proof "IVTApprox"))
-		a-sq-minus-two
-		(pt "IntN One") ;-1 is the modulus of increase
-		(pt "IntZero")  ;1 <= b-a
-		(pt "IntZero")  ;b-a <= 1
-		(pt "20"))))))
+;; (time (pp (nt
+;;    (apply mk-term-in-app-form
+;; 	  (list (proof-to-extracted-term (theorem-name-to-proof "IVTApprox"))
+;; 		a-sq-minus-two
+;; 		(pt "IntN One") ;-1 is the modulus of increase
+;; 		(pt "IntZero")  ;1 <= b-a
+;; 		(pt "IntZero")  ;b-a <= 1
+;; 		(pt "20"))))))
 ;; 17193534846817967675#12157665459056928801
 ;; 460 ms
 
@@ -286,8 +286,8 @@
 ;; 107#81
 (pp (nt (make-term-in-app-form sqrt-two-approx (pt "20"))))
 ;; 17193534846817967675#12157665459056928801
-(time (tag (nbe-normalize-term-without-eta
-	    (make-term-in-app-form sqrt-two-approx (pt "20")))))
+;; (time (tag (nbe-normalize-term-without-eta
+;; 	    (make-term-in-app-form sqrt-two-approx (pt "20")))))
 ;; 300 ms
 (deanimate "Id")
 
@@ -311,15 +311,15 @@
 ;;                     (cons (car cd0) (cdr cd)))))))
 ;;          (IntToNat (* 2 k)))))
 
-(time ((ev (term-to-expr sqrt-two-approx)) 20))
+;; (time ((ev (term-to-expr sqrt-two-approx)) 20))
 ;; 3 ms
 ;; 1910392699673572643/1350851717672992089
 
-(time ((ev (term-to-expr sqrt-two-approx)) 100))
+;; (time ((ev (term-to-expr sqrt-two-approx)) 100))
 ;; 35 ms
 41737211713808721950509113461986613702889339109196103625535604673708288858253142530485267574435/29512665430652752148753480226197736314359272517043832886063884637676943433478020332709411004889
 
-(time ((ev (term-to-expr sqrt-two-approx)) 300))
+;; (time ((ev (term-to-expr sqrt-two-approx)) 300))
 ;; 500 ms
 2944593304156165436102846247558257490730845085059145775348712785737552429558941055472664500523847993653960875075500489392461830532348741253430285578096821615417701491158209086792184369992128090401780684332213746112424235660933353732326055138766537198666286440104173743582833475176351331/2082141893205326654083779991150902602700941003443642395329656664801323440350862630969568906052114539645303398663539990042118787521457672342793285135263403898153882623763114393917433013110956461871522162788143751759237923280744039682511207437298831530097535001606799426410247097767236889
 
@@ -399,13 +399,14 @@
 
 (animate "Id")
 
-(time
+;; (time
 (pp (nbe-normalize-term-without-eta
       (mk-term-in-app-form
        inv-sq-approx
        (pt "3") ;argument of inverted function
        (pt "20") ;error bound (number of binary digits)
-       ))))
+       )))
+;; )
 
 ;; 3730307366945298869534434#2153693963075557766310747 in 470 ms
 
@@ -438,12 +439,12 @@
 ;;              (* 2
 ;;                 (+ (+ (+ (+ (+ (+ (+ (+ k -1) 1) 1) 1) 1) 1) 1) 1)))))))
 
-(time (((ev (term-to-expr inv-sq-approx)) 3) 20))
+;; (time (((ev (term-to-expr inv-sq-approx)) 3) 20))
 ;; 5 ms
 
-(time (((ev (term-to-expr inv-sq-approx)) 3) 100))
+;; (time (((ev (term-to-expr inv-sq-approx)) 3) 100))
 ;; 40 ms
 
-(time (((ev (term-to-expr inv-sq-approx)) 3) 200))
+;; (time (((ev (term-to-expr inv-sq-approx)) 3) 200))
 ;; 200 ms
 
