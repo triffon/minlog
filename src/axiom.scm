@@ -3065,6 +3065,84 @@
       (proof-in-allnc-elim-form-to-op proof)))
     (else (myerror "h-deg-violations-aux" "proof expected" proof))))
 
+(define (add-totality-theorems . opt-proof)
+  (if (and (null? opt-proof)
+	   (null? PPROOF-STATE))
+      (myerror "add-totality-theorems"
+	       "proof argument or proof under construction expected"))
+  (let* ((proof (if (null? opt-proof)
+		    (pproof-state-to-proof)
+		    (car opt-proof)))
+	 (formula (proof-to-formula proof))
+	 (conjuncts (and-form-to-conjuncts formula))
+	 (conclusions
+	  (map imp-impnc-all-allnc-form-to-final-conclusion conjuncts))
+	 (pconst-names
+	  (map (lambda (concl)
+		 (if (and (pair? (predicate-form-to-args concl))
+			  (term-in-const-form?
+			   (term-in-app-form-to-final-op
+			    (car (predicate-form-to-args concl))))
+			  (eq? 'pconst
+			       (const-to-kind
+				(term-in-const-form-to-const
+				 (term-in-app-form-to-final-op
+				  (car (predicate-form-to-args concl)))))))
+		     (const-to-name
+		      (term-in-const-form-to-const
+		       (term-in-app-form-to-final-op
+			(car (predicate-form-to-args concl)))))
+		     (myerror "add-totality-theorems"
+			      "unexpected final conclusion" concl)))
+	       conclusions))
+	 (pconsts (map pconst-name-to-pconst pconst-names))
+	 (terms (map make-term-in-const-form pconsts))
+	 (t-degs (map const-to-t-deg pconsts))
+	 (totality-formulas (map term-to-totality-formula terms))
+	 (unfolded-totality-formulas
+	  (map term-to-unfolded-totality-formula terms)))
+    (if (not (null? (proof-to-free-avars proof)))
+	(apply myerror "unexpected free assumptions"
+	       (proof-to-free-avars proof)))
+    (if (pair? (nc-violations proof))
+	(myerror "add-totality-theorems" "allnc-intro with cvars"
+		 (nc-violations proof)))
+    (if (pair? (h-deg-violations proof))
+	(myerror "add-totality-theorems" "h-deg violations at aconsts"
+		 (h-deg-violations proof)))
+    (if (not (or (formula=? formula (apply mk-and totality-formulas))
+		 (formula=? formula (apply mk-and unfolded-totality-formulas))))
+	(myerror "add-totality-theorems" "formula" formula
+		 "should be equal to the conjunction of totality formulas"
+		 (mk-and totality-formulas)
+		 "or the conjunction of unfolded totality formulas"
+		 (mk-and unfolded-totality-formulas)))
+    (for-each (lambda (pconst-name t-deg)
+		(if (t-deg-one? t-deg)
+		    (comment "Warning: pconst " pconst-name
+			     " should have been added with t-deg zero")))
+	      pconst-names t-degs)
+    ;; Change t-deg-zero in each pconst to t-deg-one
+    (apply change-t-deg-to-one pconst-names)
+    (let*
+	((new-pconsts (map pconst-name-to-pconst pconst-names)) ;with t-deg-one
+	 (totality-proofs (map pconst-to-totality-proof new-pconsts))
+	 (formulas (map proof-to-formula totality-proofs))
+	 (strings (map (lambda (pconst-name)
+			 (string-append pconst-name "Total"))
+		       pconst-names))
+	 (aconsts (map (lambda (string formula)
+			 (make-aconst string 'theorem formula empty-subst))
+		       strings formulas)))
+      (for-each (lambda (string aconst totality-proof)
+		  (set! THEOREMS (cons (list string aconst totality-proof)
+				       THEOREMS))
+		  (comment "ok, " string " has been added as a new theorem."))
+		strings aconsts totality-proofs))))
+
+(define (save-totality . opt-proof)
+  (apply add-totality-theorems opt-proof))
+
 (define (remove-theorem . strings)
   (define (rthm1 string)
     (if (assoc string THEOREMS)
