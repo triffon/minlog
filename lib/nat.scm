@@ -2452,5 +2452,105 @@
 
 (add-program-constant "TranslationNatMinusPosDiff" (py "nat=>nat=>nat"))
 
+;; The following would fit better into a file lib/boole.scm
+
+;; EqFalseToNeg
+(set-goal "all boole(boole=False -> boole -> F)")
+(cases)
+(assume "Absurd" "Useless")
+(use "Absurd")
+(assume "Useless" "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "EqFalseToNeg")
+
+;; NegToEqFalse
+(set-goal "all boole((boole -> F) -> boole=False)")
+(cases)
+(assume "Absurd")
+(use-with "Absurd" "Truth")
+(assume "Useless")
+(use "Truth")
+;; Proof finished.
+(save "NegToEqFalse")
+
+;; BooleAeqToEq
+(set-goal "all boole1,boole2(
+ (boole1 -> boole2) -> (boole2 -> boole1) -> boole1=boole2)")
+(cases)
+(cases)
+(strip)
+(use "Truth")
+(assume "Absurd" "Useless")
+(use-with "Absurd" "Truth")
+(cases)
+(assume "Useless" "Absurd")
+(use-with "Absurd" "Truth")
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "BooleAeqToEq")
+
+;; OrIntroLeft
+(set-goal "all boole1,boole2(boole1 -> boole1 orb boole2)")
+(cases)
+(strip)
+(use "Truth")
+(cases)
+(strip)
+(use "Truth")
+(assume "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "OrIntroLeft")
+
+;; OrIntroRight
+(set-goal "all boole1,boole2(boole2 -> boole1 orb boole2)")
+(cases)
+(strip)
+(use "Truth")
+(cases)
+(strip)
+(use "Truth")
+(assume "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "OrIntroRight")
+
+;; OrElim
+(set-goal "all boole1,boole2(
+ boole1 orb boole2 -> (boole1 -> Pvar) -> (boole2 -> Pvar) -> Pvar)")
+(cases)
+(assume "boole1" "Useless1" "Hyp" "Useless2")
+(use-with "Hyp" "Truth")
+(cases)
+(assume "Useless1" "Useless2" "Hyp")
+(use-with "Hyp" "Truth")
+(ng #t)
+(assume "Absurd" "Hyp1" "Hyp2")
+(use-with "Hyp1" "Absurd")
+;; Proof finished.
+(save "OrElim")
+
+;; IfAndb
+(set-goal "all boole1,boole2 [if boole1 boole2 False]=(boole1 andb boole2)")
+(cases)
+(assume "boole1")
+(use "Truth")
+(assume "boole1")
+(use "Truth")
+;; Proof finished.
+(save "IfAndb")
+
+;; IfOrb
+(set-goal "all boole1,boole2 [if boole1 True boole2]=(boole1 orb boole2)")
+(cases)
+(assume "boole1")
+(use "Truth")
+(assume "boole1")
+(use "Truth")
+;; Proof finished.
+(save "IfOrb")
+
 (add-var-name "n" "m" "k" (py "nat"))
 
