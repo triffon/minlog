@@ -11908,15 +11908,15 @@
 	     (totality-avar
 	      (formula-to-new-avar
 	       (term-to-totality-formula (make-term-in-var-form partial-var))))
-	     (all-allpartial-formula (aconst-to-formula all-allpartial-aconst))
-	     (tvar (car (formula-to-tvars all-allpartial-formula)))
-	     (pvar (car (formula-to-pvars all-allpartial-formula)))
+	     (alltotal-elim-formula (aconst-to-formula alltotal-elim-aconst))
+	     (tvar (car (formula-to-tvars alltotal-elim-formula)))
+	     (pvar (car (formula-to-pvars alltotal-elim-formula)))
 	     (subst-kernel
 	      (formula-subst kernel var (make-term-in-var-form partial-var)))
 	     (tpsubst (make-substitution
 		       (list tvar pvar)
 		       (list type (make-cterm partial-var subst-kernel))))
-	     (subst-aconst (aconst-substitute all-allpartial-aconst tpsubst))
+	     (subst-aconst (aconst-substitute alltotal-elim-aconst tpsubst))
 	     (inst-formula (aconst-to-inst-formula subst-aconst))
 	     (free (formula-to-free inst-formula)))
 	(make-proof-in-allnc-intro-form
@@ -11984,17 +11984,17 @@
 	     (kernel (allnc-form-to-kernel fla))
 	     (type (var-to-type var))
 	     (total-var (if (t-deg-zero? (var-to-t-deg var))
-			      (make-var type
-					(var-to-index var)
-					t-deg-one
-					(var-to-name var))
-			      (myerror
-			       "unfold-to-ford"
-			       "quantifier over a partial variable expected"
-			       fla)))
-	     (allpartial-all-formula (aconst-to-formula allpartial-all-aconst))
-	     (tvar (car (formula-to-tvars allpartial-all-formula)))
-	     (pvar (car (formula-to-pvars allpartial-all-formula))))
+			    (make-var type
+				      (var-to-index var)
+				      t-deg-one
+				      (var-to-name var))
+			    (myerror
+			     "unfold-to-fold"
+			     "quantifier over a partial variable expected"
+			     fla)))
+	     (alltotal-intro-formula (aconst-to-formula alltotal-intro-aconst))
+	     (tvar (car (formula-to-tvars alltotal-intro-formula)))
+	     (pvar (car (formula-to-pvars alltotal-intro-formula))))
 	(cond
 	 ((and
 	   (imp-form? kernel)
@@ -12005,7 +12005,7 @@
 			   (list tvar pvar)
 			   (list type (make-cterm var concl))))
 		 (subst-aconst
-		  (aconst-substitute allpartial-all-aconst tpsubst))
+		  (aconst-substitute alltotal-intro-aconst tpsubst))
 		 (inst-formula (aconst-to-inst-formula subst-aconst))
 		 (free (formula-to-free inst-formula)))
 	    (make-proof-in-all-intro-form
@@ -12025,7 +12025,7 @@
 			   (list tvar pvar)
 			   (list type (make-cterm var concl))))
 		 (subst-aconst
-		  (aconst-substitute allpartial-all-aconst tpsubst))
+		  (aconst-substitute alltotal-intro-aconst tpsubst))
 		 (inst-formula (aconst-to-inst-formula subst-aconst))
 		 (free (formula-to-free inst-formula)))
 	    (make-proof-in-allnc-intro-form
@@ -12037,7 +12037,7 @@
 							  total-var))))
 			      (cons var vars)))))
 	 (else
-	  (myerror "unfold-to-fold" "not impnclemented for proofs of" fla)))))
+	  (myerror "unfold-to-fold" "not implemented for proofs of" fla)))))
      ((quant-form? fla) ;not allnc
       (myerror "unfold-to-fold" "not implemented for proofs of" fla))
      ((predicate-form? fla) ;not an inductively defined bicon or quant
@@ -12060,6 +12060,44 @@
   (let* ((avar (formula-to-new-avar fla))
 	 (proof (fold-to-unfold (make-proof-in-avar-form avar))))
     (make-proof-in-imp-intro-form avar proof)))
+
+;; For a pconst of t-deg-one we construct a totality proof using
+;; alltotal-intro-aconst
+
+(define (pconst-to-totality-proof pconst)
+  (let* ((unfolded-tty-fla
+	  (term-to-totality-formula (make-term-in-const-form pconst)))
+	 (folded-tty-fla (fold-total-variables unfolded-tty-fla))
+	 (concl (imp-form-to-final-conclusion
+		 (all-form-to-final-kernel folded-tty-fla)))
+	 (applied-pconst-term (car (predicate-form-to-args concl)))
+	 (val-type (arrow-form-to-final-val-type (const-to-type pconst)))
+	 (alltotal-intro-formula (aconst-to-formula alltotal-intro-aconst))
+	 (tvar (car (formula-to-tvars alltotal-intro-formula)))
+	 (pvar (car (formula-to-pvars alltotal-intro-formula)))
+	 (var (type-to-new-partial-var val-type))
+	 (totality-formula (term-to-totality-formula
+			    (make-term-in-var-form var)))
+	 (tpsubst (make-substitution
+		   (list tvar pvar)
+		   (list val-type (make-cterm var totality-formula))))
+	 (subst-aconst (aconst-substitute alltotal-intro-aconst tpsubst))
+	 (aconst-proof (make-proof-in-aconst-form subst-aconst))
+	 (avar (make-avar totality-formula -1 "u"))
+	 (intro-proof (make-proof-in-allnc-intro-form
+		       var (make-proof-in-imp-intro-form
+			    avar (make-proof-in-avar-form avar))))
+	 (total-var-proof ;similar to boole-total-var-proof in ets.scm
+	  (mk-proof-in-elim-form aconst-proof intro-proof))
+	 (inst-total-var-proof ;here we need that pconst has t-deg-one
+	  (make-proof-in-all-elim-form
+	   total-var-proof applied-pconst-term))
+	 (imp-proof (fold-imp-unfold-proof folded-tty-fla)))
+    (make-proof-in-imp-elim-form
+     imp-proof
+     (apply mk-proof-in-intro-form
+	    (append (all-form-to-vars folded-tty-fla)
+		    (list inst-total-var-proof))))))
 
 ;; (proof-and-formula-to-proof proof formula) replaces the end formula
 ;; of proof by formula.  It should only be applied when both are equal
