@@ -372,6 +372,26 @@
 			(cddr fm))))))))
     (set-goal (pf (formel formulastringlist)))))
 
+;; (set-totality-goal . strings) and (set-unfolded-totality-goal . strings)
+;; added.  The latter is only used if unfolding is necessary.  After
+;; finishing the proof the result is saved by (save-totality).
+
+(define (set-totality-goal . pconst-names)
+  (let* ((pconsts (map pconst-name-to-pconst pconst-names))
+	 (terms (map make-term-in-const-form pconsts))
+	 (totality-formulas (map term-to-totality-formula terms))
+	 (renamed-totality-formulas (map rename-variables totality-formulas)))
+    (set-goal (apply mk-and renamed-totality-formulas))))
+
+(define (set-unfolded-totality-goal . pconst-names)
+  (let* ((pconsts (map pconst-name-to-pconst pconst-names))
+	 (terms (map make-term-in-const-form pconsts))
+	 (unfolded-totality-formulas
+	  (map term-to-unfolded-totality-formula terms))
+	 (renamed-unfolded-totality-formulas
+	  (map rename-variables unfolded-totality-formulas)))
+    (set-goal (apply mk-and renamed-unfolded-totality-formulas))))
+
 ;; We initially supply our axioms as theorems, and also
 ;; AtomTrue: all boole(boole -> boole=True)
 ;; AtomFalse: all boole((boole -> F) -> boole=False)
