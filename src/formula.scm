@@ -435,6 +435,12 @@
     (imp-all-allnc-form-to-final-conclusion (allnc-form-to-kernel formula)))
    (else formula)))
 
+(define (and-form-to-conjuncts formula)
+  (if (and-form? formula)
+      (cons (and-form-to-left formula)
+	    (and-form-to-conjuncts (and-form-to-right formula)))
+      (list formula)))
+
 (define all-allnc-form-to-var cadr)
 (define all-allnc-form-to-kernel caddr)
 (define (all-allnc-form? x)
