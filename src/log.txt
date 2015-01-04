@@ -47,6 +47,10 @@ In examples/analysis/ivt.scm
 
 Time measurement commented out (leads to errors in .TEST)
 
+In examples/bar/
+
+higman.scm added
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2014-12-31
 
