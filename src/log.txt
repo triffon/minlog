@@ -1,6 +1,53 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2015-01-04
+
+In pconst.scm
+
+change-t-deg-to-one adapted to simultaneous definitions of pconsts: it
+now takes a list of pconst-names as arguments.  This is necessary to
+have all these pconsts in the stored totality theorems with t-deg one.
+
+In formula.scm
+
+and-form-to-conjuncts added.
+
+In axiom.scm
+
+add-totality-theorems (= save-totality) added.  It expects that the
+proof argument or the proof under construction is for a conjunction of
+totality formulas for simultaneously defined program constants of
+t-deg-zero.  It changes the degree of totality for all these to
+t-deg-one, and also generates theorems stating their totality, with
+names like NatPlusTotal.  These theorems are with the pconsts of
+t-deg-one, and can be useful in later totality proofs.  save-totality
+added.
+
+In proof.scm
+
+In fold-to-unfold all-allpartial-aconst replaced by alltotal-elim-aconst
+In unfold-to-fold allpartial-all-aconst replaced by alltotal-intro-aconst
+For a pconst of t-deg-one (pconst-to-totality-proof pconst)
+constructs a totality proof using alltotal-intro-aconst
+
+In pproof.scm
+
+(set-totality-goal . strings) and (set-unfolded-totality-goal . strings)
+added.  The latter is only used if unfolding is necessary.  After
+finishing the proof the result is saved by (save-totality).
+
+In nat.scm
+
+EqFalseToNeg NegToEqFalse NegToEqFalse BooleAeqToEq OrIntroLeft
+OrIntroRight OrElim IfAndb IfOrb added (would fit better into a file
+lib/boole.scm)
+
+In examples/analysis/ivt.scm
+
+Time measurement commented out (leads to errors in .TEST)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2014-12-31
 
 In pproof.scm
