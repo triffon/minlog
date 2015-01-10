@@ -1,5 +1,5 @@
 #!/bin/bash
-MINLOGEL="---MINLOGPATH---/minlog.el"
+MINLOGEL="---MINLOGPATH---/util/minlog.el"
 
 # Which Emacs to use
 if [ -z $EMACS ]; then

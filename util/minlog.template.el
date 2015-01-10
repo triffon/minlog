@@ -44,14 +44,7 @@
 	 (lt (if (< (+ left-frame-lt (* wh 2)) (x-display-pixel-width))
 		 left-frame-lt 0))
 	 (ht (/ (x-display-pixel-height) (frame-char-height)))
-	 (border (frame-parameter left-frame 'border-width))
-	 (left-params (list (cons 'left lt)
-			    (cons 'top 0)
-			    (cons 'height ht)))
-	 (right-params (list (cons 'left (+ lt wh (* 2 border)))
-			     (cons 'top 0)
-			     (cons 'height ht))))
-
+	 (border (frame-parameter left-frame 'border-width)))
     ;; is there a heap file ?
     (if (and (file-readable-p (concat minlogpath "/minlog.heap"))
 	   (or (string= scheme "petite")
@@ -61,8 +54,10 @@
 		      minlogpath "/welcome.scm"))
       (setq heapload (concat minlogpath "/init.scm")))
 
-    (modify-frame-parameters left-frame left-params)
-    (modify-frame-parameters right-frame right-params)
+    (set-frame-size left-frame 80 ht)
+    (set-frame-size right-frame 80 ht)
+    (set-frame-position left-frame lt 0)
+    (set-frame-position right-frame (+ lt wh (* 2 border)) 0)
     (delete-frame orig-frame)
 
     ;; start scheme
