@@ -34,8 +34,8 @@ all: src init.scm minlog minlog.el doc
 
 install: src init.scm minlog minlog.el doc
 	$(INSTALL_DIR) $(PREFIX)$(MINLOGDIR) $(PREFIX)$(BINDIR) $(PREFIX)$(ELDIR)
-	sed "s%---MINLOGPATH---%"$(MINLOGDIR)"%g; s%---MINLOGELPATH---%"$(ELDIR)"%g" < src/minlog.el > $(PREFIX)$(ELDIR)/minlog.el
-	sed "s%---MINLOGPATH---%"$(ELDIR)"%g" < src/minlog > $(PREFIX)$(BINDIR)/minlog
+	sed "s%---MINLOGPATH---%"$(MINLOGDIR)"%g; s%---MINLOGELPATH---%"$(ELDIR)"%g" < util/minlog.template.el > $(PREFIX)$(ELDIR)/minlog.el
+	sed "s%---MINLOGPATH---%"$(ELDIR)"%g" < util/minlog.template > $(PREFIX)$(BINDIR)/minlog
 	chmod a+x $(PREFIX)$(BINDIR)/minlog
 	sed "s%---MINLOGPATH---%"$(MINLOGDIR)"%g; s%(minlog-load \"examples/\" path))%(load (string-append \""$(DOCDIR)"/examples/\" path)))%g" < src/init.scm > $(PREFIX)$(MINLOGDIR)/init.scm
 	(cd src; find . -name '*.scm' -type f -exec $(INSTALL_FILE) {} $(PREFIX)$(MINLOGDIR)/src/{} \;)
