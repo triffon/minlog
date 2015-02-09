@@ -4141,6 +4141,10 @@
 		       uninst-alg-or-arrow-types)))
 	    (car (apply alg-or-arrow-types-to-corec-consts
 			inst-alg-or-arrow-types))))
+	 ((string=? "Destr" name)
+	  (let* ((alg (destr-const-to-alg const))
+		 (inst-alg (type-substitute alg restricted-tsubst)))
+	    (alg-to-destr-const inst-alg)))
 	 ((string=? "SE" name)
 	  (let* ((inst-type (type-substitute uninst-type restricted-tsubst))
 		 (sfinalg (arrow-form-to-arg-type inst-type)))
