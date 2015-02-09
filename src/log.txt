@@ -12,11 +12,6 @@ In term.scm
 In term-to-simple-outer-eta-expansion rename-variables used.
 term-to-external-expr in case Scheme extended to terms of type ysum.
 
-Not done in lib/list.scm 
-
-ListTails ListLfts ListRhts (with prefix-display-string Tails Lfts
-Rhts) added.  Theorems HeadsAppd LhRhts LhLfts added.
-
 In examples/arith/dickson.scm
 
 Updated to fit papers/dickson12/bd.tex
