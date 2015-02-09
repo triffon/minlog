@@ -1,24 +1,4 @@
-;; 2011-11-24.  temp/examplesarithdickson.scm
-
-;; Based on Josef Berger's final.scm.  Comparison: Lemma1 renamed into
-;; Descent lemma.  After decoration its content maps f,g into a boolean
-;; (since we are not interested in i,j).  From the Descent lemma DL
-
-;; all f,g,n ex k(I f g n<=k & exu i,j(i<j & j<=k & f i<=f j & g i<=g j))
-
-;; is proved by general induction with measure Phi.  The extracted term
-;; gives iterations of I as bound.  The rest is essentially a cleanup:
-
-;; - Relation to the finite pigeon hole principle FPH made explicit.
-;; It is used as proved in examples/arith/fph.scm.
-
-;; - Disjunctions (inductively defined) instead of booleans.  This
-;; avoids usage of stabilities.
-
-;; - Pair coding made monotonic in both arguments.  Properties of the
-;; coding proved by means of component functions.
-
-;; - Totality proofs provided.
+;; 2015-02-09.  dickson.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -29,38 +9,12 @@
 (add-var-name "f" "g" "s" (py "nat=>nat"))
 (add-var-name "i" "j" "l" "c" (py "nat"))
 
-(add-program-constant "Mini" (py "(nat=>nat)=>nat=>nat"))
-(add-computation-rules
- "Mini f 0" "0"
- "Mini f(Succ n)" "[if (f(Mini f n)<=f(Succ n)) (Mini f n) (Succ n)]")
-
-;; MiniTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Mini"))))
-(assume "f^" "Tf" "n^" "Tn")
-(elim "Tn")
-(use "TotalNatZero")
-(assume "n^1" "Tn1" "IH")
-(ng #t)
-(use "BooleIfTotal")
-(use "NatLeTotal")
-(use "Tf")
-(use "IH")
-(use "Tf")
-(use "TotalNatSucc")
-(use "Tn1")
-(use "IH")
-(use "TotalNatSucc")
-(use "Tn1")
-;; Proof finished.
-(save "MiniTotal")
-
 (add-program-constant "Maxi" (py "(nat=>nat)=>nat=>nat"))
 (add-computation-rules
  "Maxi f 0" "0"
  "Maxi f(Succ n)" "[if (f(Succ n)<=f(Maxi f n)) (Maxi f n) (Succ n)]")
 
-;; "MaxiTotal"
-(set-goal (rename-variables (term-to-totality-formula (pt "Maxi"))))
+(set-totality-goal "Maxi")
 (assume "f^" "Tf" "n^" "Tn")
 (elim "Tn")
 (use "TotalNatZero")
@@ -76,94 +30,352 @@
 (use "IH")
 (use "TotalNatSucc")
 (use "Tn1")
-;; Proof finished.
-(save "MaxiTotal")
+;; Proof finshed.
+(save-totality)
 
-(add-program-constant "Psi" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat"))
-(add-computation-rule "Psi f g n" "f(Mini g n)max g(Mini f n)")
-
-;; "PsiTotal"
-(set-goal (rename-variables (term-to-totality-formula (pt "Psi"))))
-(assume "f^" "Tf" "g^" "Tg" "n^" "Tn")
-(use "NatMaxTotal")
-(use "Tf")
-(use "MiniTotal")
-(use "Tg")
-(use "Tn")
-(use "Tg")
-(use "MiniTotal")
-(use "Tf")
-(use "Tn")
-;; Proof finished.
-(save "PsiTotal")
-
-(add-program-constant "I" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat"))
-(add-computation-rule "I f g n" "Succ(n+Psi f g n*Psi f g n)")
-
-;; "ITotal"
-(set-goal (rename-variables (term-to-totality-formula (pt "I"))))
-(assume "f^" "Tf" "g^" "Tg" "n^" "Tn")
-(use "TotalNatSucc")
-(use "NatPlusTotal")
-(use "Tn")
-(use "NatTimesTotal")
-(use "NatMaxTotal")
-(use "Tf")
-(use "MiniTotal")
-(use "Tg")
-(use "Tn")
-(use "Tg")
-(use "MiniTotal")
-(use "Tf")
-(use "Tn")
-
-(use "NatMaxTotal")
-(use "Tf")
-(use "MiniTotal")
-(use "Tg")
-(use "Tn")
-(use "Tg")
-(use "MiniTotal")
-(use "Tf")
-(use "Tn")
-;; Proof finished.
-(save "ITotal")
-
-(add-program-constant "ItI" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat=>nat"))
-(add-computation-rules
- "ItI f g 0 n" "n"
- "ItI f g(Succ m)n" "I f g(ItI f g m n)")
-
-;; "ItITotal"
-(set-goal (rename-variables (term-to-totality-formula (pt "ItI"))))
-(assume "f^" "Tf" "g^" "Tg" "m^" "Tm" "n^" "Tn")
-(elim "Tm")
-(use "Tn")
-(assume "n^1" "Tn1" "IH")
-(use "ITotal")
-(use "Tf")
-(use "Tg")
+;; MaxiBound
+(set-goal "all f,n Maxi f n<=n")
+(assume "f")
+(ind)
+(use "Truth")
+(assume "n" "IH")
+(cases (pt "f(Succ n)<=f(Maxi f n)"))
+(assume "LeCase")
+(simp "LeCase")
+(use "NatLeTrans" (pt "n"))
 (use "IH")
-;; Proof finished.
-(save "ItITotal")
+(use "Truth")
+(assume "NotLeCase")
+(simp "NotLeCase")
+(use "Truth")
+;; Proof faxished.
+(save "MaxiBound")
 
-(add-program-constant "Phi" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat"))
-(add-computation-rule "Phi f g n" "f(Mini f n)+g(Mini g n)")
-
-;; "PhiTotal"
-(set-goal (rename-variables (term-to-totality-formula (pt "Phi"))))
-(assume "f^" "Tf" "g^" "Tg" "n^" "Tn")
-(use "NatPlusTotal")
-(use "Tf")
-(use "MiniTotal")
-(use "Tf")
-(use "Tn")
-(use "Tg")
-(use "MiniTotal")
-(use "Tg")
-(use "Tn")
+;; MaxiProp
+(set-goal "all f,n,i(i<=n -> f i<=f(Maxi f n))")
+(assume "f")
+(ind)
+;; Base
+(cases)
+(assume "Useless")
+(use "Truth")
+(assume "n")
+(ng)
+(use "Efq")
+;; Step
+(assume "n" "IH" "i" "i<=n+1")
+(use "NatLtSuccCases" (pt "Succ n") (pt "i"))
+(use "NatLeLtTrans" (pt "Succ n"))
+(use "i<=n+1")
+(use "Truth")
+(assume "i<n+1")
+(use "NatLeTrans" (pt "f(Maxi f n)"))
+(use "IH")
+(use "NatLtSuccToLe")
+(use "i<n+1")
+;; ?_18:f(Maxi f n)<=f(Maxi f(Succ n))
+(cases (pt "f(Succ n)<=f(Maxi f n)"))
+(assume "LeCase")
+(simp "LeCase")
+(use "Truth")
+(assume "NotLeCase")
+(simp "NotLeCase")
+(use "NatLtToLe")
+(use "NatNotLeToLt")
+(use "NotLeCase")
+(assume "i=n+1")
+(simp "i=n+1")
+;; ?_30:f(Succ n)<=f(Maxi f(Succ n))
+(cases (pt "f(Succ n)<=f(Maxi f n)"))
+(assume "LeCase")
+(simp "LeCase")
+(use "LeCase")
+(assume "NotLeCase")
+(simp "NotLeCase")
+(use "Truth")
 ;; Proof finished.
-(save "PhiTotal")
+(save "MaxiProp")
+
+;; Let f_j be maximal among f_0 ... f_{m+1} (j=Maxi f(m+1)).  If
+;; m+1<=f_j we are done.  Else we have f_j<=m.  Now we apply the IH on
+;; f'=f_0 ... f_{j-1} f_{j+1}...f_{m+1}.  If two of them are equal we
+;; are done.  Else m<=f_k for some k=/=j and hence f_j<=f_k.  If
+;; f_j=f_k we are done.  Else f_j<f_k contradicting the choice of j.
+
+;; FPHDisj
+(set-goal "all m,f(ex i,j(i<j & j<=m & f i=f j) ori ex j(j<=m & m<=f j))")
+(ind)
+;; Base
+(assume "f")
+(intro 1)
+(ex-intro (pt "0"))
+(split)
+(use "Truth")
+(use "Truth")
+;; Step
+(assume "m" "IH" "f")
+(cut "ex j j=Maxi f(Succ m)")
+(use "Id")
+(assume "jEx")
+(by-assume "jEx" "j" "jDef")
+(cases (pt "Succ m<=f j"))
+;; Case m+1<=fj
+(assume "m+1<=f j")
+(intro 1)
+(ex-intro "j")
+(split)
+(simp "jDef")
+(use "MaxiBound")
+(use "m+1<=f j")
+;; Case m+1<=fj -> F
+(assume "m+1<=fj -> F")
+(assert "f j<Succ m")
+ (use "NatNotLeToLt")
+ (use "m+1<=fj -> F")
+ (drop "m+1<=fj -> F")
+(assume "fj<m+1")
+(inst-with-to "IH" (pt "[n][if (n<j) (f n) (f(Succ n))]") "IHInst")
+(drop "IH")
+(ng "IHInst")
+(elim "IHInst")
+(drop "IHInst")
+;; Case two are equal
+(assume "ExHyp")
+(by-assume "ExHyp" "i" "iProp")
+(by-assume "iProp" "j1" "ij1Prop")
+(intro 0)
+(cases (pt "j1<j"))
+;; Case j1<j
+(assume "j1<j")
+(simphyp-with-to "ij1Prop" "j1<j" "ij1PropSimp")
+(drop "ij1Prop")
+(ng "ij1PropSimp")
+(assert "i<j")
+ (use "NatLtTrans" (pt "j1"))
+ (use "ij1PropSimp")
+ (use "j1<j")
+(assume "i<j")
+(simphyp-with-to "ij1PropSimp" "i<j" "ij1PropSSimp")
+(ng "ij1PropSSimp")
+;; Take i,j1
+(ex-intro "i")
+(ex-intro "j1")
+(msplit)
+(use "ij1PropSSimp")
+(use "NatLeTrans" (pt "m"))
+(use "ij1PropSSimp")
+(use "Truth")
+(use "ij1PropSSimp")
+;; Case j1<j -> F
+(assume "j1<j -> F")
+(simphyp-with-to "ij1Prop" "j1<j -> F" "ij1PropSimp")
+(drop "ij1Prop")
+(ng "ij1PropSimp")
+(cases (pt "i<j"))
+;; Subcase i<j
+(assume "i<j")
+(simphyp-with-to "ij1PropSimp" "i<j" "ij1PropSSimp")
+(ng "ij1PropSSimp")
+(drop "ij1PropSimp")
+(ex-intro "i")
+(ex-intro "Succ j1")
+(msplit)
+(use "ij1PropSSimp")
+(use "ij1PropSSimp")
+(use "NatLtTrans" (pt "j1"))
+(use "ij1PropSimp")
+(use "Truth")
+;; Subcase i<j -> F
+(assume "i<j -> F")
+(simphyp-with-to "ij1PropSimp" "i<j -> F" "ij1PropSSimp")
+(ng "ij1PropSSimp")
+(drop "ij1PropSimp")
+(ex-intro "Succ i")
+(ex-intro "Succ j1")
+(msplit)
+(use "ij1PropSSimp")
+(use "ij1PropSSimp")
+(use "ij1PropSSimp")
+(drop "IHInst")
+;; Case one above
+(assume "ExHyp")
+(by-assume "ExHyp" "j1" "j1Prop")
+(assert "ex k k=[if (j1<j) j1 (Succ j1)]")
+ (ex-intro "[if (j1<j) j1 (Succ j1)]")
+ (use "Truth")
+(assume "kEx")
+(by-assume "kEx" "k" "kDef")
+(cases (pt "j1<j"))
+;; Case j1<j
+(assume "j1<j")
+(simphyp-with-to "j1Prop" "j1<j" "j1PropSimp")
+(drop "j1Prop")
+(ng "j1PropSimp")
+(simphyp-with-to "kDef" "j1<j" "kDefSimp")
+(drop "kDef")
+(ng "kDefSimp")
+(simphyp-with-to "j1PropSimp" "<-" "kDefSimp" "j1PropSSimp")
+(drop "j1PropSimp")
+(assert "f j<=f k")
+ (use "NatLeTrans" (pt "m"))
+ (use "NatLtSuccToLe")
+ (use "fj<m+1")
+ (use "j1PropSSimp")
+(assume "fj<=fk")
+(use "NatLeCases" (pt "f k") (pt "f j"))
+(use "fj<=fk")
+(drop "fj<=fk")
+;; Case fj<fk
+(assume "fj<fk")
+(assert "f k<=f j")
+ (simp "jDef")
+ (use "MaxiProp")
+ (use "NatLeTrans" (pt "m"))
+ (use "j1PropSSimp")
+ (use "Truth")
+(assume "fk<=fj")
+(assert "f j<f j")
+ (use "NatLtLeTrans" (pt "f k"))
+ (use "fj<fk")
+ (use "fk<=fj")
+(assume "Absurd")
+(use "Efq")
+(use "Absurd")
+;; Case fj=fk
+(assume "fj=fk")
+(intro 0)
+(ex-intro "k")
+(ex-intro "j")
+(msplit)
+(simp "fj=fk")
+(use "Truth")
+(simp "jDef")
+(use "MaxiBound")
+(simp "kDefSimp")
+(use "j1<j")
+;; Case j1<j -> F
+(assume "j1<j -> F")
+(simphyp-with-to "j1Prop" "j1<j -> F" "j1PropSimp")
+(drop "j1Prop")
+(ng "j1PropSimp")
+(simphyp-with-to "kDef" "j1<j -> F" "kDefSimp")
+(drop "kDef")
+(ng "kDefSimp")
+(simphyp-with-to "j1PropSimp" "<-" "kDefSimp" "j1PropSSimp")
+(drop "j1PropSimp")
+(assert "f j<=f k")
+ (use "NatLeTrans" (pt "m"))
+ (use "NatLtSuccToLe")
+ (use "fj<m+1")
+ (use "j1PropSSimp")
+(assume "fj<=fk")
+(use "NatLeCases" (pt "f k") (pt "f j"))
+(use "fj<=fk")
+(drop "fj<=fk")
+;; Case fj<fk
+(assume "fj<fk")
+(assert "f k<=f j")
+ (simp "jDef")
+ (use "MaxiProp")
+ (simp "kDefSimp")
+ (use "j1PropSSimp")
+(assume "fk<=fj")
+(assert "f j<f j")
+ (use "NatLtLeTrans" (pt "f k"))
+ (use "fj<fk")
+ (use "fk<=fj")
+(assume "Absurd")
+(use "Efq")
+(use "Absurd")
+;; Case fj=fk
+(assume "fj=fk")
+(intro 0)
+;; k<=Succ m by kDefSimp and j1PropSSimp
+;; j<=Succ m by MaxiBound
+;; j<=j1 and k=Succ j1, hence Succ j<=k and therefore j<k
+(ex-intro "j")
+(ex-intro "k")
+(msplit)
+(use "fj=fk")
+(simp "kDefSimp")
+(use "j1PropSSimp")
+(assert "j<=j1")
+ (use "NatNotLtToLe")
+ (use "j1<j -> F")
+(assume "j<=j1")
+(assert "j<Succ j1")
+(use "NatLeToLtSucc")
+(use "j<=j1")
+(simp "kDefSimp")
+(assume "j<j1+1")
+(use "j<j1+1")
+;; Finally we prove what is left from the cut above
+(ex-intro (pt "Maxi f(Succ m)"))
+(use "Truth")
+;; Proof finished.
+(save "FPHDisj")
+
+(define eterm (proof-to-extracted-term))
+(add-var-name "ij" (py "nat@@nat"))
+(add-var-name "d" (py "(nat=>nat)=>nat@@nat ysum nat"))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n]
+;;  (Rec nat=>(nat=>nat)=>nat@@nat ysum nat)n([f](InR nat nat@@nat)0)
+;;  ([n0,d,f]
+;;    [let n1
+;;      [if (f(Succ n0)<=f(Maxi f n0)) (Maxi f n0) (Succ n0)]
+;;      [if (Succ n0<=f n1)
+;;       ((InR nat nat@@nat)n1)
+;;       [if (d([n2][if (n2<n1) (f n2) (f(Succ n2))]))
+;;        ([ij]
+;;         (InL nat@@nat nat)
+;;         [if (right ij<n1)
+;;           ij
+;;           ([if (left ij<n1) (left ij) (Succ left ij)]@Succ right ij)])
+;;        ([n2]
+;;         [if (n2<n1)
+;;           ((cNatLeCases nat@@nat ysum nat)(f[if (n2<n1) n2 (Succ n2)])(f n1)
+;;           ((InL nat@@nat nat)(0@0))
+;;           ((InL nat@@nat nat)([if (n2<n1) n2 (Succ n2)]@n1)))
+;;           ((cNatLeCases nat@@nat ysum nat)(f[if (n2<n1) n2 (Succ n2)])(f n1)
+;;           ((InL nat@@nat nat)(0@0))
+;;           ((InL nat@@nat nat)(n1@[if (n2<n1) n2 (Succ n2)])))])]]])
+
+(define nneterm (term-to-term-without-predecided-ifs neterm))
+(pp nneterm)
+;; [n]
+;;  (Rec nat=>(nat=>nat)=>nat@@nat ysum nat)n([f](InR nat nat@@nat)0)
+;;  ([n0,d,f]
+;;    [let n1
+;;      [if (f(Succ n0)<=f(Maxi f n0)) (Maxi f n0) (Succ n0)]
+;;      [if (Succ n0<=f n1)
+;;       ((InR nat nat@@nat)n1)
+;;       [if (d([n2][if (n2<n1) (f n2) (f(Succ n2))]))
+;;        ([ij]
+;;         (InL nat@@nat nat)
+;;         [if (right ij<n1)
+;;           ij
+;;           ([if (left ij<n1) (left ij) (Succ left ij)]@Succ right ij)])
+;;        ([n2]
+;;         [if (n2<n1)
+;;           ((cNatLeCases nat@@nat ysum nat)(f n2)(f n1)
+;;           ((InL nat@@nat nat)(0@0))
+;;           ((InL nat@@nat nat)(n2@n1)))
+;;           ((cNatLeCases nat@@nat ysum nat)(f(Succ n2))(f n1)
+;;           ((InL nat@@nat nat)(0@0))
+;;           ((InL nat@@nat nat)(n1@Succ n2)))])]]])
+
+(animate "NatLeCases")
+(add-var-name "x" (py "alpha"))
+(add-var-name "h" (py "nat=>alpha=>alpha=>alpha"))
+(ppc (rename-variables (nt (pt "(cNatLeCases alpha)n"))))
+
+;; (Rec nat=>nat=>alpha=>alpha=>alpha)n
+;; ([n0,x,x0][case n0 (0 -> x0) (Succ n1 -> x)])
+;; ([n0,h,n1,x,x0][case n1 (0 -> x) (Succ n2 -> h n2 x x0)])
+
+(deanimate "NatLeCases")
 
 ;; V n is the integer square root of n
 
@@ -172,7 +384,7 @@
  "V 0" "0"
  "V(Succ n)" "[if (n<Succ(V n)*V n+V n) (V n) (Succ(V n))]")
 
-(set-goal (rename-variables (term-to-totality-formula (pt "V"))))
+(set-totality-goal "V")
 (use "AllTotalElim")
 (ind)
 ;; Base
@@ -194,7 +406,7 @@
 (use "TotalNatSucc")
 (use "IH")
 ;; Proof finished.
-(save "VTotal")
+(save-totality)
 
 ;; Code of pairs of natural numbers
 
@@ -206,7 +418,7 @@
 (add-program-constant "Code" (py "nat=>nat=>nat"))
 (add-computation-rules "Code n m" "[if (m<n) (n*n+m) (m*m+m+n)]")
 
-(set-goal (rename-variables (term-to-totality-formula (pt "Code"))))
+(set-totality-goal "Code")
 (use "AllTotalElim")
 (assume "n")
 (use "AllTotalElim")
@@ -217,14 +429,14 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "CodeTotal")
+(save-totality)
 
 ;; L is the left component of a coded pair.
 
 (add-program-constant "L" (py "nat=>nat"))
 (add-computation-rules "L c" "[if (c<V c*V c+V c) (V c) (c--(V c*V c+V c))]")
 
-(set-goal (rename-variables (term-to-totality-formula (pt "L"))))
+(set-totality-goal "L")
 (use "AllTotalElim")
 (ng #t)
 (assume "n")
@@ -233,12 +445,12 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "LTotal")
+(save-totality)
 
 (add-program-constant "R" (py "nat=>nat"))
 (add-computation-rules "R c" "[if (c<V c*V c+V c) (c--V c*V c) (V c)]")
 
-(set-goal (rename-variables (term-to-totality-formula (pt "R"))))
+(set-totality-goal "R")
 (use "AllTotalElim")
 (assume "n")
 (ng)
@@ -247,7 +459,7 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "RTotal")
+(save-totality)
 
 ;; VProp1
 (set-goal "all c(V c*V c<=c & c<=V c*V c+V c+V c)")
@@ -518,7 +730,7 @@
 ;; Proof finished.
 (save "RProp")
 
-;; CodeSurj
+;; CodeSurj (not needed)
 (set-goal "all c Code(L c)(R c)=c")
 (assume "c")
 (cut "all n,m(n=L c -> m=R c -> Code n m=c)")
@@ -689,7 +901,7 @@
 ;; Proof finished.
 (save "CodeProp1")
 
-;; "CodeProp2" ;; not used.
+;; "CodeProp2" (not used)
 (set-goal "all n,m,l(l=n max m ->  l*l<=Code n m)")
 (assume "n" "m" "l" "l=n max m")
 (ng #t)
@@ -758,7 +970,7 @@
 ;; Proof finished.
 (save "CodeProp2")
 
-;; "CodeProp"
+;; CodeSqFill
 (set-goal "all n,m,k(k*k<=Code n m -> k<=n ori k<=m)")
 (assume "n" "m" "k")
 (assert "all nat1,nat2(nat1 max nat2=nat1 ori nat1 max nat2=nat2)")
@@ -816,242 +1028,15 @@
 (use "NatLtToSuccLe")
 (use "l<k")
 ;; Proof finished.
-(save "CodeProp")
+(save "CodeSqFill")
 
-;; Mini1
-(set-goal "all f,n Mini f n<=n")
-(assume "f")
-(ind)
-(use "Truth")
-(assume "n" "IH")
-(cases (pt "f(Mini f n)<=f(Succ n)"))
-(assume "LeCase")
-(simp "LeCase")
-(use "NatLeTrans" (pt "n"))
-(use "IH")
-(use "Truth")
-(assume "NotLeCase")
-(simp "NotLeCase")
-(use "Truth")
-;; Proof finished.
-(save "Mini1")
-
-;; "Mini2"
-(set-goal "all f,n f(Mini f(Succ n))<=f(Mini f n)")
-(assume "f" "n")
-(cases (pt "f(Mini f n)<=f(Succ n)"))
-(assume "LeCase")
-(simp "LeCase")
-(use "Truth")
-(assume "NotLeCase")
-(simp "NotLeCase")
-(use "NatLtToLe")
-(use "NatNotLeToLt")
-(use "NotLeCase")
-;; Proof finished.
-(save "Mini2")
-
-;; Mini3
-(set-goal "all f,n(f(Mini f n)<=f n)")
-(assume "f")
-(cases)
-(use "Truth")
-(assume "n")
-(cases (pt "f(Mini f n)<=f(Succ n)"))
-(assume "LeCase")
-(simp "LeCase")
-(use "LeCase")
-(assume "NotLeCase")
-(simp "NotLeCase")
-(use "Truth")
-;; Proof finished.
-(save "Mini3")
-
-;; "fMiniAntiMon"
-(set-goal (pf "all f,n,m(n<=m -> f(Mini f m)<=f(Mini f n))"))
-(assume "f" "n")
-(ind)
-;; Base m=0
-(assume "n<=0")
-(assert (pf "n=0"))
- (use "n<=0")
-(assume "n=0")
-(simp "n=0")
-(use "Truth")
-;; m->m+1
-(assume "m" "IH")
-(assume "n<=Sm")
-(use "NatLeCases" (pt "Succ m") (pt "n"))
-(use "n<=Sm")
-(drop "n<=Sm")
-(assume "n<Sm")
-(use "NatLeTrans" (pt "f(Mini f m)"))
-(use "Mini2")
-(use "IH")
-(use "NatLtSuccToLe")
-(use "n<Sm")
-(assume "n=Sm")
-(simp "n=Sm")
-(use "Truth")
-;; Proof finished.
-(save "fMiniAntiMon")
-
-;; Maxi1
-(set-goal "all f,n Maxi f n<=n")
-(assume "f")
-(ind)
-(use "Truth")
-(assume "n" "IH")
-(cases (pt "f(Succ n)<=f(Maxi f n)"))
-(assume "LeCase")
-(simp "LeCase")
-(use "NatLeTrans" (pt "n"))
-(use "IH")
-(use "Truth")
-(assume "NotLeCase")
-(simp "NotLeCase")
-(use "Truth")
-;; Proof faxished.
-(save "Maxi1")
-
-;; Maxi2
-(set-goal "all f,n f(Maxi f n)<=f(Maxi f(Succ n))")
-(assume "f" "n")
-(cases (pt "f(Succ n)<=f(Maxi f n)"))
-(assume "LeCase")
-(simp "LeCase")
-(use "Truth")
-(assume "NotLeCase")
-(simp "NotLeCase")
-(use "NatLtToLe")
-(use "NatNotLeToLt")
-(use "NotLeCase")
-;; Proof finished.
-(save "Maxi2")
-
-;; Maxi3
-(set-goal "all f,n f n<=f(Maxi f n)")
-(assume "f")
-(cases)
-(use "Truth")
-(assume "n")
-(cases (pt "f(Succ n)<=f(Maxi f n)"))
-(assume "LeCase")
-(simp "LeCase")
-(use "LeCase")
-(assume "NotLeCase")
-(simp "NotLeCase")
-(use "Truth")
-;; Proof finished.
-(save "Maxi3")
-
-;; "Maxi4"
-(set-goal "all f,n,i(i<=n -> f i<=f(Maxi f n))")
-(assume "f")
-(ind)
-;; Base
-(cases)
-(assume "Useless")
-(use "Truth")
-(assume "n")
-(ng)
-(use "Efq")
-;; Step
-(assume "n" "IH")
-(assume "i" "i<=n+1")
-(use "NatLtSuccCases" (pt "Succ n") (pt "i"))
-(use "NatLeLtTrans" (pt "Succ n"))
-(use "i<=n+1")
-(use "Truth")
-(assume "i<n+1")
-(use "NatLeTrans" (pt "f(Maxi f n)"))
-(use "IH")
-(use "NatLtSuccToLe")
-(use "i<n+1")
-(use "Maxi2")
-(assume "i=n+1")
-(simp "i=n+1")
-(use "Maxi3")
-;; Proof finished.
-(save "Maxi4")
-
-;; PhiAntiMon
-(set-goal (pf "all f,g,n,m(n<=m -> Phi f g m<=Phi f g n)"))
-(assume "f" "g" "n" "m" "n<=m")
-(use "NatLeMonPlus")
-(use "fMiniAntiMon")
-(use "n<=m")
-(use "fMiniAntiMon")
-(use "n<=m")
-;; Proof finished.
-(save "PhiAntiMon")
-
-;; "LeIncrI"
-(set-goal "all f,g,n n<=I f g n")
-(assume "f" "g" "n")
-(use "NatLeTrans" (pt "Succ n"))
-(use "Truth")
-(use "Truth")
-;; Proof finished.
-(save "LeIncrI")
-
-;; LeMonItI
-(set-goal "all f,g,n ItI f g n 0<=ItI f g(Succ n)0")
-(assume "f" "g" "n")
-(use "NatLeTrans" (pt "I f g(ItI f g n 0)"))
-(use "LeIncrI")
-(use "Truth")
-;; Proof finished.
-(save "LeMonItI")
-
-;; The following finite pigeon hole principle is proved in
-;; examples/arith/fph.scm
-(add-global-assumption
- "FPH" (pf "all m,s(all i(i<=Succ m -> s i<=m) ->
-                    ex i,j(i<j & j<=Succ m & s i=s j))"))
-
-;; FPHDisj
-(set-goal "all s,m(ex i,j(i<j & j<=m & s i=s j) ori ex j(j<=m & m<=s j))")
-(assume "s")
-(cases)
-;; Case m=0.
-(intro 1)
-(ex-intro (pt "0"))
-(split)
-(use "Truth")
-(use "Truth")
-;; Case m+1
-(assume "m")
-(cut "all j(j=Maxi s(Succ m) ->
-       ex i,j(i<j & j<=Succ m & s i=s j) ord ex j(j<=Succ m & Succ m<=s j))")
- (assume "CutHyp")
- (use "CutHyp" (pt "Maxi s(Succ m)"))
- (use "Truth")
-(assume "j" "jDef")
-(cases (pt "s j<Succ m"))
-;; Case "s j<Succ m"
-(assume "s j<Succ m")
-(intro 0)
-(use "FPH")
-(assume "i" "i<m+1")
-(use "NatLeTrans" (pt "s j"))
-(simp "jDef")
-
-(use "Maxi4")
-(use "i<m+1")
-(use "NatLtSuccToLe")
-(use "s j<Succ m")
-;; Case "s j<Succ m -> F"
-(assume "s j<Succ m -> F")
-(intro 1)
-(ex-intro (pt "j"))
-(split)
-(simp "jDef")
-(use "Maxi1")
-(use "NatNotLtToLe")
-(use "s j<Succ m -> F")
-;; Proof finished.
-(save "FPHDisj")
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(ppc neterm)
+;; [n,n0,n1]
+;;  (Rec nat=>nat=>boole)n([n2]False)
+;;  ([n2,(nat=>boole),n3][case n3 (0 -> True) (Succ n -> (nat=>boole)n)])
+;;  n0
 
 ;; FPHDisjTwo
 (set-goal "all f,g,k(
@@ -1059,10 +1044,10 @@
  ex j(j<=k*k & k<=f j)  ori
  ex j(j<=k*k & k<=g j))")
 (assume "f" "g" "k")
-(inst-with-to "FPHDisj" (pt "[i]Code(f i)(g i)") (pt "k*k") "FPHDisjInst")
+(inst-with-to "FPHDisj" (pt "k*k") (pt "[i]Code(f i)(g i)") "FPHDisjInst")
 (elim "FPHDisjInst")
-;; First case
 (drop "FPHDisjInst")
+;; First case
 (assume "ExHyp")
 (by-assume "ExHyp" "i" "iProp")
 (by-assume "iProp" "j" "ijProp")
@@ -1079,8 +1064,8 @@
 (use "ci=cj")
 (use "ijProp")
 (use "ijProp")
-;; Second case
 (drop "FPHDisjInst")
+;; Second case
 (assume "ExHyp")
 (by-assume "ExHyp" "j" "jProp")
 (intro 1)
@@ -1088,26 +1073,42 @@
  (use "jProp")
 (assume "k*k<=c")
 (assert "k<=f j oru k<=g j")
- (use "CodeProp")
+ (use "CodeSqFill")
  (use "k*k<=c")
 (assume "Disj")
 (elim "Disj")
-
+(drop "Disj")
+;; Case k<=f j
 (assume "k<=f j")
 (intro 0)
-(ex-intro (pt "j"))
+(ex-intro "j")
 (split)
 (use "jProp")
 (use "k<=f j")
-
+;; Case k<=g j
 (assume "k<=g j")
 (intro 1)
-(ex-intro (pt "j"))
+(ex-intro "j")
 (split)
 (use "jProp")
 (use "k<=g j")
 ;; Proof finished.
 (save "FPHDisjTwo")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [f,g,n]
+;;  [if (cFPHDisj(n*n)
+;;        ([n0][if (g n0<f n0)
+;;                 (f n0*f n0+g n0)
+;;                 (g n0*g n0+g n0+f n0)]))
+;;    ([ij](DummyL nat ysum nat))
+;;    ([n0]
+;;     Inr[if (cCodeSqFill(f n0)(g n0)n)
+;;            ((InL nat nat)n0)
+;;            ((InR nat nat)n0)])]
 
 ;; Key
 (set-goal "all f,g,n,k(
@@ -1172,6 +1173,214 @@
 ;; Proof finished.
 (save "Key")
 
+(define eterm (proof-to-extracted-term))
+(add-var-name "nn" (py "nat ysum nat"))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [f,f0,n,n0]
+;;  [if (cFPHDisjTwo([n1]f(Succ(n+n1)))([n1]f0(Succ(n+n1)))n0)
+;;    (DummyL nat ysum nat)
+;;    ([nn]
+;;     Inr[if nn ([n1](InL nat nat)(Succ(n+n1)))
+;;               ([n1](InR nat nat)(Succ(n+n1)))])]
+(ppc neterm)
+
+;; [f,g,n,n0]
+;;  [case (cFPHDisjTwo([n1]f(Succ(n+n1)))([n1]g(Succ(n+n1)))n0)
+;;    ((DummyL nat ysum nat) -> (DummyL nat ysum nat))
+;;    (Inr nn -> 
+;;    Inr[case nn
+;;         ((InL nat nat)n1 -> (InL nat nat)(Succ(n+n1)))
+;;         ((InR nat nat)n1 -> (InR nat nat)(Succ(n+n1)))])]
+
+(add-program-constant "Mini" (py "(nat=>nat)=>nat=>nat"))
+(add-computation-rules
+ "Mini f 0" "0"
+ "Mini f(Succ n)" "[if (f(Mini f n)<=f(Succ n)) (Mini f n) (Succ n)]")
+
+(set-totality-goal "Mini")
+(assume "f^" "Tf" "n^" "Tn")
+(elim "Tn")
+(use "TotalNatZero")
+(assume "n^1" "Tn1" "IH")
+(ng #t)
+(use "BooleIfTotal")
+(use "NatLeTotal")
+(use "Tf")
+(use "IH")
+(use "Tf")
+(use "TotalNatSucc")
+(use "Tn1")
+(use "IH")
+(use "TotalNatSucc")
+(use "Tn1")
+;; Proof finished.
+(save-totality)
+
+(add-program-constant "Psi" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat"))
+(add-computation-rule "Psi f g n" "f(Mini g n)max g(Mini f n)")
+
+(set-totality-goal "Psi")
+(assume "f^" "Tf" "g^" "Tg" "n^" "Tn")
+(use "NatMaxTotal")
+(use "Tf")
+(use "MiniTotal")
+(use "Tg")
+(use "Tn")
+(use "Tg")
+(use "MiniTotal")
+(use "Tf")
+(use "Tn")
+;; Proof finished.
+(save "PsiTotal")
+
+(add-program-constant "I" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat"))
+(add-computation-rule "I f g n" "Succ(n+Psi f g n*Psi f g n)")
+
+(set-totality-goal "I")
+(assume "f^" "Tf" "g^" "Tg" "n^" "Tn")
+(use "TotalNatSucc")
+(use "NatPlusTotal")
+(use "Tn")
+(use "NatTimesTotal")
+(use "NatMaxTotal")
+(use "Tf")
+(use "MiniTotal")
+(use "Tg")
+(use "Tn")
+(use "Tg")
+(use "MiniTotal")
+(use "Tf")
+(use "Tn")
+
+(use "NatMaxTotal")
+(use "Tf")
+(use "MiniTotal")
+(use "Tg")
+(use "Tn")
+(use "Tg")
+(use "MiniTotal")
+(use "Tf")
+(use "Tn")
+;; Proof finished.
+(save-totality)
+
+(add-program-constant "ItI" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat=>nat"))
+(add-computation-rules
+ "ItI f g 0 n" "n"
+ "ItI f g(Succ m)n" "I f g(ItI f g m n)")
+
+(set-totality-goal "ItI")
+(assume "f^" "Tf" "g^" "Tg" "m^" "Tm" "n^" "Tn")
+(elim "Tm")
+(use "Tn")
+(assume "n^1" "Tn1" "IH")
+(use "ITotal")
+(use "Tf")
+(use "Tg")
+(use "IH")
+;; Proof finished.
+(save-totality)
+
+(add-program-constant "Phi" (py "(nat=>nat)=>(nat=>nat)=>nat=>nat"))
+(add-computation-rule "Phi f g n" "f(Mini f n)+g(Mini g n)")
+
+(set-totality-goal "Phi")
+(assume "f^" "Tf" "g^" "Tg" "n^" "Tn")
+(use "NatPlusTotal")
+(use "Tf")
+(use "MiniTotal")
+(use "Tf")
+(use "Tn")
+(use "Tg")
+(use "MiniTotal")
+(use "Tg")
+(use "Tn")
+;; Proof finished.
+(save-totality)
+
+;; MiniBound (Mini1)
+(set-goal "all f,n Mini f n<=n")
+(assume "f")
+(ind)
+(use "Truth")
+(assume "n" "IH")
+(cases (pt "f(Mini f n)<=f(Succ n)"))
+(assume "LeCase")
+(simp "LeCase")
+(use "NatLeTrans" (pt "n"))
+(use "IH")
+(use "Truth")
+(assume "NotLeCase")
+(simp "NotLeCase")
+(use "Truth")
+;; Proof finished.
+(save "MiniBound")
+
+;; MiniProp (Mini3)
+(set-goal "all f,n(f(Mini f n)<=f n)")
+(assume "f")
+(cases)
+(use "Truth")
+(assume "n")
+(cases (pt "f(Mini f n)<=f(Succ n)"))
+(assume "LeCase")
+(simp "LeCase")
+(use "LeCase")
+(assume "NotLeCase")
+(simp "NotLeCase")
+(use "Truth")
+;; Proof finished.
+(save "MiniProp")
+
+;; fMiniAntiMon
+(set-goal (pf "all f,n,m(n<=m -> f(Mini f m)<=f(Mini f n))"))
+(assume "f" "n")
+(ind)
+;; Base m=0
+(assume "n<=0")
+(assert (pf "n=0"))
+ (use "n<=0")
+(assume "n=0")
+(simp "n=0")
+(use "Truth")
+;; m->m+1
+(assume "m" "IH")
+(assume "n<=Sm")
+(use "NatLeCases" (pt "Succ m") (pt "n"))
+(use "n<=Sm")
+(drop "n<=Sm")
+(assume "n<Sm")
+(use "NatLeTrans" (pt "f(Mini f m)"))
+(cases (pt "f(Mini f m)<=f(Succ m)"))
+(assume "LeCase")
+(simp "LeCase")
+(use "Truth")
+(assume "NotLeCase")
+(simp "NotLeCase")
+(use "NatLtToLe")
+(use "NatNotLeToLt")
+(use "NotLeCase")
+(use "IH")
+(use "NatLtSuccToLe")
+(use "n<Sm")
+(assume "n=Sm")
+(simp "n=Sm")
+(use "Truth")
+;; Proof finished.
+(save "fMiniAntiMon")
+
+;; PhiAntiMon
+(set-goal (pf "all f,g,n,m(n<=m -> Phi f g m<=Phi f g n)"))
+(assume "f" "g" "n" "m" "n<=m")
+(use "NatLeMonPlus")
+(use "fMiniAntiMon")
+(use "n<=m")
+(use "fMiniAntiMon")
+(use "n<=m")
+;; Proof finished.
+(save "PhiAntiMon")
+
 ;; Desc
 (set-goal "all f,g,n(
  exu i,j(i<j & j<=I f g n & f i<=f j & g i<=g j) ori
@@ -1220,7 +1429,7 @@
 (use "f i<=f j")
 (use "jProp")
 (use "NatLeLtTrans" (pt "n"))
-(use "Mini1")
+(use "MiniBound")
 (use "jProp")
 ;; Case "g j<g i"
 (assume "g j<g i")
@@ -1234,7 +1443,7 @@
 (use "NatLtToLe")
 (use "jProp")
 (use "NatLeLtTrans" (pt "g j"))
-(use "Mini3")
+(use "MiniProp")
 (use "g j<g i")
 
 ;; Now the symmetric case with g for f
@@ -1257,7 +1466,7 @@
 (use "f i<=f j")
 (use "jProp")
 (use "NatLeLtTrans" (pt "n"))
-(use "Mini1")
+(use "MiniBound")
 (use "jProp")
 ;; Case "f j<f i"
 (assume "f j<f i")
@@ -1276,12 +1485,34 @@
 (use "NatLtToLe")
 (use "jProp")
 (use "NatLeLtTrans" (pt "f j"))
-(use "Mini3")
+(use "MiniProp")
 (use "f j<f i")
 ;; Proof finished.
 (save "Desc")
 
-;; With extraction:
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(ppc neterm)
+
+;; [f,g,n]
+;;  [case (cKey f g n(f(Mini g n)max g(Mini f n)))
+;;    ((DummyL nat ysum nat) -> True)
+;;    (Inr nn -> 
+;;    [case nn
+;;      ((InL nat nat)n0 -> 
+;;       (cNatLeLtCases boole)(g(Mini g n))(g n0)True False)
+;;      ((InR nat nat)n0 ->
+;;       (cNatLeLtCases boole)(f(Mini f n))(f n0)True False)])]
+
+;; "LeIncrI"
+(set-goal "all f,g,n n<=I f g n")
+(assume "f" "g" "n")
+(use "NatLeTrans" (pt "Succ n"))
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "LeIncrI")
+
 ;; DL
 (set-goal "all f,g,n ex k(
  I f g n<=k & exu i,j(i<j & j<=k & f i<=f j & g i<=g j))")
@@ -1290,6 +1521,7 @@
 (assume "n" "IH")
 (inst-with-to "Desc" (pt "f") (pt "g") (pt "n") "DescInst")
 (elim "DescInst")
+(drop "DescInst")
 (assume "ExHyp")
 (by-assume "ExHyp" "i" "iProp")
 (by-assume "iProp" "j" "ijProp")
@@ -1311,116 +1543,222 @@
 (inst-with-to "IHInst" "LtHyp" "IHInstInst")
 (drop "IHInst")
 (by-assume "IHInstInst" "k" "kProp")
-(ex-intro (pt "k"))
+(ex-intro "k")
 (split)
 (use "NatLeTrans" (pt "I f g(I f g n)"))
 (use "LeIncrI")
 (use "kProp")
 (use "kProp")
-;; Proof finished.
+; Proof finished.
 (save "DL")
 
-(define eterm (proof-to-extracted-term (theorem-name-to-proof "DL")))
+(define eterm (proof-to-extracted-term))
 (remove-computation-rules-for (pt "Phi f g n"))
 (remove-computation-rules-for (pt "I f g n"))
 (set! GRECGUARD-UNFOLDING-FLAG #f)
-
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
+
 ;; [f,f0,n]
 ;;  (GRecGuard nat nat)(Phi f f0)n
 ;;  ([n0,f1][if (cDesc f f0 n0) (I f f0 n0) (f1(I f f0 n0))])
 ;;  True
 
-(add-computation-rule "Phi f g n" "f(Mini f n)+g(Mini g n)")
+;; Test
+;; Let extrbd be the term extracted from the proof of DL
+
+(animate "Desc")
+(animate "Key")
+(animate "FPHDisjTwo")
+(animate "FPHDisj")
+(animate "CodeSqFill")
+(animate "NatLeLtCases")
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [f,f0,n]
+;;  (GRecGuard nat nat)(Phi f f0)n
+;;  ([n0,f1]
+;;    [if ((Rec nat=>(nat=>nat)=>nat@@nat ysum nat)
+;;          (f(Mini f0 n0)max f0(Mini f n0)*(f(Mini f0 n0)max f0(Mini f n0)))
+;;          ([f2](InR nat nat@@nat)0)
+;;          ([n1,d,f2]
+;;            [let n2
+;;              [if (f2(Succ n1)<=f2(Maxi f2 n1)) (Maxi f2 n1) (Succ n1)]
+;;              [if (Succ n1<=f2 n2)
+;;               ((InR nat nat@@nat)n2)
+;;               [if (d([n3][if (n3<n2) (f2 n3) (f2(Succ n3))]))
+;;                ([ij]
+;;                 (InL nat@@nat nat)
+;;                 [if (right ij<n2)
+;;                   ij
+;;                   ([if (left ij<n2) (left ij) (Succ left ij)]@Succ right ij)])
+;;                ([n3]
+;;                 [if (n3<n2)
+;;                   ((cNatLeCases nat@@nat ysum nat)
+;;                   (f2[if (n3<n2) n3 (Succ n3)])
+;;                   (f2 n2)
+;;                   ((InL nat@@nat nat)(0@0))
+;;                   ((InL nat@@nat nat)([if (n3<n2) n3 (Succ n3)]@n2)))
+;;                   ((cNatLeCases nat@@nat ysum nat)
+;;                   (f2[if (n3<n2) n3 (Succ n3)])
+;;                   (f2 n2)
+;;                   ((InL nat@@nat nat)(0@0))
+;;                   ((InL nat@@nat nat)(n2@[if (n3<n2) n3 (Succ n3)])))])]]])
+;;          ([n1]
+;;            [if (f0(Succ(n0+n1))<f(Succ(n0+n1)))
+;;              (f(Succ(n0+n1))*f(Succ(n0+n1))+f0(Succ(n0+n1)))
+;;              (f0(Succ(n0+n1))*f0(Succ(n0+n1))+f0(Succ(n0+n1))+f(Succ(n0+n1)))]))
+;;      ([ij]I f f0 n0)
+;;      ([n1]
+;;       [if [if [if ((Rec nat=>nat=>boole)(f(Succ(n0+n1)))([n2]False)
+;;                       ([n2,(nat=>boole),n3][if n3 True (nat=>boole)])
+;;                       (f0(Succ(n0+n1))))
+;;                   ((InL nat nat)n1)
+;;                   ((InR nat nat)n1)]
+;;              ([n2](InL nat nat)(Succ(n0+n2)))
+;;              ([n2](InR nat nat)(Succ(n0+n2)))]
+;;         ([n2]
+;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f0(Mini f0 n0))
+;;                ([n3,boole,boole0]boole)
+;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
+;;                  [if n4
+;;                    boole0
+;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
+;;                (f0 n2)
+;;                True 
+;;                False)
+;;            (I f f0 n0)
+;;            (f1(I f f0 n0))])
+;;         ([n2]
+;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f(Mini f n0))
+;;                ([n3,boole,boole0]boole)
+;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
+;;                  [if n4
+;;                    boole0
+;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
+;;                (f n2)
+;;                True 
+;;                False)
+;;            (I f f0 n0)
+;;            (f1(I f f0 n0))])])])
+;;  True
+
+(animate "NatLeCases") ;makes the term quite unreadable
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [f,f0,n]
+;;  (GRecGuard nat nat)(Phi f f0)n
+;;  ([n0,f1]
+;;    [if ((Rec nat=>(nat=>nat)=>nat@@nat ysum nat)
+;;          (f(Mini f0 n0)max f0(Mini f n0)*(f(Mini f0 n0)max f0(Mini f n0)))
+;;          ([f2](InR nat nat@@nat)0)
+;;          ([n1,d,f2]
+;;            [let n2
+;;              [if (f2(Succ n1)<=f2(Maxi f2 n1)) (Maxi f2 n1) (Succ n1)]
+;;              [if (Succ n1<=f2 n2)
+;;               ((InR nat nat@@nat)n2)
+;;               [if (d([n3][if (n3<n2) (f2 n3) (f2(Succ n3))]))
+;;                ([ij]
+;;                 (InL nat@@nat nat)
+;;                 [if (right ij<n2)
+;;                   ij
+;;                   ([if (left ij<n2) (left ij) (Succ left ij)]@Succ right ij)])
+;;                ([n3]
+;;                 [if (n3<n2)
+;;                   ((Rec nat=>nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
+;;                   (f2[if (n3<n2) n3 (Succ n3)])
+;;                   ([n4,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
+;;                     [if n4 (nat@@nat ysum nat)_0 ([n5](nat@@nat ysum nat))])
+;;                   ([n4,(nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat),n5,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
+;;                     [if n5
+;;                       (nat@@nat ysum nat)
+;;                       ([n6]
+;;                        (nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
+;;                        n6
+;;                        (nat@@nat ysum nat)
+;;                        (nat@@nat ysum nat)_0)])
+;;                   (f2 n2)
+;;                   ((InL nat@@nat nat)(0@0))
+;;                   ((InL nat@@nat nat)([if (n3<n2) n3 (Succ n3)]@n2)))
+;;                   ((Rec nat=>nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
+;;                   (f2[if (n3<n2) n3 (Succ n3)])
+;;                   ([n4,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
+;;                     [if n4 (nat@@nat ysum nat)_0 ([n5](nat@@nat ysum nat))])
+;;                   ([n4,(nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat),n5,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
+;;                     [if n5
+;;                       (nat@@nat ysum nat)
+;;                       ([n6]
+;;                        (nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
+;;                        n6
+;;                        (nat@@nat ysum nat)
+;;                        (nat@@nat ysum nat)_0)])
+;;                   (f2 n2)
+;;                   ((InL nat@@nat nat)(0@0))
+;;                   ((InL nat@@nat nat)(n2@[if (n3<n2) n3 (Succ n3)])))])]]])
+;;          ([n1]
+;;            [if (f0(Succ(n0+n1))<f(Succ(n0+n1)))
+;;              (f(Succ(n0+n1))*f(Succ(n0+n1))+f0(Succ(n0+n1)))
+;;              (f0(Succ(n0+n1))*f0(Succ(n0+n1))+f0(Succ(n0+n1))+f(Succ(n0+n1)))]))
+;;      ([ij]I f f0 n0)
+;;      ([n1]
+;;       [if [if [if ((Rec nat=>nat=>boole)(f(Succ(n0+n1)))([n2]False)
+;;                       ([n2,(nat=>boole),n3][if n3 True (nat=>boole)])
+;;                       (f0(Succ(n0+n1))))
+;;                   ((InL nat nat)n1)
+;;                   ((InR nat nat)n1)]
+;;              ([n2](InL nat nat)(Succ(n0+n2)))
+;;              ([n2](InR nat nat)(Succ(n0+n2)))]
+;;         ([n2]
+;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f0(Mini f0 n0))
+;;                ([n3,boole,boole0]boole)
+;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
+;;                  [if n4
+;;                    boole0
+;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
+;;                (f0 n2)
+;;                True 
+;;                False)
+;;            (I f f0 n0)
+;;            (f1(I f f0 n0))])
+;;         ([n2]
+;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f(Mini f n0))
+;;                ([n3,boole,boole0]boole)
+;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
+;;                  [if n4
+;;                    boole0
+;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
+;;                (f n2)
+;;                True 
+;;                False)
+;;            (I f f0 n0)
+;;            (f1(I f f0 n0))])])])
+;;  True
+
 (add-computation-rule "I f g n" "Succ(n+Psi f g n*Psi f g n)")
+(add-computation-rule "Phi f g n" "f(Mini f n)+g(Mini g n)")
 
-;; L2
-(set-goal "all f,g,n(
- exu i,j(i<j & j<=ItI f g n 0 & f i<=f j & g i<=g j) ori
- Phi f g(ItI f g n 0)+n<=f 0+g 0)")
-(assume "f" "g")
-(ind)
-;; Base
-(intro 1)
-(use "Truth")
-;; Step
-(assume "n" "IH")
-(assert "exu i,j(i<j & j<=ItI f g(Succ n)0 & f i<=f j & g i<=g j) ori
-  Phi f g(ItI f g(Succ n)0)<Phi f g(ItI f g n 0)")
- (use "Desc")
-(assume "OrHyp")
-(elim "OrHyp")
-(assume "DLISn")
-(intro 0)
-(use "DLISn")
-(assume "LtHyp")
-(elim "IH")
-(assume "DLIn")
-(intro 0)
-(by-assume "DLIn" "i" "iProp")
-(by-assume "iProp" "j" "ijProp")
-(intro 0 (pt "i"))
-(intro 0 (pt "j"))
-(msplit)
-(use "ijProp")
-(use "ijProp")
-(use "NatLeTrans" (pt "ItI f g n 0"))
-(use "ijProp")
-(use "LeMonItI")
-(use "ijProp")
-(assume "LeHyp")
-(intro 1)
-(use "NatLtSuccToLe")
-(use "NatLtLeTrans" (pt "Phi f g(ItI f g n 0)+Succ n"))
-(assert "all n1,n2(n1<n2 -> all n n1+n<n2+n)")
- (assume "n1" "n2" "n1<n2")
- (ind)
- (use "n1<n2")
- (assume "n3" "IHn3")
- (use "IHn3")
-(assume "LtPlusMon")
-(use "LtPlusMon")
-(drop "LtPlusMon")
-(use "LtHyp")
-(use "LeHyp")
-;; Proof finished.
-(save "L2")
+;; We define two example functions
+;; f=(1,0,1,0,0...)
+;; g=(1,1,0,0,0...)
 
-;; Dickson
-(set-goal
- "all f,g exu i,j(i<j & j<=ItI f g(Succ(f 0+g 0))0 & f i<=f j & g i<=g j)")
-(assume "f" "g")
-(inst-with-to "L2" (pt "f") (pt "g") (pt "Succ(f 0+g 0)") "L2Inst")
-(elim "L2Inst")
-(drop "L2Inst")
-(assume "ExHyp")
-(use "ExHyp")
-(assume "Absurd")
-(use "Efq")
-(drop "L2Inst")
-(assert "Phi f g(ItI f g(Succ(f 0+g 0))0)+Succ(f 0+g 0)<Succ(f 0+g 0)")
- (use "NatLeToLtSucc")
- (use "Absurd")
-(assume "Absurd1")
-(assert "all nat1,nat2(nat1+nat2<nat2 -> F)")
- (ind)
- (assume "nat2" "Hyp")
- (use "Hyp")
- (assume "nat1" "IH")
- (cases)
- (assume "Hyp")
- (use "Hyp")
- (assume "nat2")
- (ng #t)
- (assume "Succ(nat1+nat2)<nat2")
- (use "IH" (pt "nat2"))
- (use "NatLtTrans" (pt "Succ(nat1+nat2)"))
- (use "Truth")
- (use "Succ(nat1+nat2)<nat2")
-(assume "NatNotSumLtSecond")
-(use "NatNotSumLtSecond"
-     (pt "Phi f g(ItI f g(Succ(f 0+g 0))0)") (pt "Succ(f 0+g 0)"))
-(use "Absurd1")
-;; Proof finished.
-(save "Dickson")
+(add-program-constant "ExOne" (py "nat=>nat"))
+(add-computation-rules
+ "ExOne 0" "1"
+ "ExOne 1" "0"
+ "ExOne 2" "1"
+ "ExOne(Succ(Succ(Succ n)))" "0")
+
+(add-program-constant "ExTwo" (py "nat=>nat"))
+(add-computation-rules
+ "ExTwo 0" "1"
+ "ExTwo 1" "1"
+ "ExTwo(Succ(Succ 0))" "0")
+
+(set! GRECGUARD-UNFOLDING-FLAG #t)
+(animate "Id")
+
+(pp (nt (mk-term-in-app-form neterm (pt "ExOne") (pt "ExTwo") (pt "0"))))
+;; 4
+
