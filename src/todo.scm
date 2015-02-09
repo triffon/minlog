@@ -1,4 +1,15 @@
-;; 2014-10-18.  todo.scm
+;; 2015-02-09.  todo.scm
+
+;; 2015-02-09.  In temp/examplesarithdickson.scm.  Error in
+;; term-to-scheme-expr.  
+;; (ev expr)
+;; ExOne
+;; number expected
+;; ((testsum (quote (if ((((natRec ...))))))))
+;; Other errors in terms-to-haskell-program: (i)
+;; natGrecGuard n7836 a = (natGrecGuard n7836 a) (non terminating) is
+;; generated.  (ii) After (set! HASKELL-GREC-MEASURE-FLAG #t) get
+;; PARSE ERROR : undefined-token int
 
 ;; 2014-10-18.
 ;; Check expand-theorems
