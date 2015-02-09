@@ -856,11 +856,12 @@
 	       (let* ((arg-type (arrow-form-to-arg-type type))
 		      (val-type (arrow-form-to-val-type type))
 		      (var (type-to-new-var arg-type)))
-		 (make-term-in-abst-form
-		  var (term-to-simple-outer-eta-expansion
-		       (make-term-in-app-form
-			term (make-term-in-var-form var))
-		       (- l 1))))))
+		 (rename-variables
+		  (make-term-in-abst-form
+		   var (term-to-simple-outer-eta-expansion
+			(make-term-in-app-form
+			 term (make-term-in-var-form var))
+			(- l 1)))))))
 	  ((star)
 	   (make-term-in-pair-form
 	    (term-to-simple-outer-eta-expansion
@@ -2194,6 +2195,12 @@
 				     head-test-expr
 				     tail-test-expr))
 			      ")")))))
+	 ((and (alg-form? type) (string=? (alg-form-to-name type) "ysum")
+	       (eq? lang 'scheme))
+	  (list 'let (list (list 'testsum (list 'quote test-expr)))
+		(list 'if (list 'eq? (list 'quote 'InL) (list 'car 'testsum))
+		      (list (car alt-exprs) (list 'cadr 'testsum))
+		      (list (cadr alt-exprs) (list 'cadr 'testsum)))))
 	 ((alg-form? type)
 	  (case lang
 	    ((scheme) (myerror "term-to-external-expr" "unknown if (alg)" term))
