@@ -1,6 +1,14 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2015-02-23
+
+Change of startup script: src/minlog.el and src/minlog moved to util
+with new names minlog.template.el and minlog.template.  They now
+produce two frams: one for the source file, and another one for minlog
+(running petite scheme).  minlog/Makefile changed accordingly.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-01-04
 
 In pconst.scm
