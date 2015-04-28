@@ -1,6 +1,68 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2015-04-28
+
+In typ.scm
+
+In add-algs error messages on missing nullary clauses removed.  In
+type-to-canonical-inhabitant Inhab is used in case of an alg
+without nullary constructors.  Test alg-inhabited? added.
+
+In psym.scm
+
+In add-ids error messages on missing nullary clauses removed.
+In add-co clause-names (e.g. CoIClause) properly added as theorem 
+and animated provided they are c.r.
+
+In term.scm
+
+In term-in-const-form-to-string constants with tvars and different
+from Rec Cases GRecGuard GRec CoRec Destr SE are displayed without
+type parameters by ppc (i.e., in case CASE-DISPLAY is #t).  This makes
+the string unparsable, but this already is so with case display.
+term-to-eta-nf-with-simplified-simrec-appterms corrected for terms in
+pair form with higher type alternatives.  One needs to apply
+term-to-simple-outer-eta-expansion with the length of constr-arg-types
+to the alts in prev-left and prev-right.  Example: [if n ([m]m)
+([m,k]m+k)]@[if n ([m]m) ([m,k]m*k)] is transformed into [if n
+([m]m@m) ([n0,n1]n0+n1@n0*n1)].  In app-term-with-low-original-types?
+typo corrected.  term-to-simple-outer-eta-expansion and
+term-to-outer-eta-expansion simplified.
+
+In axiom.scm
+
+In coidpredconst-to-closure-aconst rename-variables inserted.
+
+In examples/test/*.scm
+
+Added git to the (commented out) load command at the beginning.
+
+In examples/bar
+
+higman.scm added.  Makefile extended accordingly.
+
+In examples/analysis
+
+gray.scm added.  Makefile extended accordingly.
+
+In examples/tutor.scm
+
+Infix display string in renamed into elem to avoid clash with lib/list.scm
+
+In doc/tutor.tex
+
+Infix display string in renamed into elem to avoid clash with lib/list.scm
+
+In lib/list.scm and lib/nat.scm
+
+Cleanup.  Totality proofs done with set-totality-goal and save-totality
+
+In examples/Makefile
+
+Directory train added.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-02-09
 
 In pconst.scm
