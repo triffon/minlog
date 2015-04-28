@@ -72,6 +72,9 @@ fan/.TEST: .always
 deco/.TEST: .always
 	(cd deco; $(MAKE) .TEST)
 
+train/.TEST: .always
+	(cd train; $(MAKE) .TEST)
+
 # clean has to be implemented at each level. Always have genericclean as a
 # dependency
 
