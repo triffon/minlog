@@ -659,7 +659,7 @@
 
 (define (app-term-with-low-original-types? term)
   (if (not (term-form? term))
-      (myerror "app-term-to-low-original-types?"
+      (myerror "app-term-with-low-original-types?"
 	       "term expected" term))
   (let ((op (term-in-app-form-to-final-op term)))
     (and
@@ -837,39 +837,31 @@
   (let* ((type (term-to-type term))
 	 (l (if (pair? opt-number)
 		(if (and (integer? (car opt-number))
-			 (not (negative? (car opt-number))))
+			 (not (negative? (car opt-number)))
+			 (<= (car opt-number)
+			     (length (arrow-form-to-arg-types type))))
 		    (car opt-number)
-		    (myerror "term-to-simple-outer-eta-expansion"
-			     "non-negative integer expected"
-			     (car opt-number)))
+		    (myerror
+		     "term-to-simple-outer-eta-expansion"
+		     "non-negative integer <= length of arg-types expected"
+		     (car opt-number)))
 		(length (arrow-form-to-arg-types type)))))
-    (if (= 0 l)
+    (if (or (= 0 l) (not (arrow-form? type)))
 	term
-	(case (tag type)
-	  ((tvar alg tconst) term)
-	  ((arrow)
-	   (if (term-in-abst-form? term)
-	       (let ((var (term-in-abst-form-to-var term))
-		     (kernel (term-in-abst-form-to-kernel term)))
-		 (make-term-in-abst-form
-		  var (term-to-simple-outer-eta-expansion kernel (- l 1))))
-	       (let* ((arg-type (arrow-form-to-arg-type type))
-		      (val-type (arrow-form-to-val-type type))
-		      (var (type-to-new-var arg-type)))
-		 (rename-variables
-		  (make-term-in-abst-form
-		   var (term-to-simple-outer-eta-expansion
-			(make-term-in-app-form
-			 term (make-term-in-var-form var))
-			(- l 1)))))))
-	  ((star)
-	   (make-term-in-pair-form
-	    (term-to-simple-outer-eta-expansion
-	     (term-in-pair-form-to-left term))
-	    (term-to-simple-outer-eta-expansion
-	     (term-in-pair-form-to-right term))))
-	  (else (myerror "term-to-simple-outer-eta-expansion"
-			 "term expected" term))))))
+	(if (term-in-abst-form? term)
+	    (let ((var (term-in-abst-form-to-var term))
+		  (kernel (term-in-abst-form-to-kernel term)))
+	      (make-term-in-abst-form
+	       var (term-to-simple-outer-eta-expansion kernel (- l 1))))
+	    (let* ((arg-type (arrow-form-to-arg-type type))
+		   (val-type (arrow-form-to-val-type type))
+		   (var (type-to-new-var arg-type)))
+	      (rename-variables
+	       (make-term-in-abst-form
+		var (term-to-simple-outer-eta-expansion
+		     (make-term-in-app-form
+		      term (make-term-in-var-form var))
+		     (- l 1)))))))))
 
 (define (type-info-to-rec-string fst . rest)
   (let* ((param-types (if (number? fst) (list-head rest fst) '()))
@@ -938,7 +930,7 @@
      ((string=? "SE" name) name)
      (else
       (if
-       (null? tvars)
+       (or (null? tvars) CASE-DISPLAY)
        name
        (let* ((types (map (lambda (x) (type-substitute x tsubst)) tvars))
 	      (strings (map type-to-string types))
@@ -4932,22 +4924,16 @@ intDestr n | n > 0  = Left n
 
 (define (term-to-outer-eta-expansion term)
   (let ((type (term-to-type term)))
-    (case (tag type)
-      ((tvar alg tconst) term)
-      ((arrow)
-       (let* ((arg-type (arrow-form-to-arg-type type))
-	      (val-type (arrow-form-to-val-type type))
-	      (var (type-to-new-var arg-type)))
-	 (make-term-in-abst-form
-	  var (term-to-outer-eta-expansion
-	       (make-term-in-app-form
-		term (term-to-outer-eta-expansion
-		      (make-term-in-var-form var)))))))
-      ((star)
-       (make-term-in-pair-form
-	(term-to-outer-eta-expansion (term-in-pair-form-to-left term))
-	(term-to-outer-eta-expansion (term-in-pair-form-to-right term))))
-      (else (myerror "term-to-outer-eta-expansion" "term expected" term)))))
+    (if (arrow-form? type)
+	(let* ((arg-type (arrow-form-to-arg-type type))
+	       (val-type (arrow-form-to-val-type type))
+	       (var (type-to-new-var arg-type)))
+	  (make-term-in-abst-form
+	   var (term-to-outer-eta-expansion
+		(make-term-in-app-form
+		 term (term-to-outer-eta-expansion
+		       (make-term-in-var-form var))))))
+	term)))
 
 ;; (pp (term-to-outer-eta-expansion (pt "(Rec tlist unit=>nat)")))
 
@@ -5017,22 +5003,30 @@ intDestr n | n > 0  = Left n
 			 constr-types))
 		(alts1 (term-in-if-form-to-alts prev-left))
 		(rest1 (term-in-if-form-to-rest prev-left))
+		(exp-alts1 (map (lambda (alt l)
+				  (term-to-simple-outer-eta-expansion
+				   alt l))
+				alts1 ls))
 		(constr-arg-vars-list1
 		 (map (lambda (alt l) (term-in-abst-form-to-vars alt l))
-		      alts1 ls))
+		      exp-alts1 ls))
 		(kernels1
 		 (map (lambda (alt l)
 			(term-in-abst-form-to-final-kernel alt l))
-		      alts1 ls))
+		      exp-alts1 ls))
 		(alts2 (term-in-if-form-to-alts prev-right))
 		(rest2 (term-in-if-form-to-rest prev-right))
+		(exp-alts2 (map (lambda (alt l)
+				  (term-to-simple-outer-eta-expansion
+				   alt l))
+				alts2 ls))
 		(constr-arg-vars-list2
 		 (map (lambda (alt l) (term-in-abst-form-to-vars alt l))
-		      alts2 ls))
+		      exp-alts2 ls))
 		(kernels2
 		 (map (lambda (alt l)
 			(term-in-abst-form-to-final-kernel alt l))
-		      alts2 ls))
+		      exp-alts2 ls))
 		(equal-constr-arg-vars?-list
 		 (map (lambda (vars1 vars2) (equal? vars1 vars2))
 		      constr-arg-vars-list1 constr-arg-vars-list2))
@@ -5045,24 +5039,25 @@ intDestr n | n > 0  = Left n
 		 (map (lambda (boole vars vars2 kernel1 kernel2)
 			(apply
 			 mk-term-in-abst-form
-			 (append vars (list (make-term-in-pair-form
-					     kernel1
-					     (if boole
-						 kernel2
-						 (term-substitute
-						  kernel2
-						  (map (lambda (x y)
-							 (list x y))
-						       vars2 vars))))))))
+			 (append
+			  vars
+			  (list (make-term-in-pair-form
+				 kernel1
+				 (if boole
+				     kernel2
+				     (term-substitute
+				      kernel2
+				      (map list
+					   vars2
+					   (map make-term-in-var-form
+						vars)))))))))
 		      equal-constr-arg-vars?-list
 		      constr-arg-vars-list constr-arg-vars-list2
 		      kernels1 kernels2))
 		(pair-alts-nf
 		 (map term-to-eta-nf-with-simplified-simrec-appterms
 		      pair-alts)))
-	   (make-term-in-if-form
-	    test (map term-to-eta-nf-with-simplified-simrec-appterms pair-alts)
-	    (make-and rest1 rest2))))
+	   (make-term-in-if-form test pair-alts-nf (make-and rest1 rest2))))
 	(else (make-term-in-pair-form prev-left prev-right)))))
     ((term-in-lcomp-form)
      (let ((prev (term-to-eta-nf-with-simplified-simrec-appterms
