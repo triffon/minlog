@@ -217,12 +217,12 @@
 (add-tvar-name "beta")
 (add-var-name "u" "v" "w" (py "beta"))
 (add-program-constant "In" (py "alpha=>beta=>boole"))
-(add-infix-display-string "In" "in" 'rel-op)
+(add-infix-display-string "In" "elem" 'rel-op)
 (add-var-name "f" (py "alpha=>alpha"))
 
 (set-goal "all f(
- all x,v(f x in v -> excl u(x in u & all y(y in u -> f y in v))) ->
- all x,w(f(f x)in w -> excl u(x in u & all y(y in u -> f(f y)in w))))")
+ all x,v(f x elem v -> excl u(x elem u & all y(y elem u -> f y elem v))) ->
+ all x,w(f(f x)elem w -> excl u(x elem u & all y(y elem u -> f(f y)elem w))))")
 (search)
 
 (remove-var-name "x" "y" "f" "u" "v" "w")
