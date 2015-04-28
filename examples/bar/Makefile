@@ -8,7 +8,7 @@
 all: .TEST
 
 .TEST: .bar.test-passed .higman01.test-passed .higfin.test-passed \
-       .higwqo.test-passed
+       .higwqo.test-passed .higman.test-passed
 	touch .TEST
 
 
