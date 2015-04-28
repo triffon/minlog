@@ -77,6 +77,13 @@ term-to-external-expr in case Scheme extended to terms of type ysum.
 In examples/arith/dickson.scm
 
 Updated to fit papers/dickson12/bd.tex
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2015-02-23
+
+Change of startup script: src/minlog.el and src/minlog moved to util
+with new names minlog.template.el and minlog.template.  They now
+produce two frams: one for the source file, and another one for minlog
+(running petite scheme).  minlog/Makefile changed accordingly.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-01-04
@@ -5110,7 +5117,6 @@ well as an argument has token-type rel-op or relterm, then the
 argument needs parentheses.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-=======
 Done locally 2006-04-19
 
 lib/nat.scm

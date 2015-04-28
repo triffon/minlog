@@ -34,8 +34,8 @@ all: src init.scm minlog minlog.el doc
 
 install: src init.scm minlog minlog.el doc
 	$(INSTALL_DIR) $(PREFIX)$(MINLOGDIR) $(PREFIX)$(BINDIR) $(PREFIX)$(ELDIR)
-	sed "s%---MINLOGPATH---%"$(MINLOGDIR)"%g; s%---MINLOGELPATH---%"$(ELDIR)"%g" < src/minlog.el > $(PREFIX)$(ELDIR)/minlog.el
-	sed "s%---MINLOGPATH---%"$(ELDIR)"%g" < src/minlog > $(PREFIX)$(BINDIR)/minlog
+	sed "s%---MINLOGPATH---%"$(MINLOGDIR)"%g; s%---MINLOGELPATH---%"$(ELDIR)"%g" < util/minlog.template.el > $(PREFIX)$(ELDIR)/minlog.el
+	sed "s%---MINLOGPATH---%"$(ELDIR)"%g" < util/minlog.template > $(PREFIX)$(BINDIR)/minlog
 	chmod a+x $(PREFIX)$(BINDIR)/minlog
 	sed "s%---MINLOGPATH---%"$(MINLOGDIR)"%g; s%(minlog-load \"examples/\" path))%(load (string-append \""$(DOCDIR)"/examples/\" path)))%g" < src/init.scm > $(PREFIX)$(MINLOGDIR)/init.scm
 	(cd src; find . -name '*.scm' -type f -exec $(INSTALL_FILE) {} $(PREFIX)$(MINLOGDIR)/src/{} \;)
@@ -43,11 +43,11 @@ install: src init.scm minlog minlog.el doc
 	(cd examples; find . -type f -exec $(INSTALL_FILE) {} $(PREFIX)$(DOCDIR)/examples/{} \;)
 	(cd doc; find . -name '*.pdf' -type f -exec $(INSTALL_FILE) {} $(PREFIX)$(DOCDIR)/{} \;)
 
-minlog.el: src/minlog.el src
-	sed "s%---MINLOGPATH---%`pwd`%g; s%---MINLOGELPATH---%`pwd`%g" < src/minlog.el > minlog.el
+minlog.el: util/minlog.template.el util
+	sed "s%---MINLOGPATH---%`pwd`%g; s%---MINLOGELPATH---%`pwd`%g" < util/minlog.template.el > util/minlog.el
 
-minlog: src/minlog src
-	sed "s%---MINLOGPATH---%`pwd`%g" < src/minlog > minlog
+minlog: util/minlog.template util
+	sed "s%---MINLOGPATH---%`pwd`%g" < util/minlog.template > minlog
 	chmod a+x minlog
 
 init.scm: src/init.scm src
@@ -81,7 +81,7 @@ examples/.TEST: init.scm
 
 clean:
 	rm -rf *~
-	rm -rf init.scm minlog minlog.el welcome.scm
+	rm -rf init.scm minlog util/minlog.el welcome.scm
 	(cd src; $(MAKE) clean)
 	(cd doc; $(MAKE) clean)
 	(cd examples; $(MAKE) clean)
