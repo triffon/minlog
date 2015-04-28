@@ -7,7 +7,7 @@
 
 .TEST:  .ivt.test-passed .ishihara.test-passed .ratsds.test-passed \
         .cauchysds.test-passed .average.test-passed \
-        .readwrite.test-passed
+        .readwrite.test-passed .gray.test-passed
 	touch .TEST
 
 # The relative path to the toplevel Minlog-Dir
