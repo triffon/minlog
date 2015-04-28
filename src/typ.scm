@@ -1696,37 +1696,38 @@
 		   ((null? l1) (cons alg-name (reverse res)))))
 	     alg-names alg-tvars))
        ;; Test for inhabitedness
-       (alg-names-with-constr-types-with-names
-	(map (lambda (alg-name alg-tvar)
-	       (do ((l constr-types-with-alg-tvars (cdr l))
-		    (res '()
-			 (if (equal? alg-tvar (arrow-form-to-final-val-type
-					       (car l)))
-			     (let* ((constr-type-with-alg-tvars (car l))
-				    (constr-type-with-names
-				     (type-gen-substitute
-				      constr-type-with-alg-tvars
-				      (map list alg-tvars alg-names))))
-			       (cons constr-type-with-names res))
-			     res)))
-		   ((null? l) (cons alg-name (reverse res)))))
-	     alg-names alg-tvars))
-       (test-for-inhabitedness
-	(for-each
-	 (lambda (name)
-	   (let* ((info (assoc name alg-names-with-constr-types-with-names))
-		  (constr-types-with-names
-		   (if info (cdr info)
-		       (myerror "add-algs" "simalg-name expected" name)))
-		  (rest-names (member name alg-names))
-		  (inhabcrits
-		   (constr-types-with-names-and-rest-names-to-inhabcrits
-		    constr-types-with-names rest-names)))
-	     (if (null? inhabcrits)
-		 (myerror "add-algs"
-			  "nullary initial constructor type expected for"
-			  name))))
-	 alg-names)))
+       ;; (alg-names-with-constr-types-with-names
+       ;; 	(map (lambda (alg-name alg-tvar)
+       ;; 	       (do ((l constr-types-with-alg-tvars (cdr l))
+       ;; 		    (res '()
+       ;; 			 (if (equal? alg-tvar (arrow-form-to-final-val-type
+       ;; 					       (car l)))
+       ;; 			     (let* ((constr-type-with-alg-tvars (car l))
+       ;; 				    (constr-type-with-names
+       ;; 				     (type-gen-substitute
+       ;; 				      constr-type-with-alg-tvars
+       ;; 				      (map list alg-tvars alg-names))))
+       ;; 			       (cons constr-type-with-names res))
+       ;; 			     res)))
+       ;; 		   ((null? l) (cons alg-name (reverse res)))))
+       ;; 	     alg-names alg-tvars))
+       ;; (test-for-inhabitedness
+       ;; 	(for-each
+       ;; 	 (lambda (name)
+       ;; 	   (let* ((info (assoc name alg-names-with-constr-types-with-names))
+       ;; 		  (constr-types-with-names
+       ;; 		   (if info (cdr info)
+       ;; 		       (myerror "add-algs" "simalg-name expected" name)))
+       ;; 		  (rest-names (member name alg-names))
+       ;; 		  (inhabcrits
+       ;; 		   (constr-types-with-names-and-rest-names-to-inhabcrits
+       ;; 		    constr-types-with-names rest-names)))
+       ;; 	     (if (null? inhabcrits)
+       ;; 		 (myerror "add-algs"
+       ;; 			  "nullary initial constructor type expected for"
+       ;; 			  name))))
+       ;; 	 alg-names))
+       )
 					;update ALGEBRAS, extend CONSTRUCTORS
     (for-each ;of alg-names-with-typed-constr-names
      (lambda (x)
@@ -1780,6 +1781,41 @@
 		    token-type
 		    (alg-name-to-token-value alg-name))))
      alg-names-with-typed-constr-names)))
+
+(define (alg-inhabited? alg-name)
+  (let* ((typed-constr-names (alg-name-to-typed-constr-names alg-name))
+	 (constr-types (map typed-constr-name-to-type typed-constr-names))
+	 (alg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+	 (alg-tvars (map (lambda (x) (new-tvar)) alg-names))
+	 (constr-types-with-alg-tvars
+	  (map (lambda (type) (type-gen-substitute
+			       type (map list algs alg-tvars)))
+	       constr-types))
+	 (alg-names-with-constr-types-with-names
+	  (map (lambda (alg-name alg-tvar)
+		 (do ((l constr-types-with-alg-tvars (cdr l))
+		      (res '()
+			   (if (equal? alg-tvar (arrow-form-to-final-val-type
+						 (car l)))
+			       (let* ((constr-type-with-alg-tvars (car l))
+				      (constr-type-with-names
+				       (type-gen-substitute
+					constr-type-with-alg-tvars
+					(map list alg-tvars alg-names))))
+				 (cons constr-type-with-names res))
+			       res)))
+		     ((null? l) (cons alg-name (reverse res)))))
+	       alg-names alg-tvars))
+	 (info (assoc alg-name alg-names-with-constr-types-with-names))
+	 (constr-types-with-names
+	  (if info (cdr info)
+	      (myerror "add-algs" "simalg-name expected" alg-name)))
+	 (rest-names (member alg-name alg-names))
+	 (inhabcrits (constr-types-with-names-and-rest-names-to-inhabcrits
+		      constr-types-with-names rest-names)))
+    (pair? inhabcrits)))
 
 ;; Kept for backwards compatibility
 
@@ -1880,38 +1916,46 @@
 	     (tsubst (make-substitution tvars (list type))))
 	(const-substitute inhab-pconst tsubst #f))))
     ((alg)
-     (let* ((alg-name (alg-form-to-name type))
-	    (types (alg-form-to-types type))
-	    (typed-constr-names (alg-name-to-typed-constr-names alg-name))
-	    (constr-names (map typed-constr-name-to-name typed-constr-names))
-	    (constr-types (map typed-constr-name-to-type typed-constr-names))
-	    (init-constr-name-and-constr-type
-	     (do ((l1 constr-names (cdr l1))
-		  (l2 constr-types (cdr l2))
-		  (res #f (if res res
-			      (let* ((constr-name (car l1))
-				     (constr-type (car l2)))
-				(if (string=? (alg-form-to-name
-					       (arrow-form-to-final-val-type
-						constr-type))
-					      alg-name)
-				    (list constr-name constr-type)
-				    #f)))))
-		 ((null? l1) (if res res #f))))
-	    (constr-name (car init-constr-name-and-constr-type))
-	    (constr-type (cadr init-constr-name-and-constr-type))
-	    (arg-types (arrow-form-to-arg-types constr-type))
-	    (tvars (alg-name-to-tvars alg-name))
-	    (tsubst (make-substitution tvars types))
-	    (substituted-arg-types
-	     (map (lambda (arg-type) (type-substitute arg-type tsubst))
-		  arg-types))
-	    (ih-inhabs (map type-to-canonical-inhabitant substituted-arg-types))
-	    (constr (const-substitute (constr-name-to-constr constr-name)
-				      tsubst #t)))
-       (apply mk-term-in-app-form
-	      (make-term-in-const-form constr)
-	      ih-inhabs)))
+     (if
+      (not (alg-inhabited? (alg-form-to-name type)))
+      (make-term-in-const-form
+       (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
+	      (tvars (const-to-tvars inhab-pconst))
+	      (tsubst (make-substitution tvars (list type))))
+	 (const-substitute inhab-pconst tsubst #f)))
+      (let* ((alg-name (alg-form-to-name type))
+	     (types (alg-form-to-types type))
+	     (typed-constr-names (alg-name-to-typed-constr-names alg-name))
+	     (constr-names (map typed-constr-name-to-name typed-constr-names))
+	     (constr-types (map typed-constr-name-to-type typed-constr-names))
+	     (init-constr-name-and-constr-type
+	      (do ((l1 constr-names (cdr l1))
+		   (l2 constr-types (cdr l2))
+		   (res #f (if res res
+			       (let* ((constr-name (car l1))
+				      (constr-type (car l2)))
+				 (if (string=? (alg-form-to-name
+						(arrow-form-to-final-val-type
+						 constr-type))
+					       alg-name)
+				     (list constr-name constr-type)
+				     #f)))))
+		  ((null? l1) (if res res #f))))
+	     (constr-name (car init-constr-name-and-constr-type))
+	     (constr-type (cadr init-constr-name-and-constr-type))
+	     (arg-types (arrow-form-to-arg-types constr-type))
+	     (tvars (alg-name-to-tvars alg-name))
+	     (tsubst (make-substitution tvars types))
+	     (substituted-arg-types
+	      (map (lambda (arg-type) (type-substitute arg-type tsubst))
+		   arg-types))
+	     (ih-inhabs (map type-to-canonical-inhabitant
+			     substituted-arg-types))
+	     (constr (const-substitute (constr-name-to-constr constr-name)
+				       tsubst #t)))
+	(apply mk-term-in-app-form
+	       (make-term-in-const-form constr)
+	       ih-inhabs))))
     ((arrow)
      (let* ((arg-type (arrow-form-to-arg-type type))
 	    (val-type (arrow-form-to-val-type type))
