@@ -1,4 +1,25 @@
-;; 2015-02-09.  todo.scm
+;; 2015-04-28.  todo.scm
+
+;; 2015-04-28.  Axioms InhabTotal and InhabTotalMR should be removed
+;; since we do not require any more that each type has a total
+;; element.  This is a consequence of allowing algebras without
+;; nullary constructors (like typeIntv).
+
+;; 2015-03-22.  In add-co and should use decorated connectives only
+;; when necessary.  Presently we have for instance
+;; (add-ids
+;;  (list (list "G" (make-arity (py "r")) "lr"))
+;;  '("G(Z r)" "InitG")
+;;  '("allnc x^ all b(G x^ -> G(inv b***(x^ av Lft)))" "GenGLR")
+;;  '("allnc x^((CoD(cterm (x^) G x^))x^ -> G(x^ av Mid))" "GenGM"))
+;; (add-co "G")
+;; (pp "CoGClause")
+;; allnc x^(
+;;  CoG x^ -> 
+;;  x^ eqd(Z r) orr 
+;;  exr x^0 ex b(CoG x^0 andl x^ eqd inv b***(x^0 av Lft)) ord 
+;;  exr x^0((CoD (cterm (x^1) CoG x^1))x^0 andl x^ eqd x^0 av Mid))
+;; Here the primitive & should be used rather than andl
 
 ;; 2015-02-09.  In temp/examplesarithdickson.scm.  Error in
 ;; term-to-scheme-expr.  
