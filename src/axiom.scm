@@ -2504,7 +2504,8 @@
 	 (uninst-clause (formula-substitute orig-clause psubst-for-pvars))
 	 (params (idpredconst-name-to-params name)))
     (make-aconst "Closure" 'axiom
-		 (apply mk-allnc (append params (list uninst-clause)))
+		 (rename-variables
+		  (apply mk-allnc (append params (list uninst-clause))))
 		 tpsubst)))
 
 ;; Now for the greatest fixed point axioms.
