@@ -1,4 +1,4 @@
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 (load "names.scm")
 
 ;; 6. Terms

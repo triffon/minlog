@@ -1,4 +1,4 @@
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 (load "names.scm")
 
 ;; 8. and 9. Assumption variables and axioms

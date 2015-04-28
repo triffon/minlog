@@ -1,6 +1,6 @@
 ;; 2014-01-01.  names.scm
 
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 ;; Initially load lib/nat.scm and lib/list.scm
 
