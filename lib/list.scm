@@ -148,13 +148,7 @@
  "(ListAppend alpha)(Nil alpha)" "[xs]xs"
  "(ListAppend alpha)(x::xs1)" "[xs2](x::xs1:+:xs2)")
 
-;; (pp (rename-variables (term-to-totality-formula (pt "(ListAppend alpha)"))))
-
-;; allnc xs^(
-;;  TotalList xs^ -> allnc xs^0(TotalList xs^0 -> TotalList(xs^ :+:xs^0)))
-
-;; ListAppendTotal
-(set-goal (term-to-totality-formula (pt "(ListAppend alpha)")))
+(set-totality-goal "ListAppend")
 (assume "xs^1" "Txs1" "xs^2" "Txs2")
 (elim "Txs1")
 (ng #t)
@@ -165,7 +159,7 @@
 (use "Tx")
 (use "IH")
 ;; Proof finished.
-(save "ListAppendTotal")
+(save-totality)
 
 ;; ListAppendTotalReal
 (set-goal (real-and-formula-to-mr-formula
@@ -188,7 +182,8 @@
 ;;  STotalList xs^ -> allnc xs^0(STotalList xs^0 -> STotalList(xs^ :+:xs^0)))
 
 ;; ListAppendSTotal
-(set-goal (term-to-stotality-formula (pt "(ListAppend alpha)")))
+(set-goal
+ (rename-variables (term-to-stotality-formula (pt "(ListAppend alpha)"))))
 (assume "xs^1" "STxs1" "xs^2" "STxs2")
 (elim "STxs1")
 (ng #t)
@@ -204,9 +199,10 @@
 ;; [n,n0](Rec nat=>nat)n n0([n1,n2]Succ n2)
 
 ;; ListAppendSTotalReal
-(set-goal (real-and-formula-to-mr-formula
-	   (nt (proof-to-extracted-term "ListAppendSTotal"))
-	   (proof-to-formula (theorem-name-to-proof "ListAppendSTotal"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (nt (proof-to-extracted-term "ListAppendSTotal"))
+	    (proof-to-formula (theorem-name-to-proof "ListAppendSTotal")))))
 (assume "xs^1" "n^1" "STMRn1xs1" "xs^2" "n^2" "TMRn2xs2")
 (elim "STMRn1xs1")
 (use "TMRn2xs2")
@@ -244,9 +240,10 @@
 ;; by recursion over the first argument and expects rules of arity 1.
 
 ;; ListAppendNilPartialSound
-(set-goal (real-and-formula-to-mr-formula
-	   'eps
-	   (proof-to-formula (theorem-name-to-proof "ListAppendNilPartial"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    'eps
+	    (proof-to-formula (theorem-name-to-proof "ListAppendNilPartial")))))
 (assume "xs^" "n^" "STMRnxs")
 (elim "STMRnxs")
 (use "InitEqD")
@@ -269,13 +266,7 @@
  "(Nil alpha)++xs2" "xs2"
  "(x1::xs1)++xs2" "x1::xs1++xs2")
 
-;; (pp (rename-variables (term-to-totality-formula (pt "(ListAppd alpha)"))))
-
-;; allnc xs^(
-;;  TotalList xs^ -> allnc xs^0(TotalList xs^0 -> TotalList(xs^ ++xs^0)))
-
-;; ListAppdTotal
-(set-goal (term-to-totality-formula (pt "(ListAppd alpha)")))
+(set-totality-goal "ListAppd")
 (assume "xs^1" "Txs1" "xs^2" "Txs2")
 (elim "Txs1")
 (ng #t)
@@ -286,7 +277,7 @@
 (use "Tx")
 (use "IH")
 ;; Proof finished.
-(save "ListAppdTotal")
+(save-totality)
 
 ;; (pp (rename-variables (term-to-stotality-formula (pt "(ListAppd alpha)"))))
 
@@ -294,9 +285,10 @@
 ;;  STotalList xs^ -> allnc xs^0(STotalList xs^0 -> STotalList(xs^ ++xs^0)))
 
 ;; ListAppdTotalReal
-(set-goal (real-and-formula-to-mr-formula
-	   (pt "(ListAppd alpha)")
-	   (proof-to-formula (theorem-name-to-proof "ListAppdTotal"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (pt "(ListAppd alpha)")
+	    (proof-to-formula (theorem-name-to-proof "ListAppdTotal")))))
 (assume "xs^1" "xs^10" "TMRxs10xs1" "xs^2" "xs^20" "TMRxs20xs2")
 (elim "TMRxs10xs1")
 (use "TMRxs20xs2")
@@ -309,7 +301,8 @@
 (save "ListAppdTotalReal")
 
 ;; ListAppdSTotal
-(set-goal (term-to-stotality-formula (pt "(ListAppd alpha)")))
+(set-goal (rename-variables
+	   (term-to-stotality-formula (pt "(ListAppd alpha)"))))
 (assume "xs^1" "STxs1" "xs^2" "STxs2")
 (elim "STxs1")
 (ng #t)
@@ -322,9 +315,10 @@
 (save "ListAppdSTotal")
 
 ;; ListAppdSTotalReal
-(set-goal (real-and-formula-to-mr-formula
-	   (nt (proof-to-extracted-term "ListAppdSTotal"))
-	   (proof-to-formula (theorem-name-to-proof "ListAppdSTotal"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (nt (proof-to-extracted-term "ListAppdSTotal"))
+	    (proof-to-formula (theorem-name-to-proof "ListAppdSTotal")))))
 (assume "xs^1" "n^1" "STMRn1xs1" "xs^2" "n^2" "TMRn2xs2")
 (elim "STMRn1xs1")
 (use "TMRn2xs2")
@@ -377,9 +371,10 @@
 (save "ListAppdNilPartial")
 
 ;; ListAppdNilPartialSound
-(set-goal (real-and-formula-to-mr-formula
-	   'eps
-	   (proof-to-formula (theorem-name-to-proof "ListAppdNilPartial"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    'eps
+	    (proof-to-formula (theorem-name-to-proof "ListAppdNilPartial")))))
 (assume "xs^" "n^" "STMRnxs")
 (elim "STMRnxs")
 (use "InitEqD")
@@ -434,11 +429,7 @@
  "Lh(Nil alpha)" "Zero"
  "Lh(x::xs)" "Succ Lh xs")
 
-;; (pp (rename-variables (term-to-totality-formula (pt "(ListLength alpha)"))))
-;; allnc xs^(TotalList xs^ -> TotalNat(Lh xs^))
-
-;; ListLengthTotal
-(set-goal (term-to-totality-formula (pt "(ListLength alpha)")))
+(set-totality-goal "ListLength")
 (assume "xs^" "Txs")
 (elim "Txs")
 (ng #t)
@@ -448,12 +439,13 @@
 (use "TotalNatSucc")
 (use "IH")
 ;; Proof finished.
-(save "ListLengthTotal")
+(save-totality)
 
 ;; ListLengthTotalReal
-(set-goal (real-and-formula-to-mr-formula
-	   (pt "(ListLength alpha)")
-	   (proof-to-formula (theorem-name-to-proof "ListLengthTotal"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (pt "(ListLength alpha)")
+	    (proof-to-formula (theorem-name-to-proof "ListLengthTotal")))))
 (assume "xs^1" "xs^10" "TMRxs10xs1")
 (elim "TMRxs10xs1")
 (use "TotalNatZeroMR")
@@ -465,7 +457,8 @@
 (save "ListLengthTotalReal")
 
 ;; ListLengthSTotal
-(set-goal (term-to-stotality-formula (pt "(ListLength alpha)")))
+(set-goal (rename-variables
+	   (term-to-stotality-formula (pt "(ListLength alpha)"))))
 (assume "xs^" "STxs")
 (elim "STxs")
 (ng #t)
@@ -481,9 +474,10 @@
 ;; [n](Rec nat=>nat)n 0([n0,n1]Succ n1)
 
 ;; ListLengthSTotalReal
-(set-goal (real-and-formula-to-mr-formula
-	   (proof-to-extracted-term "ListLengthSTotal")
-	   (proof-to-formula (theorem-name-to-proof "ListLengthSTotal"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (proof-to-extracted-term "ListLengthSTotal")
+	    (proof-to-formula (theorem-name-to-proof "ListLengthSTotal")))))
 (assume "xs^1" "n^1" "STMRn1xs1")
 (elim "STMRn1xs1")
 (ng #t)
@@ -597,11 +591,7 @@
 ;; (pp (nt (pt "(3::2::1::0:)__4")))
 ;; (Inhab nat)
 
-;; (pp (rename-variables (term-to-totality-formula (pt "(ListProj alpha)"))))
-;; allnc n^(TotalNat n^ -> allnc xs^(TotalList xs^ -> Total(n^ thof xs^)))
-
-;; ListProjTotal
-(set-goal (term-to-totality-formula (pt "(ListProj alpha)")))
+(set-totality-goal "ListProj")
 (assume "n^" "Tn")
 (elim "Tn")
 (assume "xs^" "Txs")
@@ -620,12 +610,13 @@
 (use "IHn1")
 (use "Txs2")
 ;; Proof finished.
-(save "ListProjTotal")
+(save-totality)
 
 ;; ListProjTotalReal
-(set-goal (real-and-formula-to-mr-formula
-	   (pt "(ListProj alpha)")
-	   (proof-to-formula (theorem-name-to-proof "ListProjTotal"))))
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (pt "(ListProj alpha)")
+	    (proof-to-formula (theorem-name-to-proof "ListProjTotal")))))
 (assume "n^" "n^0" "TMRn0n")
 (elim "TMRn0n")
 (assume "xs^" "xs^0" "TMRxs0xs")
@@ -689,14 +680,7 @@
 ;; (pp (nt (pt "([n]n+3)fbar 4")))
 ;; 3::4::5::6:
 
-;; (pp (rename-variables (term-to-totality-formula (pt "(ListFBar alpha)"))))
-
-;; allnc (nat=>alpha)^(
-;;  allnc n^(TotalNat n^ -> Total((nat=>alpha)^ n^)) ->
-;;  allnc n^(TotalNat n^ -> TotalList((nat=>alpha)^ fbar n^)))
-
-;; ListFBarTotal
-(set-goal (term-to-totality-formula (pt "(ListFBar alpha)")))
+(set-totality-goal "ListFBar")
 (assert "allnc n^(TotalNat n^ ->
   allnc (nat=>alpha)^(
   allnc n^(TotalNat n^ -> Total((nat=>alpha)^ n^)) ->
@@ -722,7 +706,7 @@
 (use "Tn")
 (use "Tf")
 ;; Proof finished.
-(save "ListFBarTotal")
+(save-totality)
 
 (set-goal "all n,(nat=>alpha)^ Lh((nat=>alpha)^ fbar n)=n")
 (ind)
@@ -756,11 +740,7 @@
 ;; (pp (nt (pt "(0::1::2::3::4:)bar 7")))
 ;; 0::1::2::3::4::0::0:
 
-;; (pp (rename-variables (term-to-totality-formula (pt "(ListBar alpha)"))))
-;; allnc xs^(TotalList xs^ -> allnc n^(TotalNat n^ -> TotalList(xs^ bar n^)))
-
-;; ListBarTotal
-(set-goal (term-to-totality-formula (pt "(ListBar alpha)")))
+(set-totality-goal "ListBar")
 (assume "xs^" "Txs")
 (elim "Txs")
 (assume "n^" "Tn")
@@ -784,7 +764,7 @@
 (use "IH")
 (use "Tn2")
 ;; Proof finished.
-(save "ListBarTotal")
+(save-totality)
 
 (set-goal "all xs,n Lh(xs bar n)=n")
 (ind)
@@ -887,7 +867,7 @@
 (add-var-name "z" (py "alpha2"))
 (add-var-name "zs" (py "list alpha2"))
 
-;; "ListIfTotal"
+;; ListIfTotal
 (set-goal "allnc ys^(TotalList ys^ ->
  allnc z^,psi^(Total z^ ->
  allnc y^,ys^(Total y^ -> TotalList ys^ -> Total(psi^ y^ ys^)) ->
@@ -903,7 +883,7 @@
 ;; Proof finished.
 (save "ListIfTotal")
 
-;; "ListIfSTotal"
+;; ListIfSTotal
 (set-goal "allnc ys^(STotalList ys^ ->
  allnc z^,psi^(Total z^ ->
  allnc y^,ys^(STotalList ys^ -> Total(psi^ y^ ys^)) ->
@@ -932,15 +912,7 @@
 ;; (pp (nt (pt "Pred map 2::3::4:")))
 ;; 1::2::3:
 
-;; (pp (rename-variables
-;;      (term-to-totality-formula (pt "(ListMap alpha1 alpha2)"))))
-
-;; allnc phi^(
-;;  allnc y^(Total y^ -> Total(phi^ y^)) ->
-;;  allnc ys^(TotalList ys^ -> TotalList(phi^ map ys^)))
-
-;; ListMapTotal
-(set-goal (term-to-totality-formula (pt "(ListMap alpha1 alpha2)")))
+(set-totality-goal "ListMap")
 (assume "phi^" "Tphi" "ys^" "Tys")
 (elim "Tys")
 (ng #t)
@@ -952,7 +924,7 @@
 (use "Ty1")
 (use "IH")
 ;; Proof finished.
-(save "ListMapTotal")
+(save-totality)
 
 ;; (pp (rename-variables
 ;;      (term-to-stotality-formula (pt "(ListMap alpha1 alpha2)"))))
@@ -962,7 +934,8 @@
 ;;  allnc ys^(STotalList ys^ -> STotalList(phi^ map ys^)))
 
 ;; ListMapSTotal
-(set-goal (term-to-stotality-formula (pt "(ListMap alpha1 alpha2)")))
+(set-goal (rename-variables
+	   (term-to-stotality-formula (pt "(ListMap alpha1 alpha2)"))))
 (assume "phi^" "Tphi" "ys^" "STys")
 (elim "STys")
 (ng #t)
@@ -1102,16 +1075,7 @@
 ;; (pp (nt (pt "(Consn nat)n 7(0::1::2:)")))
 ;; => 0::1::2::n::n::n::n::n:
 
-;; (pp (rename-variables (term-to-totality-formula (pt "(Consn alpha)"))))
-
-;; allnc x^(
-;;  Total x^ ->
-;;  allnc n^(
-;;   TotalNat n^ ->
-;;   allnc xs^(TotalList xs^ -> TotalList((Consn alpha)x^ n^ xs^))))
-
-;; ConsnTotal
-(set-goal (term-to-totality-formula (pt "(Consn alpha)")))
+(set-totality-goal "Consn")
 (assume "x^" "Tx" "n^" "Tn")
 (elim "Tn")
 ;; Base
@@ -1143,7 +1107,7 @@
 (use "IHn1")
 (use "Txs1")
 ;; Proof finished.
-(save "ConsnTotal")
+(save-totality)
 
 ;; (pp (rename-variables (term-to-stotality-formula (pt "(Consn alpha)"))))
 
@@ -1154,7 +1118,7 @@
 ;;   allnc xs^(STotalList xs^ -> STotalList((Consn alpha)x^ n^ xs^))))
 
 ;; ConsnSTotal
-(set-goal (term-to-stotality-formula (pt "(Consn alpha)")))
+(set-goal (rename-variables (term-to-stotality-formula (pt "(Consn alpha)"))))
 (assume "x^" "Tx" "n^" "Tn")
 (elim "Tn")
 ;; Base
@@ -1279,18 +1243,7 @@
  "(AllBList n([list boole]list boole=>boole(True::list boole)))andb
   (AllBList n([list boole]list boole=>boole(False::list boole)))")
 
-;; (pp (rename-variables (term-to-totality-formula (pt "AllBList"))))
-
-;; allnc n^(
-;;  TotalNat n^ ->
-;;  allnc (list boole=>boole)^(
-;;   allnc (list boole)^0(
-;;    TotalList(list boole)^0 ->
-;;    TotalBoole((list boole=>boole)^(list boole)^0)) ->
-;;   TotalBoole(AllBList n^(list boole=>boole)^)))
-
-;; AllBListTotal
-(set-goal (term-to-totality-formula (pt "AllBList")))
+(set-totality-goal "AllBList")
 (assume "nat^" "Tnat")
 (elim "Tnat")
 ;; Base
@@ -1317,7 +1270,7 @@
 (use "TotalBooleFalse")
 (use "TLB")
 ;; Proof finished.
-(save "AllBListTotal")
+(save-totality)
 
 ;; AllBListIntro
 (set-goal "all n,(list boole=>boole)^(
@@ -1526,8 +1479,7 @@
  "Rev(Nil alpha)" "(Nil alpha)"
  "Rev(x::xs)" "Rev xs++x:")
 
-;; ListRevTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(ListRev alpha)"))))
+(set-totality-goal "ListRev")
 (use "AllTotalElim")
 (ind)
 (use "TotalListNil")
@@ -1537,7 +1489,7 @@
 (use "IH")
 (use "ListTotalVar")
 ;; Proof finished.
-(save "ListRevTotal")
+(save-totality)
 
 ;; ListRevSTotal
 (set-goal (rename-variables (term-to-stotality-formula (pt "(ListRev alpha)"))))
@@ -1707,8 +1659,7 @@
  "Head(Nil alpha)" "(Inhab alpha)"
  "Head(x::xs)" "x")
 
-;; ListHeadTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(ListHead alpha)"))))
+(set-totality-goal "ListHead")
 (assume "xs^" "Txs")
 (elim "Txs")
 (ng #t)
@@ -1717,7 +1668,7 @@
 (ng #t)
 (use "Tx")
 ;; Proof finished.
-(save "ListHeadTotal")
+(save-totality)
 
 (add-program-constant "ListTail" (py "list alpha=>list alpha") t-deg-zero)
 (add-prefix-display-string "ListTail" "Tail")
@@ -1725,8 +1676,7 @@
  "Tail(Nil alpha)" "(Inhab list alpha)"
  "Tail(x::xs)" "xs")
 
-;; ListTailTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(ListTail alpha)"))))
+(set-totality-goal "ListTail")
 (assume "xs^" "Txs")
 (elim "Txs")
 (ng #t)
@@ -1735,7 +1685,7 @@
 (ng #t)
 (use "Txs1")
 ;; Proof finished.
-(save "ListTailTotal")
+(save-totality)
 
 ;; ZeroLtLhToHeadTailId
 (set-goal "all xs(0<Lh xs -> (Head xs::Tail xs)eqd xs)")
@@ -1753,8 +1703,7 @@
  "Last(Nil alpha)" "(Inhab alpha)"
  "Last(x::xs)" "[if (Lh xs=0) x (Last xs)]")
 
-;; ListLastTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(ListLast alpha)"))))
+(set-totality-goal "ListLast")
 (assume "xs^" "Txs")
 (elim "Txs")
 (ng #t)
@@ -1769,7 +1718,7 @@
 (use "Tx")
 (use "IH")
 ;; Proof finished.
-(save "ListLastTotal")
+(save-totality)
 
 (add-program-constant "ListMain" (py "list alpha=>list alpha") t-deg-zero)
 (add-prefix-display-string "ListMain" "Main")
@@ -1777,8 +1726,7 @@
  "Main(Nil alpha)" "(Inhab list alpha)"
  "Main(x::xs)" "[if (Lh xs=0) (Nil alpha) (x::Main xs)]")
 
-;; ListMainTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(ListMain alpha)"))))
+(set-totality-goal "ListMain")
 (assume "xs^" "Txs")
 (elim "Txs")
 (ng #t)
@@ -1795,7 +1743,7 @@
 (use "Tx")
 (use "IH")
 ;; Proof finished.
-(save "ListMainTotal")
+(save-totality)
 
 ;; ZeroLtLhToMainLastId
 (set-goal "all xs(0<Lh xs -> Main xs++(Last xs):eqd xs)")
@@ -1848,9 +1796,7 @@
  "Heads(Nil list alpha)" "(Nil alpha)"
  "Heads(xs::(list list alpha))" "Head xs::Heads(list list alpha)")
 
-;; ListHeadsTotal
-(set-goal
- (rename-variables (term-to-totality-formula (pt "(ListHeads alpha)"))))
+(set-totality-goal "ListHeads")
 (assume "(list list alpha)^" "Txss")
 (elim "Txss")
 (use "TotalListNil")
@@ -1861,7 +1807,7 @@
 (use "Txs")
 (use "IH")
 ;; Proof finished.
-(save "ListHeadsTotal")
+(save-totality)
 
 ;; We also define ListPHeads (p for proper), which ignores heads of
 ;; empty lists.
@@ -1874,9 +1820,7 @@
  "PHeads((Nil alpha)::(list list alpha))" "PHeads(list list alpha)"
  "PHeads((x::xs)::(list list alpha))" "x::PHeads(list list alpha)")
 
-;; ListPHeadsTotal
-(set-goal
- (rename-variables (term-to-totality-formula (pt "(ListPHeads alpha)"))))
+(set-totality-goal "ListPHeads")
 (assume "(list list alpha)^" "Txss")
 (elim "Txss")
 (use "TotalListNil")
@@ -1891,7 +1835,7 @@
 (use "Tx")
 (use "IH")
 ;; Proof finished.
-(save "ListPHeadsTotal")
+(save-totality)
 
 (add-program-constant "ListInit" (py "nat=>list alpha=>list alpha") t-deg-zero)
 (add-infix-display-string "ListInit" "init" 'mul-op)
@@ -1910,8 +1854,7 @@
 ;; (pp (nt (pt "(0::1::2::3::4:)bar 7")))
 ;; 0::1::2::3::4::(Inhab nat)::(Inhab nat):
 
-;; ListInitTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(ListInit alpha)"))))
+(set-totality-goal "ListInit")
 (use "AllTotalElim")
 (ind)
 (ng)
@@ -1937,8 +1880,7 @@
  "Succ n rest(Nil alpha)" "(Nil alpha)"
  "Succ n rest(x::xs)" "n rest xs")
 
-;; ListRestTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(ListRest alpha)"))))
+(set-totality-goal "ListRest")
 (use "AllTotalElim")
 (ind)
 (ng)
@@ -1953,7 +1895,7 @@
 (use "IHn")
 (use "Txs1")
 ;; Proof finished.
-(save "ListRestTotal")
+(save-totality)
 
 ;; (pp (nt (pt "1 init(5::6::7::8::9:)")))
 ;; 5:
@@ -2159,9 +2101,7 @@
                                    (x::(alpha=>boole)filter xs)
                                    ((alpha=>boole)filter xs)]")
 
-;; ListFilterTotal
-(set-goal
- (rename-variables (term-to-totality-formula (pt "(ListFilter alpha)"))))
+(set-totality-goal "ListFilter")
 (assume "(alpha=>boole)^" "Tf")
 (assume "xs^" "Txs")
 (elim "Txs")
@@ -2179,7 +2119,7 @@
 (use "IH")
 (use "IH")
 ;; Proof finished.
-(save "ListFilterTotal")
+(save-totality)
 
 ;; (Foldl bin-op init-val list).  If list is empty, return init-val.
 ;; If not, apply ListFoldl with (i) initial value: the result of
@@ -2195,9 +2135,7 @@
  "(Foldl alpha1 alpha2)(alpha1=>alpha2=>alpha1)
                        ((alpha1=>alpha2=>alpha1)y z)zs")
 
-;; FoldlTotal
-(set-goal
- (rename-variables (term-to-totality-formula (pt "(Foldl alpha1 alpha2)"))))
+(set-totality-goal "Foldl")
 (assume "(alpha1=>alpha2=>alpha1)^" "Tf")
 (assert "allnc zs^(
           TotalList zs^ -> 
@@ -2220,7 +2158,7 @@
 (use "Tzs")
 (use "Ty")
 ;; Proof finished.
-(save "FoldlTotal")
+(save-totality)
 
 ;; (Foldr bin-op init-val list).  If list is empty, return init-val.
 ;; If not, apply bin-op to the head of list and the result of applying
@@ -2235,9 +2173,7 @@
  "(alpha1=>alpha2=>alpha2)y
   ((Foldr alpha1 alpha2)(alpha1=>alpha2=>alpha2)z ys)") 
 
-;; FoldrTotal
-(set-goal
- (rename-variables (term-to-totality-formula (pt "(Foldr alpha1 alpha2)"))))
+(set-totality-goal "Foldr")
 (assume "(alpha1=>alpha2=>alpha2)^" "Tf" "z^" "Tz" "ys^" "Tys")
 (elim "Tys")
 (ng)
@@ -2248,7 +2184,7 @@
 (use "Ty")
 (use "IHys1")
 ;; Proof finished.
-(save "FoldrTotal")
+(save-totality)
 
 ;; ListFrom m n returns the list of increasing natural numbers
 ;; starting from m of length n.
@@ -2261,8 +2197,7 @@
 ;; (pp (nt (pt "ListFrom 2 5")))
 ;; 2::3::4::5::6:
 
-;; ListFromTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "ListFrom"))))
+(set-totality-goal "ListFrom")
 (assert "all n,m TotalList(ListFrom m n)")
  (ind)
  (assume "m")
@@ -2279,7 +2214,7 @@
 (assume "m")
 (use "Assertion")
 ;; Proof finished.
-(save "ListFromTotal")
+(save-totality)
 
 ;; Some important concepts for list depend on a decidable equality for
 ;; the list elements and hence are defined for finitary algebras only.
@@ -2290,8 +2225,7 @@
  "n in(Nil nat)" "False"
  "n in(m::(list nat))" "[if (n=m) True (n in (list nat))]")
 
-;; "ListNatInTotal"
-(set-goal (rename-variables (term-to-totality-formula (pt "ListNatIn"))))
+(set-totality-goal "ListNatIn")
 (use "AllTotalElim")
 (assume "n")
 (use "AllTotalElim")
@@ -2305,7 +2239,7 @@
 (strip)
 (use "IHn")
 ;; Proof finished.
-(save "ListNatInTotal")
+(save-totality)
 
 ;; ListListNatEqToEqD
 (set-goal "all (list list nat)_1,(list list nat)_2(

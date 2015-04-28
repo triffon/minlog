@@ -1,7 +1,7 @@
 ;; $Id: nat.scm 2677 2014-01-08 10:03:39Z schwicht $
 (display "loading nat.scm ...") (newline)
 
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 (add-algs "nat" '("Zero" "nat") '("Succ" "nat=>nat"))
 (add-totality "nat")
@@ -279,12 +279,7 @@
 
 ;; Properties of NatPlus
 
-(pp (rename-variables (term-to-totality-formula (pt "NatPlus"))))
-;; allnc nat^(
-;;  TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalNat(nat^ +nat^0)))
-
-;; NatPlusTotal
-(set-goal (term-to-totality-formula (pt "NatPlus")))
+(set-totality-goal "NatPlus")
 (assume "nat^1" "Tnat1" "nat^2" "Tnat2")
 (elim "Tnat2")
 (ng #t)
@@ -294,7 +289,7 @@
 (use "TotalNatSucc")
 (use "IH")
 ;; Proof finished.
-(save "NatPlusTotal")
+(save-totality)
 
 (set-goal "all nat 0+nat=nat")
 (ind)
@@ -334,12 +329,7 @@
 
 ;; Properties of NatTimes
 
-(pp (rename-variables (term-to-totality-formula (pt "NatTimes"))))
-;; allnc nat^(
-;;  TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalNat(nat^ *nat^0)))
-
-;; NatTimesTotal
-(set-goal (term-to-totality-formula (pt "NatTimes")))
+(set-totality-goal "NatTimes")
 (assume "nat^1" "Tnat1" "nat^2" "Tnat2")
 (elim "Tnat2")
 (ng #t)
@@ -510,12 +500,7 @@
 ;; (pp "TotalBooleTrue")
 ;; (pp "TotalBooleFalse")
 
-(pp (rename-variables (term-to-totality-formula (pt "NatLt"))))
-;; allnc nat^(
-;;  TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalBoole(nat^ <nat^0)))
-
-;; NatLtTotal
-(set-goal (term-to-totality-formula (pt "NatLt")))
+(set-totality-goal "NatLt")
 (assume "nat^1" "Tnat1")
 (elim "Tnat1")
 (assume "nat^2" "Tnat2")
@@ -534,7 +519,7 @@
 (use "IH")
 (use "Tnat4")
 ;; Proof finished.
-(save "NatLtTotal")
+(save-totality)
 
 (set-goal "all nat nat<Succ nat")
 (ind)
@@ -607,12 +592,7 @@
 
 ;; Properties of NatLe
 
-(pp (rename-variables (term-to-totality-formula (pt "NatLe"))))
-;; allnc nat^(
-;;  TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalBoole(nat^ <=nat^0)))
-
-;; NatLeTotal
-(set-goal (term-to-totality-formula (pt "NatLe")))
+(set-totality-goal "NatLe")
 (assume "nat^1" "Tnat1")
 (elim "Tnat1")
 (assume "nat^2" "Tnat2")
@@ -631,7 +611,7 @@
 (use "IH")
 (use "Tnat4")
 ;; Proof finished.
-(save "NatLeTotal")
+(save-totality)
 
 ;; NatLeToEq
 (set-goal "all nat (nat<=0)=(nat=0)")
@@ -974,11 +954,7 @@
 
 ;; Properties of NatMinus and Pred
 
-(pp (term-to-totality-formula (pt "Pred")))
-;; allnc nat^612(TotalNat nat^612 -> TotalNat(Pred nat^612))
-
-;; PredTotal
-(set-goal (term-to-totality-formula (pt "Pred")))
+(set-totality-goal "Pred")
 (assume "nat^" "Tnat")
 (elim "Tnat")
 (ng #t)
@@ -987,15 +963,9 @@
 (ng #t)
 (use "Tnat1")
 ;; Proof finished.
-(save "PredTotal")
+(save-totality)
 
-(pp (term-to-totality-formula (pt "NatMinus")))
-;; allnc nat^622(
-;;  TotalNat nat^622 ->
-;;  allnc nat^623(TotalNat nat^623 -> TotalNat(nat^622--nat^623)))
-
-;; NatMinusTotal
-(set-goal (term-to-totality-formula (pt "NatMinus")))
+(set-totality-goal "NatMinus")
 (assume "nat^1" "Tnat1" "nat^2" "Tnat2")
 (elim "Tnat2")
 (ng #t)
@@ -1005,7 +975,7 @@
 (use "PredTotal")
 (use "IH")
 ;; Proof finished.
-(save "NatMinusTotal")
+(save-totality)
 
 (set-goal "all nat1,nat2 Pred(Succ nat1--nat2)=nat1--nat2")
 (assume "nat1")
@@ -1036,12 +1006,7 @@
 
 ;; Properties of NatMax
 
-(pp (rename-variables (term-to-totality-formula (pt "NatMax"))))
-;; allnc nat^(
-;;  TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalBoole(nat^ max nat^0)))
-
-;; NatMaxTotal
-(set-goal (term-to-totality-formula (pt "NatMax")))
+(set-totality-goal "NatMax")
 (assume "nat^1" "Tnat1")
 (elim "Tnat1")
 (assume "nat^2" "Tnat2")
@@ -1063,7 +1028,7 @@
 (use "IH")
 (use "Tnat4")
 ;; Proof finished.
-(save "NatMaxTotal")
+(save-totality)
 
 (set-goal "all nat 0 max nat=nat")
 (cases)
@@ -1161,12 +1126,7 @@
 
 ;; Properties of NatMin
 
-(pp (rename-variables (term-to-totality-formula (pt "NatMin"))))
-;; allnc nat^(
-;;  TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalBoole(nat^ min nat^0)))
-
-;; NatMinTotal
-(set-goal (term-to-totality-formula (pt "NatMin")))
+(set-totality-goal "NatMin")
 (assume "nat^1" "Tnat1")
 (elim "Tnat1")
 (assume "nat^2" "Tnat2")
@@ -1186,7 +1146,7 @@
 (use "IH")
 (use "Tnat4")
 ;; Proof finished.
-(save "NatMinTotal")
+(save-totality)
 
 (set-goal "all nat 0 min nat=0")
 (cases)
@@ -1297,15 +1257,7 @@
 ;;  TotalBoole boole^ ->
 ;;  allnc boole^0(TotalBoole boole^0 -> TotalBoole(boole^ andb boole^0)))
 
-(pp (term-to-totality-formula (pt "AllBNat")))
-;; allnc nat^805(
-;;  TotalNat nat^805 ->
-;;  allnc (nat=>boole)^806(
-;;   allnc nat^807(TotalNat nat^807 -> TotalBoole((nat=>boole)^806 nat^807)) ->
-;;   TotalBoole(AllBNat nat^805(nat=>boole)^806)))
-
-;; AllBNatTotal
-(set-goal (term-to-totality-formula (pt "AllBNat")))
+(set-totality-goal "AllBNat")
 (assume "nat^" "Tnat")
 (elim "Tnat")
 (assume "(nat=>boole)^" "Useless")
@@ -1319,7 +1271,7 @@
 (use "Hyp")
 (use "Tnat1")
 ;; Proof finished.
-(save "AllBNatTotal")
+(save-totality)
 
 ;; AllBNatIntro
 (set-goal "all (nat=>boole),nat2(
@@ -1367,8 +1319,8 @@
 
 ;; Properties of ExBNat
 
-;; ExBNatTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "ExBNat"))))
+
+(set-totality-goal "ExBNat")
 (assume "nat^" "Tnat")
 (elim "Tnat")
 (assume "(nat=>boole)^" "Useless")
@@ -1383,7 +1335,7 @@
 (use "IH")
 (use "Hyp")
 ;; Proof finished.
-(save "ExBNatTotal")
+(save-totality)
 
 ;; ExBNatIntro
 (set-goal "all (nat=>boole),nat2(
@@ -1457,8 +1409,7 @@
 ;; Proof finished.
 (save "ExBNatElim")
 
-;; NatLeastTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "NatLeast"))))
+(set-totality-goal "NatLeast")
 (assume "nat^" "Tnat")
 (elim "Tnat")
 (ng #t)
@@ -1478,7 +1429,7 @@
 (use "TotalNatSucc")
 (use "Tnat2")
 ;; Proof finished.
-(save "NatLeastTotal")
+(save-totality)
 
 ;; NatLeastBound
 (set-goal "all nat1,(nat=>boole) NatLeast nat1(nat=>boole)<=nat1")
@@ -1541,8 +1492,7 @@
 ;; Proof finished.
 (save "NatLeastLtElim")
 
-;; NatLeastUpTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "NatLeastUp"))))
+(set-totality-goal "NatLeastUp")
 (assume "nat^0" "Tnat0" "nat^" "Tnat" "nat=>boole^" "Tg")
 (ng #t)
 (use "BooleIfTotal")
@@ -1563,7 +1513,7 @@
 (use "Tnat0")
 (use "TotalNatZero")
 ;; Proof finished.
-(save "NatLeastUpTotal")
+(save-totality)
 
 ;; We postpone proofs of the NatLeastUpBound NatLeastUpLBound
 ;; NatLeastUpLeIntro NatLeastUpLtElim NatLeastUpZero since they use
@@ -1804,7 +1754,6 @@
 ;; Proof finished.
 (save "NatLeMonMinus")
 
-
 ;; NatPlusMinus
 (set-goal
  "all nat1,nat2,nat3(nat3<=nat2 -> nat1+(nat2--nat3)=nat1+nat2--nat3)")
@@ -2010,7 +1959,6 @@
 ;; Proof finished.
 (save "NatLtMonMinus")
 
-
 ;;  NatLeastUpBound
 (set-goal "all nat0,nat1,(nat=>boole) NatLeastUp nat0 nat1(nat=>boole)<=nat1")
 (assume "nat0" "nat1" "(nat=>boole)")
@@ -2137,8 +2085,7 @@
  "NatDouble Zero" "Zero"
  "NatDouble(Succ nat)" "Succ(Succ(NatDouble nat))")
 
-;; NatDoubleTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "NatDouble"))))
+(set-totality-goal "NatDouble")
 (assume "nat^" "Tnat")
 (elim "Tnat")
 (use "TotalNatZero")
@@ -2148,7 +2095,7 @@
 (use "TotalNatSucc")
 (use "IH")
 ;; Proof finished.
-(save "NatDoubleTotal")
+(save-totality)
 
 (add-program-constant "NatEven" (py "nat=>boole"))
 
@@ -2157,8 +2104,7 @@
  "NatEven(Succ Zero)" "False"
  "NatEven(Succ(Succ nat))" "NatEven nat")
 
-;; NatEvenTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "NatEven"))))
+(set-totality-goal "NatEven")
 (assert "allnc nat^(TotalNat nat^ ->
          TotalBoole(NatEven(Succ nat^)) &
          TotalBoole(NatEven(Succ(Succ nat^))))")
@@ -2179,7 +2125,7 @@
 (use "NatEvenTotalAux")
 (use "Tnat")
 ;; Proof finished.
-(save "NatEvenTotal")
+(save-totality)
 
 ;; NatEvenDouble
 (set-goal "all nat NatEven(NatDouble nat)")
@@ -2231,8 +2177,7 @@
  "NatHalf(Succ Zero)" "Zero"
  "NatHalf(Succ(Succ nat))" "Succ(NatHalf nat)")
 
-;; NatHalfTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "NatHalf"))))
+(set-totality-goal "NatHalf")
 (assert "allnc nat^(TotalNat nat^ -> TotalNat(NatHalf nat^) &
                                      TotalNat(NatHalf(Succ nat^)))")
  (assume "nat^" "Tnat")
@@ -2252,7 +2197,7 @@
 (use "NatHalfTotalAux")
 (use "Tnat")
 ;; Proof finished.
-(save "NatHalfTotal")
+(save-totality)
 
 ;; NatHalfDouble
 (set-goal "all nat NatHalf(NatDouble nat)=nat")
@@ -2276,7 +2221,7 @@
 ;; Proof finished.
 (save "NatHalfSuccDouble")
 
-;; "CVInd"
+;; CVInd
 (set-goal "all nat(all nat1(nat1<nat -> (Pvar nat)nat1) ->
                    (Pvar nat)nat) -> all nat (Pvar nat)nat")
 (assume "Prog")
