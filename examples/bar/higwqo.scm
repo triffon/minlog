@@ -4965,7 +4965,7 @@
 (use "Truth")
 (use "0<m")
 (assume "n" "IH" "0<m")
-(use "NatLeCases" (pt "m") (pt "Succ(Rem n m)"))
+(use "NatLeCases" (pt "Succ(Rem n m)") (pt "m"))
 (use "NatLtToSuccLe")
 (use "IH")
 (use "0<m")
