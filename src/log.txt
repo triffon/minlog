@@ -1,6 +1,57 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done 2015-05-03
+
+In lib/nat.scm
+
+In NatLtSuccCases NatLeCases NatLeLtCases NatLeLin extracted terms
+simplified into if-terms, by using (cases (pt ...)) in the proof
+rather than induction.  In NatLtSuccCases NatLeCases order of
+variables changed.
+
+In examples/arith/fib.scm 
+
+Time measurement commented out.
+
+In examples/arith/bundeswett.scm 
+
+In NatLtSuccCases NatLeCases order of arguments changed.
+
+In examples/arith/fph.scm 
+examples/arith/dickson.scm 
+
+In NatLtSuccCases NatLeCases NatLeLtCases NatLeLin extracted terms
+simplified into if-terms.  In NatLtSuccCases NatLeCases order of
+arguments changed.
+
+In lib/real.scm
+
+In NatLtSuccCases order of arguments changed.
+
+In examples/analysis/ishihara.scm
+examples/classical/euclid.scm
+examples/classical/gcd.scm
+examples/lambda/dbsub.scm
+examples/pruning/maxseg.scm
+examples/pruning/binpack.scm
+examples/bar/higfin.scm
+examples/bar/higwqo.scm
+examples/fan/fanwklu.scm
+examples/deco/maxseg.scm
+examples/train/train.scm
+
+In NatLeCases NatLtSuccCases order of arguments changed.
+
+In doc/ref.tex
+
+Section Natural numbers updated and slightly extended.
+
+In examples/arith/quotrem.scm
+
+Added git to the (commented out) load command at the beginning.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-04-28
 
 In typ.scm
