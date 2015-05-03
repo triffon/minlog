@@ -722,7 +722,7 @@
  (use "NatLtSuccToLe")
  (use "IHt")
 (assume "Btn+1<=Btm")
-(use "NatLeCases" (pt "B in ib f g t m") (pt "Succ(B in ib f g t n)"))
+(use "NatLeCases" (pt "Succ(B in ib f g t n)") (pt "B in ib f g t m"))
 (use "Btn+1<=Btm")
 
 (assume "Btn+1<Btm")
