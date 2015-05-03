@@ -77,4 +77,4 @@
 ;;          (lambda (n0)
 ;;            (lambda (p) (cons (cdr p) (+ (car p) (cdr p))))))))
 		
-(time ((ev (term-to-expr neterm)) 3000))
+;; (time ((ev (term-to-expr neterm)) 3000))
