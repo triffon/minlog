@@ -1,6 +1,6 @@
-;; $Id: quotrem-ex.scm 2156 2008-01-25 13:25:12Z schimans $
+;; $Id: quotrem.scm 2156 2008-01-25 13:25:12Z schimans $
 
-;; (load "~/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
