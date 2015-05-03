@@ -64,7 +64,7 @@
 (use "Efq")
 ;; Step
 (assume "n" "IH" "i" "i<=n+1")
-(use "NatLtSuccCases" (pt "Succ n") (pt "i"))
+(use "NatLtSuccCases" (pt "i") (pt "Succ n"))
 (use "NatLeLtTrans" (pt "Succ n"))
 (use "i<=n+1")
 (use "Truth")
@@ -222,7 +222,7 @@
  (use "fj<m+1")
  (use "j1PropSSimp")
 (assume "fj<=fk")
-(use "NatLeCases" (pt "f k") (pt "f j"))
+(use "NatLeCases" (pt "f j") (pt "f k"))
 (use "fj<=fk")
 (drop "fj<=fk")
 ;; Case fj<fk
@@ -269,7 +269,7 @@
  (use "fj<m+1")
  (use "j1PropSSimp")
 (assume "fj<=fk")
-(use "NatLeCases" (pt "f k") (pt "f j"))
+(use "NatLeCases" (pt "f j") (pt "f k"))
 (use "fj<=fk")
 (drop "fj<=fk")
 ;; Case fj<fk
@@ -335,10 +335,10 @@
 ;;           ([if (left ij<n1) (left ij) (Succ left ij)]@Succ right ij)])
 ;;        ([n2]
 ;;         [if (n2<n1)
-;;           ((cNatLeCases nat@@nat ysum nat)(f[if (n2<n1) n2 (Succ n2)])(f n1)
+;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f[if (n2<n1) n2 (Succ n2)])
 ;;           ((InL nat@@nat nat)(0@0))
 ;;           ((InL nat@@nat nat)([if (n2<n1) n2 (Succ n2)]@n1)))
-;;           ((cNatLeCases nat@@nat ysum nat)(f[if (n2<n1) n2 (Succ n2)])(f n1)
+;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f[if (n2<n1) n2 (Succ n2)])
 ;;           ((InL nat@@nat nat)(0@0))
 ;;           ((InL nat@@nat nat)(n1@[if (n2<n1) n2 (Succ n2)])))])]]])
 
@@ -359,21 +359,18 @@
 ;;           ([if (left ij<n1) (left ij) (Succ left ij)]@Succ right ij)])
 ;;        ([n2]
 ;;         [if (n2<n1)
-;;           ((cNatLeCases nat@@nat ysum nat)(f n2)(f n1)
+;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f n2)
 ;;           ((InL nat@@nat nat)(0@0))
 ;;           ((InL nat@@nat nat)(n2@n1)))
-;;           ((cNatLeCases nat@@nat ysum nat)(f(Succ n2))(f n1)
+;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f(Succ n2))
 ;;           ((InL nat@@nat nat)(0@0))
 ;;           ((InL nat@@nat nat)(n1@Succ n2)))])]]])
 
 (animate "NatLeCases")
 (add-var-name "x" (py "alpha"))
 (add-var-name "h" (py "nat=>alpha=>alpha=>alpha"))
-(ppc (rename-variables (nt (pt "(cNatLeCases alpha)n"))))
-
-;; (Rec nat=>nat=>alpha=>alpha=>alpha)n
-;; ([n0,x,x0][case n0 (0 -> x0) (Succ n1 -> x)])
-;; ([n0,h,n1,x,x0][case n1 (0 -> x) (Succ n2 -> h n2 x x0)])
+(pp (rename-variables (nt (pt "(cNatLeCases alpha)n"))))
+;; [n0,x,x0][if (n<n0) x x0]
 
 (deanimate "NatLeCases")
 
@@ -1184,14 +1181,13 @@
 ;;     Inr[if nn ([n1](InL nat nat)(Succ(n+n1)))
 ;;               ([n1](InR nat nat)(Succ(n+n1)))])]
 (ppc neterm)
-
 ;; [f,g,n,n0]
 ;;  [case (cFPHDisjTwo([n1]f(Succ(n+n1)))([n1]g(Succ(n+n1)))n0)
-;;    ((DummyL nat ysum nat) -> (DummyL nat ysum nat))
+;;    (DummyL -> DummyL)
 ;;    (Inr nn -> 
 ;;    Inr[case nn
-;;         ((InL nat nat)n1 -> (InL nat nat)(Succ(n+n1)))
-;;         ((InR nat nat)n1 -> (InR nat nat)(Succ(n+n1)))])]
+;; 	(InL n1 -> InL(Succ(n+n1)))
+;; 	(InR n1 -> InR(Succ(n+n1)))])]
 
 (add-program-constant "Mini" (py "(nat=>nat)=>nat=>nat"))
 (add-computation-rules
@@ -1347,7 +1343,7 @@
 ;; m->m+1
 (assume "m" "IH")
 (assume "n<=Sm")
-(use "NatLeCases" (pt "Succ m") (pt "n"))
+(use "NatLeCases" (pt "n") (pt "Succ m"))
 (use "n<=Sm")
 (drop "n<=Sm")
 (assume "n<Sm")
@@ -1496,13 +1492,11 @@
 
 ;; [f,g,n]
 ;;  [case (cKey f g n(f(Mini g n)max g(Mini f n)))
-;;    ((DummyL nat ysum nat) -> True)
+;;    (DummyL -> True)
 ;;    (Inr nn -> 
 ;;    [case nn
-;;      ((InL nat nat)n0 -> 
-;;       (cNatLeLtCases boole)(g(Mini g n))(g n0)True False)
-;;      ((InR nat nat)n0 ->
-;;       (cNatLeLtCases boole)(f(Mini f n))(f n0)True False)])]
+;;      (InL n0 -> cNatLeLtCases(g(Mini g n))(g n0)True False)
+;;      (InR n0 -> cNatLeLtCases(f(Mini f n))(f n0)True False)])]
 
 ;; "LeIncrI"
 (set-goal "all f,g,n n<=I f g n")
@@ -1595,14 +1589,12 @@
 ;;                   ([if (left ij<n2) (left ij) (Succ left ij)]@Succ right ij)])
 ;;                ([n3]
 ;;                 [if (n3<n2)
-;;                   ((cNatLeCases nat@@nat ysum nat)
+;;                   ((cNatLeCases nat@@nat ysum nat)(f2 n2)
 ;;                   (f2[if (n3<n2) n3 (Succ n3)])
-;;                   (f2 n2)
 ;;                   ((InL nat@@nat nat)(0@0))
 ;;                   ((InL nat@@nat nat)([if (n3<n2) n3 (Succ n3)]@n2)))
-;;                   ((cNatLeCases nat@@nat ysum nat)
+;;                   ((cNatLeCases nat@@nat ysum nat)(f2 n2)
 ;;                   (f2[if (n3<n2) n3 (Succ n3)])
-;;                   (f2 n2)
 ;;                   ((InL nat@@nat nat)(0@0))
 ;;                   ((InL nat@@nat nat)(n2@[if (n3<n2) n3 (Succ n3)])))])]]])
 ;;          ([n1]
@@ -1618,33 +1610,11 @@
 ;;                   ((InR nat nat)n1)]
 ;;              ([n2](InL nat nat)(Succ(n0+n2)))
 ;;              ([n2](InR nat nat)(Succ(n0+n2)))]
-;;         ([n2]
-;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f0(Mini f0 n0))
-;;                ([n3,boole,boole0]boole)
-;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
-;;                  [if n4
-;;                    boole0
-;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
-;;                (f0 n2)
-;;                True 
-;;                False)
-;;            (I f f0 n0)
-;;            (f1(I f f0 n0))])
-;;         ([n2]
-;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f(Mini f n0))
-;;                ([n3,boole,boole0]boole)
-;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
-;;                  [if n4
-;;                    boole0
-;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
-;;                (f n2)
-;;                True 
-;;                False)
-;;            (I f f0 n0)
-;;            (f1(I f f0 n0))])])])
+;;         ([n2][if (f0(Mini f0 n0)<=f0 n2) (I f f0 n0) (f1(I f f0 n0))])
+;;         ([n2][if (f(Mini f n0)<=f n2) (I f f0 n0) (f1(I f f0 n0))])])])
 ;;  True
 
-(animate "NatLeCases") ;makes the term quite unreadable
+(animate "NatLeCases")
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
 
@@ -1667,36 +1637,12 @@
 ;;                   ([if (left ij<n2) (left ij) (Succ left ij)]@Succ right ij)])
 ;;                ([n3]
 ;;                 [if (n3<n2)
-;;                   ((Rec nat=>nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
-;;                   (f2[if (n3<n2) n3 (Succ n3)])
-;;                   ([n4,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
-;;                     [if n4 (nat@@nat ysum nat)_0 ([n5](nat@@nat ysum nat))])
-;;                   ([n4,(nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat),n5,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
-;;                     [if n5
-;;                       (nat@@nat ysum nat)
-;;                       ([n6]
-;;                        (nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
-;;                        n6
-;;                        (nat@@nat ysum nat)
-;;                        (nat@@nat ysum nat)_0)])
-;;                   (f2 n2)
-;;                   ((InL nat@@nat nat)(0@0))
-;;                   ((InL nat@@nat nat)([if (n3<n2) n3 (Succ n3)]@n2)))
-;;                   ((Rec nat=>nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
-;;                   (f2[if (n3<n2) n3 (Succ n3)])
-;;                   ([n4,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
-;;                     [if n4 (nat@@nat ysum nat)_0 ([n5](nat@@nat ysum nat))])
-;;                   ([n4,(nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat),n5,(nat@@nat ysum nat),(nat@@nat ysum nat)_0]
-;;                     [if n5
-;;                       (nat@@nat ysum nat)
-;;                       ([n6]
-;;                        (nat=>nat@@nat ysum nat=>nat@@nat ysum nat=>nat@@nat ysum nat)
-;;                        n6
-;;                        (nat@@nat ysum nat)
-;;                        (nat@@nat ysum nat)_0)])
-;;                   (f2 n2)
-;;                   ((InL nat@@nat nat)(0@0))
-;;                   ((InL nat@@nat nat)(n2@[if (n3<n2) n3 (Succ n3)])))])]]])
+;;                   [if (f2 n2<f2[if (n3<n2) n3 (Succ n3)])
+;;                    ((InL nat@@nat nat)(0@0))
+;;                    ((InL nat@@nat nat)([if (n3<n2) n3 (Succ n3)]@n2))]
+;;                   [if (f2 n2<f2[if (n3<n2) n3 (Succ n3)])
+;;                    ((InL nat@@nat nat)(0@0))
+;;                    ((InL nat@@nat nat)(n2@[if (n3<n2) n3 (Succ n3)]))]])]]])
 ;;          ([n1]
 ;;            [if (f0(Succ(n0+n1))<f(Succ(n0+n1)))
 ;;              (f(Succ(n0+n1))*f(Succ(n0+n1))+f0(Succ(n0+n1)))
@@ -1710,30 +1656,8 @@
 ;;                   ((InR nat nat)n1)]
 ;;              ([n2](InL nat nat)(Succ(n0+n2)))
 ;;              ([n2](InR nat nat)(Succ(n0+n2)))]
-;;         ([n2]
-;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f0(Mini f0 n0))
-;;                ([n3,boole,boole0]boole)
-;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
-;;                  [if n4
-;;                    boole0
-;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
-;;                (f0 n2)
-;;                True 
-;;                False)
-;;            (I f f0 n0)
-;;            (f1(I f f0 n0))])
-;;         ([n2]
-;;          [if ((Rec nat=>nat=>boole=>boole=>boole)(f(Mini f n0))
-;;                ([n3,boole,boole0]boole)
-;;                ([n3,(nat=>boole=>boole=>boole),n4,boole,boole0]
-;;                  [if n4
-;;                    boole0
-;;                    ([n5](nat=>boole=>boole=>boole)n5 boole boole0)])
-;;                (f n2)
-;;                True 
-;;                False)
-;;            (I f f0 n0)
-;;            (f1(I f f0 n0))])])])
+;;         ([n2][if (f0(Mini f0 n0)<=f0 n2) (I f f0 n0) (f1(I f f0 n0))])
+;;         ([n2][if (f(Mini f n0)<=f n2) (I f f0 n0) (f1(I f f0 n0))])])])
 ;;  True
 
 (add-computation-rule "I f g n" "Succ(n+Psi f g n*Psi f g n)")
