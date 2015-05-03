@@ -969,7 +969,7 @@ all t(
  (assume "H3")
  (assert "all a,n(n<=Lh a -> t a impb t(a bar n))")
   (assume "a" "n1" "n1<=Lh a")
-  (use "NatLeCases" (pt "Lh a") (pt "n1"))
+  (use "NatLeCases" (pt "n1") (pt "Lh a"))
   (use "n1<=Lh a")
   (use "H3")
   (assume "n1=Lh a")
