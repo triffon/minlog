@@ -817,7 +817,7 @@ ex t(
 (use "Efq")
 (use "Absurd")
 (assume "m" "IHm" "k" "theta" "k<m+1")
-(use "NatLtSuccCases" (pt "m") (pt "k"))
+(use "NatLtSuccCases" (pt "k") (pt "m"))
 (use "k<m+1")
 (ng)
 (use "IHm")
