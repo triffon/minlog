@@ -410,7 +410,7 @@
 (by-assume "IH" "a" "H")
 (ex-intro (pt "a max as n"))
 (assume "m" "m<Succ n")
-(use "NatLtSuccCases" (pt "n") (pt "m"))
+(use "NatLtSuccCases" (pt "m") (pt "n"))
 (use "m<Succ n")
   (assume "m<n")
   (use "RatLeTrans" (pt "a"))
