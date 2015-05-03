@@ -570,25 +570,66 @@
 ;; Proof finished
 (save "NatLtTrans")
 
-;; NatLtSuccCases
-(set-goal "all nat2,nat1(nat1<Succ nat2 -> (nat1<nat2 -> Pvar) ->
-                                           (nat1=nat2 -> Pvar) -> Pvar)")
+;; NatNotLeToLt
+(set-goal "all nat1,nat2((nat1<=nat2 -> F) -> nat2<nat1)")
 (ind)
-  (cases)
-    (assume "H1" "H2" "H3")
-    (use "H3")
-  (use "Truth")
-  (assume "nat1" "Absurd" "H2" "H3")
-  (use "Efq")
-  (use "Absurd")
-(assume "nat1" "IH")
+(assume "nat2" "H1")
+(use-with "H1" "Truth")
+(assume "nat1" "IH1")
 (cases)
-  (assume "H1" "H2" "H3")
-  (use "H2")
-  (use "Truth")
+(assume "Trivial")
+(use "Truth")
+(use "IH1")
+;; Proof finished.
+(save "NatNotLeToLt")
+
+;; NatNotLtToLe
+(set-goal "all nat1,nat2((nat1<nat2 -> F) -> nat2<=nat1)")
+(ind)
+(cases)
+(assume "Trivial")
+(use "Truth")
+(assume "nat2" "H1")
+(use-with "H1" "Truth")
+(assume "nat1" "IH1")
+(cases)
+(assume "Trivial")
+(use "Truth")
+(use "IH1")
+;; Proof finished.
+(save "NatNotLtToLe")
+
+;; NatLtToLe
+(set-goal "all nat1,nat2(nat1<nat2 -> nat1<=nat2)")
+(ind)
+(assume "nat2" "Useless")
+(use "Truth")
+(assume "nat" "IH")
+(cases)
+(assume "Absurd")
+(use "Absurd")
 (use "IH")
 ;; Proof finished.
-(save "NatLtSuccCases")
+(save "NatLtToLe")
+
+;; NatLeAntiSym
+(set-goal "all nat1,nat2(nat1<=nat2 -> nat2<=nat1 -> nat1=nat2)")
+(ind)
+(cases)
+(assume "Useless1" "Useless2")
+(use "Truth")
+(assume "nat1" "Useless" "Absurd")
+(use "Efq")
+(use "Absurd")
+(assume "nat1" "IHnat1")
+(cases)
+(assume "Absurd" "Useless")
+(use "Efq")
+(use "Absurd")
+(assume "nat2")
+(use "IHnat1")
+;; Proof finished.
+(save "NatLeAntiSym")
 
 ;; Properties of NatLe
 
@@ -796,132 +837,185 @@
 ;; Proof finished.
 (save "NatSuccLeToLt")
 
+;; NatLtSuccCases
+(set-goal "all nat1,nat2(nat1<Succ nat2 -> (nat1<nat2 -> Pvar) ->
+                                           (nat1=nat2 -> Pvar) -> Pvar)")
+(assume "nat1" "nat2" "LtSuccHyp")
+(cases (pt "nat1<nat2"))
+;; Case nat1<nat2
+(assume "nat1<nat2" "THyp" "FHyp")
+(use-with "THyp" "Truth")
+;; Case nat1<nat2 -> F
+(assume "nat1<nat2 -> F" "THyp" "FHyp")
+(use "FHyp")
+(use "NatLeAntiSym")
+(use "NatLtSuccToLe")
+(use "LtSuccHyp")
+(use "NatNotLtToLe")
+(use "nat1<nat2 -> F")
+;; Proof finished.
+(save "NatLtSuccCases")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,alpha34,alpha34_0][if (n<n0) alpha34 alpha34_0]
+
+;; Code discarded 2015-05-03
+;; ;; NatLtSuccCases
+;; (set-goal "all nat2,nat1(nat1<Succ nat2 -> (nat1<nat2 -> Pvar) ->
+;;                                            (nat1=nat2 -> Pvar) -> Pvar)")
+;; (ind)
+;;   (cases)
+;;     (assume "H1" "H2" "H3")
+;;     (use "H3")
+;;   (use "Truth")
+;;   (assume "nat1" "Absurd" "H2" "H3")
+;;   (use "Efq")
+;;   (use "Absurd")
+;; (assume "nat1" "IH")
+;; (cases)
+;;   (assume "H1" "H2" "H3")
+;;   (use "H2")
+;;   (use "Truth")
+;; (use "IH")
+;; ;; Proof finished.
+;; (save "NatLtSuccCases")
+
 ;; NatLeCases
-(set-goal "all nat2,nat1(nat1<=nat2 -> (nat1<nat2 -> Pvar) ->
-                        (nat1=nat2 -> Pvar) -> Pvar)")
-(ind)
-  (cases)
-  (assume "H1" "H2" "H3")
-  (use "H3")
-  (use "Truth")
-(assume "nat1" "Absurd" "H2" "H3")
-(use "H2")
-(use "Absurd")
-(assume "nat1" "IH")
-(cases)
-  (assume "H1" "H2" "H3")
-  (use "H2")
-  (use "Truth")
-(use "IH")
+(set-goal "all nat1,nat2(nat1<=nat2 -> (nat1<nat2 -> Pvar) ->
+                                       (nat1=nat2 -> Pvar) -> Pvar)")
+(assume "nat1" "nat2" "nat1<=nat2")
+(cases (pt "nat1<nat2"))
+;; Case nat1<nat2
+(assume "nat1<nat2" "THyp" "FHyp")
+(use-with "THyp" "Truth")
+;; Case nat1<nat2 -> F
+(assume "nat1<nat2 -> F" "THyp" "FHyp")
+(use "FHyp")
+(use "NatLeAntiSym")
+(use "nat1<=nat2")
+(use "NatNotLtToLe")
+(use "nat1<nat2 -> F")
 ;; Proof finished.
 (save "NatLeCases")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,alpha34,alpha34_0][if (n<n0) alpha34 alpha34_0]
+
+;; Code discarded 2015-05-03
+;; ;; NatLeCases
+;; (set-goal "all nat2,nat1(nat1<=nat2 -> (nat1<nat2 -> Pvar) ->
+;;                         (nat1=nat2 -> Pvar) -> Pvar)")
+;; (ind)
+;;   (cases)
+;;   (assume "H1" "H2" "H3")
+;;   (use "H3")
+;;   (use "Truth")
+;; (assume "nat1" "Absurd" "H2" "H3")
+;; (use "H2")
+;; (use "Absurd")
+;; (assume "nat1" "IH")
+;; (cases)
+;;   (assume "H1" "H2" "H3")
+;;   (use "H2")
+;;   (use "Truth")
+;; (use "IH")
+;; ;; Proof finished.
+;; (save "NatLeCases")
 
 ;; NatLeLtCases
 (set-goal
  "all nat1,nat2((nat1<=nat2 -> Pvar) -> (nat2<nat1 -> Pvar) -> Pvar)")
-(ind)
-  (cases)
-    (assume "H1" "H2")
-    (use "H1")
-    (use "Truth")
-  (assume "nat1" "H1" "H2")
-  (use "H1")
-  (use "Truth")
-(assume "nat1" "IH1")
-(cases)
-  (assume "H1" "H2")
-  (use "H2")
-  (use "Truth")
-(assume "nat2" "H1" "H2")
-(use "IH1" (pt "nat2"))
-(use "H1")
-(use "H2")
+(assume "nat1" "nat2")
+(cases (pt "nat1<=nat2"))
+;; Case nat1<=nat2
+(assume "nat1<=nat2" "THyp" "FHyp")
+(use-with "THyp" "Truth")
+;; Case nat1<=nat2 -> F
+(assume "nat1<=nat2 -> F" "THyp" "FHyp")
+(use "FHyp")
+(use "NatNotLeToLt")
+(use "nat1<=nat2 -> F")
 ;; Proof finished.
 (save "NatLeLtCases")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,alpha34,alpha34_0][if (n<=n0) alpha34 alpha34_0]
+
+;; Code discarded 2015-05-03
+;; ;; NatLeLtCases
+;; (set-goal
+;;  "all nat1,nat2((nat1<=nat2 -> Pvar) -> (nat2<nat1 -> Pvar) -> Pvar)")
+;; (ind)
+;;   (cases)
+;;     (assume "H1" "H2")
+;;     (use "H1")
+;;     (use "Truth")
+;;   (assume "nat1" "H1" "H2")
+;;   (use "H1")
+;;   (use "Truth")
+;; (assume "nat1" "IH1")
+;; (cases)
+;;   (assume "H1" "H2")
+;;   (use "H2")
+;;   (use "Truth")
+;; (assume "nat2" "H1" "H2")
+;; (use "IH1" (pt "nat2"))
+;; (use "H1")
+;; (use "H2")
+;; ;; Proof finished.
+;; (save "NatLeLtCases")
 
 ;; NatLeLin
 (set-goal
  "all nat1,nat2((nat1<=nat2 -> Pvar) -> (nat2<=nat1 -> Pvar) -> Pvar)")
-(ind)
-  (cases)
-    (assume "H1" "H2")
-    (use "H1")
-    (use "Truth")
-  (assume "nat1" "H1" "H2")
-  (use "H1")
-  (use "Truth")
-(assume "nat1" "IH1")
-(cases)
-  (assume "H1" "H2")
-  (use "H2")
-  (use "Truth")
-(assume "nat2" "H1" "H2")
-(use "IH1" (pt "nat2"))
-(use "H1")
-(use "H2")
+(assume "nat1" "nat2")
+(cases (pt "nat1<=nat2"))
+;; Case nat1<=nat2
+(assume "nat1<=nat2" "THyp" "FHyp")
+(use-with "THyp" "Truth")
+;; Case nat1<=nat2 -> F
+(assume "nat1<=nat2 -> F" "THyp" "FHyp")
+(use "FHyp")
+(use "NatLtToLe")
+(use "NatNotLeToLt")
+(use "nat1<=nat2 -> F")
 ;; Proof finished.
 (save "NatLeLin")
 
-;; NatNotLeToLt
-(set-goal "all nat1,nat2((nat1<=nat2 -> F) -> nat2<nat1)")
-(ind)
-(assume "nat2" "H1")
-(use-with "H1" "Truth")
-(assume "nat1" "IH1")
-(cases)
-(assume "Trivial")
-(use "Truth")
-(use "IH1")
-;; Proof finished.
-(save "NatNotLeToLt")
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,alpha34,alpha34_0][if (n<=n0) alpha34 alpha34_0]
 
-;; NatNotLtToLe
-(set-goal "all nat1,nat2((nat1<nat2 -> F) -> nat2<=nat1)")
-(ind)
-(cases)
-(assume "Trivial")
-(use "Truth")
-(assume "nat2" "H1")
-(use-with "H1" "Truth")
-(assume "nat1" "IH1")
-(cases)
-(assume "Trivial")
-(use "Truth")
-(use "IH1")
-;; Proof finished.
-(save "NatNotLtToLe")
-
-;; NatLtToLe
-(set-goal "all nat1,nat2(nat1<nat2 -> nat1<=nat2)")
-(ind)
-(assume "nat2" "Useless")
-(use "Truth")
-(assume "nat" "IH")
-(cases)
-(assume "Absurd")
-(use "Absurd")
-(use "IH")
-;; Proof finished.
-(save "NatLtToLe")
-
-;; NatLeAntiSym
-(set-goal "all nat1,nat2(nat1<=nat2 -> nat2<=nat1 -> nat1=nat2)")
-(ind)
-(cases)
-(assume "Useless1" "Useless2")
-(use "Truth")
-(assume "nat1" "Useless" "Absurd")
-(use "Efq")
-(use "Absurd")
-(assume "nat1" "IHnat1")
-(cases)
-(assume "Absurd" "Useless")
-(use "Efq")
-(use "Absurd")
-(assume "nat2")
-(use "IHnat1")
-;; Proof finished.
-(save "NatLeAntiSym")
+;; Code discarded 2015-05-03
+;; ;; NatLeLin
+;; (set-goal
+;;  "all nat1,nat2((nat1<=nat2 -> Pvar) -> (nat2<=nat1 -> Pvar) -> Pvar)")
+;; (ind)
+;;   (cases)
+;;     (assume "H1" "H2")
+;;     (use "H1")
+;;     (use "Truth")
+;;   (assume "nat1" "H1" "H2")
+;;   (use "H1")
+;;   (use "Truth")
+;; (assume "nat1" "IH1")
+;; (cases)
+;;   (assume "H1" "H2")
+;;   (use "H2")
+;;   (use "Truth")
+;; (assume "nat2" "H1" "H2")
+;; (use "IH1" (pt "nat2"))
+;; (use "H1")
+;; (use "H2")
+;; ;; Proof finished.
+;; (save "NatLeLin")
 
 ;; NatLtToLePred
 (set-goal "all nat1,nat2(nat1<nat2 -> nat1<=Pred nat2)")
@@ -1307,7 +1401,7 @@
 (assume "nat2" "IH")
 (ng)
 (assume "AllBHyp" "nat1" "nat1<Succ nat2")
-(use "NatLtSuccCases" (pt "nat2") (pt "nat1"))
+(use "NatLtSuccCases" (pt "nat1") (pt "nat2"))
 (use "nat1<Succ nat2")
 (use "IH")
 (use "AllBHyp")
@@ -1318,7 +1412,6 @@
 (save "AllBNatElim")
 
 ;; Properties of ExBNat
-
 
 (set-totality-goal "ExBNat")
 (assume "nat^" "Tnat")
@@ -1355,7 +1448,7 @@
 (assert "nat1<Succ nat2")
 (use "Conj")
 (assume "n1<Sn2")
-(use "NatLtSuccCases" (pt "nat2") (pt "nat1"))
+(use "NatLtSuccCases" (pt "nat1") (pt "nat2"))
 (use "n1<Sn2")
 (assume "n1<n2")
 (cases (pt "(nat=>boole)nat2"))
@@ -2231,7 +2324,7 @@
  (use "Efq")
  (use "Absurd")
  (assume "nat" "IHnat" "nat1" "nat1<Succ nat")
- (use "NatLtSuccCases" (pt "nat") (pt "nat1"))
+ (use "NatLtSuccCases" (pt "nat1") (pt "nat"))
  (use "nat1<Succ nat")
  (use "IHnat")
  (assume "nat1=nat")
