@@ -10937,7 +10937,9 @@ and relations referring to the type $\typeN$.  These are
 (add-program-constant "NatMax" (py "nat=>nat=>nat"))
 (add-program-constant "NatMin" (py "nat=>nat=>nat"))
 (add-program-constant "AllBNat" (py "nat=>(nat=>boole)=>boole"))
+(add-program-constant "ExBNat" (py "nat=>(nat=>boole)=>boole"))
 (add-program-constant "NatLeast" (py "nat=>(nat=>boole)=>nat"))
+(add-program-constant "NatLeastUp" (py "nat=>nat=>(nat=>boole)=>nat"))
 \end{verbatim}
 with there standard (mostly infix) notations.  To see their defining
 equations (i.e., computation rules) and proved equations used as
@@ -10965,6 +10967,8 @@ use
 \end{verbatim}
 The result contains
 \begin{verbatim}
+NatMaxLUB
+all nat1,nat2,nat3(nat1<=nat3 -> nat2<=nat3 -> nat1 max nat2<=nat3)
 NatMaxUB2
 all nat1,nat2 nat2<=nat1 max nat2
 NatMaxUB1
@@ -10982,11 +10986,11 @@ NatLeLtCases
 all nat1,nat2((nat1<=nat2 -> Pvar) ->
               (nat2<nat1 -> Pvar) -> Pvar)
 NatLeCases
-all nat2,nat1(nat1<=nat2 ->
+all nat1,nat2(nat1<=nat2 -> 
               (nat1<nat2 -> Pvar) ->
               (nat1=nat2 -> Pvar) -> Pvar)
 NatLtSuccCases
-all nat2,nat1(nat1<Succ nat2 ->
+all nat1,nat2(nat1<Succ nat2 ->
               (nat1<nat2 -> Pvar) ->
               (nat1=nat2 -> Pvar) -> Pvar)
 \end{verbatim}
