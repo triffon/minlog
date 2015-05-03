@@ -19,7 +19,7 @@
 (use "Efq")
  ;; Step
 (assume "m" "IHm" "n<m+1")
-(use "NatLeCases" (pt "m") (pt "n"))
+(use "NatLeCases" (pt "n") (pt "m"))
 (use "NatLtSuccToLe")
 (use "n<m+1")
 (assume "n<m")
@@ -35,7 +35,7 @@
 ;; NatMonLe
 (set-goal "all f(all n f n<f(n+1) -> all n,m(n<=m -> f n<=f m))")
 (assume "f" "StrictIncr" "n" "m" "n<=m")
-(use "NatLeCases" (pt "m") (pt "n"))
+(use "NatLeCases" (pt "n") (pt "m"))
 (use "n<=m")
 (assume "n<m")
 (use "NatLtToLe")
