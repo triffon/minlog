@@ -179,7 +179,7 @@
 	     (generate-seq (- n 1)))))
 
 ;; fold right: (foldr bin-op initial-value list) folds a list with
-;; bin-op starting from the end of the lis
+;; bin-op starting from the end of the list
 
 ;; (first f n) returns the list of the first n elements of f.
 
