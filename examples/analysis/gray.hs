@@ -31,39 +31,39 @@ data Bg = Nz  | LRz Psd Bg | Uz Nat
 
 ----- Recursion operators -------
 
-agCoRec :: (alpha2490 -> ((alpha2490 -> (Either (Psd, (Either Ag alpha2490)) (Either Ah alpha2491))) -> ((alpha2491 -> (Either (Psd, (Either Ag alpha2490)) (Either Ah alpha2491))) -> Ag)))
+agCoRec :: (alpha2476 -> ((alpha2476 -> (Either (Psd, (Either Ag alpha2476)) (Either Ah alpha2477))) -> ((alpha2477 -> (Either (Psd, (Either Ag alpha2476)) (Either Ah alpha2477))) -> Ag)))
 agCoRec c g f = (case (g c) of
  { Left o0 -> (LR (fst o0) (case (snd o0) of
- { Left p18820 -> p18820 ;
+ { Left p18898 -> p18898 ;
  Right c2 -> (agCoRec c2 g f) })) ;
  Right w0 -> (U (case w0 of
- { Left q18817 -> q18817 ;
+ { Left q18895 -> q18895 ;
  Right h1 -> (ahCoRec h1 g f) })) })
 
-ahCoRec :: (alpha2471 -> ((alpha2472 -> (Either (Psd, (Either Ag alpha2472)) (Either Ah alpha2471))) -> ((alpha2471 -> (Either (Psd, (Either Ag alpha2472)) (Either Ah alpha2471))) -> Ah)))
+ahCoRec :: (alpha2457 -> ((alpha2458 -> (Either (Psd, (Either Ag alpha2458)) (Either Ah alpha2457))) -> ((alpha2457 -> (Either (Psd, (Either Ag alpha2458)) (Either Ah alpha2457))) -> Ah)))
 ahCoRec c g f = (case (f c) of
  { Left h0 -> (Fin (fst h0) (case (snd h0) of
- { Left p18787 -> p18787 ;
+ { Left p18865 -> p18865 ;
  Right o1 -> (agCoRec o1 g f) })) ;
  Right w0 -> (D (case w0 of
- { Left q18784 -> q18784 ;
+ { Left q18862 -> q18862 ;
  Right c2 -> (ahCoRec c2 g f) })) })
 
 ivDestr :: (Iv -> (Sd, Iv))
-ivDestr (C d18754 v18753) = (d18754, v18753)
+ivDestr (C d18832 v18831) = (d18832, v18831)
 
-ivCoRec :: (alpha2465 -> ((alpha2465 -> (Sd, (Either Iv alpha2465))) -> Iv))
+ivCoRec :: (alpha2451 -> ((alpha2451 -> (Sd, (Either Iv alpha2451))) -> Iv))
 ivCoRec c f = (C (fst (f c)) (case (snd (f c)) of
- { Left v18752 -> v18752 ;
+ { Left v18830 -> v18830 ;
  Right c1 -> (ivCoRec c1 f) }))
 
 agDestr :: (Ag -> (Either (Psd, Ag) Ah))
-agDestr (LR a18740 p18739) = (Left (a18740, p18739))
-agDestr (U q18738) = (Right q18738)
+agDestr (LR a18818 p18817) = (Left (a18818, p18817))
+agDestr (U q18816) = (Right q18816)
 
 ahDestr :: (Ah -> (Either (Psd, Ag) Ah))
-ahDestr (Fin a18737 p18736) = (Left (a18737, p18736))
-ahDestr (D q18735) = (Right q18735)
+ahDestr (Fin a18815 p18814) = (Left (a18815, p18814))
+ahDestr (D q18813) = (Right q18813)
 
 natRec :: Nat -> a -> (Nat -> a -> a) -> a
 natRec 0 g h = g
@@ -218,19 +218,19 @@ stog = (\ bv -> (agCoRec bv (\ bv0 -> (case (fst (ivDestr (snd bv0))) of
 
 gtos :: (Psd -> (Ag -> Iv))
 gtos = (\ a -> (\ p -> (ivCoRec (a, (Left p)) (\ apq -> (case (snd apq) of
- { Left p18844 -> (case (agDestr p18844) of
- { Left ap18846 -> ((psdToSd (psdTimes (fst apq) (fst ap18846))), (Right ((psdInv (psdTimes (fst apq) (fst ap18846))), (Left (snd ap18846))))) ;
- Right q18845 -> (Mid, (Right ((fst apq), (Right q18845)))) }) ;
- Right q18841 -> (case (ahDestr q18841) of
- { Left ap18843 -> ((psdToSd (psdTimes (fst apq) (fst ap18843))), (Right ((psdTimes (fst apq) (fst ap18843)), (Left (snd ap18843))))) ;
- Right q18842 -> (Mid, (Right ((fst apq), (Right q18842)))) }) })))))
+ { Left p18922 -> (case (agDestr p18922) of
+ { Left ap18924 -> ((psdToSd (psdTimes (fst apq) (fst ap18924))), (Right ((psdInv (psdTimes (fst apq) (fst ap18924))), (Left (snd ap18924))))) ;
+ Right q18923 -> (Mid, (Right ((fst apq), (Right q18923)))) }) ;
+ Right q18919 -> (case (ahDestr q18919) of
+ { Left ap18921 -> ((psdToSd (psdTimes (fst apq) (fst ap18921))), (Right ((psdTimes (fst apq) (fst ap18921)), (Left (snd ap18921))))) ;
+ Right q18920 -> (Mid, (Right ((fst apq), (Right q18920)))) }) })))))
 
 gminus :: (Ag -> Ag)
 gminus = (\ p -> (agCoRec p (\ p0 -> (case (agDestr p0) of
- { Left ap18836 -> (Left ((psdInv (fst ap18836)), (Left (snd ap18836)))) ;
- Right q18835 -> (Right (Right q18835)) })) (\ q -> (case (ahDestr q) of
- { Left ap18834 -> (Left ((psdInv (fst ap18834)), (Left (snd ap18834)))) ;
- Right q18833 -> (Right (Right q18833)) }))))
+ { Left ap18914 -> (Left ((psdInv (fst ap18914)), (Left (snd ap18914)))) ;
+ Right q18913 -> (Right (Right q18913)) })) (\ q -> (case (ahDestr q) of
+ { Left ap18912 -> (Left ((psdInv (fst ap18912)), (Left (snd ap18912)))) ;
+ Right q18911 -> (Right (Right q18911)) }))))
 
 av :: (Iv -> (Iv -> Iv))
 av = (\ v -> (\ v0 -> (ivCoRec ((sdPlus (fst (ivDestr v)) (fst (ivDestr v0))), ((snd (ivDestr v)), (snd (ivDestr v0)))) (\ ivw -> (let jdvw = ((j (fst (ivDestr (fst (snd ivw)))) (fst (ivDestr (snd (snd ivw)))) (fst ivw)), ((k (fst (ivDestr (fst (snd ivw)))) (fst (ivDestr (snd (snd ivw)))) (fst ivw)), ((snd (ivDestr (fst (snd ivw)))), (snd (ivDestr (snd (snd ivw))))))) in ((fst (snd jdvw)), (Right ((fst jdvw), (snd (snd jdvw))))))))))
@@ -245,15 +245,15 @@ rattosqrt :: (Rational -> (Nat -> Rational))
 rattosqrt = Main.sqrt
 
 gtobg :: (Nat -> (Ag -> Bg))
-gtobg = (\ n0 -> (fst (natRec n0 ((\ p2 -> Nz), (\ q2 -> (Left 0))) (\ n2 -> (\ psf3 -> ((\ p4 -> (case (agDestr p4) of
- { Left ap18826 -> (LRz (fst ap18826) ((fst psf3) (snd ap18826))) ;
- Right q18823 -> (case ((snd psf3) q18823) of
- { Left n18825 -> (Uz n18825) ;
- Right apbg18824 -> (LRz (fst apbg18824) (if (n2 == 0) then Nz else ((LRz PRht (snd (snd apbg18824)))))) }) })), (\ q4 -> (case (ahDestr q4) of
- { Left ap18832 -> (Right ((fst ap18832), ((snd ap18832), ((fst psf3) (snd ap18832))))) ;
- Right q18829 -> (case ((snd psf3) q18829) of
- { Left n18831 -> (Left (n18831 + 1)) ;
- Right apbg18830 -> (Right ((fst apbg18830), ((LR PLft (fst (snd apbg18830))), ((fst psf3) (LR PLft (fst (snd apbg18830))))))) }) }))))))))
+gtobg = (\ n -> (fst (natRec n ((\ p -> Nz), (\ q -> (Left 0))) (\ n0 -> (\ psf -> ((\ p -> (case (agDestr p) of
+ { Left ap18904 -> (LRz (fst ap18904) ((fst psf) (snd ap18904))) ;
+ Right q18901 -> (case ((snd psf) q18901) of
+ { Left n18903 -> (Uz n18903) ;
+ Right apbg18902 -> (LRz (fst apbg18902) (if (n0 == 0) then Nz else ((LRz PRht (snd (snd apbg18902)))))) }) })), (\ q -> (case (ahDestr q) of
+ { Left ap18910 -> (Right ((fst ap18910), ((snd ap18910), ((fst psf) (snd ap18910))))) ;
+ Right q18907 -> (case ((snd psf) q18907) of
+ { Left n18909 -> (Left (n18909 + 1)) ;
+ Right apbg18908 -> (Right ((fst apbg18908), ((LR PLft (fst (snd apbg18908))), (if (n0 == 0) then Nz else ((LRz PLft (snd (snd apbg18908)))))))) }) }))))))))
 
 ---------------------------------
 
