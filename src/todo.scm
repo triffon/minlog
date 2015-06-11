@@ -1,4 +1,7 @@
-;; 2015-04-28.  todo.scm
+;; 2015-06-07.  todo.scm
+
+;; 2015-06-07.  axiom-to-soundness-proof has problems at intro and
+;; elim axioms for idpcs with parameters (already in the unnested case).
 
 ;; 2015-04-28.  Axioms InhabTotal and InhabTotalMR should be removed
 ;; since we do not require any more that each type has a total
