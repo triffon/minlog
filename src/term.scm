@@ -3915,7 +3915,8 @@ intDestr n | n > 0  = Left n
 		(nbe-term-to-object test bindings))
 	       ((constant-alts? norm-alts typed-constr-names)
 		(nbe-term-to-object
-		 (constants-alts-to-const-term norm-alts typed-constr-names)
+		 (constants-alts-to-const-term alts typed-constr-names)
+		 ;; (constants-alts-to-const-term norm-alts typed-constr-names)
 		 bindings))
 	       (else
 		(nbe-reflect
