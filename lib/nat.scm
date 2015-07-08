@@ -1030,6 +1030,16 @@
 ;; Proof finite
 (save "NatLtToLePred")
 
+;; NatLePred
+(set-goal "all nat1,nat2 (Pred nat1<=nat2)=(nat1<=Succ nat2)")
+(cases)
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "NatLePred")
+
 ;; NatLtMonPred
 (set-goal "all nat1,nat2(0<nat1 -> nat1<nat2 -> Pred nat1<Pred nat2)")
 (cases)
@@ -1218,6 +1228,28 @@
 ;; Proof finished
 (save "NatMaxLUB")
 
+;; NatMaxEq1
+(set-goal "all nat1,nat2(nat2<=nat1 -> nat1 max nat2=nat1)")
+(assume "nat1" "nat2" "nat2<=nat1")
+(use "NatLeAntiSym")
+(use "NatMaxLUB")
+(use "Truth")
+(use "nat2<=nat1")
+(use "NatMaxUB1")
+;; Proof finished.
+(save "NatMaxEq1")
+
+;; NatMaxEq2
+(set-goal "all nat1,nat2(nat1<=nat2 -> nat1 max nat2=nat2)")
+(assume "nat1" "nat2" "nat1<=nat2")
+(use "NatLeAntiSym")
+(use "NatMaxLUB")
+(use "nat1<=nat2")
+(use "Truth")
+(use "NatMaxUB2")
+;; Proof finished.
+(save "NatMaxEq2")
+
 ;; Properties of NatMin
 
 (set-totality-goal "NatMin")
@@ -1309,6 +1341,45 @@
 (use "IH1")
 ;; Proof finished.
 (save "NatMinLB2")
+
+;; NatMinGLB
+(set-goal "all nat1,nat2,nat3(nat3<=nat1 -> nat3<=nat2 -> nat3<=nat1 min nat2)")
+(ind)
+(assume "nat2" "nat3" "Hyp" "Useless")
+(use "Hyp")
+(assume "nat1" "IH1")
+(cases)
+(assume "nat3" "Useless1" "Hyp")
+(use "Hyp")
+(assume "nat2")
+(cases)
+(strip)
+(use "Truth")
+(use "IH1")
+;; Proof finished
+(save "NatMinGLB")
+
+;; NatMinEq1
+(set-goal "all nat1,nat2(nat1<=nat2 -> nat1 min nat2=nat1)")
+(assume "nat1" "nat2" "nat1<=nat2")
+(use "NatLeAntiSym")
+(use "NatMinLB1")
+(use "NatMinGLB")
+(use "Truth")
+(use "nat1<=nat2")
+;; Proof finished.
+(save "NatMinEq1")
+
+;; NatMinEq2
+(set-goal "all nat1,nat2(nat2<=nat1 -> nat1 min nat2=nat2)")
+(assume "nat1" "nat2" "nat2<=nat1")
+(use "NatLeAntiSym")
+(use "NatMinLB2")
+(use "NatMinGLB")
+(use "nat2<=nat1")
+(use "Truth")
+;; Proof finished.
+(save "NatMinEq2")
 
 ;; NatIfTotal
 (set-goal "allnc nat^(TotalNat nat^ ->
