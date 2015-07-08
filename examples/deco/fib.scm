@@ -186,7 +186,7 @@
 ;;      0)
 ;;     1))
 
-(time ((ev (term-to-expr neterm)) 1000))
+;; (time ((ev (term-to-expr neterm)) 1000))
 
 ;; 3 ms elapsed cpu time
 ;;     3 ms elapsed real time
