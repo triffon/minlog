@@ -1,5 +1,16 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done 2015-07-08
+
+In lib/nat.scm
+
+NatMinGLB NatMinEq1 and NatMinEq2 added.  Similarly NatMaxEq1 and
+NatMaxEq2 added.  NatLePred added
+
+In examples/deco/fib.scm
+
+Time measurement commented out.
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-06-11
 
