@@ -1,5 +1,47 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done 2015-09-28
+
+In examples/analysis/gray.scm
+
+Major update, following temp/examplesanalysisgraytvar.scm.
+Accompanies BergerMiyamotoSchwichtenbergTsuiki15
+
+In examples/analysis/ishihara.scm
+
+Usage of the obsolete axiom InhabTotal replaced by a global assumption
+InhabBanach.  set-totality-goal used for totality proofs.
+
+In examples/pruning/binpack.scm
+
+set-totality-goal used for totality proofs.  Time measurement
+commented out.
+
+In term.scm
+
+In term-to-extraction-info the function term-to-consts-info changed
+to ensure that simalgs are in their given order.
+terms-to-haskell-program-with-lemmas added, as a wrapper for
+terms-to-haskell-program (work of Christian Ittner)
+
+In psym.scm
+
+In add-ids the obsolete test-for-inhabitedness resinserted but
+commented out.  This is similar to what is done in add-algs
+
+In axiom.scm
+
+In aconst-to-inst-formula the special treatment of Elim and Gfp
+extended to ElimMR
+
+In ets.scm
+
+imp-formulas-to-mr-elim-proof adapted to the more general from of
+clauses for unnested inpredconsts.
+real-mr-clause-proof-and-clause-to-clause-proof
+proof-to-allnc-impnc-proof allnc-impnc-to-exu-imp-proof removed
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-07-08
 
 In lib/nat.scm
@@ -29,7 +71,7 @@ done 2014-12-19, but somehow got lost)
 
 In todo.scm
 
-Two items added (on axiom-to-soundness-proof andInhabTotal).
+Two items added (on axiom-to-soundness-proof and InhabTotal).
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-05-04
