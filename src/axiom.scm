@@ -162,12 +162,15 @@
   (let* ((uninst-formula (aconst-to-uninst-formula aconst))
 	 (tpsubst (aconst-to-tpsubst aconst))
 	 (name (aconst-to-name aconst)))
-    (if (or (string=? "Elim" name) (string=? "Gfp" name))
+    (if (or (string=? "Elim" name)
+	    (string=? "Gfp" name)
+	    (string=? "ElimMR" name))
 	(all-form-to-final-kernel
 	 (formula-substitute
 	  (apply mk-all (append (formula-to-free uninst-formula)
 				(list uninst-formula)))
-	  tpsubst))
+	  tpsubst)
+	 (length (formula-to-free uninst-formula)))
 	(formula-substitute uninst-formula tpsubst))))
 
 (define (aconst-to-formula aconst)
