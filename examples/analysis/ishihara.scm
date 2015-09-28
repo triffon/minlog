@@ -1,4 +1,4 @@
-;; 2013-09-25.  examplesanalysisishihara.scm.
+;; 2015-09-28.  ishihara.scm.
 
 ;; Based on seminars/semss13/ishihara.scm and temp/banach.scm.
 ;; Abstract treatment with (undefined) total program constants in type
@@ -194,7 +194,7 @@
  "Hit m n" "[if (m<n) (m+2) Zero]")
 
 ;; HitTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Hit"))))
+(set-totality-goal "Hit")
 (assume "m^" "Tm" "n^" "Tn")
 (ng #t)
 (use "BooleIfTotal")
@@ -206,7 +206,7 @@
 (use "Tm")
 (use "TotalNatZero")
 ;; Proof finished.
-(save "HitTotal")
+(save-totality)
 
 (add-program-constant "HitHere" (py "(nat=>boole)=>nat=>nat=>nat"))
 
@@ -214,8 +214,7 @@
  "HitHere g n0 n1" "Hit(NatLeastUp n0 n1 g)n1")
 
 ;; HitHereTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "HitHere"))))
-;; (pp "AllTotalElim") ;to be added to THEOREMS - done.
+(set-totality-goal "HitHere")
 (assume "g^" "Tg")
 (use "AllTotalElim")
 (assume "m")
@@ -241,7 +240,7 @@
 (use "TotalNatZero")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "HitHereTotal")
+(save-totality)
 
 (add-program-constant
  "HitPast" (py "(nat=>boole)=>(int=>nat)=>nat=>nat=>nat"))
@@ -251,7 +250,7 @@
                          (HitHere g n0(M(Succ n)))]")
 
 ;; HitPastTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "HitPast"))))
+(set-totality-goal "HitPast")
 (assume "g^" "Tg" "M^" "TM")
 (use "AllTotalElim")
 (assume "n0")
@@ -273,7 +272,7 @@
 (use "NatToIntTotal")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "HitPastTotal")
+(save-totality)
 
 (add-program-constant "H" (py "(nat=>boole)=>(int=>nat)=>nat=>nat"))
 
@@ -281,7 +280,7 @@
  "H g M n" "HitPast g M(M n)n")
 
 ;; HTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "H"))))
+(set-totality-goal "H")
 (assume "g^" "Tg" "M^" "TM")
 (use "AllTotalElim")
 (assume "n")
@@ -293,7 +292,7 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "HTotal")
+(save-totality)
 
 ;; We prove properties of H that will be needed in the proof of
 ;; Ishihara's trick.
@@ -804,6 +803,8 @@
 ;; (Seq xi)h(Succ Zero)us Zero = 0
 ;; (Seq xi)h(Succ Zero)us(Succ n) = (Seq xi)h(h n)us n
 
+(add-global-assumption "InhabBanach" "Total(Inhab xi)")
+
 (add-program-constant "Seq" (py "(nat=>nat)=>nat=>(nat=>xi)=>nat=>xi"))
 
 (add-computation-rules
@@ -813,7 +814,7 @@
  "(Seq xi)h(Succ Zero)us(Succ n)" "(Seq xi)h(h n)us n")
 
 ;; SeqTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(Seq xi)"))))
+(set-totality-goal "Seq")
 (assume "h^" "Th")
 (assert "allnc us^(
       allnc n^0(TotalNat n^0 -> Total(us^ n^0)) ->
@@ -825,9 +826,9 @@
 ;; Base
 (use "AllTotalElim")
 (cases)
-(use "InhabTotal")
+(use "InhabBanach")
 (cases)
-(use "InhabTotal")
+(use "InhabBanach")
 (assume "m")
 (ng #t)
 (use "GABanachTimesTotal")
@@ -876,14 +877,14 @@
 (use "Tn")
 (use "Tm")
 ;; Proof finished.
-(save "SeqTotal")
+(save-totality)
 
 (add-program-constant "V" (py "(nat=>boole)=>(int=>nat)=>(nat=>xi)=>nat=>xi"))
 
 (add-computation-rules "(V xi)g M us n" "(Seq xi)(H g M)(H g M n)us n")
 
 ;; VTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "(V xi)"))))
+(set-totality-goal "V")
 (assume "g^" "Tg" "M^" "TM" "us^" "Tus")
 (use "AllTotalElim")
 (assume "n")
@@ -901,7 +902,7 @@
 ;; 8
 (use "NatTotalVar")
 ;; Proof finished.
-(save "VTotal")
+(save-totality)
 
 (add-global-assumption
  "BanachCauchyConvMod"
@@ -1091,7 +1092,6 @@
 ;; Proof finished.
 (save "StabAllImpThreeTwo")
 
-;; Added 2014-02-12
 ;; StabAtom
 (set-goal "all boole(((boole -> F) -> F) -> boole)")
 (cases)
@@ -1557,7 +1557,7 @@
  (use "BanachCauchyConvMod")
  (use "NMod")
 (assume "vsConv")
-;; We show that beyond n1 (where hn1=m+2) v_n is constan
+;; We show that beyond n1 (where hn1=m+2) v_n is constant
 (assert "all n(n1<n -> H g M n=Succ Zero)")
  (ind)
  (ng #t)
@@ -1697,7 +1697,7 @@
 (save "ApproxSplitBoole")
 ;; (remove-theorem "ApproxSplitBoole")
 
-;; ApproxSplitBooleRa
+;; ApproxSplitBooleRat
 (set-goal "all a,b,x,k(Real x -> 1/2**k<=b-a -> ex boole(
                     (boole -> x<<=b) andu ((boole -> F) -> a<<=x)))")
 (assume "a" "b" "x" "k" "Rx" "1/2**k<=b-a")
