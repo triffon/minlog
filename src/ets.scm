@@ -3709,19 +3709,6 @@
      mk-proof-in-nc-intro-form
      (append free orig-mr-clause-vars vars-with-avars (list elim-proof)))))
 
-;; Recall that in inductively defined predicates every clause has the
-;; form allnc xs^1 all xs^2 (impnc-param-prems --> imp-param-prems ->
-;; rec-prems -> X rs).  Every param-prem has only param-pvars free and
-;; they can only occur strictly positive.  Every rec-prem has the form
-;; allnc ys^1 all ys^2 (Bs1 --> Bs2 -> X ss) with Bs1 and Bs2 without
-;; pvars and X from idpc-pvars.  For simplicity in
-;; imp-formulas-to-mr-elim-proof we require that in every recursive
-;; premise the list Bs1,Bs2 has at most one element.  This allows usage
-;; of proof-to-allnc-impnc-proof to bring t mr clause in clause form.
-
-;; To do: adapt imp-formulas-to-mr-elim-proof to the general form of
-;; clauses.  See p. 344 in [SW12].
-
 (define (imp-formulas-to-mr-elim-proof . imp-formulas)
   (let* ((prems (map imp-form-to-premise imp-formulas))
 	 (concls (map imp-form-to-conclusion imp-formulas))
@@ -3732,11 +3719,7 @@
 	  (apply union (map cterm-to-free (idpredconst-to-cterms idpc))))
 	 (prem-vars  (formula-to-free prem))
 	 (concl-vars (formula-to-free concl))
-	 (idpc-arg-vars (set-minus prem-vars idpc-param-vars))
-	 (concl-rest-vars (set-minus concl-vars prem-vars))
-	 (idpc-name (idpredconst-to-name idpc))
-	 (tpsubst (idpredconst-to-tpsubst idpc))
-	 (idpc-pvars (idpredconst-name-to-pvars idpc-name))
+	 (idpc-arg-vars (set-minus prem-vars idpc-param-vars)) ;xs
 	 (vars ;w ...
 	  (map
 	   (lambda (prem)
@@ -3784,30 +3767,42 @@
 	  (list-transform-positive real-vars-with-eps-and-avars
 	    (lambda (x) (not (equal? 'eps x)))))
 	 (real-terms
-          (list-transform-positive real-terms-with-eps
-	    (lambda (x) (not (equal? 'eps x)))))
+	  (list-transform-positive real-terms-with-eps
+	    (lambda (x) (not (eq? 'eps x)))))
 	 (arrow-type-or-nulltype-list (map formula-to-et-type imp-formulas))
 	 (arrow-types
 	  (list-transform-positive arrow-type-or-nulltype-list arrow-form?))
-	 (rec-const-or-eps-list
-	  (map (lambda (type) (if (arrow-form? type)
-				  (apply arrow-types-to-rec-const arrow-types)
-				  'eps))
-	       arrow-type-or-nulltype-list))
-	 (fully-applied-rec-const-or-eps-list
-	  (map (lambda (type var rec-const-or-eps)
-		 (if (arrow-form? type)
-		     (apply mk-term-in-app-form
-			    (make-term-in-const-form rec-const-or-eps)
-			    (make-term-in-var-form var)
-			    real-terms)
-		     'eps))
-	       arrow-type-or-nulltype-list vars rec-const-or-eps-list))
+	 (idpc-names (map (lambda (prem)
+			    (idpredconst-to-name
+			     (predicate-form-to-predicate prem)))
+			  prems))
+	 (mr-idpc-names (map (lambda (idpc-name)
+			       (string-append idpc-name "MR"))
+			     idpc-names))
+	 (rec-const-or-eps-alist
+	  (map (lambda (name type)
+		 (list name 
+		       (if (arrow-form? type)
+			   (apply arrow-types-to-rec-const
+				  (cons type (remove type arrow-types)))
+			   'eps)))
+	       mr-idpc-names arrow-type-or-nulltype-list))
+	 (fully-applied-rec-const-or-eps-alist
+	  (map (lambda (alist-pair var)
+	 	 (if (eq? 'eps (cadr alist-pair))
+	 	     alist-pair
+	 	     (list
+	 	      (car alist-pair)
+	 	      (apply mk-term-in-app-form
+	 		     (make-term-in-const-form (cadr alist-pair))
+	 		     (make-term-in-var-form var)
+	 		     real-terms))))
+	       rec-const-or-eps-alist vars))
 	 (mr-imp-formulas
 	  (map (lambda (mr-prem x concl)
 		 (make-imp mr-prem (real-and-formula-to-mr-formula-aux
 				    x concl)))
-	       mr-prems fully-applied-rec-const-or-eps-list concls))
+	       mr-prems (map cadr fully-applied-rec-const-or-eps-alist) concls))
 	 (mr-elim-aconst (apply imp-formulas-to-elim-aconst mr-imp-formulas))
 	 (mr-imp-formula (car mr-imp-formulas))
 	 (mr-prem (imp-form-to-premise mr-imp-formula))
@@ -3819,161 +3814,106 @@
 	 (mr-concl-vars (formula-to-free mr-concl))
 	 (mr-concl-rest-vars (set-minus mr-concl-vars mr-prem-vars))
 	 (mr-prem-avar (formula-to-new-avar mr-prem)) ;of w mr I xs
-	 (avar-proofs-in-clause-form ;of w0 mr K0 ..., in clause form (7.15)
-	  (map (lambda (avar orig-uninst-clause)
-		 (real-mr-clause-proof-and-clause-to-clause-proof
-		  (make-proof-in-avar-form avar) orig-uninst-clause))
-	       avars orig-uninst-clauses))
-	 (mr-clauses (map proof-to-formula avar-proofs-in-clause-form))
-	 (rec-prems-list
-	  (map (lambda (idpc-clause)
-		 (idpc-clause-to-rec-premises idpc-clause idpc-pvars))
-	       orig-uninst-clauses))
-	 (ns (map length rec-prems-list))
-	 (vars-list (map all-allnc-form-to-vars mr-clauses))
-	 (xs-and-us-list
-	   (map (lambda (vars n)
-		  (list-head vars (- (length vars)
-				     (if
-				      (eq? 'eps (car rec-const-or-eps-list))
-				      n
-				      (* 2 n)))))
-		vars-list ns))
-	 (fs-and-gs-list
-	   (map (lambda (vars n)
-		  (list-tail vars (- (length vars)
-				     (if
-				      (eq? 'eps (car rec-const-or-eps-list))
-				      n
-				      (* 2 n)))))
-		vars-list ns))
-	 (fs-list (map (lambda (fs-and-gs n) (list-head fs-and-gs n))
-		       fs-and-gs-list ns))
-	 (abstr-mr-clause-realizer-lists
-	  (map (lambda (fs)
-		 (if
-		  (eq? 'eps (car rec-const-or-eps-list))
-		  '()
-		  (map (lambda (f)
-			 (let* ((type (var-to-type f))
-				(arg-types (arrow-form-to-arg-types type))
-				(arg-vars
-				 (map type-to-new-partial-var arg-types))
-				(fully-applied-f-term
-				 (apply mk-term-in-app-form
-					(make-term-in-var-form f)
-					(map make-term-in-var-form arg-vars))))
-			   (apply
-			    mk-term-in-abst-form
-			    (append arg-vars
-				    (list (apply mk-term-in-app-form
-						 (make-term-in-const-form
-						  (car rec-const-or-eps-list))
-						 fully-applied-f-term
-						 real-terms))))))
-		       fs)))
-	       fs-list))
-	 (clause-et-types (map formula-to-et-type orig-uninst-clauses))
-	 (clause-et-tvars (apply union (map type-to-tvars clause-et-types)))
-	 (param-pvars (idpredconst-name-to-param-pvars idpc-name))
-	 (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
-	 (mr-et-tvars (list-transform-positive clause-et-tvars
-			(lambda (tvar) (member tvar et-tvars-of-param-pvars))))
+	 (mr-clauses
+	  (cdr (imp-form-to-premises
+		(all-form-to-kernel
+		 (aconst-to-inst-formula mr-elim-aconst)))))
+	 (uninst-mr-clauses
+	  (cdr (imp-form-to-premises
+		(all-form-to-kernel
+		 (aconst-to-uninst-formula mr-elim-aconst)))))
 	 (mr-clause-proofs
-	  (map
-	   (lambda (avar-proof
-		    orig-uninst-clause
-		    orig-inst-clause
-		    xs-and-us fs gs)
-	     (let* ((clause-vars (all-allnc-form-to-vars orig-inst-clause)) ;ys
-		    (xs (list-head xs-and-us (length clause-vars)))
-		    (us (list-tail xs-and-us (length clause-vars)))
-		    (orig-uninst-clause-kernel
-		     (all-allnc-form-to-final-kernel orig-uninst-clause))
-		    (orig-uninst-clause-prems
-		     (imp-impnc-form-to-premises orig-uninst-clause-kernel))
-		    (applied-avar-proof
-		     (apply mk-proof-in-elim-form
-			    avar-proof
-			    (append
-			     (map make-term-in-var-form xs-and-us)
-			     (map make-term-in-var-form fs)
-			     gs)))
-		    (abstr-applied-avar-proof
-		     (apply mk-proof-in-nc-intro-form
-			    (append us fs (list applied-avar-proof))))
-		    (renamed-mr-clause
-		     (proof-to-formula abstr-applied-avar-proof))
-		    (prems-in-renamed-mr-clause
-		     (list-head
-		      (imp-impnc-form-to-premises
-		       (allnc-form-to-final-kernel renamed-mr-clause))
-		      (length orig-uninst-clause-prems)))
-		    (labelled-prems
+	  (map ;as many as we have avars 
+					;u0: w0 mr K0 ... ui: eps mr Ki ... 
+					;u{k-1}: w{k-1} mr K{k-1}
+	   (lambda (mr-clause uninst-mr-clause avar-proof)
+	     (let* ((vars-and-prems
+		     (imp-impnc-all-allnc-form-to-vars-and-premises
+		      mr-clause))
+		    (uninst-vars-and-prems
+		     (imp-impnc-all-allnc-form-to-vars-and-premises
+		      uninst-mr-clause))
+		    (vars-and-avars
+		     (map (lambda (var-or-prem)
+			    (if (var-form? var-or-prem)
+				var-or-prem
+				(formula-to-new-avar var-or-prem)))
+			  vars-and-prems))
+		    (uninst-vars-and-avars
+		     (map (lambda (uninst-var-or-prem)
+			    (if (var-form? uninst-var-or-prem)
+				uninst-var-or-prem
+				(formula-to-new-avar uninst-var-or-prem)))
+			  uninst-vars-and-prems))
+		    (one-or-two-element-lists
 		     (map
-		      (lambda (orig-uninst-clause-prem prem)
-			(if ;prem has c.r. substituted param-pvar
-					;with hidden tvar
-			 (apply
-			  or-op
-			  (map (lambda (pvar)
-				 (and ;pvar with hidden tvar
-				  (not (member (PVAR-TO-TVAR pvar)
-					       mr-et-tvars))
-					;c.r. substituted pvar
-				  (let ((info (assoc pvar tpsubst)))
-				    (or (not info)
-					(not (formula-of-nulltype?
-					      (cterm-to-formula
-					       (cadr info))))))))
-			       (intersection
-				(formula-to-pvars orig-uninst-clause-prem)
-				param-pvars)))
-			 (list #t prem)
-			 (list #f prem)))
-		      orig-uninst-clause-prems
-		      prems-in-renamed-mr-clause))
-		    (init-labelled-prems ;up to last (tt prem)
-		     (list-and-test-to-head-up-to-last
-		      labelled-prems
-		      (lambda (labelled-prem) (car labelled-prem)))))
-	       (if ;no prem has c.r. substituted param-pvar with hidden tvar
-		(null? init-labelled-prems)
-		(apply mk-proof-in-nc-intro-form
-		       (append xs (list abstr-applied-avar-proof)))
-		(let*
-		    ((full-opt-var-and-prem-list
-		      (do ((l init-labelled-prems (cdr l))
-			   (vars us (if (caar l) (cdr vars) vars))
-			   (res '() (if (caar l)
-					(cons (cadar l) (cons (car vars) res))
-					(cons (cadar l) res))))
-			  ((null? l) (reverse res))))
-		     (l (length full-opt-var-and-prem-list)) ;l>=2
-		     (prem1 (list-ref full-opt-var-and-prem-list (- l 1)))
-		     (var1 (list-ref full-opt-var-and-prem-list (- l 2)))
-		     (opt-var-and-prem-list
-		      (list-head full-opt-var-and-prem-list (- l 2)))
-		     (rest-of-mr-clause
-		      (impnc-form-to-final-conclusion
-		       (allnc-form-to-final-kernel renamed-mr-clause)
-		       (length init-labelled-prems)))
-		     (exu-imp-proof
-		      (allnc-impnc-to-exu-imp-proof
-		       opt-var-and-prem-list var1 prem1 clause-vars
-		       rest-of-mr-clause))
-		     (proof-of-modified-mr-clause
-		      (mk-proof-in-elim-form
-		       exu-imp-proof abstr-applied-avar-proof)))
-		  (apply mk-proof-in-nc-intro-form
-			 (append xs (list proof-of-modified-mr-clause)))))))
-	   avar-proofs-in-clause-form
-	   orig-uninst-clauses
-	   orig-inst-clauses
-	   xs-and-us-list
-	   fs-list
-	   abstr-mr-clause-realizer-lists)))
-    (apply mk-proof-in-nc-intro-form
+		      (lambda (var-or-avar uninst-var-or-avar)
+			(if
+			 (var-form? var-or-avar)
+			 (list (make-term-in-var-form var-or-avar))
+			 (let* ((avar-formula (avar-to-formula var-or-avar))
+				(uninst-avar-formula
+				 (avar-to-formula uninst-var-or-avar))
+				(final-concl
+				 (imp-impnc-all-allnc-form-to-final-conclusion
+				  avar-formula))
+				(uninst-final-concl
+				 (imp-impnc-all-allnc-form-to-final-conclusion
+				  uninst-avar-formula)))
+			   (if
+			    (and
+			     (predicate-form? uninst-final-concl)
+			     (let ((pred (predicate-form-to-predicate
+					  uninst-final-concl)))
+			       (and (idpredconst-form? pred)
+				    (member (idpredconst-to-name pred)
+					    mr-idpc-names)
+				    (not (eq? 'eps
+					      (cadr
+					       (assoc
+						(idpredconst-to-name pred)
+						rec-const-or-eps-alist)))))))
+					;two-element-list
+			    (let* ((pred (predicate-form-to-predicate
+					  final-concl))
+				   (mr-idpc-name (idpredconst-to-name pred))
+				   (rec-const
+				    (cadr (assoc mr-idpc-name
+						 rec-const-or-eps-alist)))
+				   (mr-idpc-args
+				    (predicate-form-to-args final-concl))
+				   (fully-applied-f-term (car mr-idpc-args))
+				   (ys-and-vs
+				    (map term-in-var-form-to-var
+					 (term-in-app-form-to-args
+					  fully-applied-f-term))))
+			      (list (make-proof-in-avar-form var-or-avar)
+				    (apply
+				     mk-term-in-abst-form
+				     (append
+				      ys-and-vs
+				      (list
+				       (apply mk-term-in-app-form
+					      (make-term-in-const-form
+					       rec-const)
+					      fully-applied-f-term
+					      real-terms))))))
+					;else one-element-list
+			    (list (make-proof-in-avar-form var-or-avar))))))
+		      vars-and-avars
+		      uninst-vars-and-avars))
+		    (extended-vars-and-avars
+		     (apply append one-or-two-element-lists)))
+	       (apply mk-proof-in-intro-form
+		      (append
+		       vars-and-avars
+		       (list (apply mk-proof-in-elim-form
+				    avar-proof
+				    extended-vars-and-avars))))))
+	   mr-clauses
+	   uninst-mr-clauses
+	   (map make-proof-in-avar-form avars))))
+    (apply mk-proof-in-intro-form
 	   (append
 	    (union prem-vars concl-vars)
 	    (list (car vars) mr-prem-avar) ;w avar:w mr I xs
@@ -3988,200 +3928,6 @@
 		    (cons (make-term-in-var-form (car vars)) ;w
 			  (cons (make-proof-in-avar-form mr-prem-avar)
 				mr-clause-proofs)))))))))
-
-;; In proof-to-allnc-impnc-proof we assume that we have a proof of
-;; allnc xs1(As1 --> allnc xs2(As2 --> ... allnc xsn(As n --> B)...))
-;; with xs2 not free in As1, ..., xsn not free in As1,...,As{n-1}.  We
-;; prove allnc xs1,xs2,...,xsn(As1 --> As2 --> ... As n --> B).
-
-(define (proof-to-allnc-impnc-proof proof)
-  (letrec ((formula-to-var-avar-list
-	    (lambda (formula)
-	      (case (tag formula)
-		((imp impnc)
-		 (let* ((prem (imp-impnc-form-to-premise formula))
-			(conc (imp-impnc-form-to-conclusion formula))
-			(avar (formula-to-new-avar prem)))
-		   (cons avar (formula-to-var-avar-list conc))))
-		((all allnc)
-		 (let ((var (all-allnc-form-to-var formula))
-		       (kernel (all-allnc-form-to-kernel formula)))
-		   (cons var (formula-to-var-avar-list kernel))))
-		(else '())))))
-    (let* ((var-avar-list (formula-to-var-avar-list (proof-to-formula proof)))
-	   (varterm-avarproof-list
-	    (map (lambda (x)
-		   (if (var-form? x)
-		       (make-term-in-var-form x)
-		       (make-proof-in-avar-form x)))
-		 var-avar-list))
-	   (elim-proof
-	    (apply mk-proof-in-elim-form
-		   proof
-		   varterm-avarproof-list))
-	   (var-list (list-transform-positive var-avar-list var-form?))
-	   (avar-list (list-transform-positive var-avar-list avar-form?)))
-      (apply mk-proof-in-nc-intro-form
-	     (append var-list avar-list (list elim-proof))))))
-
-;; In real-mr-clause-proof-and-clause-to-clause-proof we assume that we
-;; have a proof of (real mr clause) =: mr-formula.  The result is a
-;; proof of the clause form of mr-formula.  We need the original
-;; uninst-clause to determine how deep we need to go into mr-formula.
-
-(define (real-mr-clause-proof-and-clause-to-clause-proof proof uninst-clause)
-  (letrec
-      ((formula-and-depth-to-var-avar-list
-	(lambda (formula n)
-	  (if
-	   (zero? n) '()
-	   (case (tag formula)
-	     ((imp impnc)
-	      (let* ((prem (imp-impnc-form-to-premise formula))
-		     (conc (imp-impnc-form-to-conclusion formula))
-		     (avar (formula-to-new-avar prem)))
-		(cons avar (formula-and-depth-to-var-avar-list
-			    conc (- n 1)))))
-	     ((all allnc)
-	      (let ((var (all-allnc-form-to-var formula))
-		    (kernel (all-allnc-form-to-kernel formula)))
-		(cons var (formula-and-depth-to-var-avar-list
-			   kernel n))))
-	     (else '()))))))
-    (let* ((n (length (imp-impnc-form-to-premises
-		       (all-allnc-form-to-final-kernel uninst-clause))))
-	   (var-avar-list (formula-and-depth-to-var-avar-list
-			   (proof-to-formula proof) n))
-	   (varterm-avarproof-list
-	    (map (lambda (x)
-		   (if (var-form? x)
-		       (make-term-in-var-form x)
-		       (make-proof-in-avar-form x)))
-		 var-avar-list))
-	   (elim-proof
-	    (apply mk-proof-in-elim-form
-		   proof
-		   varterm-avarproof-list))
-	   (var-list (list-transform-positive var-avar-list var-form?))
-	   (avar-list (list-transform-positive var-avar-list avar-form?)))
-      (apply mk-proof-in-nc-intro-form
-	     (append var-list avar-list (list elim-proof))))))
-
-(define (allnc-impnc-to-exu-imp-proof
-	 opt-var-and-prem-list var1 prem1 vars concl)
-  (if (member var1 (formula-to-free concl))
-      (myerror "allnc-impnc-to-exu-imp-proof" "unexpected free variable" var1
-	       "in conclusion" concl))
-  (if
-   (null? opt-var-and-prem-list)
-   (let* ((exu-formula (make-exu var1 prem1))
-	  (imp-formula (make-imp exu-formula concl))
-	  (exu-elim-aconst (imp-formulas-to-elim-aconst imp-formula))
-	  (u-formula
-	   (apply mk-allnc var1 (append vars (list (make-impnc prem1 concl)))))
-	  (u (formula-to-new-avar u-formula))
-	  (v (formula-to-new-avar exu-formula)))
-     (mk-proof-in-intro-form
-      u (apply
-	 mk-proof-in-nc-intro-form
-	 (append
-	  vars (list (mk-proof-in-nc-intro-form
-		      v (apply
-			 mk-proof-in-elim-form
-			 (make-proof-in-aconst-form exu-elim-aconst)
-			 (append
-			  (map make-term-in-var-form
-			       (formula-to-free
-				(aconst-to-inst-formula exu-elim-aconst)))
-			  (list
-			   (make-proof-in-avar-form v)
-			   (mk-proof-in-nc-intro-form
-			    var1 (apply mk-proof-in-elim-form
-					(make-proof-in-avar-form u)
-					(make-term-in-var-form var1)
-					(map make-term-in-var-form
-					     vars))))))))))))
-   (let ((var-or-prem (car opt-var-and-prem-list)))
-     (if
-      (var-form? var-or-prem)
-      (let* ((x var-or-prem)
-	     (prem (if (null? (cdr opt-var-and-prem-list))
-		       (myerror "allnc-impnc-to-exu-imp-proof"
-				"list var - prem - rest expected"
-				opt-var-and-prem-list)
-		       (cadr opt-var-and-prem-list)))
-	     (rest (cddr opt-var-and-prem-list))
-	     (prev (allnc-impnc-to-exu-imp-proof rest var1 prem1 vars concl))
-	     (exu-formula (make-exu x prem))
-	     (prev-concl (imp-form-to-conclusion (proof-to-formula prev)))
-	     (prev-concl-kernel (allnc-form-to-final-kernel prev-concl))
-	     (imp-formula (make-imp exu-formula prev-concl-kernel))
-	     (exu-elim-aconst (imp-formulas-to-elim-aconst imp-formula))
-	     (prev-prem (imp-form-to-premise (proof-to-formula prev)))
-	     (xs-and-vars (allnc-form-to-vars prev-prem))
-	     (prev-prem-kernel (allnc-form-to-final-kernel prev-prem))
-	     (u-formula (apply
-			 mk-allnc
-			 x (append xs-and-vars
-				   (list (make-impnc prem prev-prem-kernel)))))
-	     (v-formula (make-exu x prem))
-	     (u (formula-to-new-avar u-formula))
-	     (v (formula-to-new-avar v-formula))
-	     (w (formula-to-new-avar prem)))
-	(mk-proof-in-intro-form
-	 u (apply
-	    mk-proof-in-nc-intro-form
-	    (append
-	     vars
-	     (list
-	      v (mk-proof-in-elim-form
-		 (make-proof-in-aconst-form exu-elim-aconst)
-		 (make-proof-in-avar-form v)
-		 (mk-proof-in-nc-intro-form
-		  x w (apply
-		       mk-proof-in-elim-form
-		       prev
-		       (apply
-			mk-proof-in-nc-intro-form
-			(append
-			 xs-and-vars
-			 (list (apply mk-proof-in-elim-form
-				      (make-proof-in-avar-form u)
-				      (make-term-in-var-form x)
-				      (append
-				       (map make-term-in-var-form
-					    xs-and-vars)
-				       (list (make-proof-in-avar-form w)))))))
-		       (map make-term-in-var-form vars)))))))))
-					;else no exu-elim needed
-      (let* ((rest (cdr opt-var-and-prem-list))
-	     (prev (allnc-impnc-to-exu-imp-proof rest var1 prem1 vars concl))
-	     (prev-prem (imp-form-to-premise (proof-to-formula prev)))
-	     (xs-and-vars (allnc-form-to-vars prev-prem))
-	     (prev-prem-kernel (allnc-form-to-final-kernel prev-prem))
-	     (impnc-formula (make-impnc var-or-prem prev-prem-kernel))
-	     (u (formula-to-new-avar
-		 (apply mk-allnc (append xs-and-vars (list impnc-formula)))))
-	     (v (formula-to-new-avar var-or-prem)))
-	(mk-proof-in-intro-form
-	 u (apply
-	    mk-proof-in-nc-intro-form
-	    (append
-	     vars (list v (apply
-			   mk-proof-in-elim-form
-			   prev
-			   (apply
-			    mk-proof-in-nc-intro-form
-			    (append
-			     xs-and-vars
-			     (list (apply mk-proof-in-elim-form
-					  (make-proof-in-avar-form u)
-					  (append
-					   (map make-term-in-var-form
-						xs-and-vars)
-					   (list (make-proof-in-avar-form
-						  v)))))))
-			   (map make-term-in-var-form vars)))))))))))
 
 (define (exl-formula-to-exl-intro-mr-proof exl-formula)
   (let* ((free (formula-to-free exl-formula))
