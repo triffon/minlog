@@ -26,7 +26,7 @@
  "DecrAux(j::B)k i n" "[if (n=k) ((j--i)::B) (j::(DecrAux B k i(n+1)))]")
 
 ;; DecrAuxTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "DecrAux"))))
+(set-totality-goal "DecrAux")
 (use "AllTotalElim")
 (ind)
 ;; Base
@@ -52,14 +52,14 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "DecrAuxTotal")
+(save-totality)
 
 (add-program-constant "Decr" (py "list nat=>nat=>nat=>list nat"))
 (add-computation-rules
  "Decr B k i" "DecrAux B k i 0")
 
 ;; DecrTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Decr"))))
+(set-totality-goal "Decr")
 (use "AllTotalElim")
 (assume "B")
 (use "AllTotalElim")
@@ -68,7 +68,7 @@
 (assume "i")
 (use "ListTotalVar")
 ;; Proof finished.
-(save "DecrTotal")
+(save-totality)
 
 ;; (pp (nt (pt "Decr(j1::j2:)1 i")))
 ;; j1::(j2--i):
@@ -81,7 +81,7 @@
  "Legal(k::A)(i::X)B" "k<Lh B andb i<=(k thof B)andb Legal A X(Decr B k i)")
 
 ;; LegalTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Legal"))))
+(set-totality-goal "Legal")
 (use "AllTotalElim")
 (ind)
 ;; Base
@@ -112,164 +112,7 @@
 (use "ListTotalVar")
 (use "ListTotalVar")
 ;; Proof finished.
-(save "LegalTotal")
-
-
-
-;; ;; To be added to lib/list.scm
-
-;; (add-program-constant "ListTail" (py "list alpha=>list alpha") t-deg-zero)
-
-;; (add-token
-;;  "Tail" 'prefix-op 
-;;  (lambda (x) (make-term-in-app-form
-;; 	      (make-term-in-const-form
-;; 	       (let* ((const (pconst-name-to-pconst "ListTail"))
-;; 		      (tvars (const-to-tvars const))
-;; 		      (listtype (term-to-type x))
-;; 		      (type (car (alg-form-to-types listtype)))
-;; 		      (subst (make-substitution tvars (list type))))
-;; 		 (const-substitute const subst #f)))
-;; 	      x)))
-
-;; (add-display
-;;  (py "list alpha")
-;;  (lambda (x)
-;;    (if (term-in-app-form? x)
-;;        (let ((op (term-in-app-form-to-op x)))
-;; 	 (if (and (term-in-const-form? op)
-;; 		  (string=? "ListTail"
-;; 			    (const-to-name (term-in-const-form-to-const op))))
-;; 	     (list 'prefix-op "Tail"
-;; 		   (term-to-token-tree (term-in-app-form-to-arg x)))
-;; 	     #f))
-;;        #f)))
-
-;; (add-var-name "x" (py "alpha"))
-;; (add-var-name "xs" (py "list alpha"))
-
-;; (pp (pt "(Inhab(list alpha))"))
-
-;; (add-computation-rule (pt "Tail(Nil alpha)") (pt "(Inhab list alpha)"))
-;; (add-computation-rule (pt "Tail(x::xs)") (pt "xs"))
-
-
-;; ;; "ListTailTotal"
-;; (set-goal (pf "Total(ListTail alpha)"))
-;; (use "Total")
-;; (use-with "All-AllPartial" (py "list alpha")
-;; 	  (make-cterm (pv "xs^") (pf "Total((ListTail alpha)xs^)"))
-;; 	  "?")
-;; (cases)
-;; (use "InhabTotal")
-;; (ng)
-;; (assume "x" "xs")
-;; (use-with
-;;  "AllPartial-All" (py "list alpha") (make-cterm (pv "xs^") (pf "Total xs^"))
-;;  "?" (pt "xs"))
-;; (assume "xs^" "H1")
-;; (use "H1")
-;; ;; Proof finished.
-;; (save "ListTailTotal")
-
-;; ;; End of addition to lib/list.scm
-
-;; ;; To be added to lib/nat.scm
-
-;; (set-goal "all nat 0--nat=0")
-;; (ind)
-;;   (use "Truth-Axiom")
-;; (assume "nat" "IH")
-;; (ng)
-;; (simp "IH")
-;; (use "Truth-Axiom")
-;; ;; Proof finished.
-;; (add-rewrite-rule "0--nat" "0")
-
-;; (set-goal "all nat Pred nat<=nat")
-;; (cases)
-;; (use "Truth-Axiom")
-;; (assume "nat")
-;; (use "Truth-Axiom")
-;; ;; Proof finished.
-;; (add-rewrite-rule "Pred nat<=nat" "True")
-
-;; ;; "NatSuccPredCases"
-;; (set-goal
-;;  (pf "all nat((nat=0 -> Pvar) -> (nat=Succ(Pred nat) -> Pvar) -> Pvar)"))
-;; (cases)
-;; (assume "H1" "H2")
-;; (use "H1")
-;; (use "Truth-Axiom")
-;; (assume "nat" "H1" "H2")
-;; (use "H2")
-;; (use "Truth-Axiom")
-;; ;; Proof finished.
-;; (save "NatSuccPredCases")
-
-;; ;; "NatLtPredMinus"
-;; (set-goal (pf "all nat1,nat2(0<nat1--nat2 -> Pred(nat1--nat2)<nat1)"))
-;; (ind)
-;; (assume "nat2" "Absurd")
-;; (use "Absurd")
-;; (assume "nat1" "IH1")
-;; (cases)
-;; (assume "Trivial")
-;; (use "Truth-Axiom")
-;; (ng)
-;; (assume "nat2" "H1")
-;; (use "NatLtTrans" (pt "nat1"))
-;; (use "IH1")
-;; (use "H1")
-;; (use "Truth-Axiom")
-;; ;; Proof finished.
-;; (save "NatLtPredMinus")
-
-;; ;; "NatNegLeToLt"
-;; (set-goal (pf "all nat1,nat2((nat2<=nat1 -> F) -> nat1<nat2)"))
-;; (ind)
-;; (cases)
-;; (assume "Absurd")
-;; (use "Absurd")
-;; (use "Truth-Axiom")
-;; (assume "nat2" "Trivial")
-;; (use "Truth-Axiom")
-;; (assume "nat1" "IH")
-;; (cases)
-;; (assume "Absurd")
-;; (use "Absurd")
-;; (use "Truth-Axiom")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save "NatNegLeToLt")
-
-;; (set-goal (pf "all nat 0--nat=0"))
-;; (ind)
-;; (use "Truth-Axiom")
-;; (assume "nat" "IH")
-;; (ng)
-;; (simp "IH")
-;; (use "Truth-Axiom")
-;; ;; Proof finished.
-;; (add-rewrite-rule "0--nat" "0")
-
-
-;; (set-goal (pf "all nat1,nat2 nat1--nat2<=nat1"))
-;; (ind)
-;; (assume "nat2")
-;; (use "Truth-Axiom")
-;; (assume "nat1" "IH")
-;; (cases)
-;; (use "Truth-Axiom")
-;; (ng)
-;; (assume "nat2")
-;; (use "NatLeTrans" (pt "nat1"))
-;; (use "IH")
-;; (use "Truth-Axiom")
-;; ;; Proof finished.
-;; (add-rewrite-rule "nat1--nat2<=nat1" "True")
-
-;; ;; End of addition to lib/nat.scm
+(save-totality)
 
 ;; "LegalLength"
 (set-goal "all A,X,B(Legal A X B -> Lh A=Lh X)")
@@ -751,7 +594,7 @@
 ;; (proof-to-expr n-i1i2jj)
 ;; 55 pages
 
-(time (tag (remove-predecided-if-theorems n-i1i2jj)))
+;; (time (tag (remove-predecided-if-theorems n-i1i2jj)))
 ;; 1.4 s
 (define rem-n-i1i2jj (remove-predecided-if-theorems n-i1i2jj))
 ;; (proof-to-expr rem-n-i1i2jj)
