@@ -1425,7 +1425,25 @@
 		   ((null? l) (cons idpc-pvar (reverse res)))))
 	     idpc-pvars))
        (clauses-list (map cdr idpc-pvars-with-clauses))
-       (init-clauses (map car clauses-list)))
+       (init-clauses (map car clauses-list))
+       ;; (test-for-inhabitedness
+       ;; 	 (for-each
+       ;; 	  (lambda (init-clause)
+       ;; 	   (if (pair? (intersection ;pvars in prems of present init-clause
+       ;; 		       (apply union (map formula-to-pvars
+       ;; 					 (imp-impnc-all-allnc-form-to-premises
+       ;; 					  init-clause)))
+       ;; 					;present and later idpc-pvars
+       ;; 		       (member (predicate-form-to-predicate
+       ;; 				(imp-impnc-all-allnc-form-to-final-conclusion
+       ;; 				 init-clause))
+       ;; 			       idpc-pvars)))
+       ;; 	       (begin
+       ;; 		 (set! COMMENT-FLAG OLD-COMMENT-FLAG)
+       ;; 		 (myerror "add-ids" "nullary initial clause expected"
+       ;; 			  init-clause))))
+       ;; 	  init-clauses))
+       )
 					;remove pvars that were temporarily
 					;added to parse the clause-strings
     (apply remove-pvar-name idpc-names)
