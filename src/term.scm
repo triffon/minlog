@@ -1147,8 +1147,8 @@
 
 (define (term-to-extraction-info t)
 
-  ;; term-to-consts-info returns a list of triples (k c t s) where c
-  ;; is a constant of kind k (pconst or fixed-rule) which occurs in
+  ;; term-to-consts-info returns a list of quadruples (k c t s) where
+  ;; c is a constant of kind k (pconst or fixed-rule) which occurs in
   ;; term, and c is associated with the algebra t, simultaneously with
   ;; the algebras in the list s.
   (define (term-to-consts-info term)
@@ -1169,17 +1169,27 @@
 			    (rec-const-to-uninst-arrow-types const))))
 	    (append (map (lambda (x) (list kind name x algs)) algs) prevs)))
          ((string=? name "CoRec")
-          (let* (
-		 (uninst-alg-or-arrow-types 
+          (let* ((uninst-alg-or-arrow-types 
                   (corec-const-to-uninst-alg-or-arrow-types const))
 		 (algs 
                   (map arrow-form-to-final-val-type uninst-alg-or-arrow-types))
-		 (rel-algs (map arrow-form-to-final-val-type 
-				(list-transform-positive uninst-alg-or-arrow-types
-				  arrow-form?))))
-	    ;; (filter arrow-form? uninst-alg-or-arrow-types))))
-            (append (map (lambda (x) (list kind name x rel-algs)) algs) prevs)))
-         ((string=? name "Destr")
+		 (rel-algs
+		  (map arrow-form-to-final-val-type 
+		       (list-transform-positive uninst-alg-or-arrow-types
+			 arrow-form?)))
+		 (rel-alg-names (map alg-form-to-name rel-algs))
+		 (alg-name (car rel-alg-names))
+		 (simalg-names (alg-name-to-simalg-names alg-name))
+		 (ordered-rel-algs
+		  (map (lambda (name)
+			 (list-ref rel-algs
+				   (- (length rel-alg-names)
+				      (length (member name rel-alg-names)))))
+		       (list-transform-positive simalg-names
+			 (lambda (name) (member name rel-alg-names))))))
+	    (append (map (lambda (x) (list kind name x ordered-rel-algs)) algs)
+		    prevs)))
+	 ((string=? name "Destr")
           (let* ((alg (destr-const-to-alg const)))
             (cons (list kind name alg '()) prevs)))
          ((string=? name "GRecGuard")
@@ -3224,6 +3234,34 @@ intDestr n | n > 0  = Left n
   (apply terms-to-haskell-program filename
 	 (list (list term function-name))
 	 opt-module-name))
+
+(define (terms-to-haskell-program-with-lemmas 
+	 filename terms-and-function-names . opt-module-name)
+
+  (define (animate-missing-pconsts terms) 
+    ;; Takes list of terms and tries to animate all present pconsts without 
+    ;; computation rules recursively. Returns list of newly animated pconsts 
+    (let* ((info (map term-to-extraction-info terms))
+	   (pconsts-info (apply union (map car info)))
+	   (relevant-pconsts (set-minus pconsts-info BUILTIN-HASKELL-PCONSTS))
+	   (missing-pconsts
+	    (filter (lambda (x) 
+		      (null? (pconst-name-to-comprules x))) relevant-pconsts)))
+      (if (null? missing-pconsts)
+	  '()
+	  (begin
+	    (map (lambda (x) (animate (substring x 1 (string-length x)))) 
+		 missing-pconsts)
+	    (append missing-pconsts (animate-missing-pconsts terms))))) )
+
+  (let* ((terms (map car terms-and-function-names))
+	 (animated-pconsts (animate-missing-pconsts terms)))
+    (begin (apply terms-to-haskell-program
+		  (cons filename 
+			(cons terms-and-function-names opt-module-name)))
+	   (map (lambda (x) (deanimate (substring x 1 (string-length x)))) 
+		animated-pconsts)
+	   *the-non-printing-object*)))
 
 (define (modulo-safe x y)
   (if (= y 0)
