@@ -110,6 +110,196 @@
 ;; Naming conventions.  Suffix MR of theorem name indicates a clause name.
 ;; They are created by add-mr-ids.
 
+;; Test of imp-formulas-to-mr-elim-proof
+
+;; (add-algs "bin"
+;; 	  '("bin" "BinNil")
+;; 	  '("bin=>bin=>bin" "BinBranch"))
+
+(add-var-name "a" "b" (py "bin"))
+(add-totality "bin")
+(add-mr-ids "TotalBin")
+
+(display-idpc "TotalBin")
+ ;; 	TotalBinBinNil:	TotalBin BinNil
+ ;; 	TotalBinBinBranch:	allnc a^(
+ ;; TotalBin a^ -> allnc a^0(TotalBin a^0 -> TotalBin(BinBranch a^ a^0)))
+
+(display-idpc "TotalBinMR")
+ ;; 	TotalBinBinNilMR:	TotalBinMR BinNil BinNil
+ ;; 	TotalBinBinBranchMR:	allnc a^,a^0(
+ ;; TotalBinMR a^0 a^ -> 
+ ;; allnc a^1,a^2(
+ ;;  TotalBinMR a^2 a^1 -> TotalBinMR(BinBranch a^0 a^2)(BinBranch a^ a^1)))
+
+(add-pvar-name "P" (make-arity (py "bin")))
+
+(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P a^")))
+;; (cdp proof)
+
+(remove-pvar-name "P")
+
+;; Tests for more general situations.
+;; 1.  Parameter in the conclusion of imp-formula
+
+(add-pvar-name "P" (make-arity (py "nat") (py "bin")))
+
+(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P k^ a^")))
+;; (cdp proof)
+
+(remove-pvar-name "P")
+
+;; 2.  Inductive predicate with param-pvar substituted by cterm with param
+;; Take RTotalList
+
+(add-mr-ids "RTotalList")
+
+(add-pvar-name "S" (make-arity (py "nat") (py "alpha")))
+(add-pvar-name "P" (make-arity (py "nat") (py "list alpha")))
+
+(define proof (imp-formulas-to-mr-elim-proof
+	       (pf "(RTotalList (cterm (x^) S n^ x^))xs^ -> P k^ xs^")))
+;; (cdp proof)
+
+(remove-pvar-name "S" "P")
+
+;; 3.  idpc with tvar alpha, and tsubst alpha |-> nat
+
+(add-pvar-name "S" (make-arity (py "nat")))
+(add-pvar-name "P" (make-arity (py "list nat")))
+(add-var-name "ns" (py "list nat"))
+
+(define proof (imp-formulas-to-mr-elim-proof
+	       (pf "(RTotalList (cterm (n^) S n^))ns^ -> P ns^")))
+;; (cdp proof)
+
+(remove-pvar-name "S" "P")
+
+;; 4.  Same with parameters
+
+(add-pvar-name "S" (make-arity (py "boole") (py "nat")))
+(add-pvar-name "P" (make-arity (py "boole") (py "list nat")))
+
+(define proof
+  (imp-formulas-to-mr-elim-proof
+   (pf "(RTotalList (cterm (n^) S boole^1 n^))ns^ -> P boole^2 ns^")))
+;; (cdp proof)
+
+(remove-pvar-name "S" "P")
+
+;; 5.  Non-computational predicate
+
+(add-pvar-name "P" (make-arity (py "bin")))
+
+(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P^ a^")))
+;; (cdp proof)
+
+(remove-pvar-name "P")
+
+;; 6.  Simultaneous predicates
+
+;; (add-ids (list (list "Ev" (make-arity (py "nat")) "algEv")
+;; 	       (list "Od" (make-arity (py "nat")) "algOd"))
+;; 	 '("Ev 0" "InitEv")
+;; 	 '("allnc n^(Od n^ -> Ev(n^ +1))" "GenEv")
+;; 	 '("allnc n^(Ev n^ -> Od(n^ +1))" "GenOd"))
+
+(add-pvar-name "P" (make-arity (py "nat")))
+(add-mr-ids "Ev")
+
+(define proof
+  (imp-formulas-to-mr-elim-proof (pf "Od n^ -> P n^") (pf "Ev n^ -> P1 n^")))
+;; (cdp proof)
+
+(remove-pvar-name "P")
+
+;; (add-algs (list "tlist" "tree")
+;; 	  '("tlist" "Empty")
+;; 	  '("tree=>tlist=>tlist" "Tcons")
+;; 	  '("tree" "Leaf")
+;; 	  '("tlist=>tree" "Branch"))
+
+(add-totality "tlist")
+(add-mr-ids "TotalTree")
+
+(add-pvar-name "S" (make-arity (py "tlist")))
+(add-pvar-name "P" (make-arity (py "tree")))
+
+(add-var-name "l" (py "tlist"))
+(add-var-name "t" (py "tree"))
+
+(define proof (imp-formulas-to-mr-elim-proof
+	       (pf "TotalTree t^ -> P t^") (pf "TotalTlist l^ -> S l^")))
+;; (cdp proof)
+
+(remove-pvar-name "S" "P")
+(remove-var-name "t" "l")
+
+;; Test of proof-to-soundness-proof
+
+(add-alg "pos" '("One" "pos") '("SZero" "pos=>pos") '("SOne" "pos=>pos"))
+(add-totality "pos")
+(add-mr-ids "TotalPos")
+
+;; PosTotalVar
+(set-goal "all pos TotalPos pos")
+(ind)
+(use "TotalPosOne")
+(assume "pos" "Tpos")
+(use "TotalPosSZero")
+(use "Tpos")
+(assume "pos" "Tpos")
+(use "TotalPosSOne")
+(use "Tpos")
+;; Proof finished.
+(save "PosTotalVar")
+
+(add-var-name "q" (py "pos"))
+
+(add-pvar-name "P" (make-arity (py "pos")))
+
+(define proof (imp-formulas-to-mr-elim-proof (pf "TotalPos q^ -> P q^")))
+(cdp proof)
+
+(add-program-constant "PosS" (py "pos=>pos") t-deg-zero)
+(add-computation-rules
+ "PosS One" "SZero One"
+ "PosS(SZero pos)" "SOne pos"
+ "PosS(SOne pos)" "SZero(PosS pos)")
+
+;; PosSTotal
+(set-totality-goal "PosS")
+(assume "q^" "Tq")
+(elim "Tq")
+;; ?_3:TotalPos(PosS One)
+(ng #t)
+(use "TotalPosSZero")
+(use "TotalPosOne")
+;; ?_4:allnc pos^(
+;;      TotalPos pos^ -> TotalPos(PosS pos^) -> TotalPos(PosS(SZero pos^)))
+(assume "q^1" "Tq1" "TSq1")
+(ng #t)
+(use "TotalPosSOne")
+(use "Tq1")
+;; ?_5:allnc pos^(
+;;      TotalPos pos^ -> TotalPos(PosS pos^) -> TotalPos(PosS(SOne pos^)))
+(assume "q^1" "Tq1" "TSq1")
+(ng #t)
+(use "TotalPosSZero")
+(use "TSq1")
+;; Proof finished.
+(save "PosSTotal")
+
+(define sproof (proof-to-soundness-proof "PosSTotal"))
+;; (cdp sproof)
+
+(define proof
+  (imp-formulas-to-mr-elim-proof (pf "TotalPos q^ -> TotalPos(PosS q^)")))
+;; (cdp proof)
+
+(remove-var-name "q")
+(remove-pvar-name "P")
+
 ;; 2012-11-09.  End of file testsound.scm
 
 ;; 2012-11-09.  To be moved into a new file testetsd.scm
