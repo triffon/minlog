@@ -1,5 +1,16 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done 2015-10-12
+
+In examples/test/ets.scm
+
+Tests for imp-formulas-to-mr-elim-proof and proof-to-soundness-proof added
+
+In examples/analysis/gray.hs
+
+Updated (3 Okt 2015)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-09-28
 
 In examples/analysis/gray.scm
