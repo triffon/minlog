@@ -2540,13 +2540,11 @@ The corresponding free algebra on the program side will be that
 of binary trees, which we introduce first.
 \begin{verbatim}
 (add-algs "bin"
-        '("bin" "O")
-        '("bin=>bin=>bin" "BinBranch"))
-
-(add-infix-display-string "BinBranch" "B" 'pair-op)
+	  '("bin" "I")
+	  '("bin=>bin=>bin" "C"))
 \end{verbatim}
-Hence \verb|B| is right associative.  Since we will work with lists
-of parentheses, we need the library file \verb|list.scm|.
+Since we will work with lists of parentheses, we need the library file
+\verb|list.scm|.
 \begin{verbatim}
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
@@ -2555,9 +2553,6 @@ of parentheses, we need the library file \verb|list.scm|.
 
 (add-algs "par" '("L" "par") '("R" "par"))
 (add-totality "par")
-
-(add-var-name "p" (py "boole"))
-(add-var-name "x" "y" "z" (py "list par"))
 \end{verbatim}
 As a preparatory step we first have to prove that ordinary equality $=$
 (a boolean valued function) implies Leibniz equality, for the two types
@@ -2582,6 +2577,8 @@ As a preparatory step we first have to prove that ordinary equality $=$
 (use "InitEqD")
 ;; Proof finished.
 (save "ParEqToEqD")
+
+(add-var-name "x" "y" "z" (py "list par"))
 
 ;; ListParEqToEqD
 (set-goal "all x1,x2(x1=x2 -> x1 eqd x2)")
@@ -2654,8 +2651,10 @@ by $U$.
    "GenRP"))
 \end{verbatim}
 The algebra associated with this definition of \verb|RP| is lists of
-parentheses.  $\mathrm{LP}$ can be defined via a boolean valued
-function with defining equations
+parentheses.
+
+$\mathrm{LP}$ can be defined via a boolean valued function with
+defining equations
 \begin{align*}
   \mathrm{LP}(0,\nil) &= \true
   \\
@@ -2681,12 +2680,9 @@ In Minlog this reads
 As mentioned above, it is advisable to prove totality of a program
 constant immediately after its definition.
 \begin{verbatim}
-;; LPTotal
-(set-goal (rename-variables
-           (term-to-totality-formula (pt "LP"))))
+(set-totality-goal "LP")
 (assert
- "allnc x^(TotalList x^ ->
-  allnc n^(TotalNat n^ -> TotalBoole(LP n^ x^)))")
+ "allnc x^(TotalList x^ -> allnc n^(TotalNat n^ -> TotalBoole(LP n^ x^)))")
  (assume "x^" "Tx")
  (elim "Tx")
  (assume "n^" "Tn")
@@ -2713,7 +2709,7 @@ constant immediately after its definition.
 (use "Tx")
 (use "Tn")
 ;; Proof finished.
-(save "LPTotal")
+(save-totality)
 \end{verbatim}
 Then clearly the following closure property of $U$ holds
 \begin{equation*}
@@ -2794,13 +2790,15 @@ Conversely one can easily prove $U(y) \to \mathrm{LP}(0,y)$ by
 induction on $U$.  One needs a property of \verb|LP| first
 \begin{verbatim}
 ;; LPProp
-(set-goal
- "all x,y,n,m(LP n x -> LP m y -> LP(n+m)(x++y))")
+(set-goal "all x,y,n,m(LP n x -> LP m y -> LP(n+m)(x++y))")
 (ind)
+;; 2,3
 (ind)
+;; 4,5
 (cases)
 (cases)
 (auto)
+;; 5
 (ng)
 (cases)
 (assume "y" "IHy")
@@ -2814,13 +2812,12 @@ induction on $U$.  One needs a property of \verb|LP| first
 (use "Absurd")
 (ng)
 (use "IHy")
-
+;; 3
 (cases)
 (assume "x" "IHx")
 (ng)
 (assume "y" "n" "m" "Hyp1" "Hyp2")
-(use-with
- "IHx" (pt "y") (pt "Succ n") (pt "m") "Hyp1" "Hyp2")
+(use-with "IHx" (pt "y") (pt "Succ n") (pt "m") "Hyp1" "Hyp2")
 (assume "x" "IHx" "y")
 (cases)
 (assume "m" "Absurd" "Hyp1")
@@ -2833,19 +2830,17 @@ induction on $U$.  One needs a property of \verb|LP| first
 Using \verb|LPProp| one can prove
 \begin{verbatim}
 ;; Soundness
-(set-goal "allnc y(U y -> LP 0 y)")
+(set-goal "all y(U y -> LP 0 y)")
 (assume "z" "IdHyp")
 (elim "IdHyp")
 (use "Truth")
-(assume "x" "y" "U x" "LP 0 x" "U y" "LP 0 y")
+(assume "x" "y" "Ux" "LP 0 x" "Uy" "LP 0 y")
 (simp "<-" "ListAppdAssoc")
-(use-with
- "LPProp" (pt "x") (pt "L::y++R:") (pt "0") (pt "0")
- "LP 0 x" "?")
+(use-with "LPProp" (pt "x") (pt "L::y++R:") (pt "0") (pt "0")
+	  "LP 0 x" "?")
 (ng #t)
-(use-with
- "LPProp" (pt "y") (pt "R:") (pt "0") (pt "1")
- "LP 0 y" "Truth")
+(use-with "LPProp" (pt "y") (pt "R:") (pt "0") (pt "1")
+	  "LP 0 y" "Truth")
 ;; Proof finished.
 (save "Soundness")
 \end{verbatim}
@@ -2871,18 +2866,20 @@ of
                  ((p \to \falsityF) \to U(y) \to \falsityF))
 \end{equation*}
 \begin{verbatim}
-;; ParseLemma
+(add-var-name "p" (py "boole"))
+
+;; Parse
 (set-goal "all y ex p((p -> U y) & ((p -> F) -> U y -> F))")
 (assume "y")
-(ex-intro (pt "LP 0 y"))
+(ex-intro "LP 0 y")
 (split)
 (use "Completeness")
-(assume "LP 0 y -> F" "U y")
+(assume "LP 0 y -> F" "Uy")
 (use "LP 0 y -> F")
 (use "Soundness")
-(use "U y")
+(use "Uy")
 ;; Proof finished.
-(save "ParseLemma")
+(save "Parse")
 \end{verbatim}
 The computational content of this proof is a parser for $U$.  Given
 $y$ it returns a boolean saying whether or not $y$ is in $U$, and if
@@ -2903,66 +2900,63 @@ are animated.
 (add-var-name "f" (py "list bin=>bin=>bin"))
 
 (define eterm
- (proof-to-extracted-term
-  (theorem-name-to-proof "ParseLemma")))
-(define parser-term (rename-variables (nt eterm)))
-(ppc parser-term)
+ (proof-to-extracted-term (theorem-name-to-proof "Parse")))
+(define neterm-Parse (rename-variables (nt eterm)))
+(ppc neterm-Parse)
 \end{verbatim}
 Here is the term extracted from the proof above.
 \begin{verbatim}
-[x] LP 0 x@
+[x]LP 0 x@
  (Rec list par=>list bin=>bin=>bin)x
- ([as,a][case as ((Nil bin) -> a) 
-                  (a0::as0 -> O)])
+ ([as,a][case as (Nil -> a) (a0::as0 -> I)])
  ([par,x0,f,as,a]
    [case par
-     (L -> f(a::as)O)
-     (R -> [case as ((Nil bin) -> O) 
-                     (a0::as0 -> f as0(a0 B a))])])
- (Nil bin)
- O
+     (L -> f(a::as)I)
+     (R -> [case as (Nil -> I) (a0::as0 -> f as0(C a0 a))])])
+ Nil 
+ I
 \end{verbatim}
 Since this term involves the recursion operator it is not easy to
 read.  To grasp its meaning we rewrite it.  It amounts to applying a
-function $g$ to $x$, $\nil$ and $O$, where
+function $g$ to $x$, $\nil$ and $I$, where
 \begin{alignat*}{2}
   &g(\nil,\as,a) &&=
   \begin{cases}
     a &\hbox{if $\as = \nil$}
     \\
-    O &\hbox{else}
+    I &\hbox{else}
   \end{cases}
   \\
-  &g(L::x,\as,a) &&=g(x,a::\as,O)
+  &g(L::x,\as,a) &&=g(x,a::\as,I)
   \\
   &g(R::x,\as,a) &&=
   \begin{cases}
-    O &\hbox{if $\as = \nil$}
+    I &\hbox{if $\as = \nil$}
     \\
-    g(x,\as_0,a_0\;B\;a) &\hbox{if $\as=a_0::\as_0$}
+    g(x,\as_0,C(a_0,a)) &\hbox{if $\as=a_0::\as_0$}
   \end{cases}
 \end{alignat*}
 In $g(x,\as,a)$ the first argument $x$ is a list of parentheses $L,R$
 to be parsed.  The second argument $\as$ is a stack of parse trees,
 and the third $a$ is the working memory of the parser which stores the
 parse tree being generated.  Initially $g$ is called with $x$, the
-empty stack $\nil$ and the empty parse tree $O$.
+empty stack $\nil$ and the empty parse tree $I$.
 
 Recall the grammar $U$.  We read $x$ from left to right.  When an $L$
 occurs, the current parse tree $a$ (corresponding to $E_0$ in $E_0 L
 E_1 R$) is pushed onto the stack, and then $g$ starts generating a
-parse tree for $E_1$, with the empty parse tree $O$ in its working
+parse tree for $E_1$, with the empty parse tree $I$ in its working
 memory.  Now suppose $R$ occurs in $x$.  If the stack is $\nil$,
-return the empty parse tree $O$.  If not, pop the top element $a_0$
+return the empty parse tree $I$.  If not, pop the top element $a_0$
 from the stack.  Then $g$ starts generating a parse tree from the rest
-of $x$, the tail $\as_0$ of the stack, and as current parse tree $a_0
-\; B \; a$ in its working memory.
+of $x$, the tail $\as_0$ of the stack, and as current parse tree
+$C(a_0, a)$ in its working memory.
 
 If the input $x$ is empty, in case the stack $\as$ is empty as well
 the current parse tree $a$ is returned, and otherwise the empty parse
-tree $O$.
+tree $I$.
 
-To test our extracted \verb|parser-term| we use some simple Scheme
+To test our extracted \verb|neterm-Parse| we use some simple Scheme
 functions.  \verb|(generate-seq n)| generates a list of $2^n$ infinite
 sequences starting with all possible variations of $n$ digits and
 continuing with $0$.
@@ -3005,7 +2999,7 @@ We also use
                    (not (zero? (car (last-pair l)))))))))
     (map blist-to-lpar-term reduced-01lists)))
 \end{verbatim}
-Now we can test \texttt{parser-term} on all lpar-terms of length $l$. 
+Now we can test \texttt{neterm-Parse} on all lpar-terms of length $l$. 
 \begin{verbatim}
 (define (test-parser-term parser-term . l)
   (let ((len (if (null? l) 4 (car l))))
@@ -3033,21 +3027,21 @@ Now we can test \texttt{parser-term} on all lpar-terms of length $l$.
 \end{verbatim}
 We obtain for $l=6$
 \begin{verbatim}
-(test-parser-term parser-term 6)
+(test-parser-term neterm-Parse 6)
 \end{verbatim}
 The result is
 \begin{verbatim}
 Testing on L::R::R::R::R::R: No
 Testing on L::L::R::R::R::R: No
 Testing on L::R::L::R::R::R: No
-Testing on L::L::L::R::R::R: Parse tree: O B O B O B O
+Testing on L::L::L::R::R::R: Parse tree: C I(C I(C I I))
 Testing on L::R::R::L::R::R: No
-Testing on L::L::R::L::R::R: Parse tree: O B(O B O)B O
-Testing on L::R::L::L::R::R: Parse tree: (O B O)B O B O
+Testing on L::L::R::L::R::R: Parse tree: C I(C(C I I)I)
+Testing on L::R::L::L::R::R: Parse tree: C(C I I)(C I I)
 Testing on L::L::L::L::R::R: No
 Testing on L::R::R::R::L::R: No
-Testing on L::L::R::R::L::R: Parse tree: (O B O B O)B O
-Testing on L::R::L::R::L::R: Parse tree: ((O B O)B O)B O
+Testing on L::L::R::R::L::R: Parse tree: C(C I(C I I))I
+Testing on L::R::L::R::L::R: Parse tree: C(C(C I I)I)I
 Testing on L::L::L::R::L::R: No
 Testing on L::R::R::L::L::R: No
 Testing on L::L::R::L::L::R: No
