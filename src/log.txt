@@ -1,5 +1,17 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done 2015-10-21
+
+In examples/parsing/parens.scm
+
+Minor editorial improvements.  Constructors of bin renamed to I, C
+from O, BinBranch.  add-infix-display-string removed for C.
+
+In examples/doc/tutor.tex
+
+Editorial improvements in parens.scm integrated.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-10-12
 
 In examples/test/ets.scm
