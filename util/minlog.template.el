@@ -32,10 +32,27 @@
 	 (setq scheme "guile -l"))
 	(t (error "Neither petite nor mzscheme nor guile installed ")))
 
-  ;; setup the frame
+  ;; is there a heap file ?
+  (if (and (file-readable-p (concat minlogpath "/minlog.heap"))
+	   (or (string= scheme "petite")
+	       (string= scheme "/usr/bin/petite")))
+      (setq heapload
+	    (concat "-h " minlogpath "/minlog.heap "
+		    minlogpath "/welcome.scm"))
+    (setq heapload (concat minlogpath "/init.scm")))
+
   (setq inhibit-startup-message t)
   (delete-other-frames)
   (delete-other-windows)
+  ;; setup the frames
+  (case window-system
+    (x (setup-minlog-frames filename))
+    (otherwise (setup-minlog-frame-nox filename)))
+
+  ;; start scheme
+  (run-scheme (concat scheme " " heapload)))
+
+(defun setup-minlog-frames (&optional filename)
   (let* ((orig-frame (selected-frame))
 	 (left-frame (make-frame))
 	 (right-frame (make-frame))
@@ -45,24 +62,17 @@
 		 left-frame-lt 0))
 	 (ht (/ (x-display-pixel-height) (frame-char-height)))
 	 (border (frame-parameter left-frame 'border-width)))
-    ;; is there a heap file ?
-    (if (and (file-readable-p (concat minlogpath "/minlog.heap"))
-	   (or (string= scheme "petite")
-	       (string= scheme "/usr/bin/petite")))
-	(setq heapload
-	      (concat "-h " minlogpath "/minlog.heap "
-		      minlogpath "/welcome.scm"))
-      (setq heapload (concat minlogpath "/init.scm")))
-
+    (delete-frame orig-frame)
     (set-frame-size left-frame 80 ht)
     (set-frame-size right-frame 80 ht)
     (set-frame-position left-frame lt 0)
     (set-frame-position right-frame (+ lt wh (* 2 border)) 0)
-    (delete-frame orig-frame)
+    (if filename
+	(progn (select-frame-set-input-focus left-frame)
+	       (find-file filename)))
+    (select-frame-set-input-focus right-frame)))
 
-    ;; start scheme
-    (run-scheme (concat scheme " " heapload))
-
-    ;; open file
-    (select-frame-set-input-focus right-frame)
-    (if filename (find-file filename))))
+(defun setup-minlog-frame-nox (&optional filename)
+  (split-window)
+  (if filename (find-file filename))
+  (other-window 1))
