@@ -2004,15 +2004,15 @@
 	    (type-to-final-groundtypes (star-form-to-right-type type))))
     (else (myerror "type-to-final-groundtypes" "type expected" type))))
 
-;; We need a subtype relation generated from pos < nat< int < rat <
-;; real < cpx
+;; We need a subtype relation generated from pos < nat < int < rat <
+;; rea < cpx
 
-;; View pos, nat, int, rat, real and cpx as algebras, with constructors
+;; View pos, nat, int, rat, rea and cpx as algebras, with constructors
 ;; pos: One SZero SOne
 ;; nat: Zero Succ
 ;; int: IntPos IntZero IntNeg
 ;; rat: RatConstr (written # infix) and destructors RatN RatD
-;; real: RealConstr and Destructors RealSeq RealMod
+;; rea: RealConstr and Destructors RealSeq RealMod
 ;; cpx: CpxConstr (written ## infix) and destructors RealPart ImagPart
 
 ;; We use a global variable ALGEBRA-EDGE-TO-EMBED-TERM-ALIST
