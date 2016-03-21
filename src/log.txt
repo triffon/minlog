@@ -1,5 +1,20 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done in dev branch 2016-03-21
+
+In examples/doc/tutor.tex
+
+Typo corrected.
+
+In src/typ.scm
+
+algebra name real replaced by rea
+
+In examples/bar/higman.scm
+
+Typo corrected in example for BSeq
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done 2015-10-21
 
 In examples/parsing/parens.scm
