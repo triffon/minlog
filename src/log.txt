@@ -1,5 +1,125 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done in dev branch 2016-03-30
+
+In typ.scm
+
+Typo in arity-to-new-harrop-pvar corrected: n-deg-zero instead of n-deg-one
+
+In psym.scm
+
+idpredconst-name-to-relevant-param-pvars added.
+idpredconst-to-mr-idpredconst-for-mr-clauses and
+real-and-idpc-clause-to-mr-idpc-clause renamed into
+real-and-formula-to-mr-formula-for-mr-clauses and adapted to
+invariance axioms.  add-mr-ids corrected by recording the assignment
+of mr-pvars to param-pvars.
+
+In formula.scm
+
+In formula-substitute in the impnc-case impnc is kept (in contrast
+to log.txt 2014-01-24).  Reason: needed for soundness proofs.
+
+In axiom.scm
+
+In aconst-to-inst-formula after formula-substitute now unfold-formula
+is used, to transform Total n into TotalNat n.  In aconst-to-formula
+allnc only used for c.r. inst-formula, and all otherwise.  In
+check-aconst axioms AllTotalIntroSound AllTotalElimSound
+AllncTotalIntroSound AllncTotalElimSound ExTotalIntroSound
+ExTotalElimSound added.  In check-aconst error messages corrected:
+tvar(param-pvar) in mr-et-tvars implies cterm c.r.  In
+non-computational-invariant? Total in impnc premises allowed.  In
+h-deg-violations-aux the check is done for Ind, GInd, Intro, Elim,
+Closure and Gfp aconsts as well: in a c.r. instance of these aconsts
+the relevant pvars (i.e., its tvar appears in the type of the
+uninst-formula) must be sharply substituted.  Exception: Gfp with F as
+premise.
+
+In proof.scm
+
+In proof-to-c-r-proof-and-asubst the obsolete cvars definition
+removed.  Double occurrence of proof-to-c-r-proof-and-asubst removed.
+proof-of-efq-at changed to make use of EfqAtom and EfqEqD.
+avars-and-used-avars-to-new-avars removed: not needed.
+rename-avars rewritten to keep DEFAULT-AVAR-NAME and u apart.
+proof-to-expr-with-formulas now uses rename-avars .
+proof-substitute adapted to using all (not allnc) in ElimMR.
+proof-to-final-all-allnc-elim-op-and-args added.
+
+In ets.scm
+
+formula-of-nulltype? corrected in case (idpredconst-form? pred).
+efeqd-proof changed to: F -> all alpha^1,alpha^2 alpha^1 eqd alpha^2
+and renamed into efqeqd-proof .  Theorem EFEqD renamed into EfqEqD .
+efq-atom-proof rewritten.  Theorem Efq-Atom renamed into EfqAtom.
+idpredconst-to-mr-idpredconst corrected .
+
+In theorem-to-extracted-term case final substring TotalVar added.
+
+Abbreviation axioms exdtotal-aconst exltotal-aconst exrtotal-aconst
+exutotal-aconst exdtotal-rev-aconst exltotal-rev-aconst
+exrtotal-rev-aconst exutotal-rev-aconst renamed into
+exdtotal-intro-aconst exltotal-intro-aconst exrtotal-intro-aconst
+exutotal-intro-aconst exdtotal-elim-aconst exltotal-elim-aconst
+exrtotal-elim-aconst exutotal-elim-aconst and theorems ExDTotalIntro
+ExLTotalIntro ExRTotalIntro ExUTotalIntro ExDTotalElim ExLTotalElim
+ExRTotalElim ExUTotalElim added.
+
+In make-pvar-to-mr-pvar and PVAR-TO-MR-PVAR arity-to-new-pvar replaced
+by arity-to-new-harrop-pvar .
+
+proof-to-soundness-proof make-avar-or-ga-to-var
+make-avar-or-ga-to-mr-avar proof-to-soundness-proof-aux
+theorem-to-soundness-proof global-assumption-to-soundness-proof
+efq-ga-to-mr-efq-ga-proof axiom-to-soundness-proof
+all-formulas-to-mr-ind-proof all-formula-to-mr-cases-proof
+gind-aconst-to-mr-gind-proof exr-formula-to-exr-intro-mr-proof
+andl-formula-to-andl-intro-mr-proof
+andr-formula-to-andr-intro-mr-proof
+exl-formula-and-concl-to-exl-elim-mr-proof
+exr-formula-and-concl-to-exr-elim-mr-proof
+andlr-formula-and-concl-to-andlr-elim-mr-proof
+eqd-elim-aconst-to-eqd-mr-elim-proof imp-formulas-to-mr-elim-proof
+ex-formula-to-ex-intro-mr-proof
+ex-formula-and-concl-to-ex-elim-mr-proof adapted to invariance axioms
+
+alltotal-intro-mr-aconst alltotal-elim-mr-aconst
+allnctotal-elim-mr-aconst allnctotal-elim-mr-aconst
+exdtotal-intro-mr-aconst exdtotal-elim-mr-aconst
+exltotal-intro-mr-aconst exltotal-elim-mr-aconst
+exrtotal-intro-mr-aconst exrtotal-elim-mr-aconst
+added.  They can be added only here because they use
+proof-to-extracted-term .
+
+In lib/nat.scm
+
+Soundness proofs added.  add-mr-ids for TotalBoole added.
+
+Computation rules for AllBNat have been changed.
+Problem: [if t r False] and (t andb r) are not considered equal if
+t,r are not total.  Hence we change the computation rules for
+AllBNat using [if (AllBNat nat nat=>boole) ((nat=>boole)nat) False]
+instead of andb.  if arises via rec-to-if when normalizing Rec for
+a boolean.
+
+NatLtSuccCases NatLeCases NatLeLtCases NatLeLin animated already here.
+E.g. for NatLtSuccCases animation gives: ok, computation rule
+(cNatLtSuccCases alpha34) -> [n0,n1,alpha34_2,alpha34_3][if (n0<n1)
+alpha34_2 alpha34_3] added.  Since the result is short, the animation
+is generally done.  It is also necessary for the soundness proof of
+CVInd.
+
+NatLt0Double NatLtDoubleSuccDouble NatLtSuccDoubleDouble
+NatLtSuccDoubleSuccDouble NatLtOneSuccDouble NatLtDoubleOne
+NatLeDoubleOne NatPlusDouble moved here from numbers.scm
+
+In lib/list.scm
+
+EFEqD replaced by EfqEqD .  all-allpartial-aconst replaced by
+alltotal-elim-aconst etc.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done in dev branch 2016-03-21
 
 In examples/doc/tutor.tex
