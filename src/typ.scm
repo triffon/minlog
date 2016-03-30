@@ -24,10 +24,10 @@
 (define tag car)
 
 (define RESERVED-NAMES
-  (list "Equal" "=" "Total" "TotalMR" "E" "SE" "Rec" "CoRec" "coRec" "Destr"
+  (list "=" "Total" "TotalMR" "E" "SE" "Rec" "CoRec" "coRec" "Destr"
 	"GRec" "GRecGuard" "Ind" "Cases" "GInd" "Intro" "Elim"
-	"Ex-Intro" "Ex-Elim" "Exnc-Intro" "Exnc-Elim"
-	"all" "ex" "allnc" "exnc" "excl" "exca"
+	"Ex-Intro" "Ex-Elim"
+	"all" "ex" "allnc" "excl" "exca"
 	"exi" "exd" "exl" "exr" "exu"
 	"or" "ori" "ord" "orl" "orr" "oru" "ornc"
 	"and" "andd" "andl" "andr" "andu"
