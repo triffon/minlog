@@ -1,10 +1,16 @@
 ;; $Id: nat.scm 2677 2014-01-08 10:03:39Z schwicht $
 (display "loading nat.scm ...") (newline)
 
-;; (load "~/git/minlog/init.scm")
+(add-mr-ids "TotalBoole")
 
 (add-algs "nat" '("Zero" "nat") '("Succ" "nat=>nat"))
 (add-totality "nat")
+
+;; This adds the c.r. predicate TotalNat with clauses
+;; TotalNatZero:	TotalNat Zero
+;; TotalNatSucc:	allnc nat^(TotalNat nat^ -> TotalNat(Succ nat^))
+
+(add-mr-ids "TotalNat")
 
 ;; NatTotalVar
 (set-goal "all nat TotalNat nat")
@@ -14,7 +20,8 @@
 ;; Proof finished
 (save "NatTotalVar")
 
-(add-mr-ids "TotalNat")
+;; (cdp (proof-to-soundness-proof))
+;; Uses the axiom AllTotalIntroSound.
 
 (define (make-numeric-term-wrt-nat n)
   (if (= n 0)
@@ -63,19 +70,18 @@
 
 ;; Program constants.
 
-(add-program-constant "NatPlus" (py "nat=>nat=>nat") t-deg-zero)
-(add-program-constant "NatTimes" (py "nat=>nat=>nat") t-deg-zero)
-(add-program-constant "NatLt" (py "nat=>nat=>boole") t-deg-zero)
-(add-program-constant "NatLe" (py "nat=>nat=>boole") t-deg-zero)
-(add-program-constant "Pred" (py "nat=>nat") t-deg-zero)
-(add-program-constant "NatMinus" (py "nat=>nat=>nat") t-deg-zero)
-(add-program-constant "NatMax" (py "nat=>nat=>nat") t-deg-zero)
-(add-program-constant "NatMin" (py "nat=>nat=>nat") t-deg-zero)
-(add-program-constant "AllBNat" (py "nat=>(nat=>boole)=>boole") t-deg-zero)
-(add-program-constant "ExBNat" (py "nat=>(nat=>boole)=>boole") t-deg-zero)
-(add-program-constant "NatLeast" (py "nat=>(nat=>boole)=>nat") t-deg-zero)
-(add-program-constant "NatLeastUp" (py "nat=>nat=>(nat=>boole)=>nat")
-		      t-deg-zero)
+(add-program-constant "NatPlus" (py "nat=>nat=>nat"))
+(add-program-constant "NatTimes" (py "nat=>nat=>nat"))
+(add-program-constant "NatLt" (py "nat=>nat=>boole"))
+(add-program-constant "NatLe" (py "nat=>nat=>boole"))
+(add-program-constant "Pred" (py "nat=>nat"))
+(add-program-constant "NatMinus" (py "nat=>nat=>nat"))
+(add-program-constant "NatMax" (py "nat=>nat=>nat"))
+(add-program-constant "NatMin" (py "nat=>nat=>nat"))
+(add-program-constant "AllBNat" (py "nat=>(nat=>boole)=>boole"))
+(add-program-constant "ExBNat" (py "nat=>(nat=>boole)=>boole"))
+(add-program-constant "NatLeast" (py "nat=>(nat=>boole)=>nat"))
+(add-program-constant "NatLeastUp" (py "nat=>nat=>(nat=>boole)=>nat"))
 
 ;; Tokens used by the parser.
 
@@ -158,14 +164,12 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "nat1" "0=Snat1")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "0=Snat1")
 (assume "nat1" "IH1")
 (cases)
 (assume "Snat1=0")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Snat1=0")
 (assume "nat2" "Snat1=Snat2")
 (assert "nat1 eqd nat2")
@@ -185,13 +189,11 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "T=F")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "T=F")
 (cases)
 (assume "F=T")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "F=T")
 (assume "Useless")
 (use "InitEqD")
@@ -247,10 +249,14 @@
 ;; For AllBNat
 (add-computation-rules
  "AllBNat 0 nat=>boole" "True"
- "AllBNat(Succ nat)nat=>boole" "AllBNat nat nat=>boole andb (nat=>boole)nat")
+ "AllBNat(Succ nat)nat=>boole"
+ "[if (AllBNat nat nat=>boole) ((nat=>boole)nat) False]")
+
+;; (add-computation-rules
+;;  "AllBNat 0 nat=>boole" "True"
+;;  "AllBNat(Succ nat)nat=>boole" "AllBNat nat nat=>boole andb (nat=>boole)nat")
 
 ;; For ExBNat
-
 (add-computation-rules
  "ExBNat 0 nat=>boole" "False"
  "ExBNat(Succ nat)nat=>boole" "[if ((nat=>boole)nat)
@@ -262,20 +268,18 @@
 ;; its arguments only when necessary.
 
 ;; For NatLeast
-
 (add-computation-rules
  "NatLeast 0(nat=>boole)" "0"
  "NatLeast(Succ nat)(nat=>boole)"
  "[if ((nat=>boole)0) 0 (Succ(NatLeast nat([nat1](nat=>boole)(Succ nat1))))]")
 
 ;; For NatLeastUp
-
 (add-computation-rules
  "NatLeastUp nat0 nat(nat=>boole)"
  "[if (nat0<=nat) (NatLeast(nat--nat0)([nat1](nat=>boole)(nat1+nat0))+nat0) 0]")
 
 ;; We prove and add some properties of the program constants introduced,
-;; either as rewrite rules or as theorems
+;; either as rewrite rules or as theorems.
 
 ;; Properties of NatPlus
 
@@ -290,6 +294,23 @@
 (use "IH")
 ;; Proof finished.
 (save-totality)
+
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; Alternative, with AllTotalElim
+;; (set-totality-goal "NatPlus")
+;; (use "AllTotalElim")
+;; (assume "nat1")
+;; (use "AllTotalElim")
+;; (ind)
+;; (use "NatTotalVar")
+;; (assume "nat2" "IH")
+;; (ng #t)
+;; (use "TotalNatSucc")
+;; (use "IH")
+;; ;; Proof finished.
+;; (save-totality)
 
 (set-goal "all nat 0+nat=nat")
 (ind)
@@ -342,6 +363,24 @@
 ;; Proof finished
 (save "NatTimesTotal")
 
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; Alternative, with AllTotalElim
+;; (set-totality-goal "NatTimes")
+;; (use "AllTotalElim")
+;; (assume "nat1")
+;; (use "AllTotalElim")
+;; (ind)
+;; (use "NatTotalVar")
+;; (assume "nat2" "IH")
+;; (ng #t)
+;; (use "NatPlusTotal")
+;; (use "IH")
+;; (use "NatTotalVar")
+;; ;; Proof finished.
+;; (save-totality)
+
 (set-goal "all nat 0*nat=0")
 (ind)
   (use "Truth")
@@ -359,12 +398,13 @@
     (assume "0=0" "nat=>boole^" "H1")
     (use "H1")
   (assume "nat" "Absurd" "nat=>boole^" "H1")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat1" "IH")
 (cases)
   (assume "Absurd" "nat=>boole^" "H1")
-  (use "Efq")
+  (use "EfqAtom")
+  ;; (use "Efq")
   (use "Absurd")
 (assume "nat2" "nat1=nat2" "nat=>boole^")
 (use-with "IH" (pt "nat2") "nat1=nat2" (pt "[nat]nat=>boole^(Succ nat)"))
@@ -379,12 +419,12 @@
     (assume "Trivial" "nat=>nat")
     (use "Truth")
   (assume "nat2" "Absurd" "nat=>nat")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat1" "IH")
 (cases)
   (assume "Absurd" "nat=>nat")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2" "nat1=nat2" "nat=>nat")
 (use-with "IH" (pt "nat2") "nat1=nat2" (pt "[nat]nat=>nat(Succ nat)"))
@@ -414,12 +454,12 @@
     (assume "nat3" "Trivial" "0=nat3")
     (use "0=nat3")
   (assume "nat2" "nat3" "Absurd" "H1")
-  (use "Efq-Atom")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat1" "IH")
 (cases)
   (assume "nat3" "Absurd" "H1")
-  (use "Efq-Atom")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2")
 (cases)
@@ -521,6 +561,31 @@
 ;; Proof finished.
 (save-totality)
 
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; ;; Alternative, with AllTotalElim
+;; (set-totality-goal "NatLt")
+;; (assert "allnc nat^(
+;;   TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalBoole(nat^0 <nat^)))")
+;; (use "AllTotalElim")
+;; (ind)
+;; (assume "nat^2" "Useless")
+;; (use "BooleTotalVar")
+;; (assume "nat1" "IH")
+;; (use "AllTotalElim")
+;; (cases)
+;; (use "BooleTotalVar")
+;; (use "AllTotalIntro")
+;; (use "IH")
+;; ;; Assertion proved.
+;; (assume "Assertion" "nat^1" "Tnat1" "nat^2" "Tnat2")
+;; (use "Assertion")
+;; (use "Tnat2")
+;; (use "Tnat1")
+;; ;; Proof finished.
+;; (save-totality)
+
 (set-goal "all nat nat<Succ nat")
 (ind)
   (use "Truth")
@@ -560,7 +625,7 @@
 (assume "nat1" "IH1")
 (cases)
   (assume "nat3" "Absurd" "0<nat3")
-  (use "Efq-Atom")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2")
 (cases)
@@ -619,12 +684,12 @@
 (assume "Useless1" "Useless2")
 (use "Truth")
 (assume "nat1" "Useless" "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 (assume "nat1" "IHnat1")
 (cases)
 (assume "Absurd" "Useless")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 (assume "nat2")
 (use "IHnat1")
@@ -653,6 +718,24 @@
 (use "Tnat4")
 ;; Proof finished.
 (save-totality)
+
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; ;; Alternative, with AllTotalElim
+;; (set-totality-goal "NatLe")
+;; (use "AllTotalElim")
+;; (ind)
+;; (assume "nat^2" "Useless")
+;; (use "BooleTotalVar")
+;; (assume "nat1" "IH")
+;; (use "AllTotalElim")
+;; (cases)
+;; (use "BooleTotalVar")
+;; (use "AllTotalIntro")
+;; (use "IH")
+;; ;; Proof finished.
+;; (save-totality)
 
 ;; NatLeToEq
 (set-goal "all nat (nat<=0)=(nat=0)")
@@ -705,7 +788,7 @@
 (assume "nat1" "IH1")
 (cases)
   (assume "nat3" "Absurd" "H1")
-  (use "Efq-Atom")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2")
 (cases)
@@ -720,7 +803,7 @@
 (ind)
 (cases)
   (assume "nat3" "Absurd" "H1")
-  (use "Efq-Atom")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2")
 (cases)
@@ -731,7 +814,7 @@
 (assume "nat1" "IH1")
 (cases)
   (assume "nat3" "Absurd" "H1")
-  (use "Efq-Atom")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2")
 (cases)
@@ -755,7 +838,7 @@
 (assume "nat1" "IH1")
 (cases)
   (assume "nat3" "Absurd" "H1")
-  (use "Efq-Atom")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2")
 (cases)
@@ -806,14 +889,14 @@
 (ind)
   (cases)
   (assume "Absurd")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
   (assume "nat2" "Trivial")
   (use "Truth")
 (assume "nat1" "IH1")
   (cases)
   (assume "Absurd")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
 (use "IH1")
 ;; Proof finished.
@@ -824,14 +907,14 @@
 (ind)
   (cases)
   (assume "Absurd")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
   (assume "nat2" "Trivial")
   (use "Truth")
 (assume "nat1" "IH1")
   (cases)
   (assume "Absurd")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
 (use "IH1")
 ;; Proof finished.
@@ -856,31 +939,47 @@
 ;; Proof finished.
 (save "NatLtSuccCases")
 
-(define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<n0) alpha34 alpha34_0]
+;; (define eterm (proof-to-extracted-term))
+;; (define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [nat,nat0,alpha34,alpha34_0][if (nat<nat0) alpha34 alpha34_0]
 
-;; Code discarded 2015-05-03
-;; ;; NatLtSuccCases
-;; (set-goal "all nat2,nat1(nat1<Succ nat2 -> (nat1<nat2 -> Pvar) ->
-;;                                            (nat1=nat2 -> Pvar) -> Pvar)")
-;; (ind)
-;;   (cases)
-;;     (assume "H1" "H2" "H3")
-;;     (use "H3")
-;;   (use "Truth")
-;;   (assume "nat1" "Absurd" "H2" "H3")
-;;   (use "Efq")
-;;   (use "Absurd")
-;; (assume "nat1" "IH")
-;; (cases)
-;;   (assume "H1" "H2" "H3")
-;;   (use "H2")
-;;   (use "Truth")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save "NatLtSuccCases")
+(animate "NatLtSuccCases")
+
+(define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all nat,nat0,alpha34^1(
+;;  (nat<=nat0 -> (Pvar alpha34)^178 alpha34^1) -> 
+;;  all alpha34^2(
+;;   (nat0<nat -> (Pvar alpha34)^178 alpha34^2) -> 
+;;   (Pvar alpha34)^178[if (nat<=nat0) alpha34^1 alpha34^2]))
+
+;; (define nsproof (np sproof))
+;; (cdp nsproof)
+;; (proof-to-expr-with-formulas nsproof)
+
+(set-goal (rename-variables (nf (proof-to-formula sproof))))
+(use-with sproof)
+;; Proof finished.
+(save "NatLtSuccCasesSound")
+
+;; (pp "NatLtSuccCasesSound")
+
+;; all nat,nat0(
+;;  nat<Succ nat0 -> 
+;;  all alpha34^1(
+;;   (nat<nat0 -> (Pvar alpha34)^49 alpha34^1) -> 
+;;   all alpha34^2(
+;;    (nat=nat0 -> (Pvar alpha34)^49 alpha34^2) -> 
+;;    (Pvar alpha34)^49[if (nat<nat0) alpha34^1 alpha34^2])))
+
+;; Remark.  (use sproof) produces the error
+;; formula-substitute
+;; formula without positive content expected
+;; (Pvar alpha259)_183 alpha259^1390
+;; check.
 
 ;; NatLeCases
 (set-goal "all nat1,nat2(nat1<=nat2 -> (nat1<nat2 -> Pvar) ->
@@ -900,31 +999,25 @@
 ;; Proof finished.
 (save "NatLeCases")
 
-(define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<n0) alpha34 alpha34_0]
+;; (define eterm (proof-to-extracted-term))
+;; (define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [nat,nat0,alpha34,alpha34_0][if (nat<nat0) alpha34 alpha34_0]
 
-;; Code discarded 2015-05-03
-;; ;; NatLeCases
-;; (set-goal "all nat2,nat1(nat1<=nat2 -> (nat1<nat2 -> Pvar) ->
-;;                         (nat1=nat2 -> Pvar) -> Pvar)")
-;; (ind)
-;;   (cases)
-;;   (assume "H1" "H2" "H3")
-;;   (use "H3")
-;;   (use "Truth")
-;; (assume "nat1" "Absurd" "H2" "H3")
-;; (use "H2")
-;; (use "Absurd")
-;; (assume "nat1" "IH")
-;; (cases)
-;;   (assume "H1" "H2" "H3")
-;;   (use "H2")
-;;   (use "Truth")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save "NatLeCases")
+(animate "NatLeCases")
+
+;; (define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (pp (rename-variables (proof-to-formula sproof)))
+;; (pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all nat,nat0(
+;;  nat<=nat0 -> 
+;;  all alpha34^1(
+;;   (nat<nat0 -> (Pvar alpha34)^49 alpha34^1) -> 
+;;   all alpha34^2(
+;;    (nat=nat0 -> (Pvar alpha34)^49 alpha34^2) -> 
+;;    (Pvar alpha34)^49[if (nat<nat0) alpha34^1 alpha34^2])))
 
 ;; NatLeLtCases
 (set-goal
@@ -942,34 +1035,26 @@
 ;; Proof finished.
 (save "NatLeLtCases")
 
-(define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<=n0) alpha34 alpha34_0]
+;; (define eterm (proof-to-extracted-term))
+;; (define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [nat,nat0,alpha34,alpha34_0][if (nat<=nat0) alpha34 alpha34_0]
 
-;; Code discarded 2015-05-03
-;; ;; NatLeLtCases
-;; (set-goal
-;;  "all nat1,nat2((nat1<=nat2 -> Pvar) -> (nat2<nat1 -> Pvar) -> Pvar)")
-;; (ind)
-;;   (cases)
-;;     (assume "H1" "H2")
-;;     (use "H1")
-;;     (use "Truth")
-;;   (assume "nat1" "H1" "H2")
-;;   (use "H1")
-;;   (use "Truth")
-;; (assume "nat1" "IH1")
-;; (cases)
-;;   (assume "H1" "H2")
-;;   (use "H2")
-;;   (use "Truth")
-;; (assume "nat2" "H1" "H2")
-;; (use "IH1" (pt "nat2"))
-;; (use "H1")
-;; (use "H2")
-;; ;; Proof finished.
-;; (save "NatLeLtCases")
+(animate "NatLeLtCases")
+
+;; (define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all nat,nat0,alpha34^1(
+;;  (nat<=nat0 -> (Pvar alpha34)^49 alpha34^1) -> 
+;;  all alpha34^2(
+;;   (nat0<nat -> (Pvar alpha34)^49 alpha34^2) -> 
+;;   (Pvar alpha34)^49[if (nat<=nat0) alpha34^1 alpha34^2]))
+
+;; (define nsproof (np sproof))
+;; (cdp nsproof)
+;; (proof-to-expr-with-formulas nsproof)
 
 ;; NatLeLin
 (set-goal
@@ -988,41 +1073,33 @@
 ;; Proof finished.
 (save "NatLeLin")
 
-(define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<=n0) alpha34 alpha34_0]
+;; (define eterm (proof-to-extracted-term))
+;; (define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [nat,nat0,alpha34,alpha34_0][if (nat<=nat0) alpha34 alpha34_0]
 
-;; Code discarded 2015-05-03
-;; ;; NatLeLin
-;; (set-goal
-;;  "all nat1,nat2((nat1<=nat2 -> Pvar) -> (nat2<=nat1 -> Pvar) -> Pvar)")
-;; (ind)
-;;   (cases)
-;;     (assume "H1" "H2")
-;;     (use "H1")
-;;     (use "Truth")
-;;   (assume "nat1" "H1" "H2")
-;;   (use "H1")
-;;   (use "Truth")
-;; (assume "nat1" "IH1")
-;; (cases)
-;;   (assume "H1" "H2")
-;;   (use "H2")
-;;   (use "Truth")
-;; (assume "nat2" "H1" "H2")
-;; (use "IH1" (pt "nat2"))
-;; (use "H1")
-;; (use "H2")
-;; ;; Proof finished.
-;; (save "NatLeLin")
+(animate "NatLeLin")
+
+;; (define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all nat,nat0,alpha34^1(
+;;  (nat<=nat0 -> (Pvar alpha34)^49 alpha34^1) -> 
+;;  all alpha34^2(
+;;   (nat0<=nat -> (Pvar alpha34)^49 alpha34^2) -> 
+;;   (Pvar alpha34)^49[if (nat<=nat0) alpha34^1 alpha34^2]))
+
+;; (define nsproof (np sproof))
+;; (cdp nsproof)
+;; (proof-to-expr-with-formulas nsproof)
 
 ;; NatLtToLePred
 (set-goal "all nat1,nat2(nat1<nat2 -> nat1<=Pred nat2)")
 (assume "nat1")
 (cases)
 (assume "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 (assume "nat2" "nat1<Succ nat2")
 (use "NatLtSuccToLe")
@@ -1044,12 +1121,12 @@
 (set-goal "all nat1,nat2(0<nat1 -> nat1<nat2 -> Pred nat1<Pred nat2)")
 (cases)
 (assume "nat2" "Absurd" "Useless")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 (assume "nat1")
 (cases)
 (assume "Useless" "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 (assume "nat2" "Useless" "nat1<nat2")
 (use "nat1<nat2")
@@ -1069,6 +1146,19 @@
 ;; Proof finished.
 (save-totality)
 
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; ;; Alternative, with AllTotalElim
+;; (set-totality-goal "Pred")
+;; (use "AllTotalElim")
+;; (cases)
+;; (use "NatTotalVar")
+;; (assume "nat")
+;; (use "NatTotalVar")
+;; ;; Proof finished.
+;; (save-totality)
+
 (set-totality-goal "NatMinus")
 (assume "nat^1" "Tnat1" "nat^2" "Tnat2")
 (elim "Tnat2")
@@ -1080,6 +1170,23 @@
 (use "IH")
 ;; Proof finished.
 (save-totality)
+
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; ;; Alternative, with AllTotalElim
+;; (set-totality-goal "NatMinus")
+;; (use "AllTotalElim")
+;; (assume "nat1")
+;; (use "AllTotalElim")
+;; (ind)
+;; (use "NatTotalVar")
+;; (assume "nat2" "IH")
+;; (ng #t)
+;; (use "PredTotal")
+;; (use "IH")
+;; ;; Proof finished.
+;; (save-totality)
 
 (set-goal "all nat1,nat2 Pred(Succ nat1--nat2)=nat1--nat2")
 (assume "nat1")
@@ -1133,6 +1240,35 @@
 (use "Tnat4")
 ;; Proof finished.
 (save-totality)
+
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; ;; Alternative, with AllTotalElim
+;; (set-totality-goal "NatMax")
+;; (assert "allnc nat^(
+;;   TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalNat(nat^0 max nat^)))")
+;; (use "AllTotalElim")
+;; (ind)
+;; (assume "nat^2" "Tnat2")
+;; (use "Tnat2")
+;; (assume "nat1" "IH")
+;; (use "AllTotalElim")
+;; (cases)
+;; (use "NatTotalVar")
+;; (use "AllTotalIntro")
+;; (assume "nat^2" "Tnat2")
+;; (ng #t)
+;; (use "TotalNatSucc")
+;; (use "IH")
+;; (use "Tnat2")
+;; ;; Assertion proved.
+;; (assume "Assertion" "nat^1" "Tnat1" "nat^2" "Tnat2")
+;; (use "Assertion")
+;; (use "Tnat2")
+;; (use "Tnat1")
+;; ;; Proof finished.
+;; (save-totality)
 
 (set-goal "all nat 0 max nat=nat")
 (cases)
@@ -1274,6 +1410,35 @@
 ;; Proof finished.
 (save-totality)
 
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
+
+;; ;; Alternative, with AllTotalElim
+;; (set-totality-goal "NatMin")
+;; (assert "allnc nat^(
+;;   TotalNat nat^ -> allnc nat^0(TotalNat nat^0 -> TotalNat(nat^0 min nat^)))")
+;; (use "AllTotalElim")
+;; (ind)
+;; (assume "nat^2" "Tnat2")
+;; (use "NatTotalVar")
+;; (assume "nat1" "IH")
+;; (use "AllTotalElim")
+;; (cases)
+;; (use "NatTotalVar")
+;; (use "AllTotalIntro")
+;; (assume "nat^2" "Tnat2")
+;; (ng #t)
+;; (use "TotalNatSucc")
+;; (use "IH")
+;; (use "Tnat2")
+;; ;; Assertion proved.
+;; (assume "Assertion" "nat^1" "Tnat1" "nat^2" "Tnat2")
+;; (use "Assertion")
+;; (use "Tnat2")
+;; (use "Tnat1")
+;; ;; Proof finished.
+;; (save-totality)
+
 (set-goal "all nat 0 min nat=0")
 (cases)
   (use "Truth")
@@ -1396,6 +1561,24 @@
 ;; Proof finished.
 (save "NatIfTotal")
 
+;; (define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all nat^,nat^0(
+;;  TotalNatMR nat^0 nat^ -> 
+;;  all alpha^1,(nat=>alpha)^2,x^(
+;;   TotalMR x^ alpha^1 -> 
+;;   all (nat=>alpha)^3(
+;;    all nat^4,nat^5(
+;;     TotalNatMR nat^5 nat^4 -> 
+;;     TotalMR((nat=>alpha)^3 nat^5)((nat=>alpha)^2 nat^4)) -> 
+;;    TotalMR[if nat^0 x^ (nat=>alpha)^3][if nat^ alpha^1 (nat=>alpha)^2])))
+
+;; (define nsproof (np sproof))
+;; (cdp nsproof)
+;; (proof-to-expr-with-formulas nsproof)
+
 ;; NatEqTotal
 (set-goal "allnc nat^1(
  TotalNat nat^1 -> allnc nat^2(TotalNat nat^2 -> TotalBoole(nat^1 =nat^2)))")
@@ -1415,12 +1598,143 @@
 ;; Proof finished.
 (save "NatEqTotal")
 
-;; Properties of AllBNat
+;; (cdp (proof-to-soundness-proof))
+;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
 
-(pp (rename-variables (term-to-totality-formula (pt "AndConst"))))
-;; allnc boole^(
-;;  TotalBoole boole^ ->
-;;  allnc boole^0(TotalBoole boole^0 -> TotalBoole(boole^ andb boole^0)))
+;; ;; Alternative, with AllTotalElim
+;; (set-goal "allnc nat^1(
+;;  TotalNat nat^1 -> allnc nat^2(TotalNat nat^2 -> TotalBoole(nat^1 =nat^2)))")
+;; (use "AllTotalElim")
+;; (ind)
+;; ;; 3,4
+;; (use "AllTotalElim")
+;; (cases)
+;; (use "BooleTotalVar")
+;; (assume "nat2")
+;; (use "BooleTotalVar")
+;; ;; 4
+;; (assume "nat1" "IH")
+;; (use "AllTotalElim")
+;; (cases)
+;; (use "BooleTotalVar")
+;; (assume "nat2")
+;; (use "IH")
+;; (use "NatTotalVar")
+;; ;; Proof finished.
+;; (save "NatEqTotal")
+
+;; The following would fit better into a file lib/boole.scm
+
+;; EqFalseToNeg
+(set-goal "all boole(boole=False -> boole -> F)")
+(cases)
+(assume "Absurd" "Useless")
+(use "Absurd")
+(assume "Useless" "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "EqFalseToNeg")
+
+;; NegToEqFalse
+(set-goal "all boole((boole -> F) -> boole=False)")
+(cases)
+(assume "Absurd")
+(use-with "Absurd" "Truth")
+(assume "Useless")
+(use "Truth")
+;; Proof finished.
+(save "NegToEqFalse")
+
+;; BooleAeqToEq
+(set-goal "all boole1,boole2(
+ (boole1 -> boole2) -> (boole2 -> boole1) -> boole1=boole2)")
+(cases)
+(cases)
+(strip)
+(use "Truth")
+(assume "Absurd" "Useless")
+(use-with "Absurd" "Truth")
+(cases)
+(assume "Useless" "Absurd")
+(use-with "Absurd" "Truth")
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "BooleAeqToEq")
+
+;; OrIntroLeft
+(set-goal "all boole1,boole2(boole1 -> boole1 orb boole2)")
+(cases)
+(strip)
+(use "Truth")
+(cases)
+(strip)
+(use "Truth")
+(assume "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "OrIntroLeft")
+
+;; OrIntroRight
+(set-goal "all boole1,boole2(boole2 -> boole1 orb boole2)")
+(cases)
+(strip)
+(use "Truth")
+(cases)
+(strip)
+(use "Truth")
+(assume "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "OrIntroRight")
+
+;; OrElim
+(set-goal "all boole1,boole2(
+ boole1 orb boole2 -> (boole1 -> Pvar) -> (boole2 -> Pvar) -> Pvar)")
+(cases)
+(assume "boole1" "Useless1" "Hyp" "Useless2")
+(use-with "Hyp" "Truth")
+(cases)
+(assume "Useless1" "Useless2" "Hyp")
+(use-with "Hyp" "Truth")
+(ng #t)
+(assume "Absurd" "Hyp1" "Hyp2")
+(use-with "Hyp1" "Absurd")
+;; Proof finished.
+(save "OrElim")
+
+(define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (proof-to-expr-with-formulas sproof)
+;; (define nsproof (np sproof))
+;; (proof-to-expr-with-formulas nsproof)
+
+(set-goal (rename-variables (nf (proof-to-formula sproof))))
+(use-with sproof)
+;; Proof finished.
+(save "OrElimSound")
+
+;; IfAndb
+(set-goal "all boole1,boole2 [if boole1 boole2 False]=(boole1 andb boole2)")
+(cases)
+(assume "boole1")
+(use "Truth")
+(assume "boole1")
+(use "Truth")
+;; Proof finished.
+(save "IfAndb")
+
+;; IfOrb
+(set-goal "all boole1,boole2 [if boole1 True boole2]=(boole1 orb boole2)")
+(cases)
+(assume "boole1")
+(use "Truth")
+(assume "boole1")
+(use "Truth")
+;; Proof finished.
+(save "IfOrb")
+
+;; Properties of AllBNat
 
 (set-totality-goal "AllBNat")
 (assume "nat^" "Tnat")
@@ -1430,13 +1744,42 @@
 (use "TotalBooleTrue")
 (assume "nat^1" "Tnat1" "IH" "(nat=>boole)^" "Hyp")
 (ng #t)
-(use "AndConstTotal")
+(use "BooleIfTotal")
 (use "IH")
 (use "Hyp")
 (use "Hyp")
 (use "Tnat1")
+(use "TotalBooleFalse")
 ;; Proof finished.
 (save-totality)
+
+;; (define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all nat^,nat^0(
+;;  TotalNatMR nat^0 nat^ -> 
+;;  all (nat=>boole)^1,(nat=>boole)^2(
+;;   all nat^3,nat^4(
+;;    TotalNatMR nat^4 nat^3 -> 
+;;    TotalBooleMR((nat=>boole)^2 nat^4)((nat=>boole)^1 nat^3)) -> 
+;;   TotalBooleMR
+;;   ((Rec nat=>(nat=>boole)=>boole)nat^0([(nat=>boole)]True)
+;;    ([nat,((nat=>boole)=>boole),(nat=>boole)]
+;;      [if (((nat=>boole)=>boole)(nat=>boole)) ((nat=>boole)nat) False])
+;;    (nat=>boole)^2)
+;;   (AllBNat nat^(nat=>boole)^1)))
+
+;; (define nsproof (np sproof))
+;; (cdp nsproof)
+;; (proof-to-expr-with-formulas nsproof)
+
+;; Here is the reason why the rules for AllBNat were changed.
+;; Problem: [if t r False] and (t andb r) are not considered equal if
+;; t,r are not total.  Hence we change the computation rules for
+;; AllBNat using [if (AllBNat nat nat=>boole) ((nat=>boole)nat) False]
+;; instead of andb.  if arises via rec-to-if when normalizing Rec for
+;; a boolean.  fan/fanwklu then needs to be adapted.
 
 ;; AllBNatIntro
 (set-goal "all (nat=>boole),nat2(
@@ -1448,14 +1791,14 @@
   (use "Truth")
 (assume "nat2" "IH" "H")
 (ng)
-(split)
-  (use "IH")
-  (assume "nat1" "nat1<nat2")
-  (use "H")
-  (use "NatLtTrans" (pt "nat2"))
-  (use "nat1<nat2")
-  (use "Truth")
+(inst-with-to "H" (pt "nat2") "Truth" "HInst")
+(simp "HInst")
+(ng #t)
+(use "IH")
+(assume "nat1" "n1<n2")
 (use "H")
+(use "NatLtTrans" (pt "nat2"))
+(use "n1<n2")
 (use "Truth")
 ;; Proof finished.
 (save "AllBNatIntro")
@@ -1467,18 +1810,25 @@
 (assume "(nat=>boole)")
 (ind)
   (assume "H1" "nat1" "Absurd")
-  (use "Efq")
+  (use "EfqAtom")
   (use "Absurd")
 (assume "nat2" "IH")
 (ng)
 (assume "AllBHyp" "nat1" "nat1<Succ nat2")
+(assert "AllBNat nat2(nat=>boole)andb(nat=>boole)nat2")
+ (simp "<-" "IfAndb")
+ (use "AllBHyp")
+(assume "Conj")
 (use "NatLtSuccCases" (pt "nat1") (pt "nat2"))
+;; 14-16
 (use "nat1<Succ nat2")
+;; 16
 (use "IH")
-(use "AllBHyp")
-(assume "nat1=nat2")
-(simp "nat1=nat2")
-(use "AllBHyp")
+(use "Conj")
+;; 16
+(assume "n1=n2")
+(simp "n1=n2")
+(use "Conj")
 ;; Proof finished.
 (save "AllBNatElim")
 
@@ -1502,42 +1852,33 @@
 (save-totality)
 
 ;; ExBNatIntro
-(set-goal "all (nat=>boole),nat2(
-      ex nat1(nat1<nat2 & (nat=>boole)nat1) ->
+(set-goal "all (nat=>boole),nat2,nat1(nat1<nat2 -> (nat=>boole)nat1 ->
       ExBNat nat2([nat1](nat=>boole)nat1))")
 (assume "(nat=>boole)")
 (ind)
-(assume "ExHyp")
-(by-assume "ExHyp" "nat1" "Conj")
-(assert "F")
-(use "Conj")
-(assume "Absurd")
-(use "Absurd")
-(assume "nat2" "IH" "ExHyp")
+;; 3,4
 (ng)
-(by-assume "ExHyp" "nat1" "Conj")
-(assert "nat1<Succ nat2")
-(use "Conj")
-(assume "n1<Sn2")
+(assume "nat1" "Absurd" "Useless")
+(use "Absurd")
+;; 4
+(assume "nat2" "IH" "nat1" "n1<Sn2")
 (use "NatLtSuccCases" (pt "nat1") (pt "nat2"))
 (use "n1<Sn2")
-(assume "n1<n2")
+(assume "n1<n2" "fn1")
+(ng #t)
 (cases (pt "(nat=>boole)nat2"))
 (strip)
 (use "Truth")
-(assume "(nat=>boole)nat2 -> F")
-(ng)
-(use "IH")
-(ex-intro (pt "nat1"))
-(split)
+(assume "Useless")
+(ng #t)
+(use "IH" (pt "nat1"))
 (use "n1<n2")
-(use "Conj")
+(use "fn1")
+;; 10
 (assume "n1=n2")
-(assert "(nat=>boole)nat2")
- (simp "<-" "n1=n2")
- (use "Conj")
-(assume "(nat=>boole)nat2")
-(simp "(nat=>boole)nat2")
+(simp "n1=n2")
+(assume "fn2")
+(simp "fn2")
 (use "Truth")
 ;; Proof finished.
 (save "ExBNatIntro")
@@ -1545,31 +1886,41 @@
 ;; ExBNatElim
 (set-goal "all (nat=>boole),nat2(
       ExBNat nat2(nat=>boole) ->
-      ex nat1(nat1<nat2 & (nat=>boole)nat1))")
+      exu nat1(nat1<nat2 andu (nat=>boole)nat1))")
 (assume "(nat=>boole)")
 (ind)
 (ng)
-(use "Efq")
+;; (use "Efq")
+;; use2-closed-proof-intern
+;; unusable formula
+;; F -> all boole^325 boole^325
+;; for goal formula
+;; F -> exu nat1(F andu (nat=>boole)nat1)
+(assume "Absurd")
+(intro 0 (pt "0"))
+(split)
+(use "Absurd")
+(use "EfqAtom")
+(use "Absurd")
 (assume "nat2" "IH")
 (ng)
 (cases (pt "(nat=>boole)nat2"))
 (assume "(nat=>boole)nat2" "Useless")
-(ex-intro "nat2")
+(intro 0 (pt "nat2"))
 (split)
 (use "Truth")
 (use "(nat=>boole)nat2")
 (ng)
 (assume "Useless" "ExBNatHyp")
-(assert "ex nat0(nat0<nat2 & (nat=>boole)nat0)")
- (use-with "IH" "ExBNatHyp")
-(assume "ExHyp")
-(by-assume "ExHyp" "nat1" "Conj")
-(ex-intro "nat1")
+(inst-with-to "IH" "ExBNatHyp" "IHInst")
+(drop "IH")
+(by-assume "IHInst" "nat1" "nat1Prop")
+(intro 0 (pt "nat1"))
 (split)
 (use "NatLtTrans" (pt "nat2"))
-(use "Conj")
+(use "nat1Prop")
 (use "Truth")
-(use "Conj")
+(use "nat1Prop")
 ;; Proof finished.
 (save "ExBNatElim")
 
@@ -2242,6 +2593,35 @@
 ;; Proof finished.
 (save "NatRecTotal")
 
+;; (define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+;; (pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all nat^,nat^0(
+;;  TotalNatMR nat^0 nat^ -> 
+;;  all x^,x^0(
+;;   TotalMR x^0 x^ -> 
+;;   all (nat=>alpha=>alpha)^1,(nat=>alpha=>alpha)^2(
+;;    all nat^3,nat^4(
+;;     TotalNatMR nat^4 nat^3 -> 
+;;     all x^1,x^2(
+;;      TotalMR x^2 x^1 -> 
+;;      TotalMR((nat=>alpha=>alpha)^2 nat^4 x^2)
+;;      ((nat=>alpha=>alpha)^1 nat^3 x^1))) -> 
+;;    TotalMR
+;;    ((Rec nat=>alpha=>(nat=>alpha=>alpha)=>alpha)nat^0
+;;     ([x,(nat=>alpha=>alpha)]x)
+;;     ([nat,(alpha=>(nat=>alpha=>alpha)=>alpha),x,(nat=>alpha=>alpha)]
+;;       (nat=>alpha=>alpha)nat
+;;       ((alpha=>(nat=>alpha=>alpha)=>alpha)x(nat=>alpha=>alpha)))
+;;     x^0
+;;     (nat=>alpha=>alpha)^2)
+;;    ((Rec nat=>alpha)nat^ x^(nat=>alpha=>alpha)^1))))
+
+;; (define nsproof (np sproof))
+;; (cdp nsproof)
+;; (proof-to-expr-with-formulas nsproof)
+
 ;; NatDouble
 (add-program-constant "NatDouble" (py "nat=>nat"))
 
@@ -2385,14 +2765,51 @@
 ;; Proof finished.
 (save "NatHalfSuccDouble")
 
-;; CVInd
-(set-goal "all nat(all nat1(nat1<nat -> (Pvar nat)nat1) ->
-                   (Pvar nat)nat) -> all nat (Pvar nat)nat")
-(assume "Prog")
+;; Reason to have a local efq assumption in CVIndPvar: soundness proof
+;; does not normalize for Efq a global assumption.  Check
+
+;; CVIndPvar
+(set-goal "(F -> all nat^(Pvar nat)nat^) ->
+  all nat(all nat1(nat1<nat -> (Pvar nat)nat1) -> (Pvar nat)nat) ->
+  all nat (Pvar nat)nat")
+(assume "efq" "Prog")
 (assert "all nat,nat1(nat1<nat -> (Pvar nat)nat1)")
  (ind)
  (assume "nat1" "Absurd")
- (use "Efq")
+ (use "efq")
+ (use "Absurd")
+ (assume "nat" "IHnat" "nat1" "nat1<Succ nat")
+ (use "NatLtSuccCases" (pt "nat1") (pt "nat"))
+ (use "nat1<Succ nat")
+ (use "IHnat")
+ (assume "nat1=nat")
+ (simp "nat1=nat")
+ (use "Prog")
+ (use "IHnat")
+(assume "Assertion" "nat")
+(use "Assertion" (pt "Succ nat"))
+(use "Truth")
+;; Proof finished.
+(save "CVIndPvar")
+
+;; (define sproof (proof-to-soundness-proof))
+;; (define nsproof (np sproof))
+;; (cdp nsproof)
+;; (proof-to-expr-with-formulas nsproof)
+
+;; In CVInd we do not need an Efq assumption since EfqEqD is avaiable
+;; (pp "EfqEqD")
+;; F -> all alpha^,alpha^0 alpha^ eqd alpha^0
+
+;; CVInd
+(set-goal "all nat=>boole(
+ all nat(all nat1(nat1<nat -> (nat=>boole)nat1) -> (nat=>boole)nat) ->
+ all nat (nat=>boole)nat)")
+(assume "nat=>boole" "Prog")
+(assert "all nat,nat1(nat1<nat -> (nat=>boole)nat1)")
+ (ind)
+ (assume "nat1" "Absurd")
+ (use "EfqAtom")
  (use "Absurd")
  (assume "nat" "IHnat" "nat1" "nat1<Succ nat")
  (use "NatLtSuccCases" (pt "nat1") (pt "nat"))
@@ -2412,7 +2829,8 @@
 (set-goal "all nat(Zero<nat -> NatHalf nat<nat)")
 (assert "all nat((Zero<nat -> NatHalf nat<nat) &
                   NatHalf(Succ nat)<Succ nat)")
-(use "CVInd")
+(use "CVIndPvar")
+(use "Efq")
 (assume "nat" "Prog")
 (split)
 (cases (pt "nat"))
@@ -2560,106 +2978,6 @@
 ;; For the translation to Haskell we add
 
 (add-program-constant "TranslationNatMinusPosDiff" (py "nat=>nat=>nat"))
-
-;; The following would fit better into a file lib/boole.scm
-
-;; EqFalseToNeg
-(set-goal "all boole(boole=False -> boole -> F)")
-(cases)
-(assume "Absurd" "Useless")
-(use "Absurd")
-(assume "Useless" "Absurd")
-(use "Absurd")
-;; Proof finished.
-(save "EqFalseToNeg")
-
-;; NegToEqFalse
-(set-goal "all boole((boole -> F) -> boole=False)")
-(cases)
-(assume "Absurd")
-(use-with "Absurd" "Truth")
-(assume "Useless")
-(use "Truth")
-;; Proof finished.
-(save "NegToEqFalse")
-
-;; BooleAeqToEq
-(set-goal "all boole1,boole2(
- (boole1 -> boole2) -> (boole2 -> boole1) -> boole1=boole2)")
-(cases)
-(cases)
-(strip)
-(use "Truth")
-(assume "Absurd" "Useless")
-(use-with "Absurd" "Truth")
-(cases)
-(assume "Useless" "Absurd")
-(use-with "Absurd" "Truth")
-(strip)
-(use "Truth")
-;; Proof finished.
-(save "BooleAeqToEq")
-
-;; OrIntroLeft
-(set-goal "all boole1,boole2(boole1 -> boole1 orb boole2)")
-(cases)
-(strip)
-(use "Truth")
-(cases)
-(strip)
-(use "Truth")
-(assume "Absurd")
-(use "Absurd")
-;; Proof finished.
-(save "OrIntroLeft")
-
-;; OrIntroRight
-(set-goal "all boole1,boole2(boole2 -> boole1 orb boole2)")
-(cases)
-(strip)
-(use "Truth")
-(cases)
-(strip)
-(use "Truth")
-(assume "Absurd")
-(use "Absurd")
-;; Proof finished.
-(save "OrIntroRight")
-
-;; OrElim
-(set-goal "all boole1,boole2(
- boole1 orb boole2 -> (boole1 -> Pvar) -> (boole2 -> Pvar) -> Pvar)")
-(cases)
-(assume "boole1" "Useless1" "Hyp" "Useless2")
-(use-with "Hyp" "Truth")
-(cases)
-(assume "Useless1" "Useless2" "Hyp")
-(use-with "Hyp" "Truth")
-(ng #t)
-(assume "Absurd" "Hyp1" "Hyp2")
-(use-with "Hyp1" "Absurd")
-;; Proof finished.
-(save "OrElim")
-
-;; IfAndb
-(set-goal "all boole1,boole2 [if boole1 boole2 False]=(boole1 andb boole2)")
-(cases)
-(assume "boole1")
-(use "Truth")
-(assume "boole1")
-(use "Truth")
-;; Proof finished.
-(save "IfAndb")
-
-;; IfOrb
-(set-goal "all boole1,boole2 [if boole1 True boole2]=(boole1 orb boole2)")
-(cases)
-(assume "boole1")
-(use "Truth")
-(assume "boole1")
-(use "Truth")
-;; Proof finished.
-(save "IfOrb")
 
 (add-var-name "n" "m" "k" (py "nat"))
 
