@@ -380,7 +380,7 @@
 	     (default-pvar-name arity)))
 
 (define (arity-to-new-harrop-pvar arity)
-  (make-pvar arity (+ 1 MAXPVARINDEX) h-deg-one n-deg-one
+  (make-pvar arity (+ 1 MAXPVARINDEX) h-deg-one n-deg-zero
 	     (default-pvar-name arity)))
 
 (define (arity-to-new-general-pvar arity)
@@ -403,28 +403,23 @@
 ;; ========================
 
 ;; General reasons for having predicate constants:
-;; - We need Equal, Total and TotalMR, which are *not*
+;; - We need Total and TotalMR, which are *not*
 ;;   placeholders for formulas.
 ;; - We need predicates to be axiomatized
-
-;; Remark: Equal is obsolete.  Use Leibniz equality EqD instead.
 
 ;; General properties of predconsts:
 ;; - Only Total and TotalMR have computational content.
 ;; - They do not change their name when a tsubst is employed.  Hence from
 ;;   a name one can only read off the uninstantiated type.
-;; - Their meaning can be fixed by axioms (e.g. for Equal, E and also for
+;; - Their meaning can be fixed by axioms (e.g. for E and also for
 ;;   Bar(.,.) of arity ('arity tree seq))
 
 ;; Predicate constant names are provided in the form of an association
 ;; list, which assigns to the names their arities.  By default we have
-;; the predicate constants Equal of arity (arity alpha alpha) and Total
-;; of arity (arity alpha).
+;; the predicate constant Total of arity (arity alpha).
 
 (define PREDCONST-NAMES
   (list
-   (list "Equal" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
-			     (make-tvar -1 DEFAULT-TVAR-NAME)))
    (list "Total" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)))
    (list "TotalMR" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
 			       (make-tvar -1 DEFAULT-TVAR-NAME)))))
@@ -716,8 +711,8 @@
 			     (map (lambda (pvar cterm) (list pvar cterm))
 				  param-pvars cterms))))
 	(check-admissible-tpsubst tpsubst))
-					;tvar(param-pvar) in mr-et-tvars iff
-					;cterm c.r.
+					;tvar(param-pvar) in mr-et-tvars
+					;implies cterm c.r.
       (let* ((names (idpredconst-name-to-simidpc-names name))
 	     (clauses-with-names
 	      (apply append
@@ -734,11 +729,6 @@
 	   (if (and (member (PVAR-TO-TVAR pvar) mr-et-tvars)
 		    (formula-of-nulltype? (cterm-to-formula cterm)))
 	       (myerror "check-idpredconst" "c.r. formula expected"
-			(cterm-to-formula cterm)
-			"for param-pvar" pvar))
-	   (if (and (not (member (PVAR-TO-TVAR pvar) mr-et-tvars))
-		    (not (formula-of-nulltype? (cterm-to-formula cterm))))
-	       (myerror "check-idpredconst" "c.i. formula expected"
 			(cterm-to-formula cterm)
 			"for param-pvar" pvar)))
 	 param-pvars cterms)))))
@@ -1010,6 +1000,25 @@
 	  (apply append (map imp-impnc-all-allnc-form-to-premises clauses)))
 	 (spos-pvars (apply union (map formula-to-spos-pvars prems))))
     (set-minus spos-pvars pvars)))
+
+(define (idpredconst-name-to-relevant-param-pvars name)
+  (let* ((idpc-names-with-pvars-and-opt-alg-names
+	  (idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names name))
+	 (names (map car idpc-names-with-pvars-and-opt-alg-names))
+	 (pvars (map cadr idpc-names-with-pvars-and-opt-alg-names))
+	 (clauses-with-names
+	  (apply append (map idpredconst-name-to-clauses-with-names names)))
+	 (clauses (map car clauses-with-names))
+	 (prems
+	  (apply append (map imp-impnc-all-allnc-form-to-premises clauses)))
+	 (spos-pvars (apply union (map formula-to-spos-pvars prems)))
+	 (spos-param-pvars (set-minus spos-pvars pvars))
+	 (cr-pvars (list-transform-positive spos-param-pvars
+		     (lambda (pvar) (h-deg-zero? (pvar-to-h-deg pvar)))))
+	 (et-types (map formula-to-et-type clauses))
+	 (et-tvars (apply union (map type-to-tvars et-types))))
+    (list-transform-positive cr-pvars
+      (lambda (pvar) (member (PVAR-TO-TVAR pvar) et-tvars)))))
 
 (define (idpredconst-to-spos-pvars idpc)
   (let* ((idpc-name (idpredconst-to-name idpc))
@@ -1722,8 +1731,8 @@
 	 (car nullary-clauses-and-rest-clauses)))))
 
 ;; IMR is created by calling add-mr-ids for a known idpc-name I.
-;; add-mr-ids needs real-and-idpc-clause-to-mr-idpc-clause as auxiliary
-;; function.
+;; add-mr-ids needs real-and-formula-to-mr-formula-for-mr-clauses as
+;; auxiliary function.
 
 (define (add-mr-ids idpc-name)
   (set! OLD-COMMENT-FLAG COMMENT-FLAG)
@@ -1794,7 +1803,9 @@
 				    (arity-to-types
 				     (predicate-to-arity pvar)))))
 			(mr-idpc-pvar
-			 (arity-to-new-harrop-pvar mr-idpc-arity)))
+			 (if (member pvar idpc-pvars)
+			     (arity-to-new-harrop-pvar mr-idpc-arity)
+			     (PVAR-TO-MR-PVAR pvar))))
 		   (set! assoc-list
 			 (cons (list pvar mr-idpc-pvar) assoc-list))
 		   mr-idpc-pvar))))))
@@ -1806,7 +1817,7 @@
 	 (mr-clauses-with-mr-idpc-pvars
 	  (if (not identity?)
 	      (map (lambda (constr-term clause-with-idpc-pvars)
-		     (real-and-idpc-clause-to-mr-idpc-clause
+		     (real-and-formula-to-mr-formula-for-mr-clauses
 		      constr-term clause-with-idpc-pvars
 		      mr-et-tvars idpc-pvars pvar-to-mr-pvar))
 		   constr-terms clauses-with-idpc-pvars)
@@ -1814,7 +1825,7 @@
 		     (var (type-to-new-partial-var et-tvar))
 		     (real (make-term-in-abst-form
 			    var (make-term-in-var-form var))))
-		(list (nf (real-and-idpc-clause-to-mr-idpc-clause
+		(list (nf (real-and-formula-to-mr-formula-for-mr-clauses
 			   real (car clauses-with-idpc-pvars)
 			   mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))
 	 (mr-idpc-names (map (lambda (name) (string-append name "MR"))
@@ -1889,10 +1900,6 @@
     ((allnc) (formula-to-et-type-for-mr-clauses
 	      (allnc-form-to-kernel formula)
 	      mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-    ((exnc) ;obsolete
-     (formula-to-et-type-for-mr-clauses
-      (exnc-form-to-kernel formula)
-      mr-et-tvars idpc-pvars pvar-to-mr-pvar))
     ((exca excl excu) (formula-to-et-type-for-mr-clauses
 		       (unfold-formula formula)
 		       mr-et-tvars idpc-pvars pvar-to-mr-pvar))
@@ -1965,18 +1972,143 @@
 			   idpc)
 		  (car relevant-types-and-cterm-types)))))))))
 
-;; real-and-idpc-clause-to-mr-idpc-clause is similar to
-;; real-and-formula-to-mr-formula-aux .  The difference is in the usage
-;; of the local pvar-to-mr-pvar (with special results for idpc-pvars)
-;; and formula-to-et-type-for-mr-clauses.
+;; real-and-formula-to-mr-formula-for-mr-clauses is similar to
+;; real-and-formula-to-mr-formula-aux .  The difference is in the
+;; usage of the local pvar-to-mr-pvar (with special results for
+;; idpc-pvars) and formula-to-et-type-for-mr-clauses .  Moved here
+;; since they will be needed in axiom.scm
 
-;; real-and-idpc-clause-to-mr-idpc-clause to be renamed into
-;; real-and-formula-to-mr-formula-for-mr-clauses
+(define (real-and-formula-to-mr-formula real formula)
+  (cond
+   ((eq? 'eps real)
+    (if
+     (not (formula-of-nulltype? formula))
+     (myerror "real-and-formula-to-mr-formula"
+	      "n.c. formula expected" formula)
+     (begin
+       (comment
+	"warning: real-and-formula-to-mr-formula superfluous for n.c. formula "
+	(formula-to-string formula))
+       formula)))
+   ((and (term-form? real)
+	 (equal? (term-to-type real) (formula-to-et-type formula)))
+    (real-and-formula-to-mr-formula-aux real formula))
+   (else (myerror "real-and-formula-to-mr-formula" "equal types expected"
+		  (if (term-form? real)
+		      (type-to-string (term-to-type real))
+		      real)
+		  (formula-to-et-type formula)))))
 
-(define (real-and-idpc-clause-to-mr-idpc-clause
+;; Test
+;; (real-and-formula-to-mr-formula 'eps (pf "Pvar^"))
+;; (real-and-formula-to-mr-formula 'eps (pf "Pvar"))
+
+(define (real-and-formula-to-mr-formula-aux real formula)
+  (case (tag formula)
+    ((atom) formula) ;should be obsolete once all calls with 'eps are removed
+    ((predicate)
+     (let ((pred (predicate-form-to-predicate formula))
+	   (args (predicate-form-to-args formula)))
+       (cond
+	((pvar-form? pred)
+	 (if (pvar-with-positive-content? pred)
+	     (apply make-predicate-formula (PVAR-TO-MR-PVAR pred) real args)
+	     formula))
+	((predconst-form? pred)
+	 (if (string=? "Total" (predconst-to-name pred))
+	     (let* ((arg (car args))
+		    (type (term-to-type arg)))
+	       (cond ((tvar-form? type) (make-totalmr real arg))
+		     ((or (alg-form? type)
+			  (arrow-form? type)
+			  (star-form? type))
+		      (real-and-formula-to-mr-formula-aux
+		       real (unfold-formula formula)))
+		     (else (myerror
+			    "real-and-formula-to-mr-formula-aux"
+			    "type of tvar-, alg-, arrow- or star-form expected"
+			    type))))
+	     formula))
+	((idpredconst-form? pred)
+	 (let* ((idpc-name (idpredconst-to-name pred))
+		(clauses (idpredconst-name-to-clauses idpc-name))
+		(opt-alg-name (idpredconst-name-to-opt-alg-name idpc-name))
+		(alg-name (if (pair? opt-alg-name) ;c.r.idpc
+			      (car opt-alg-name)
+			      (myerror "real-and-formula-to-mr-formula-aux"
+				       "alg name expected for idpredconst"
+				       formula))))
+	   (if (member idpc-name '("ExL" "ExLT"))
+	       (let ((var (exl-form-to-var formula))
+		     (kernel (exl-form-to-kernel formula)))
+		 (formula-subst kernel var real))
+	       (apply make-predicate-formula
+		      (idpredconst-to-mr-idpredconst pred)
+		      real args))))
+	(else ;witnessing idpc like "EvenMR"
+	 formula))))
+    ((imp)
+     (let* ((prem (imp-form-to-premise formula))
+	    (type1 (formula-to-et-type prem))
+	    (concl (imp-form-to-conclusion formula)))
+       (if (nulltype? type1)
+	   (make-imp prem (real-and-formula-to-mr-formula-aux real concl))
+	   (let* ((var (type-to-new-partial-var type1))
+		  (varterm (make-term-in-var-form var))
+		  (appterm (make-term-in-app-form real varterm)))
+	     (make-all var (make-imp (real-and-formula-to-mr-formula-aux
+				      varterm prem)
+				     (real-and-formula-to-mr-formula-aux
+				      appterm concl)))))))
+    ((impnc)
+     (let ((prem (imp-form-to-premise formula))
+	   (concl (imp-form-to-conclusion formula)))
+       (make-imp prem (real-and-formula-to-mr-formula-aux real concl))))
+    
+    ((and)
+     (let ((left (and-form-to-left formula))
+	   (right (and-form-to-right formula)))
+       (cond
+	((formula-of-nulltype? left)
+	 (make-and left (real-and-formula-to-mr-formula-aux real right)))
+	((formula-of-nulltype? right)
+	 (make-and (real-and-formula-to-mr-formula-aux real left) right))
+	(else ;neither type1 nor type2 equals nulltype
+	 (let ((term1 (make-term-in-lcomp-form real))
+	       (term2 (make-term-in-rcomp-form real)))
+	   (make-and (real-and-formula-to-mr-formula-aux term1 left)
+		     (real-and-formula-to-mr-formula-aux term2 right)))))))
+    ((all)
+     (let* ((var (all-form-to-var formula))
+	    (kernel (all-form-to-kernel formula))
+	    (varterm (make-term-in-var-form var))
+	    (appterm (make-term-in-app-form real varterm)))
+       (make-all var (real-and-formula-to-mr-formula-aux appterm kernel))))
+    ((allnc)
+     (let ((var (allnc-form-to-var formula))
+	   (kernel (allnc-form-to-kernel formula)))
+       (make-all var (real-and-formula-to-mr-formula-aux real kernel))))
+    ((ex)
+     (let ((var (ex-form-to-var formula))
+	   (kernel (ex-form-to-kernel formula)))
+       (if (formula-of-nulltype? kernel)
+	   (formula-subst kernel var real)
+	   (let ((term1 (make-term-in-lcomp-form real))
+		 (term2 (make-term-in-rcomp-form real)))
+	     (real-and-formula-to-mr-formula-aux
+	      term2 (formula-subst kernel var term1))))))
+    ((exca excl excu)
+     (real-and-formula-to-mr-formula-aux real (unfold-formula formula)))
+    (else (myerror "real-and-formula-to-mr-formula-aux" "formula expected"
+		   formula))))
+
+(define (real-and-formula-to-mr-formula-for-mr-clauses
 	 real formula mr-et-tvars idpc-pvars pvar-to-mr-pvar)
   (case (tag formula)
-    ((atom) formula)
+    ((atom)
+     (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+	      "c.r. formula expected"
+	      formula))
     ((predicate)
      (let ((pred (predicate-form-to-predicate formula))
 	   (args (predicate-form-to-args formula)))
@@ -1986,89 +2118,45 @@
 	  (or (member pred idpc-pvars)
 	      (member (PVAR-TO-TVAR pred) mr-et-tvars))
 	  (apply make-predicate-formula (pvar-to-mr-pvar pred) real args)
-					;else nc-param-pvar
-	  formula))
+	  (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		   "c.r. pvar expected"
+		   formula)))
 	((predconst-form? pred)
 	 (if (string=? "Total" (predconst-to-name pred))
 	     (make-totalmr real (car args))
-	     formula))
+	     (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		      "c.r. predicate constant with mr version expected"
+		      formula)))
 	((idpredconst-form? pred)
 	 (let* ((idpc-name (idpredconst-to-name pred))
 		(clauses (idpredconst-name-to-clauses idpc-name)))
-	   (cond
-	    ((pair? (idpredconst-name-to-opt-alg-name idpc-name)) ;c.r.idpc
-	     (apply make-predicate-formula
-		    (idpredconst-to-mr-idpredconst-for-mr-clauses
-		     pred mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		    real args))
-	    (;non-computational one-clause defined idpc like "EqD" "ExU" "AndU"
-	     (and (= 1 (length clauses))
-		  (predicate-form?
-		   (impnc-form-to-final-conclusion
-		    (allnc-form-to-final-kernel (car clauses)))))
-	     (let* ;same mr formula with exr y(y mr A) / eps mr A for
-					;c.r./n.c. param formulas A
-		 ((types (idpredconst-to-types pred))
-		  (cterms (idpredconst-to-cterms pred))
-		  (formulas (map cterm-to-formula cterms))
-		  (et-types (map formula-to-et-type formulas))
-		  (varterms-and-eps
-		   (map (lambda (x) (if (nulltype? x) 'eps
-					(make-term-in-var-form
-					 (type-to-new-partial-var x))))
-			et-types))
-		  (mr-formulas
-		   (map (lambda (x formula)
-			  (real-and-formula-to-mr-formula-aux x formula))
-			varterms-and-eps formulas))
-		  (mr-cterms
-		   (map (lambda (cterm mr-formula)
-			  (apply make-cterm (append (cterm-to-vars cterm)
-						    (list mr-formula))))
-			cterms mr-formulas))
-		  (mr-idpc (make-idpredconst idpc-name types mr-cterms)))
-	       (apply make-predicate-formula mr-idpc args)))
-	    (else ;witnessing idpc like "EvenMR"
-	     formula)))))))
+	   (if (pair? (idpredconst-name-to-opt-alg-name idpc-name)) ;c.r.idpc
+	       (apply make-predicate-formula
+		      (idpredconst-to-mr-idpredconst-for-mr-clauses
+		       pred mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+		      real args)
+	       (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+			"c.r. idpredconst expected" formula))))
+	(else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		       "c.r. predicate expected" formula)))))
     ((imp impnc)
      (let* ((prem (imp-impnc-form-to-premise formula))
 	    (type1 (formula-to-et-type-for-mr-clauses
 		    prem mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	    (concl (imp-impnc-form-to-conclusion formula))
-	    (type2 (formula-to-et-type-for-mr-clauses
-		    concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	    (m-imp (if (and (eq? 'imp (tag formula))
-	    		    (pair? (intersection (formula-to-pvars prem)
-	    					 idpc-pvars)))
-	    	       make-imp
-	    	       make-impnc)))
-       (cond
-	((nulltype? type1)
-	 (m-imp (real-and-idpc-clause-to-mr-idpc-clause
-		 'eps prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		(real-and-idpc-clause-to-mr-idpc-clause
-		 real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	((nulltype? type2)
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var)))
-	   (make-allnc
-	    var (m-imp
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  'eps concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
-	(else ;neither type1 nor type2 equals nulltype
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var))
-		 (appterm (if (imp-form? formula)
-			      (make-term-in-app-form real varterm)
-			      real)))
-	   (make-allnc
-	    var (m-imp
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  appterm concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))))
+	    (concl (imp-impnc-form-to-conclusion formula)))
+       (if (and (imp-form? formula) (not (nulltype? type1)))
+	   (let*  ((var (type-to-new-partial-var type1))
+		   (varterm (make-term-in-var-form var))
+		   (appterm (make-term-in-app-form real varterm)))
+	     (make-all
+	      var (make-imp
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    appterm concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))))
+	   (make-imp prem
+		     (real-and-formula-to-mr-formula-for-mr-clauses
+		      real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
     ((and)
      (let* ((left (and-form-to-left formula))
 	    (type1 (formula-to-et-type-for-mr-clauses
@@ -2077,84 +2165,71 @@
 	    (type2 (formula-to-et-type-for-mr-clauses
 		    right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
        (cond
-	((and (nulltype? type1) (nulltype? type2))
-	 (make-and (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		   (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	((nulltype? type1)
-	 (make-and (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		   (real-and-idpc-clause-to-mr-idpc-clause
-		    real right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	((nulltype? type2)
-	 (make-and (real-and-idpc-clause-to-mr-idpc-clause
+	((and (not (nulltype? type1)) (nulltype? type2))
+	 (make-and (real-and-formula-to-mr-formula-for-mr-clauses
 		    real left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		   (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	(else ;neither type1 nor type2 equals nulltype
+		   right))
+	((and (nulltype? type1) (not (nulltype? type2)))
+	 (make-and left
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    real right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
+	((and (not (nulltype? type1)) (not (nulltype? type2)))
 	 (let*  ((term1 (make-term-in-lcomp-form real))
 		 (term2 (make-term-in-rcomp-form real)))
-	   (make-and (real-and-idpc-clause-to-mr-idpc-clause
+	   (make-and (real-and-formula-to-mr-formula-for-mr-clauses
 		      term1 left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		     (real-and-idpc-clause-to-mr-idpc-clause
-		      term2 right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))))
+		     (real-and-formula-to-mr-formula-for-mr-clauses
+		      term2 right mr-et-tvars idpc-pvars pvar-to-mr-pvar))))
+	(else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		       "c.r. conjunction expected" formula)))))
     ((all)
      (let* ((var (all-form-to-var formula))
 	    (kernel (all-form-to-kernel formula))
 	    (type (formula-to-et-type-for-mr-clauses
 		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-       (if
-	(nulltype? type)
-	(make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-		       'eps kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	(let* ((varterm (make-term-in-var-form var))
-	       (appterm (make-term-in-app-form real varterm)))
-	  (make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-			 appterm kernel
-			 mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))
+       (if (nulltype? type)
+	   (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		    "c.r. all formula expected" formula)
+	   (let* ((varterm (make-term-in-var-form var))
+		  (appterm (make-term-in-app-form real varterm)))
+	     (make-all var (real-and-formula-to-mr-formula-for-mr-clauses
+			    appterm kernel
+			    mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))
     ((allnc)
      (let* ((var (allnc-form-to-var formula))
 	    (kernel (allnc-form-to-kernel formula))
 	    (type (formula-to-et-type-for-mr-clauses
 		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-       (if
-	(nulltype? type)
-	(make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-			 'eps kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	(make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-			 real kernel
-			 mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
+       (if (nulltype? type)
+	   (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		    "c.r. allnc formula expected" formula)
+	   (make-all var (real-and-formula-to-mr-formula-for-mr-clauses
+			  real kernel
+			  mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
     ((ex)
      (let* ((var (ex-form-to-var formula))
 	    (kernel (ex-form-to-kernel formula))
 	    (type (formula-to-et-type-for-mr-clauses
 		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
        (if (nulltype? type)
-	   (real-and-idpc-clause-to-mr-idpc-clause
-	    'eps (formula-subst kernel var real)
-	    mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+	   (formula-subst kernel var real)
 	   (let ((term1 (make-term-in-lcomp-form real))
 		 (term2 (make-term-in-rcomp-form real)))
-	     (real-and-idpc-clause-to-mr-idpc-clause
+	     (real-and-formula-to-mr-formula-for-mr-clauses
 	      term2 (formula-subst kernel var term1)
 	      mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
-    ((exnc) ;obsolete
-     (let* ((var (exnc-form-to-var formula))
-	    (kernel (exnc-form-to-kernel formula))
-	    (type (formula-to-et-type-for-mr-clauses
-		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-       (if
-	(nulltype? type)
-	(make-exnc var (real-and-idpc-clause-to-mr-idpc-clause
-			'eps kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	(make-exnc var (real-and-idpc-clause-to-mr-idpc-clause
-			real kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
     ((exca excl excu)
-     (real-and-idpc-clause-to-mr-idpc-clause
+     (real-and-formula-to-mr-formula-for-mr-clauses
       real (unfold-formula formula) mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-    (else (myerror "real-and-idpc-clause-to-mr-idpc-clause" "formula expected"
-		   formula))))
+    (else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		   "c.r. formula expected" formula))))
+
+;; We must require a sharp substitution for c.r. param pvars Y in a c.r.
+;; idpc I if tau(Y) is free in tau of any of the clauses.  Reason: Y^r
+;; in I^r needs a cterm of arity (tau(A), rhos) if Y |-> {xs|A} in I.
+;; Similarly: a param-pvar Y in a relevant occurrence of an aconst
+;; with tau(Y) in the type of its uninst formula must be sharply
+;; substituted as well, to avoid nullterm in eterms.
 
 (define (idpredconst-to-mr-idpredconst-for-mr-clauses
 	 idpc mr-et-tvars idpc-pvars pvar-to-mr-pvar)
@@ -2172,20 +2247,20 @@
 	 (local-mr-et-tvars
 	  (list-transform-positive clause-et-tvars
 	    (lambda (tvar) (member tvar et-tvars-of-param-pvars))))
-	 (pvar-et-type-list
+	 (pvar-et-type-alist
 	  (map (lambda (pvar cterm)
 		 (list pvar (formula-to-et-type-for-mr-clauses
 			     (cterm-to-formula cterm)
 			     mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
 	       param-pvars cterms))
-	 (c-r-pvar-et-type-list
-	  (list-transform-positive pvar-et-type-list
+	 (relevant-pvar-et-type-alist
+	  (list-transform-positive pvar-et-type-alist
 	    (lambda (x) (member (PVAR-TO-TVAR (car x)) local-mr-et-tvars))))
 	 (et-tsubst (map (lambda (x)
 			   (let ((pvar (car x))
 				 (et-type (cadr x)))
 			     (list (PVAR-TO-TVAR pvar) et-type)))
-			 c-r-pvar-et-type-list))
+			 relevant-pvar-et-type-alist))
 	 (orig-and-mr-tvars (idpredconst-name-to-tvars mr-idpc-name))
 	 (orig-and-mr-types (map (lambda (tvar)
 				   (let ((info1 (assoc tvar tsubst))
@@ -2194,21 +2269,20 @@
 					   (info2 (cadr info2))
 					   (else tvar))))
 				 orig-and-mr-tvars))
-	 (mr-cterms
+	 (orig-and-mr-pvars (idpredconst-name-to-param-pvars mr-idpc-name))
+	 (pvar-cterm-alist (map list param-pvars cterms)) ;not a psubst
+	 (mr-pvar-cterm-alist
 	  (map
 	   (lambda (pvar cterm)
 	     (let ((vars (cterm-to-vars cterm))
 		   (formula (cterm-to-formula cterm)))
-	       (if ;c.r. param-pvar
+	       (if ;relevant param-pvar
 		(member (PVAR-TO-TVAR pvar) local-mr-et-tvars)
 		(if ;n.c. cterm
 		 (formula-of-nulltype? formula)
-		 (let* ((mr-formula
-			 (real-and-idpc-clause-to-mr-idpc-clause
-			  'eps formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-			(mr-var (type-to-new-partial-var (make-alg "unit")))
-			(mr-vars (cons mr-var vars)))
-		   (apply make-cterm (append mr-vars (list mr-formula))))
+		 (myerror
+		  "idpredconst-to-mr-idpredconst" "c.r. formula expected"
+		  formula "for relevant param-pvar" pvar)
 					;else c.r. cterm
 		 (let* ((et-type
 			 (formula-to-et-type-for-mr-clauses
@@ -2216,31 +2290,27 @@
 			(mr-var (type-to-new-partial-var et-type))
 			(mr-vars (cons mr-var vars))
 			(mr-formula
-			 (real-and-idpc-clause-to-mr-idpc-clause
+			 (idpredconst-to-mr-idpredconst-for-mr-clauses
 			  (make-term-in-var-form mr-var) formula
 			  mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-		   (apply make-cterm (append mr-vars (list mr-formula)))))
-					;else n.c. param-pvar
-		(if ;n.c. cterm
-		 (formula-of-nulltype? formula)
-		 (let ((mr-formula
-			(real-and-idpc-clause-to-mr-idpc-clause
-			 'eps formula mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-		   (apply make-cterm (append vars (list mr-formula))))
-					;else c.r. cterm
-		 (let* ((et-type
-			 (formula-to-et-type-for-mr-clauses
-			  formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-			(mr-var (type-to-new-partial-var et-type))
-			(mr-formula
-			 (real-and-idpc-clause-to-mr-idpc-clause
-			  (make-term-in-var-form mr-var)
-			  formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-			(exu-mr-formula (make-exu mr-var mr-formula)))
-		   (apply make-cterm
-			  (append vars (list exu-mr-formula))))))))
-	   param-pvars cterms)))
-    (make-idpredconst mr-idpc-name orig-and-mr-types mr-cterms)))
+		   (list
+		    (PVAR-TO-MR-PVAR pvar)
+		    (apply make-cterm (append mr-vars (list mr-formula))))))
+					;else irrelevant param-pvar.  Not used
+		(list pvar cterm))))
+	   param-pvars cterms))
+	 (orig-and-mr-cterms
+	  (map (lambda (pvar)
+		 (let ((info1 (assoc pvar pvar-cterm-alist))
+		       (info2 (assoc pvar mr-pvar-cterm-alist)))
+		   (cond (info1 (cadr info1))
+			 (info2 (cadr info2))
+			 (else (myerror
+				"idpredconst-to-mr-idpredconst-for-mr-clauses"
+				"unexpected orig-and-mr-pvars"
+				orig-and-mr-pvars)))))
+	       orig-and-mr-pvars)))
+    (make-idpredconst mr-idpc-name orig-and-mr-types orig-and-mr-cterms)))
 
 (define (alg-and-cterms-to-rtotality-idpredconst alg cterms)
   (let* ((alg-name (alg-form-to-name alg))
