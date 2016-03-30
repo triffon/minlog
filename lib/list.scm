@@ -239,21 +239,6 @@
 ;; This is not added as a rewrite rule, because ListAppend is defined
 ;; by recursion over the first argument and expects rules of arity 1.
 
-;; ListAppendNilPartialSound
-(set-goal (rename-variables
-	   (real-and-formula-to-mr-formula
-	    'eps
-	    (proof-to-formula (theorem-name-to-proof "ListAppendNilPartial")))))
-(assume "xs^" "n^" "STMRnxs")
-(elim "STMRnxs")
-(use "InitEqD")
-(assume "x^1" "xs^1" "n^1" "STMRn1xs1" "IH")
-(ng #t)
-(simp "IH")
-(use "InitEqD")
-;; Proof finished.
-(save "ListAppendNilPartialSound")
-
 ;; We also provide a variant ListAppd of ListAppend (with display ++),
 ;; which allows rewrite rules with two arguments.
 
@@ -284,7 +269,7 @@
 ;; allnc xs^(
 ;;  STotalList xs^ -> allnc xs^0(STotalList xs^0 -> STotalList(xs^ ++xs^0)))
 
-;; ListAppdTotalReal
+;; ListAppdTotalSound
 (set-goal (rename-variables
 	   (real-and-formula-to-mr-formula
 	    (pt "(ListAppd alpha)")
@@ -298,7 +283,7 @@
 (use "TMRx0x")
 (use "IH")
 ;; Proof finished.
-(save "ListAppdTotalReal")
+(save "ListAppdTotalSound")
 
 ;; ListAppdSTotal
 (set-goal (rename-variables
@@ -314,7 +299,7 @@
 ;; Proof finished.
 (save "ListAppdSTotal")
 
-;; ListAppdSTotalReal
+;; ListAppdSTotalSound
 (set-goal (rename-variables
 	   (real-and-formula-to-mr-formula
 	    (nt (proof-to-extracted-term "ListAppdSTotal"))
@@ -327,7 +312,7 @@
 (use "STotalListConsMR")
 (use "IH")
 ;; Proof finished.
-(save "ListAppdSTotalReal")
+(save "ListAppdSTotalSound")
 
 ;; x: ++xs converts into x::xs.  However, xs1++x2: ++xs2 does not rewrite,
 ;; because ++ associates to the left.  But we can add the corresponding
@@ -369,21 +354,6 @@
 (use "InitEqD")
 ;; Proof finished.
 (save "ListAppdNilPartial")
-
-;; ListAppdNilPartialSound
-(set-goal (rename-variables
-	   (real-and-formula-to-mr-formula
-	    'eps
-	    (proof-to-formula (theorem-name-to-proof "ListAppdNilPartial")))))
-(assume "xs^" "n^" "STMRnxs")
-(elim "STMRnxs")
-(use "InitEqD")
-(assume "x^1" "xs^1" "n^1" "STMRn1xs1" "IH")
-(ng #t)
-(simp "IH")
-(use "InitEqD")
-;; Proof finished.
-(save "ListAppdNilPartialSound")
 
 ;; ListAppdAssoc
 (set-goal "all xs1,xs2,xs3 xs1++(xs2++xs3)eqd xs1++xs2++xs3")
@@ -441,7 +411,7 @@
 ;; Proof finished.
 (save-totality)
 
-;; ListLengthTotalReal
+;; ListLengthTotalSound
 (set-goal (rename-variables
 	   (real-and-formula-to-mr-formula
 	    (pt "(ListLength alpha)")
@@ -454,7 +424,7 @@
 (use "TotalNatSuccMR")
 (use "IH")
 ;; Proof finished.
-(save "ListLengthTotalReal")
+(save "ListLengthTotalSound")
 
 ;; ListLengthSTotal
 (set-goal (rename-variables
@@ -473,7 +443,7 @@
 (pp (rename-variables (proof-to-extracted-term "ListLengthSTotal")))
 ;; [n](Rec nat=>nat)n 0([n0,n1]Succ n1)
 
-;; ListLengthSTotalReal
+;; ListLengthSTotalSound
 (set-goal (rename-variables
 	   (real-and-formula-to-mr-formula
 	    (proof-to-extracted-term "ListLengthSTotal")
@@ -487,7 +457,7 @@
 (use "TotalNatSuccMR")
 (use "IH")
 ;; Proof finished.
-(save "ListLengthSTotalReal")
+(save "ListLengthSTotalSound")
 
 ;; LhZeroToEqNil
 (set-goal "all xs(Lh xs=0 -> xs eqd(Nil alpha))")
@@ -612,7 +582,7 @@
 ;; Proof finished.
 (save-totality)
 
-;; ListProjTotalReal
+;; ListProjTotalSound
 (set-goal (rename-variables
 	   (real-and-formula-to-mr-formula
 	    (pt "(ListProj alpha)")
@@ -635,7 +605,7 @@
 (use "IHn1")
 (use "TMRx20x2")
 ;; Proof finished.
-(save "ListProjTotalReal")
+(save "ListProjTotalSound")
 
 ;; ListProjAppdLeft
 (set-goal "all xs1,n,xs2(n<Lh xs1 -> (n thof(xs1++xs2))eqd(n thof xs1))")
@@ -1172,7 +1142,7 @@
 (ng #t)
 (assert "all n1,n^2(TotalNat n^2 -> Pred(Succ n1--n^2)=n1--n^2)")
  (assume "n1")
- (use-with (make-proof-in-aconst-form all-allpartial-aconst)
+ (use-with (make-proof-in-aconst-form alltotal-elim-aconst)
 	   (py "nat")
 	   (make-cterm (pv "n^2") (pf "Pred(Succ n1--n^2)=n1--n^2"))
 	   "?")
@@ -1213,7 +1183,7 @@
 (ng #t)
 (assert "all n1,n^2(TotalNat n^2 -> Pred(Succ n1--n^2)=n1--n^2)")
  (assume "n1")
- (use-with (make-proof-in-aconst-form all-allpartial-aconst)
+ (use-with (make-proof-in-aconst-form alltotal-elim-aconst)
 	   (py "nat")
 	   (make-cterm (pv "n^2") (pf "Pred(Succ n1--n^2)=n1--n^2"))
 	   "?")
@@ -1347,14 +1317,12 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "nat1" "(list nat)_1" "Nil=n::ns")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Nil=n::ns")
 (assume "nat1" "(list nat)_1" "IH")
 (cases)
 (assume "n::ns=Nil")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "n::ns=Nil")
 (assume "nat2" "(list nat)_2" "n::ns=m::ms")
 (ng "n::ns=m::ms")
@@ -1414,14 +1382,12 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "boole1" "(list boole)_1" "Nil=p::ps")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Nil=p::ps")
 (assume "boole1" "(list boole)_1" "IH")
 (cases)
 (assume "p::ps=Nil")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "p::ps=Nil")
 (assume "boole2" "(list boole)_2" "p::ps=q::qs")
 (ng "p::ps=q::qs")
@@ -2250,14 +2216,12 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "(list nat)_1" "(list list nat)_1" "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "(list nat)_1" "(list list nat)_1" "IH")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (ng)
 (assume "(list nat)_2" "(list list nat)_2" "Conj")
