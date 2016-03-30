@@ -87,7 +87,7 @@
     ((and)
      (append (formula-to-elem-subformulas (and-form-to-left formula))
 	     (formula-to-elem-subformulas (and-form-to-right formula))))
-    ((all ex allnc exnc exca excl) (list formula))
+    ((all ex allnc exca excl) (list formula))
     (else (myerror "formula-to-elem-subformulas" "formula expected"
 		   formula))))
 

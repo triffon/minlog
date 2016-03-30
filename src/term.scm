@@ -1387,7 +1387,7 @@
     (not (or
           (member
 	   var
-	   '("all" "ex" "allnc" "exnc" "excl" "exca" "excu"
+	   '("all" "ex" "allnc" "excl" "exca" "excu"
 	     "CoRec" "coRec" "Destr" "lambda" "left" "right" "cterm" "if"
 	     "Pvar" "MPC" "PROOF" "CLASSIC" "INTUITIONISTIC" "END" "LOAD"
 	     "INCLUDE" "SCHEME" "TYPE" "PRED" "ALGEBRA" "FUNCTION" "PARTIAL"
@@ -6783,7 +6783,7 @@ intDestr n | n > 0  = Left n
       (case quant
 	((all allnc) (formula-of-nulltypep? kernel))
 	((ex exd exl exdt exlt) #f)
-	((exr exu exrt exut exnc) (formula-of-nulltypep? kernel))
+	((exr exu exrt exut) (formula-of-nulltypep? kernel))
 	((exca excl excu) (formula-of-nulltypep? (unfold-formula formula)))
 	(else (myerror "formula-of-nulltypep?" "quant expected" quant)))))
    ((predicate-form? formula)
@@ -6813,7 +6813,7 @@ intDestr n | n > 0  = Left n
 	  (kernel (quant-form-to-kernel formula)))
       (case quant
 	((all allnc) #f)
-	((ex exd exl exdt exlt exr exu exrt exut exnc)
+	((ex exd exl exdt exlt exr exu exrt exut)
 	 (formula-of-nulltypen? kernel))
 	((exca excl excu) (formula-of-nulltypen? (unfold-formula formula)))
 	(else (myerror "formula-of-nulltypen?" "quant expected" quant)))))
@@ -7330,7 +7330,7 @@ intDestr n | n > 0  = Left n
       ((tensor)
        (and (pattern? (tensor-form-to-left expr) flex-vars forb-vars)
 	    (pattern? (tensor-form-to-right expr) flex-vars forb-vars)))
-      ((all ex allnc exnc exca excl)
+      ((all ex allnc exca excl)
        (let ((vars (quant-form-to-vars expr))
 	     (kernel (quant-form-to-kernel expr)))
 	 (if (or (pair? (intersection vars flex-vars))
@@ -7465,25 +7465,19 @@ intDestr n | n > 0  = Left n
 	   new-kernel1 new-kernel2 rest-unif-pairs))))
    ((or (and (all-form? expr1) (all-form? expr2))
 	(and (allnc-form? expr1) (allnc-form? expr2))
-	(and (ex-form? expr1) (ex-form? expr2))
-	(and (exnc-form? expr1) (exnc-form? expr2)) ;obsolete
-	)
+	(and (ex-form? expr1) (ex-form? expr2)))
     (let ((var1 (cond ((all-form? expr1) (all-form-to-var expr1))
 		      ((allnc-form? expr1) (allnc-form-to-var expr1))
-		      ((ex-form? expr1) (ex-form-to-var expr1))
-		      ((exnc-form? expr1) (exnc-form-to-var expr1))))
+		      ((ex-form? expr1) (ex-form-to-var expr1))))
 	  (kernel1 (cond ((all-form? expr1) (all-form-to-kernel expr1))
 			 ((allnc-form? expr1) (allnc-form-to-kernel expr1))
-			 ((ex-form? expr1) (ex-form-to-kernel expr1))
-			 ((exnc-form? expr1) (exnc-form-to-kernel expr1))))
+			 ((ex-form? expr1) (ex-form-to-kernel expr1))))
 	  (var2 (cond ((all-form? expr2) (all-form-to-var expr2))
 		      ((allnc-form? expr2) (allnc-form-to-var expr2))
-		      ((ex-form? expr2) (ex-form-to-var expr2))
-		      ((exnc-form? expr2) (exnc-form-to-var expr2))))
+		      ((ex-form? expr2) (ex-form-to-var expr2))))
 	  (kernel2 (cond ((all-form? expr2) (all-form-to-kernel expr2))
 			 ((allnc-form? expr2) (allnc-form-to-kernel expr2))
-			 ((ex-form? expr2) (ex-form-to-kernel expr2))
-			 ((exnc-form? expr2) (exnc-form-to-kernel expr2)))))
+			 ((ex-form? expr2) (ex-form-to-kernel expr2)))))
       (cond
        ((equal? var1 var2)
 	(let* ((info (member var1 (append sig-vars flex-vars forb-vars)))

@@ -102,7 +102,7 @@
    goal
    (let ((formula (unfold-formula (proof-to-formula goal))))
      (case (tag formula)
-       ((atom predicate ex exnc)
+       ((atom predicate ex)
 	(myerror "mk-goal-in-elim-form" "applicable formula expected" formula))
        ((imp)
 	(apply mk-goal-in-elim-form
@@ -395,38 +395,9 @@
 ;; We initially supply our axioms as theorems, and also
 ;; AtomTrue: all boole(boole -> boole=True)
 ;; AtomFalse: all boole((boole -> F) -> boole=False)
-;; Efq-Atom: all boole(F -> boole) ;use in examples/ordinals obsolete
+;; EfqAtom: all boole(F -> boole) ;use in examples/ordinals obsolete
 
 ;; atom-true-proof moved to ets.scm because it uses EqD
-
-(define eq-compat-rev-proof ;obsolete
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var1 (make-var tvar 1 0 name))
-	 (var2 (make-var tvar 2 0 name))
-	 (varterm1 (make-term-in-var-form var1))
-	 (varterm2 (make-term-in-var-form var2))
-	 (pvar (make-pvar (make-arity tvar) -1 0 0 ""))
-	 (eq-fla (make-eq varterm1 varterm2))
-	 (fla2 (make-predicate-formula pvar varterm2))
-	 (u1 (formula-to-new-avar eq-fla "u"))
-	 (u2 (formula-to-new-avar fla2 "u")))
-  (mk-proof-in-nc-intro-form
-   var1 var2
-   (mk-proof-in-intro-form
-    u1 u2
-    (mk-proof-in-elim-form
-     (make-proof-in-aconst-form eq-compat-aconst)
-     varterm2 varterm1
-     (mk-proof-in-elim-form
-      (make-proof-in-aconst-form eq-sym-aconst)
-      varterm1 varterm2 (make-proof-in-avar-form u1))
-     (make-proof-in-avar-form u2))))))
-
-(define eq-compat-rev-aconst ;obsolete
-  (make-aconst "Eq-Compat-Rev" 'theorem
-	       (proof-to-formula eq-compat-rev-proof)
-	       empty-subst))
 
 ;; To display a numbered goal we use display-num-goal.
 
@@ -1623,7 +1594,6 @@
 	   (oru-form? used-formula)
 	   (ornc-form? used-formula)
 	   (ex-form? used-formula)
-	   (exnc-form? used-formula) ;obsolete
 	   (exd-form? used-formula)
 	   (exl-form? used-formula)
 	   (exr-form? used-formula)
@@ -2646,9 +2616,7 @@
 			 (or (atom-form? nf)
 			     (predicate-form? nf)
 			     (and-form? nf)
-			     (ex-form? nf)
-			     (exnc-form? nf) ;obsolete
-			     )))
+			     (ex-form? nf))))
 	 (let* ((np (caddr nc-and-ncv-and-np-and-ng))
 		(ng (cadddr nc-and-ncv-and-np-and-ng))
 		(new-num-goal
@@ -4107,7 +4075,7 @@
 		   (list x1 DEFAULT-GOAL-NAME)))))
 
 ;; Assume we prove a goal from an existential formula ex x A, exd x A,
-;; exr x A, exl x A, exu x A, exnc x A or exc x1,..,xn(A1!..!Am).  The
+;; exr x A, exl x A, exu x A or exc x1,..,xn(A1!..!Am).  The
 ;; natural way to use this hypothesis is to say "by exhyp assume we
 ;; have an x satisfying A" or "by exhyp assume we have x1,..,xn
 ;; satisfying A1...,Am".  Correspondingly we provide
@@ -4167,9 +4135,7 @@
 			     (exd-form? ex-fla) (exdt-form? ex-fla)
 			     (exr-form? ex-fla) (exrt-form? ex-fla)
 			     (exl-form? ex-fla) (exlt-form? ex-fla)
-			     (exu-form? ex-fla) (exut-form? ex-fla)
-			     (exnc-form? ex-fla) ;obsolete
-			     )
+			     (exu-form? ex-fla) (exut-form? ex-fla))
 			 (list 1 1))
 			((excl-form? ex-fla)
 			 (list (length (excl-form-to-vars ex-fla))
@@ -4203,8 +4169,6 @@
 		      (exl-form? ex-fla) (exlt-form? ex-fla)
 		      (exu-form? ex-fla) (exut-form? ex-fla))
 		  (exi-elim-intern num-goals proof maxgoal exhyp))
-		 ((exnc-form? ex-fla) ;obsolete
-		  (exnc-elim-intern num-goals proof maxgoal exhyp))
 		 ((or (excl-form? ex-fla) (exca-form? ex-fla))
 		  (exc-elim-intern num-goals proof maxgoal exhyp))
 		 (else (myerror "existential formula expected" ex-fla)))))
@@ -4285,146 +4249,6 @@
 
 (define by-assume-with-intern by-assume-intern) ;obsolete
 (define by-assume-with by-assume) ;obsolete
-
-(define (exnc-intro term) ;obsolete
-  (let* ((num-goals (pproof-state-to-num-goals))
-	 (proof (pproof-state-to-proof))
-	 (maxgoal (pproof-state-to-maxgoal))
-	 (number (num-goal-to-number (car num-goals))))
-    (set! PPROOF-STATE (exnc-intro-intern num-goals proof maxgoal term))
-    (pproof-state-history-push PPROOF-STATE)
-    (display-new-goals num-goals number)))
-
-(define (exnc-intro-intern num-goals proof maxgoal term) ;obsolete
-  (let* ((num-goal (car num-goals))
-         (number (num-goal-to-number num-goal))
-	 (goal (num-goal-to-goal num-goal))
-	 (context (goal-to-context goal))
-	 (formula (goal-to-formula goal))
-	 (free (if (exnc-form? formula)
-                   (formula-to-free formula)
-                   (myerror "exnc-intro" "exnc goal expected"))))
-    (apply use-with-intern
-	   num-goals proof maxgoal
-	   (make-proof-in-aconst-form
-	    (exnc-formula-to-exnc-intro-aconst formula))
-	   (append (map make-term-in-var-form free)
-		   (list term DEFAULT-GOAL-NAME)))))
-
-;; In the following definition of exnc-elim x is
-;; - a number or string identifying an exnc hypothesis form the context,
-;; - the name of an exnc global assumption or theorem
-;; - a closed proof on an exnc formula (closed ones suffice),
-;; - an exnc formula with free variables from the context,
-;;   generating a new goal.
-
-(define (exnc-elim x) ;obsolete
-  (let* ((num-goals (pproof-state-to-num-goals))
-	 (proof (pproof-state-to-proof))
-	 (maxgoal (pproof-state-to-maxgoal))
-	 (number (num-goal-to-number (car num-goals))))
-    (set! PPROOF-STATE (exnc-elim-intern num-goals proof maxgoal x))
-    (pproof-state-history-push PPROOF-STATE)
-    (display-new-goals num-goals number)))
-
-(define (exnc-elim-intern num-goals proof maxgoal x) ;obsolete
-  (let* ((num-goal (car num-goals))
-	 (number (num-goal-to-number num-goal))
-	 (goal (num-goal-to-goal num-goal))
-	 (hypname-info (num-goal-to-hypname-info num-goal))
-	 (context (goal-to-context goal))
-	 (avars (context-to-avars context))
-	 (l (length avars))
-	 (goal-formula (goal-to-formula goal))
-	 (exnc-formula-and-x1
-	  (cond
-	   ((and (integer? x) (positive? x))
-	    (if (<= x l)
-		(let* ((avar (list-ref avars (- x 1)))
-		       (formula (avar-to-formula avar)))
-		  (list formula (make-proof-in-avar-form avar)))
-		(myerror "exnc-elim" "assumption number expected" x)))
-	   ((and (string? x)
-		 (member x (hypname-info-to-names hypname-info)))
-	    (let ((i (name-and-hypname-info-to-index x hypname-info)))
-	      (if (<= i l)
-		  (let* ((avar (list-ref avars (- i 1)))
-			 (formula (avar-to-formula avar)))
-		    (list formula (make-proof-in-avar-form avar)))
-		  (myerror "exnc-elim" "assumption number expected" i))))
-	   ((and (string? x) (assoc x THEOREMS))
-	    (let* ((aconst (theorem-name-to-aconst x))
-		   (formula (aconst-to-formula aconst)))
-	      (list formula (make-proof-in-aconst-form aconst))))
-	   ((and (string? x) (assoc x GLOBAL-ASSUMPTIONS))
-	    (let* ((aconst (global-assumption-name-to-aconst x))
-		   (formula (aconst-to-formula aconst)))
-	      (list formula (make-proof-in-aconst-form aconst))))
-	   ((proof-form? x) (list (proof-to-formula x) x))
-	   ((formula-form? x) ;then a new goal is created
-	    (list x DEFAULT-GOAL-NAME))
-	   (else (myerror "exnc-elim" "illegal argument" x))))
-         (exnc-formula (car exnc-formula-and-x1))
-         (x1 (cadr exnc-formula-and-x1))
-         (free1 (if (exnc-form? exnc-formula)
-                    (formula-to-free exnc-formula)
-                    (myerror "exnc-elim" "exnc formula expected"
-			     exnc-formula)))
-         (free2 (formula-to-free goal-formula))
-         (free (union free1 free2)))
-    (apply use-with-intern
-	   num-goals proof maxgoal
-	   (make-proof-in-aconst-form
-	    (exnc-formula-and-concl-to-exnc-elim-aconst
-	     exnc-formula goal-formula))
-	   (append (map make-term-in-var-form free)
-		   (list x1 DEFAULT-GOAL-NAME)))))
-
-;; Suppose we are proving a goal G from an existential hypothesis ExHyp:
-;; exnc x A.  Then the natural way to use this hypothesis is to say `by
-;; ExHyp assume we have an x satisfying A'.  Correspondingly we provide
-
-(define (by-exnc-assume-with exhyp var kernel) ;obsolete
-  (let* ((num-goals (pproof-state-to-num-goals))
-	 (proof (pproof-state-to-proof))
-	 (maxgoal (pproof-state-to-maxgoal))
-	 (number (num-goal-to-number (car num-goals))))
-    (set! PPROOF-STATE (by-exnc-assume-with-intern
-			num-goals proof maxgoal exhyp var kernel))
-    (set! PPROOF-STATE-HISTORY (cons PPROOF-STATE PPROOF-STATE-HISTORY))
-    (display-comment "ok, we now have the new goal ")
-    (if COMMENT-FLAG (newline))
-    (display-num-goal (car (pproof-state-to-num-goals)))))
-
-(define (by-exnc-assume-with-intern ;obsolete
-	 num-goals proof maxgoal exhyp var kernel)
-  (let* ((num-goal (car num-goals))
-	 (number (num-goal-to-number num-goal))
-	 (goal (num-goal-to-goal num-goal))
-	 (hypname-info (num-goal-to-hypname-info num-goal)))
-    (cond
-     ((or ;hypothesis
-       (and (integer? exhyp) (positive? exhyp))
-       (and (string? exhyp)
-	    (member exhyp (hypname-info-to-names hypname-info))))
-      (let* ((pproof-state1 (exnc-elim-intern num-goals proof maxgoal exhyp))
-	     (pproof-state2
-	      (apply assume-intern (append pproof-state1 (list var kernel)))))
-	(apply drop-intern (append pproof-state2 (list exhyp)))))
-     ((or ;theorem/global assumption/proof
-       (and (string? exhyp) (assoc exhyp THEOREMS))
-       (and (string? exhyp) (assoc exhyp GLOBAL-ASSUMPTIONS))
-       (proof-form? exhyp))
-      (let ((pproof-state1 (exnc-elim-intern num-goals proof maxgoal exhyp)))
-	(apply assume-intern (append pproof-state1 (list var kernel)))))
-     ((formula-form? exhyp) ;then a new goal is created
-      (let* ((pproof-state1 (exnc-elim-intern num-goals proof maxgoal exhyp))
-	     (pproof-state2
-	      (apply get-intern
-		     (append pproof-state1
-			     (list (pproof-state-to-maxgoal pproof-state1))))))
-	(apply assume-intern (append pproof-state2 (list var kernel)))))
-     (else (myerror "by-exnc-assume-with-intern" "unexpected exhyp" exhyp)))))
 
 ;; (cases) expects a goal formula all x A with x of alg type and total.
 ;; Let c1 ... cn be the constructors of the algebra.  Then n new goals
@@ -4630,10 +4454,10 @@
 ;; - a type, which is substituted for the 1st tvar,
 ;; - a comprehension term, which is substituted for the 1st pvar.
 ;; This generates a used formula, which is to be an atom, a negated
-;; atom or (Equal lhs rhs) or (lhs eqd rhs).  If it as a (negated)
+;; atom or (lhs eqd rhs).  If it as a (negated)
 ;; atom, check whether the kernel or its normal form is present in the
 ;; goal.  If so, replace it by True (False).  If it is (lhs = rhs) or
-;; (Equal lhs rhs) or (lhs eqd rhs) with lhs or its normal form present
+;;  (lhs eqd rhs) with lhs or its normal form present
 ;; in the goal, replace lhs by rhs.  In case "<-" exchange lhs by rhs.
 
 (define (simp-with opt-dir-or-x . x-and-xs-or-xs)
@@ -4773,52 +4597,6 @@
 	 (goal-subst proof goal new-proof)
 	 new-maxgoal)))
      ((and (predicate-form? used-prime-formula)
-	   (let ((predicate (predicate-form-to-predicate used-prime-formula))
-		 (args (predicate-form-to-args used-prime-formula)))
-	     (and
-	      (predconst-form? predicate)
-	      (string=? "Equal" (predconst-to-name predicate))
-	      (let* ((lhs (car args))
-		     (rhs (cadr args))
-		     (type (term-to-type lhs))
-		     (var (type-to-new-var type))
-		     (varterm (make-term-in-var-form var))
-		     (simp-formula
-		      (if left-to-right
-			  (formula-gen-subst goal-formula lhs varterm)
-			  (formula-gen-subst goal-formula rhs varterm))))
-		(not (formula=? simp-formula goal-formula))))))
-      (let* ((args (predicate-form-to-args used-prime-formula))
-	     (lhs (car args))
-	     (rhs (cadr args))
-	     (type (term-to-type lhs))
-	     (var (type-to-new-var type))
-	     (varterm (make-term-in-var-form var))
-	     (simp-formula
-	      (if left-to-right
-		  (formula-gen-subst goal-formula lhs varterm)
-		  (formula-gen-subst goal-formula rhs varterm)))
-	     (all-formula (mk-all var simp-formula))
-	     (new-goal ;A(rhs) or A(lhs)
-	      (context-and-ncvars-and-formula-to-new-goal
-	       context ncvars
-	       (formula-subst simp-formula var
-			      (if left-to-right rhs lhs))))
-	     (new-num-goal
-	      (make-num-goal
-	       (+ 1 maxgoal) new-goal drop-info hypname-info))
-	     (new-proof ;of A(lhs) or A(rhs)
-	      (mk-proof-in-elim-form
-	       (if
-		left-to-right
-		(eq-compat-rev-at all-formula) ;allnc n,m(n=m -> A(m) -> A(n))
-		(eq-compat-at all-formula))    ;allnc n,m(n=m -> A(n) -> A(m))
-	       lhs rhs negatom-or-eq-proof new-goal)))
-	(make-pproof-state
-	 (append (list new-num-goal) new-num-goals (cdr num-goals))
-	 (goal-subst proof goal new-proof)
-	 new-maxgoal)))
-     ((and (predicate-form? used-prime-formula)
 	   (let ((predicate (predicate-form-to-predicate used-prime-formula)))
 	     (and (idpredconst-form? predicate)
 		  (string=? "EqD" (idpredconst-to-name predicate))
@@ -4908,52 +4686,6 @@
 		left-to-right
 		(compat-rev-at all-formula) ;allnc n,m(n=m -> A(m) -> A(n))
 		(compat-at all-formula))    ;allnc n,m(n=m -> A(n) -> A(m))
-	       lhs rhs negatom-or-eq-proof new-goal)))
-	(make-pproof-state
-	 (append (list new-num-goal) new-num-goals (cdr num-goals))
-	 (goal-subst proof goal new-proof)
-	 new-maxgoal)))
-     ((and (predicate-form? used-nprime-formula)
-	   (let ((predicate (predicate-form-to-predicate used-nprime-formula))
-		 (args (predicate-form-to-args used-nprime-formula)))
-	     (and
-	      (predconst-form? predicate)
-	      (string=? "Equal" (predconst-to-name predicate))
-	      (let* ((lhs (car args))
-		     (rhs (cadr args))
-		     (type (term-to-type lhs))
-		     (var (type-to-new-var type))
-		     (varterm (make-term-in-var-form var))
-		     (simp-formula
-		      (if left-to-right
-			  (formula-gen-subst goal-formula lhs varterm)
-			  (formula-gen-subst goal-formula rhs varterm))))
-		(not (formula=? simp-formula goal-formula))))))
-      (let* ((args (predicate-form-to-args used-nprime-formula))
-	     (lhs (car args))
-	     (rhs (cadr args))
-	     (type (term-to-type lhs))
-	     (var (type-to-new-var type))
-	     (varterm (make-term-in-var-form var))
-	     (simp-formula
-	      (if left-to-right
-		  (formula-gen-subst goal-formula lhs varterm)
-		  (formula-gen-subst goal-formula rhs varterm)))
-	     (all-formula (mk-all var simp-formula))
-	     (new-goal ;A(rhs) or A(lhs)
-	      (context-and-ncvars-and-formula-to-new-goal
-	       context ncvars
-	       (formula-subst simp-formula var
-			      (if left-to-right rhs lhs))))
-	     (new-num-goal
-	      (make-num-goal
-	       (+ 1 maxgoal) new-goal drop-info hypname-info))
-	     (new-proof ;of A(lhs) or A(rhs)
-	      (mk-proof-in-elim-form
-	       (if
-		left-to-right
-		(eq-compat-rev-at all-formula) ;allnc n,m(n=m -> A(m) -> A(n))
-		(eq-compat-at all-formula))    ;allnc n,m(n=m -> A(n) -> A(m))
 	       lhs rhs negatom-or-eq-proof new-goal)))
 	(make-pproof-state
 	 (append (list new-num-goal) new-num-goals (cdr num-goals))
@@ -5241,20 +4973,6 @@
 		  (let ((predicate (predicate-form-to-predicate
 				    used-formula)))
 		    (and
-		     (predconst-form? predicate)
-		     (string=? "Equal" (predconst-to-name predicate))
-		     (let* ((args (predicate-form-to-args used-formula))
-			    (lhs (car args))
-			    (rhs (cadr args)))
-		       (if left-to-right
-			   (first-match sig-tvars-and-sig-vars
-					lhs goal-formula)
-			   (first-match sig-tvars-and-sig-vars
-					rhs goal-formula))))))
-	     (and (predicate-form? used-formula)
-		  (let ((predicate (predicate-form-to-predicate
-				    used-formula)))
-		    (and
 		     (idpredconst-form? predicate)
 		     (string=? "EqD" (idpredconst-to-name predicate))
 		     (let* ((args (predicate-form-to-args used-formula))
@@ -5521,120 +5239,6 @@
 	  (add-global-assumption name formula)
 	  (global-assumption-name-to-aconst name)))))
 
-(define (eq-compat-at all-formula)
-  (let* ((var (all-form-to-var all-formula))
-	 (kernel (all-form-to-kernel all-formula))
-	 (type (var-to-type var))
-	 (partial? (t-deg-zero? (var-to-t-deg var)))
-	 (new-var (if partial? var (var-to-new-partial-var var)))
-	 (new-kernel
-	  (if partial? kernel
-	      (formula-subst kernel var (make-term-in-var-form new-var))))
-	 (cterm (make-cterm new-var new-kernel)))
-    (if
-     (finalg? type)
-     (let* ((aconst
-	     (let* ((typename (type-to-space-free-string type))
-		    (aconstname (string-append "Eq-Compat-" typename))
-		    (info1 (assoc aconstname THEOREMS))
-		    (info2 (assoc aconstname GLOBAL-ASSUMPTIONS)))
-	       (cond
-		(info1 (theorem-name-to-aconst aconstname))
-		(info2 (global-assumption-name-to-aconst aconstname))
-		(else
-		 (let* ((name (default-var-name type))
-			(var1 (make-var type 1 0 name))
-			(var2 (make-var type 2 0 name))
-			(varterm1 (make-term-in-var-form var1))
-			(varterm2 (make-term-in-var-form var2))
-			(eq-fla (make-eq varterm1 varterm2))
-			(pvar (make-pvar (make-arity type) -1 0 0 ""))
-			(fla1 (make-predicate-formula pvar varterm1))
-			(fla2 (make-predicate-formula pvar varterm2))
-			(fla (mk-allnc var1 var2 (mk-imp eq-fla fla1 fla2))))
-		   (add-global-assumption aconstname fla)
-		   (global-assumption-name-to-aconst aconstname))))))
-	    (uninst-formula (aconst-to-uninst-formula aconst))
-	    (final-conclusion
-	     (imp-impnc-all-allnc-form-to-final-conclusion uninst-formula))
-	    (pvar (predicate-form-to-predicate final-conclusion)))
-       (proof-subst (make-proof-in-aconst-form aconst) pvar cterm))
-     (let* ((aconst eq-compat-aconst)
-	    (uninst-formula (aconst-to-uninst-formula aconst))
-	    (tvar (var-to-type (allnc-form-to-var uninst-formula)))
-	    (final-conclusion
-	     (imp-impnc-all-allnc-form-to-final-conclusion uninst-formula))
-	    (pvar (predicate-form-to-predicate final-conclusion))
-	    (tsubst (make-subst tvar type))
-	    (psubst (make-subst-wrt pvar-cterm-equal? pvar cterm))
-	    (free (formula-to-free all-formula)))
-       (apply
-	mk-proof-in-elim-form
-	(cons (make-proof-in-aconst-form
-	       (make-aconst
-		(aconst-to-name aconst) ;"Eq-Compat"
-		(aconst-to-kind aconst) ;'axiom
-		uninst-formula
-		(append tsubst psubst)))
-	      (map make-term-in-var-form free)))))))
-
-(define (eq-compat-rev-at all-formula)
-  (let* ((var (all-form-to-var all-formula))
-	 (kernel (all-form-to-kernel all-formula))
-	 (type (var-to-type var))
-	 (partial? (t-deg-zero? (var-to-t-deg var)))
-	 (new-var (if partial? var (var-to-new-partial-var var)))
-	 (new-kernel
-	  (if partial? kernel
-	      (formula-subst kernel var (make-term-in-var-form new-var))))
-	 (cterm (make-cterm new-var new-kernel)))
-    (if
-     (finalg? type)
-     (let* ((aconst
-	     (let* ((typename (type-to-space-free-string type))
-		    (aconstname (string-append "Eq-Compat-Rev-" typename))
-		    (info1 (assoc aconstname THEOREMS))
-		    (info2 (assoc aconstname GLOBAL-ASSUMPTIONS)))
-	       (cond
-		(info1 (theorem-name-to-aconst aconstname))
-		(info2 (global-assumption-name-to-aconst aconstname))
-		(else
-		 (let* ((name (default-var-name type))
-			(var1 (make-var type 1 0 name))
-			(var2 (make-var type 2 0 name))
-			(varterm1 (make-term-in-var-form var1))
-			(varterm2 (make-term-in-var-form var2))
-			(eq-fla (make-eq varterm1 varterm2))
-			(pvar (make-pvar (make-arity type) -1 0 0 ""))
-			(fla1 (make-predicate-formula pvar varterm1))
-			(fla2 (make-predicate-formula pvar varterm2))
-			(fla (mk-allnc var1 var2 (mk-imp eq-fla fla2 fla1))))
-		   (add-global-assumption aconstname fla)
-		   (global-assumption-name-to-aconst aconstname))))))
-	    (uninst-formula (aconst-to-uninst-formula aconst))
-	    (final-conclusion
-	     (imp-impnc-all-allnc-form-to-final-conclusion uninst-formula))
-	    (pvar (predicate-form-to-predicate final-conclusion)))
-       (proof-subst (make-proof-in-aconst-form aconst) pvar cterm))
-     (let* ((aconst eq-compat-rev-aconst)
-	    (uninst-formula (aconst-to-uninst-formula aconst))
-	    (tvar (var-to-type (allnc-form-to-var uninst-formula)))
-	    (final-conclusion
-	     (imp-impnc-all-allnc-form-to-final-conclusion uninst-formula))
-	    (pvar (predicate-form-to-predicate final-conclusion))
-	    (tsubst (make-subst tvar type))
-	    (psubst (make-subst-wrt pvar-cterm-equal? pvar cterm))
-	    (free (formula-to-free all-formula)))
-       (apply
-	mk-proof-in-elim-form
-	(make-proof-in-aconst-form
-	 (make-aconst
-	  (aconst-to-name aconst) ;"Eq-Compat-Rev"
-	  (aconst-to-kind aconst) ;'theorem
-	  uninst-formula
-	  (append tsubst psubst)))
-	(map make-term-in-var-form free))))))
-
 (define (eqd-compat-at all-formula)
   (let* ((var (all-form-to-var all-formula))
 	 (kernel (all-form-to-kernel all-formula))
@@ -5710,10 +5314,10 @@
 ;; - a comprehension term, which is substituted for the 1st pvar.
 
 ;; This generates a used formula, which is to be an atom, a negated
-;; atom or (Equal lhs rhs) or (lhs eqd rhs).  If it as a (negated)
+;; atom or (lhs eqd rhs).  If it as a (negated)
 ;; atom, check whether the kernel or its normal form is present in the
 ;; hyp.  If so, replace it by True (False).  If it is an equality (lhs
-;; = rhs) or (Equal lhs rhs) or (lhs eqd rhs) with lhs or its normal
+;; = rhs) or (lhs eqd rhs) with lhs or its normal
 ;; form present in the hyp, replace lhs by rhs.  In case "<-" exchange
 ;; lhs by rhs.
 
@@ -5906,114 +5510,6 @@
 		left-to-right
 		(compat-at all-formula)      ;allnc n,m(n=m -> A(n) -> A(m))
 		(compat-rev-at all-formula)) ;allnc n,m(n=m -> A(m) -> A(n))
-	       lhs rhs negatom-or-eq-proof leaf))
-	     (simphyp-formula (proof-to-formula proof-of-simphyp))
-	     (new-avar (formula-to-new-avar simphyp-formula DEFAULT-AVAR-NAME))
-	     (new-goalformula
-	      (context-and-ncvars-and-formula-to-formula
-	       (append context (list new-avar)) ncvars goal-formula))
-	     (new-goalvar (formula-to-new-avar new-goalformula
-					       DEFAULT-AVAR-NAME))
-	     (new-goal
-	      (apply mk-goal-in-elim-form
-		     (make-goal-in-avar-form new-goalvar)
-		     (append context (list new-avar))))
-	     (new-proof (make-proof-in-imp-elim-form
-			 (make-proof-in-imp-intro-form new-avar new-goal)
-			 proof-of-simphyp))
-	     (new-num-goal (make-num-goal
-			    (+ 1 maxgoal) new-goal drop-info hypname-info)))
-	(make-pproof-state
-	 (append (list new-num-goal) new-num-goals (cdr num-goals))
-	 (goal-subst proof goal new-proof)
-	 new-maxgoal)))
-     ((and (predicate-form? used-prime-formula)
-	   (predconst-form? (predicate-form-to-predicate used-prime-formula))
-	   (string=? "Equal" (predconst-to-name
-			      (predicate-form-to-predicate
-			       used-prime-formula)))
-	   (let* ((args (predicate-form-to-args used-prime-formula))
-		  (lhs (car args))
-		  (rhs (cadr args))
-		  (type (term-to-type lhs))
-		  (var (type-to-new-var type))
-		  (varterm (make-term-in-var-form var))
-		  (simphyp-formula
-		   (if left-to-right
-		       (formula-gen-subst leaf-formula lhs varterm)
-		       (formula-gen-subst leaf-formula rhs varterm))))
-	     (not (classical-formula=? simphyp-formula leaf-formula))))
-      (let* ((args (predicate-form-to-args used-prime-formula))
-	     (lhs (car args))
-	     (rhs (cadr args))
-	     (type (term-to-type lhs))
-	     (var (type-to-new-var type))
-	     (varterm (make-term-in-var-form var))
-	     (simphyp-formula
-	      (if left-to-right
-		  (formula-gen-subst leaf-formula lhs varterm)
-		  (formula-gen-subst leaf-formula rhs varterm)))
-	     (all-formula (mk-all var simphyp-formula))
-	     (proof-of-simphyp
-	      (mk-proof-in-elim-form
-	       (if
-		left-to-right
-		(eq-compat-at all-formula)      ;allnc n,m(n=m -> A(n) -> A(m))
-		(eq-compat-rev-at all-formula)) ;allnc n,m(n=m -> A(m) -> A(n))
-	       lhs rhs negatom-or-eq-proof leaf))
-	     (simphyp-formula (proof-to-formula proof-of-simphyp))
-	     (new-avar (formula-to-new-avar simphyp-formula DEFAULT-AVAR-NAME))
-	     (new-goalformula
-	      (context-and-ncvars-and-formula-to-formula
-	       (append context (list new-avar)) ncvars goal-formula))
-	     (new-goalvar (formula-to-new-avar new-goalformula
-					       DEFAULT-AVAR-NAME))
-	     (new-goal
-	      (apply mk-goal-in-elim-form
-		     (make-goal-in-avar-form new-goalvar)
-		     (append context (list new-avar))))
-	     (new-proof (make-proof-in-imp-elim-form
-			 (make-proof-in-imp-intro-form new-avar new-goal)
-			 proof-of-simphyp))
-	     (new-num-goal (make-num-goal
-			    (+ 1 maxgoal) new-goal drop-info hypname-info)))
-	(make-pproof-state
-	 (append (list new-num-goal) new-num-goals (cdr num-goals))
-	 (goal-subst proof goal new-proof)
-	 new-maxgoal)))
-     ((and (predicate-form? used-nprime-formula)
-	   (predconst-form? (predicate-form-to-predicate used-nprime-formula))
-	   (string=? "Equal" (predconst-to-name
-			      (predicate-form-to-predicate
-			       used-nprime-formula)))
-	   (let* ((args (predicate-form-to-args used-nprime-formula))
-		  (lhs (car args))
-		  (rhs (cadr args))
-		  (type (term-to-type lhs))
-		  (var (type-to-new-var type))
-		  (varterm (make-term-in-var-form var))
-		  (simphyp-formula
-		   (if left-to-right
-		       (formula-gen-subst leaf-formula lhs varterm)
-		       (formula-gen-subst leaf-formula rhs varterm))))
-	     (not (classical-formula=? simphyp-formula leaf-formula))))
-      (let* ((args (predicate-form-to-args used-nprime-formula))
-	     (lhs (car args))
-	     (rhs (cadr args))
-	     (type (term-to-type lhs))
-	     (var (type-to-new-var type))
-	     (varterm (make-term-in-var-form var))
-	     (simphyp-formula
-	      (if left-to-right
-		  (formula-gen-subst leaf-formula lhs varterm)
-		  (formula-gen-subst leaf-formula rhs varterm)))
-	     (all-formula (mk-all var simphyp-formula))
-	     (proof-of-simphyp
-	      (mk-proof-in-elim-form
-	       (if
-		left-to-right
-		(eq-compat-at all-formula)      ;allnc n,m(n=m -> A(n) -> A(m))
-		(eq-compat-rev-at all-formula)) ;allnc n,m(n=m -> A(m) -> A(n))
 	       lhs rhs negatom-or-eq-proof leaf))
 	     (simphyp-formula (proof-to-formula proof-of-simphyp))
 	     (new-avar (formula-to-new-avar simphyp-formula DEFAULT-AVAR-NAME))
@@ -7749,7 +7245,7 @@
 
 (define (formula-to-elab-paths formula)
   (case (tag formula)
-    ((atom predicate ex exnc) '(()))
+    ((atom predicate ex) '(()))
     ((imp) (formula-to-elab-paths (imp-form-to-conclusion formula)))
     ((impnc) (formula-to-elab-paths (impnc-form-to-conclusion formula)))
     ((and) (append (map (lambda (l) (cons 'left l))
@@ -7803,7 +7299,7 @@
    (let ((first (car elims))
 	 (rest (cdr elims)))
      (case (tag formula)
-       ((atom predicate ex exnc) #t)
+       ((atom predicate ex) #t)
        ((imp)
 	(if (or (formula-form? first) (proof-form? first))
 	    (apply formula-and-elims-to-t-deg-ok?
@@ -7855,7 +7351,7 @@
 (define (formula-and-elab-path-to-renamed-elab-list
 	 formula elab-path used-vars)
   (case (tag formula)
-    ((atom predicate ex exnc) (list formula))
+    ((atom predicate ex) (list formula))
     ((imp)
      (cons (imp-form-to-premise formula)
 	   (formula-and-elab-path-to-renamed-elab-list
@@ -8153,10 +7649,6 @@
 	      ((ex-form? f) (list (make-proof-in-aconst-form
 				   (ex-formula-to-ex-intro-aconst f))
 				  m))
-	      ((exnc-form? f) ;obsolete
-	       (list (make-proof-in-aconst-form
-		      (exnc-formula-to-exnc-intro-aconst f))
-		     m))
 	      ((and (quant-form? f)
 		    (memq (quant-form-to-quant f)
 			  '(exd exl exr exu exdt exlt exrt exut)))
@@ -8180,11 +7672,6 @@
 		     ((ex-form? (car l))
 		      (list (make-proof-in-aconst-form
 			     (ex-formula-and-concl-to-ex-elim-aconst
-			      (car l) f))
-			    m))
-		     ((exnc-form? (car l)) ;obsolete
-		      (list (make-proof-in-aconst-form
-			     (exnc-formula-and-concl-to-exnc-elim-aconst
 			      (car l) f))
 			    m))
 		     ((and (quant-form? (car l))
@@ -8595,7 +8082,7 @@
 			 (cdr prev))))))
       (select clauses '() (normalize-formula goal) ;normalize-formula added
 	      sequents sig-vars flex-vars forb-vars ex? n)))
-    ((predicate ex exnc)
+    ((predicate ex)
      (if VERBOSE-SEARCH
 	 (begin (display-comment (make-string n #\.))
 		(display "Goal ") (df goal)
@@ -8738,8 +8225,6 @@
       (if
        (not (or (and (atom-form? head) (atom-form? prime-or-ex-goal))
 		(and (ex-form? head) (ex-form? prime-or-ex-goal))
-		(and (exnc-form? head) ;obsolete
-		     (exnc-form? prime-or-ex-goal))
 		(and (predicate-form? head) (predicate-form? prime-or-ex-goal)
 		     (predicate-equal?
 		      (predicate-form-to-predicate head)

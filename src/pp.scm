@@ -50,7 +50,6 @@
 ;; all-op
 ;; ex-op
 ;; allnc-op
-;; exnc-op ;obsolete
 ;; exd-op
 ;; exl-op
 ;; exr-op
@@ -118,7 +117,7 @@
 			      ((null? l) res))))
        (string-append "[" comma-string "]"
 		      (token-tree-to-string kernel))))
-    ((all-op ex-op allnc-op exnc-op
+    ((all-op ex-op allnc-op
 	     exd-op exl-op exr-op exu-op
 	     exdt-op exlt-op exrt-op exut-op)
      (let* ((init-string
@@ -126,7 +125,6 @@
 	       ((all-op) "all ")
 	       ((ex-op) "ex ")
 	       ((allnc-op) "allnc ")
-	       ((exnc-op) "exnc ") ;obsolete
 	       ((exd-op exdt-op) "exd ")
 	       ((exl-op exlt-op) "exl ")
 	       ((exr-op exrt-op) "exr ")
@@ -268,7 +266,7 @@
 (define (token-tree-to-varstrings-and-kernel token-tree)
   (let ((tag1 (token-tree-to-tag token-tree)))
     (case tag1
-      ((binding-op all-op ex-op allnc-op exnc-op
+      ((binding-op all-op ex-op allnc-op
 		   exd-op exl-op exr-op exu-op
 		   exdt-op exlt-op exrt-op exut-op)
        (let* ((arg (car (token-tree-to-args token-tree)))
@@ -314,7 +312,7 @@
     ((predapp) 14)
     ((alg atomic-type atomic-term const var number if-op case-op
 	  pvar predconst idpredconst atom
-	  all-op ex-op allnc-op exnc-op exd-op exl-op exr-op exu-op
+	  all-op ex-op allnc-op exd-op exl-op exr-op exu-op
 	  exdt-op exlt-op exrt-op exut-op exca-op excl-op excu-op
 	   idpredconst-op cterm) 15)
     (else (myerror
@@ -331,7 +329,7 @@
 
 (define (quant-token-tree? token-tree)
   (memq (token-tree-to-tag token-tree)
-	'(all-op ex-op allnc-op exnc-op exd-op exl-op exr-op exu-op
+	'(all-op ex-op allnc-op exd-op exl-op exr-op exu-op
 		 exdt-op exlt-op exrt-op exut-op exca-op excl-op excu-op)))
 
 (define (quant-prime-token-tree? token-tree)
@@ -478,7 +476,7 @@
 	    (postfix-width (pp-tree-to-width postfix)))
        (make-pp-tree (+ prefix-width postfix-width) 1 'newline
 		     (list (make-pp-line prefix) postfix))))
-    ((all-op ex-op allnc-op exnc-op
+    ((all-op ex-op allnc-op
 	     exd-op exl-op exr-op exu-op
 	     exdt-op exlt-op exrt-op exut-op
 	     exca-op excl-op excu-op)
@@ -487,7 +485,6 @@
 	       ((all-op) "all ")
 	       ((ex-op) "ex ")
 	       ((allnc-op) "allnc ")
-	       ((exnc-op) "exnc ")
 	       ((exd-op exdt-op) "exd ")
 	       ((exl-op exlt-op) "exl ")
 	       ((exr-op exrt-op) "exr ")

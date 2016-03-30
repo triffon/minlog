@@ -26,8 +26,6 @@
 (add-token "exr" 'quantor (lambda (v k) (apply mk-exr (append v (list k)))))
 (add-token "exu" 'quantor (lambda (v k) (apply mk-exu (append v (list k)))))
 (add-token "exi" 'quantor (lambda (v k) (apply mk-exi (append v (list k)))))
-(add-token "exnci" 'quantor
-	   (lambda (v k) (apply mk-exnci (append v (list k)))))
 
 ;; We introduce a prefix display string Des for Destr
 

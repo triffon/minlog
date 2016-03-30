@@ -112,15 +112,8 @@
 ;; (b) An ex-formula for an "Ex-Intro" axiom.  One uses
 ;; ex-formula-to-ex-intro-const .
 
-;; (c) An exnc-formula for an "Exnc-Intro" axiom.  One uses ;obsolete
-;; exnc-formula-to-exnc-intro-const .
-
 ;; (6) For an Ex-Elim constant (of kind 'fixed-rules): an ex-formula
 ;; and a conclusion.  One uses ex-formula-and-concl-to-ex-elim-const .
-
-;; (7) For an Exnc-Elim constant (of kind 'fixed-rules): an ;obsolete
-;; exnc-formula and a conclusion.  One uses
-;; exnc-formula-and-concl-to-exnc-elim-const .
 
 (define const-to-object-or-arity cadr)
 (define const-to-name caddr)
@@ -304,32 +297,6 @@
 		arity))))
     (make-const obj "Ex-Intro" 'constr
 		exintroop-type empty-subst 1 'const ex-formula)))
-
-(define (exnc-formula-to-exnc-intro-const exnc-formula) ;obsolete
-  (let* ((free (formula-to-free exnc-formula))
-	 (free-types (map var-to-type free))
-	 (f (length free))
-         (var (exnc-form-to-var exnc-formula))
-         (kernel (exnc-form-to-kernel exnc-formula))
-	 (type (var-to-type var))
-	 (kernel-type (nbe-formula-to-type kernel))
-	 (arity (+ f 2))
-	 (exncintroop-type
-	  (apply mk-arrow
-		 (append free-types
-			 (list type kernel-type (make-tconst "existential")))))
-	 (obj (nbe-make-object
-	       exncintroop-type
-	       (nbe-curry
-		(lambda objs
-		  (nbe-make-object
-		     (make-tconst "existential")
-		     (nbe-make-constr-value
-		      (list "Exnc-Intro" exnc-formula) objs)))
-		exncintroop-type
-		arity))))
-    (make-const obj "Exnc-Intro" 'constr
-		exncintroop-type empty-subst 1 'const exnc-formula)))
 
 (define (number-and-idpredconst-to-intro-const i idpc)
   (let* ((aconst (number-and-idpredconst-to-intro-aconst i idpc))
@@ -3782,67 +3749,6 @@
 	   "ex-formula-and-concl-to-ex-elim-const-obj" "ex-value expected"
 	   ex-value)))))
     exelimop-type
-    arity)))
-
-;; 2011-07-14.  exnc is obsolete.  It can be replaced by exr.
-;; exnc-elim: allnc zs(exnc z A -> allnc z(A -> B) -> B)
-
-(define (exnc-formula-and-concl-to-exnc-elim-const ;obsolete
-	 exnc-formula concl)
-  (let* ((free (union (formula-to-free exnc-formula) (formula-to-free concl)))
-	 (free-types (map var-to-type free))
-	 (f (length free))
-         (var (exnc-form-to-var exnc-formula))
-	 (inst-type (var-to-type var))
-         (kernel (exnc-form-to-kernel exnc-formula))
-	 (side-formula (mk-allnc var (mk-imp kernel concl)))
-	 (side-type (nbe-formula-to-type side-formula))
-	 (concl-type (nbe-formula-to-type concl))
-	 (arity (+ f 2))
-	 (exncelimop-type
-	  (apply mk-arrow (append free-types (list (make-tconst "existential")
-						   side-type concl-type)))))
-    (exnc-formula-and-concl-to-exnc-elim-const-aux
-     exnc-formula concl f arity exncelimop-type)))
-
-(define (exnc-formula-and-concl-to-exnc-elim-const-aux ;obsolete
-	 exnc-formula concl f arity exncelimop-type)
-  (make-const (exnc-formula-and-concl-to-exnc-elim-const-obj
-	       exnc-formula concl f arity exncelimop-type)
-	      "Exnc-Elim" 'fixed-rules exncelimop-type empty-subst
-	      1 'const exnc-formula concl))
-
-(define (exnc-formula-and-concl-to-exnc-elim-const-obj ;obsolete
-	 exnc-formula concl f arity exncelimop-type)
-  (nbe-make-object
-   exncelimop-type
-   (nbe-curry
-    (lambda objs
-      (let* ((exnc-obj (list-ref objs f))
-	     (exnc-value (nbe-object-to-value exnc-obj)))
-	(cond
-	 ((nbe-fam-value? exnc-value) ;then reproduce
-	  (let* ((refl-term-obj
-		  (nbe-reflect
-		   (nbe-make-termfam
-		    exncelimop-type
-		    (lambda (k)
-		      (make-term-in-const-form
-		       (exnc-formula-and-concl-to-exnc-elim-const-aux
-			exnc-formula concl f arity exncelimop-type))))))
-		 (val (nbe-object-to-value refl-term-obj)))
-	    (apply (nbe-uncurry val arity) objs)))
-	 ((nbe-constr-value? exnc-value)
-	  (let* ((args (nbe-constr-value-to-args exnc-value))
-		 (f1 (- (length args) 2))
-		 (inst-obj (list-ref args f1))
-		 (kernel-obj (list-ref args (+ f1 1)))
-		 (side-obj (list-ref objs (+ f 1))))
-	    (nbe-object-app side-obj inst-obj kernel-obj)))
-	 (else (myerror "exnc-formula-and-concl-to-exnc-elim-const-obj"
-			"exnc-value expected"
-			exnc-value)))))
-    exncelimop-type
     arity)))
 
 (define (nbe-curry f type n)

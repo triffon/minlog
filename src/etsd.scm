@@ -64,7 +64,6 @@
        (list (make-star-et type etdp-type-kernel)
 	     etdn-type-kernel)))
     ((allnc) (formula-to-etd-types (allnc-form-to-kernel formula)))
-    ((exnc) (formula-to-etd-types (exnc-form-to-kernel formula)))
     ((exca excl) (formula-to-etd-types (unfold-formula formula)))
     (else (myerror "formula-to-etd-types" "formula expected" formula))))
 
@@ -222,11 +221,6 @@
 	   (kernel (allnc-form-to-kernel formula)))
        (make-all var (real-and-chal-and-formula-to-d-formula-aux
 		      real chal kernel pvar-to-d-pvar))))
-    ((exnc)
-     (let ((var (exnc-form-to-var formula))
-	   (kernel (exnc-form-to-kernel formula)))
-       (make-ex var (real-and-chal-and-formula-to-d-formula-aux
-		     real chal kernel pvar-to-d-pvar))))
     ((exca excl)
      (real-and-chal-and-formula-to-d-formula-aux
       real chal (unfold-formula formula) pvar-to-d-pvar))
@@ -500,30 +494,6 @@
 			   (car (aconst-to-repro-data aconst)))))
 		   ((string=? "Ex-Elim" name)
 		    (myerror "not implemented" "Ex-Elim"))
-		   ((string=? "Exnc-Intro" name)
-		    (myerror "not yet implemented" "Exnc-Intro"))
-		   ((string=? "Exnc-Elim" name)
-		    (myerror "not yet implemented" "Exnc-Elim"))
-		   ((string=? "Eq-Compat" name)
-		    (let* ((inst-formula (aconst-to-inst-formula aconst))
-			   (pvar-formula (imp-form-to-premise
-					  (imp-form-to-conclusion
-					   (allnc-form-to-final-kernel
-					    inst-formula))))
-			   (types (formula-to-etd-types pvar-formula))
-			   (typep (car types))
-			   (typen (cadr types))
-			   (p? (nulltype? typep))
-			   (n? (nulltype? typen))
-			   (varp (if p? #f (type-to-new-var typep)))
-			   (varn (if n? #f (type-to-new-var typen))))
-		      (list (make-term-in-pair-form-et
-			     (if p? 'eps
-				 (make-term-in-abst-form
-				  varp (make-term-in-var-form varp)))
-			     (if n? 'eps
-				 (mk-term-in-abst-form-et
-				  varp varn (make-term-in-var-form varn)))))))
 		   (else (myerror "proof-to-extracted-d-terms-aux"
 				  "unexpected axiom" name))))
 	    ((theorem) ;TODO - define a program constant if one does not exist

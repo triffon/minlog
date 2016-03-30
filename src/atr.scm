@@ -14,7 +14,7 @@
     ((predicate) (formula=? formula falsity-log))
     ((imp impnc) (atr-relevant? (imp-impnc-form-to-conclusion formula)))
     ((all allnc) (atr-relevant? (all-allnc-form-to-kernel formula)))
-    ((and tensor ex exnc exca excl) #f)
+    ((and tensor ex exca excl) #f)
     (else (myerror "atr-relevant?" "formula expected" formula))))
 
 ;; Definite and goal formulas are defined by a simultaneous recursion.
@@ -29,7 +29,7 @@
 	    (atr-goal? prem)
 	    (or (atr-relevant? concl) (not (atr-relevant? prem))))))
     ((all allnc) (atr-definite? (all-allnc-form-to-kernel formula)))
-    ((and tensor ex exnc exca excl) #f)
+    ((and tensor ex exca excl) #f)
     (else (myerror "atr-definite?" "formula expected" formula))))
 
 (define (atr-goal? formula)
@@ -44,7 +44,7 @@
     ((all allnc)
      (let ((kernel (all-allnc-form-to-kernel formula)))
        (and (atr-goal? kernel) (not (atr-relevant? kernel)))))
-    ((and tensor ex exnc exca excl) #f)
+    ((and tensor ex exca excl) #f)
     (else (myerror "atr-goal?" "formula expected" formula))))
 
 (define falsity-log-pvar (predicate-form-to-predicate falsity-log))
@@ -393,7 +393,7 @@
 			    (make-proof-in-allnc-elim-form
 			     (make-proof-in-avar-form u4)
 			     (make-term-in-var-form var))))))))))
-      ((and tensor ex exnc exca excl)
+      ((and tensor ex exca excl)
        (myerror "atr-rel-definite-proof" "unexpected formula"
 		formula))
       (else (myerror "atr-rel-definite-proof" "formula expected" formula)))
@@ -474,7 +474,7 @@
 		 (make-proof-in-allnc-elim-form
 		  (make-proof-in-avar-form u)
 		  (make-term-in-var-form var))))))
-      ((and tensor ex exnc exca excl)
+      ((and tensor ex exca excl)
        (myerror "atr-arb-definite-proof" "unexpected formula"
 		formula))
       (else (myerror "atr-arb-definite-proof" "formula expected" formula))))
