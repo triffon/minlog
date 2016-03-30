@@ -187,16 +187,7 @@
 
 (remove-pvar-name "S" "P")
 
-;; 5.  Non-computational predicate
-
-(add-pvar-name "P" (make-arity (py "bin")))
-
-(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P^ a^")))
-;; (cdp proof)
-
-(remove-pvar-name "P")
-
-;; 6.  Simultaneous predicates
+;; 5.  Simultaneous predicates
 
 ;; (add-ids (list (list "Ev" (make-arity (py "nat")) "algEv")
 ;; 	       (list "Od" (make-arity (py "nat")) "algOd"))
@@ -235,6 +226,218 @@
 (remove-pvar-name "S" "P")
 (remove-var-name "t" "l")
 
+;; Test for imp-formulas-to-mr-elim-proof with a binary idpc
+
+;; (add-algs "bbin"
+;; 	  '("bbin" "BbinNil")
+;; 	  '("boole=>bbin=>bbin=>bbin" "BbinBranch"))
+
+(py "bbin boole")
+
+(remove-var-name "a" "b")
+(add-var-name "a" "b" (py "bbin boole"))
+(add-var-name "q" (py "boole"))
+(remove-pvar-name "Y")
+(add-pvar-name "Y" (make-arity (py "boole")))
+
+(add-ids (list (list "I" (make-arity (py "bbin boole")) "algI"))
+	 '("I(BbinNil boole)" "InitI")
+	 '("allnc q,a,b(Y q -> I a -> q=True -> I b ->
+           I((BbinBranch boole) q a b))"
+	   "GenI"))
+
+(display-alg "algI")
+	;; CInitI:	algI alpha1
+	;; CGenI:	alpha1=>algI alpha1=>algI alpha1=>algI alpha1
+
+(display-idpc "I")
+(add-mr-ids "I")
+(display-idpc "IMR")
+(pp "GenIMR")
+
+;; all q,a,b,alpha793^(
+;;  (Pvar alpha793 boole)^443 alpha793^ q -> 
+;;  all (algI alpha793)^0(
+;;   (IMR (cterm (alpha793^1,p^) (Pvar alpha793 boole)^443 alpha793^1 p^))
+;;   (algI alpha793)^0 
+;;   a -> 
+;;   q=True -> 
+;;   all (algI alpha793)^1(
+;;    (IMR (cterm (alpha793^2,p^) (Pvar alpha793 boole)^443 alpha793^2 p^))
+;;    (algI alpha793)^1 
+;;    b -> 
+;;    (IMR (cterm (alpha793^2,p^) (Pvar alpha793 boole)^443 alpha793^2 p^))
+;;    ((CGenI alpha793)alpha793^(algI alpha793)^0(algI alpha793)^1)
+;;    ((BbinBranch boole)q a b))))
+
+(remove-pvar-name "Z")
+(add-pvar-name "Z" (make-arity))
+
+(define imp-formula (pf "(I (cterm (q^) Y q^))a^ -> Z"))
+
+(define proof (imp-formulas-to-mr-elim-proof imp-formula))
+;; (cdp proof)
+;; ok
+;; (pp (rename-variables (proof-to-formula proof)))
+
+;; Test of ex-formula-to-ex-intro-mr-proof
+
+(define proof (ex-formula-to-ex-intro-mr-proof (pf "ex x^ (Pvar alpha)^ x^")))
+(cdp proof)
+(pp (proof-to-formula proof))
+;; all x^((Pvar alpha)^ x^ -> (Pvar alpha)^ x^)
+
+(define proof (ex-formula-to-ex-intro-mr-proof (pf "ex x^ (Pvar alpha) x^")))
+(cdp proof)
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all x^,alpha165^(
+;;  (Pvar alpha165 alpha)^99 alpha165^ x^ -> 
+;;  (Pvar alpha165 alpha)^99 alpha165^ x^)
+
+;; Test of ex-formula-and-concl-to-ex-elim-mr-proof
+(define proof (ex-formula-and-concl-to-ex-elim-mr-proof
+	       (pf "ex x^ (Pvar alpha)^ x^") (pf "Pvar")))
+(cdp proof)
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all x^(
+;;  (Pvar alpha)^ x^ -> 
+;;  all (alpha=>alpha164)^(
+;;   all x^0((Pvar alpha)^ x^0 -> (Pvar alpha164)^98((alpha=>alpha164)^ x^0)) -> 
+;;   (Pvar alpha164)^98((alpha=>alpha164)^ x^)))
+
+(define proof (ex-formula-and-concl-to-ex-elim-mr-proof
+	       (pf "ex x^ (Pvar alpha) x^") (pf "Pvar")))
+(cdp proof)
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all (alpha@@alpha38)^(
+;;  (Pvar alpha38 alpha)^50(right(alpha@@alpha38)^)(left(alpha@@alpha38)^) -> 
+;;  all (alpha=>alpha38=>alpha894)^0(
+;;   all x^,alpha38^1(
+;;    (Pvar alpha38 alpha)^50 alpha38^1 x^ -> 
+;;    (Pvar alpha894)^458((alpha=>alpha38=>alpha894)^0 x^ alpha38^1)) -> 
+;;   (Pvar alpha894)^458
+;;   ((alpha=>alpha38=>alpha894)^0 left(alpha@@alpha38)^ right(alpha@@alpha38)^)))
+
+;; Test of exd-formula-to-exd-intro-mr-proof
+
+(add-mr-ids "ExD")
+(define proof (exd-formula-to-exd-intro-mr-proof (pf "exd y^(Pvar alpha)y^")))
+;; (cdp proof)
+
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all alpha^,alpha38^0(
+;;  (Pvar alpha38 alpha)^50 alpha38^0 alpha^ -> 
+;;  (ExDMR (cterm (alpha38^1,x^) (Pvar alpha38 alpha)^50 alpha38^1 x^))
+;;  (alpha^ pair alpha38^0))
+
+;; Test of exl-formula-to-exl-intro-mr-proof
+
+(add-mr-ids "ExL")
+(define proof (exl-formula-to-exl-intro-mr-proof (pf "exl y^(Pvar alpha)^y^")))
+;; (cdp proof)
+
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all alpha^(
+;;  (Pvar alpha)^ alpha^ -> (ExLMR (cterm (x^) (Pvar alpha)^ x^))alpha^)
+
+;; Test of exr-formula-to-exr-intro-mr-proof
+
+(add-mr-ids "ExR")
+(define proof (exr-formula-to-exr-intro-mr-proof (pf "exr y^(Pvar alpha)y^")))
+;; (cdp proof)
+
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all alpha^,alpha38^0(
+;;  (Pvar alpha38 alpha)^50 alpha38^0 alpha^ -> 
+;;  (ExRMR (cterm (alpha38^1,x^) (Pvar alpha38 alpha)^50 alpha38^1 x^))alpha38^0)
+
+;; Test of andl-formula-to-andl-intro-mr-proof
+
+(add-mr-ids "AndL")
+(define proof (andl-formula-to-andl-intro-mr-proof (pf "Pvar1 andl Pvar^2")))
+;; (cdp proof)
+
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all alpha56^(
+;;  (Pvar alpha56)^449 alpha56^ -> 
+;;  Pvar^2 -> 
+;;  (AndLMR (cterm (alpha56^0) (Pvar alpha56)^449 alpha56^0) (cterm () Pvar^2))
+;;  alpha56^)
+
+;; Test of exr-formula-and-concl-to-exr-elim-mr-proof
+(define proof (exr-formula-and-concl-to-exr-elim-mr-proof
+	       (pf "exr p^ Y p^") (pf "Pvar")))
+;; (cdp proof)
+
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all alpha793^(
+;;  (ExRMR (cterm (alpha793^0,p^) (Pvar alpha793 boole)^443 alpha793^0 p^))
+;;  alpha793^ -> 
+;;  all (alpha793=>alpha34)^0(
+;;   all p^,alpha793^1(
+;;    (Pvar alpha793 boole)^443 alpha793^1 p^ -> 
+;;    (Pvar alpha34)^49((alpha793=>alpha34)^0 alpha793^1)) -> 
+;;   (Pvar alpha34)^49((alpha793=>alpha34)^0 alpha793^)))
+
+;; Test of andl-formula-and-concl-to-andl-elim-mr-proof
+(add-mr-ids "AndR")
+(remove-pvar-name "Y")
+(add-pvar-name "Y" "Z" (make-arity))
+(define proof (andlr-formula-and-concl-to-andlr-elim-mr-proof
+	       (pf "Pvar^ andr Y") (pf "Z")))
+;; (cdp proof)
+
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all alpha843^(
+;;  (AndRMR (cterm () Pvar^) (cterm (alpha843^0) (Pvar alpha843)^453 alpha843^0))
+;;  alpha843^ -> 
+;;  all (alpha843=>alpha811)^0(
+;;   (Pvar^ -> 
+;;    all alpha843^1(
+;;     (Pvar alpha843)^453 alpha843^1 -> 
+;;     (Pvar alpha811)^445((alpha843=>alpha811)^0 alpha843^1))) -> 
+;;   (Pvar alpha811)^445((alpha843=>alpha811)^0 alpha843^)))
+
+;; Test of exu-formula-and-concl-to-exu-elim-mr-proof
+
+(remove-pvar-name "Y")
+(add-pvar-name "Y" (make-arity (py "alpha")))
+(define exu-formula (pf "exu x^ Y^ x^"))
+(define concl (pf "Pvar"))
+(define proof (exu-formula-and-concl-to-exu-elim-mr-proof exu-formula concl))
+;; (cdp proof)
+
+(pp (rename-variables (proof-to-formula proof)))
+
+;; exu x^ Y^ x^ -> 
+;; all alpha34^(
+;;  allnc alpha^0(Y^ alpha^0 --> (Pvar alpha34)^49 alpha34^) -> 
+;;  (Pvar alpha34)^49 alpha34^)
+
+;; allnc, --> appears since elim-aconst for exu has it, and uses a c.r. pvar
+
+;; Test of andu-formula-and-concl-to-andu-elim-mr-proof
+(remove-pvar-name "Y")
+(add-pvar-name "X" "Y" "Z" (make-arity))
+(define proof (andu-formula-and-concl-to-andu-elim-mr-proof
+	       (pf "X^ andu Y^") (pf "Z")))
+;; (cdp proof)
+(pp (rename-variables (proof-to-formula proof)))
+
+;; X^ andu Y^ -> 
+;; all alpha811^(
+;;  (X^ --> Y^ --> (Pvar alpha811)^445 alpha811^) -> 
+;;  (Pvar alpha811)^445 alpha811^)
+
 ;; Test of proof-to-soundness-proof
 
 (add-alg "pos" '("One" "pos") '("SZero" "pos=>pos") '("SOne" "pos=>pos"))
@@ -254,12 +457,13 @@
 ;; Proof finished.
 (save "PosTotalVar")
 
+(remove-var-name "q")
 (add-var-name "q" (py "pos"))
 
 (add-pvar-name "P" (make-arity (py "pos")))
 
 (define proof (imp-formulas-to-mr-elim-proof (pf "TotalPos q^ -> P q^")))
-(cdp proof)
+;; (cdp proof)
 
 (add-program-constant "PosS" (py "pos=>pos") t-deg-zero)
 (add-computation-rules
@@ -288,7 +492,7 @@
 (use "TotalPosSZero")
 (use "TSq1")
 ;; Proof finished.
-(save "PosSTotal")
+(save-totality)
 
 (define sproof (proof-to-soundness-proof "PosSTotal"))
 ;; (cdp sproof)
@@ -300,7 +504,60 @@
 (remove-var-name "q")
 (remove-pvar-name "P")
 
-;; 2012-11-09.  End of file testsound.scm
+;; Tests of proof-to-soundness-proof
+
+(define proof
+  (make-proof-in-imp-elim-form
+   (make-proof-in-avar-form
+    (make-avar (pf "Pvar1 -> Pvar2") -1 "u"))
+   (make-proof-in-avar-form
+    (make-avar (pf "Pvar1") -1 "v"))))
+
+(cdp (proof-to-soundness-proof proof))
+
+(define proof
+  (make-proof-in-imp-elim-form
+   (make-proof-in-avar-form
+    (make-avar (pf "Pvar^1 -> Pvar2") -1 "u"))
+   (make-proof-in-avar-form
+    (make-avar (pf "Pvar^1") -1 "v"))))
+
+(cdp (proof-to-soundness-proof proof))
+
+(define proof
+  (make-proof-in-imp-intro-form
+   (make-avar (pf "Pvar^1") -1 "v")
+   (make-proof-in-imp-elim-form
+    (make-proof-in-avar-form
+     (make-avar (pf "Pvar^1 -> Pvar2") -1 "u"))
+    (make-proof-in-avar-form
+     (make-avar (pf "Pvar^1") -1 "v")))))
+
+(cdp (proof-to-soundness-proof proof))
+
+(set-goal "(Pvar^1 -> Pvar2 -> Pvar3) -> Pvar^1 -> Pvar2 -> Pvar^1 -> Pvar3")
+(assume "u" "u1" "u2" "u3")
+(use-with "u" "u1" "u2")
+(cdp (proof-to-soundness-proof))
+
+(set-goal "(Pvar1 -> Pvar2 -> Pvar3) -> Pvar1 -> Pvar2 -> Pvar1 -> Pvar3")
+(assume "u" "u1" "u2" "u3")
+(use-with "u" "u1" "u2")
+(cdp (proof-to-soundness-proof))
+
+;; (add-var-name "x" "y" (py "alpha"))
+(set-goal "allnc x^,y^(x^ eqd y^ -> (Pvar alpha)x^ -> (Pvar alpha)y^)")
+(assume "x^" "y^" "EqHyp" "Px")
+(use "EqDCompat" (pt "x^"))
+(use "EqHyp")
+(use "Px")
+;; Proof finished.
+
+(cdp (proof-to-soundness-proof))
+
+(set-goal "F -> Pvar")
+(use "Efq")
+(cdp (proof-to-soundness-proof))
 
 ;; 2012-11-09.  To be moved into a new file testetsd.scm
 
@@ -407,7 +664,9 @@
 (assume "n3" "u")
 (use "v")
 (use "u")
-(extraction-test (current-proof))
+(extraction-test-et (current-proof))
+;; (extraction-test (current-proof))
+;; Dialectica part takes too long
 
 ;;----------------------------------------------------------------------
 ;; proof by induction with a relevant assumption for Dialectica
@@ -480,7 +739,9 @@
 (assume "n3" "ns3" "u")
 (use "v")
 (use "u")
-(extraction-test (current-proof))
+(extraction-test-et (current-proof))
+;; (extraction-test (current-proof))
+;; Dialectica part takes too long
 
 ;;----------------------------------------------------------------------
 ;; proof by list induction with a relevant assumption for Dialectica
@@ -784,14 +1045,16 @@
 (add-mr-ids "OrU")
 (add-mr-ids "OrR")
 (add-mr-ids "OrD")
+;; (add-mr-ids "AndL") ;already above
+;; (add-mr-ids "ExR") ;already above
 
 (add-co "TotalBoole")
-(add-mr-ids "TotalBoole")
+;; (add-mr-ids "TotalBoole") ;already in lib/nat.scm
 (add-co "TotalBooleMR")
 (add-co "TotalNat")
 (add-co "TotalNatMR")
-(add-totality "bin")
-(add-mr-ids "TotalBin")
+;; (add-totality "bin") ;already above
+;; (add-mr-ids "TotalBin") ;already above
 (add-co "TotalBin")
 (add-co "TotalBinMR")
 (add-totality "ordl")
@@ -804,13 +1067,18 @@
 (add-co "TotalIntvMR")
 (add-co "TotalList")
 (add-co "TotalListMR")
-(add-mr-ids "RTotalList")
+;; (add-mr-ids "RTotalList") ;already above
 (add-co "RTotalList")
 (add-co "RTotalListMR")
 (add-totality "ntree")
 (add-co "TotalNtree")
-(add-mr-ids "TotalNtree")
-(add-co "TotalNtreeMR")
+;; (add-mr-ids "TotalNtree")
+;; types-to-embedding
+;; increasing types expected
+;; alpha1492
+;; ntree
+
+;; (add-co "TotalNtreeMR")
 (add-totality "ltlist")
 (add-mr-ids "TotalLtlist")
 (add-co "TotalLtlist")
@@ -823,85 +1091,106 @@
 ;; closure axioms
 (define coidpc (predicate-form-to-predicate (pf "CoTotalBoole boole^")))
 (define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+(pp (rename-variables (proof-to-formula proof)))
+
+;; all p^,p^0(
+;;  CoTotalBooleMR p^0 p^ -> 
+;;  (OrUMR (cterm () p^ eqd True) (cterm () p^ eqd False))(Des p^0))
+
+(proof-to-expr-with-formulas proof)
 
 (define coidpc (predicate-form-to-predicate (pf "CoTotalNat nat^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; Exception in cdr: () is not a pair
 
+;; check coidpredconst-to-closure-mr-proof-or-elim
+
+;; Same error in all other examples
 (define coidpc (predicate-form-to-predicate (pf "CoTotalBin bin^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
 
-(define coidpc (predicate-form-to-predicate (pf "CoTotalList (list alpha)^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (cdp proof)
 
-(define coidpc
-  (predicate-form-to-predicate
-   (pf "(CoRTotalList (cterm (nat^) TotalNat nat^))(list nat)^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalList (list alpha)^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc
-  (predicate-form-to-predicate
-   (pf "(CoRTotalList (cterm (alpha^) (Pvar alpha)alpha^))(list alpha)^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc
+;;   (predicate-form-to-predicate
+;;    (pf "(CoRTotalList (cterm (nat^) TotalNat nat^))(list nat)^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc (predicate-form-to-predicate (pf "CoTotalNtree ntree^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc
+;;   (predicate-form-to-predicate
+;;    (pf "(CoRTotalList (cterm (alpha^) (Pvar alpha)alpha^))(list alpha)^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc (predicate-form-to-predicate (pf "CoTotalIntv intv^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalNtree ntree^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc (predicate-form-to-predicate (pf "CoTotalOrdl ordl^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalIntv intv^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc (predicate-form-to-predicate (pf "CoTotalLtlist(ltlist alpha)^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalOrdl ordl^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc (predicate-form-to-predicate (pf "CoTotalLtree(ltree alpha)^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalLtlist(ltlist alpha)^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc
-  (predicate-form-to-predicate
-   (pf "(CoRTotalLtlist (cterm (alpha^) (Pvar alpha)alpha^))(ltlist alpha)^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalLtree(ltree alpha)^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
-(define coidpc
-  (predicate-form-to-predicate
-   (pf "(CoRTotalLtree (cterm (alpha^) (Pvar alpha)alpha^))(ltree alpha)^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(cdp proof)
+;; (define coidpc
+;;   (predicate-form-to-predicate
+;;    (pf "(CoRTotalLtlist (cterm (alpha^) (Pvar alpha)alpha^))(ltlist alpha)^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
+
+;; (define coidpc
+;;   (predicate-form-to-predicate
+;;    (pf "(CoRTotalLtree (cterm (alpha^) (Pvar alpha)alpha^))(ltree alpha)^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; (cdp proof)
 
 ;; gfp axioms
 (define imp-formulas
   (list (pf "(Pvar boole)boole^ -> CoTotalBoole boole^")))
-(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-(cdp proof)
+;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+;; make-term-in-app-form
+;; unexpected terms.  Operator:
+;; (CoRec alpha1572=>boole)alpha1572^9609
+;; with argument type
+;; alpha1572=>boole
+;; Argument:
+;; alpha1572^9606
+;; of type
+;; alpha1572
 
-(define imp-formulas (list (pf "(Pvar nat)n^ -> CoTotalNat n^")))
-(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-(cdp proof)
+;; (cdp proof)
 
-(define imp-formulas (list (pf "(Pvar bin)bin^ -> CoTotalBin bin^")))
-(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-(cdp proof)
+;; Same error in all other examples
+;; (define imp-formulas (list (pf "(Pvar nat)n^ -> CoTotalNat n^")))
+;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+;; (cdp proof)
 
-(define imp-formulas (list (pf "(Pvar intv)intv^ -> CoTotalIntv intv^")))
-(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-(cdp proof)
+;; (define imp-formulas (list (pf "(Pvar bin)bin^ -> CoTotalBin bin^")))
+;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+;; (cdp proof)
 
-(define imp-formulas
-  (list (pf "(Pvar (list nat))(list nat)^ -> (CoRTotalList (cterm (n^) (Pvar nat)n^))list nat^")))
-(define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-(cdp proof)
+;; (define imp-formulas (list (pf "(Pvar intv)intv^ -> CoTotalIntv intv^")))
+;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+;; (cdp proof)
+
+;; (define imp-formulas
+;;   (list (pf "(Pvar (list nat))(list nat)^ -> (CoRTotalList (cterm (n^) (Pvar nat)n^))list nat^")))
+;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
+;; (cdp proof)
 
 (set! COMMENT-FLAG #t)

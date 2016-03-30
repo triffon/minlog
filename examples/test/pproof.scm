@@ -525,8 +525,8 @@
 ;; Proof finished.
 (save "EqDTrans")
 
-(pp "EFEqD")
-;; allnc alpha^,alpha^0(False eqd True --> alpha^ eqd alpha^0)
+(pp "EfqEqD")
+;; F -> all alpha^,alpha^0 alpha^ eqd alpha^0
 
 ;; Tests for constructor-eqd-imp-args-eqd-proof,
 ;; constructors-overlap-imp-falsity-proof , inversion and

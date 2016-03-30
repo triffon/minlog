@@ -255,7 +255,7 @@
       (pf "(TrCl (cterm (n^2,n^3) ex k n^2+k=n^3))n^ n^1"))))
 ;; lnat nat
 
-;; In case the parameter cterm is n.c.. we acoind the unit type in
+;; In case the parameter cterm is n.c. we can avoid the unit type in
 ;; lnat unit by creating a new algebra lnatnc:
 
 (pp (idpredconst-to-et-type
@@ -274,24 +274,107 @@
 ;; 	LnatZeroNc:	lnatnc
 ;; 	LnatSuccNc:	lnatnc=>lnatnc
 
+;; However, this is a feature we do not inded to use any more.  In fact,
+;; check-aconst rejects the predicate above:
+
+;; (check-idpredconst (predicate-form-to-predicate
+;;       (pf "(TrCl (cterm (n^2,n^3) n^2<n^3))n^ n^1")))
+
+;; check-idpredconst
+;; c.r. formula expected
+;; n^2<n^3
+;; for param-pvar
+;; (pvar (arity alpha alpha) -1 0 0 R)
+
 (add-mr-ids "TrCl")
 ;; ok, inductively defined predicate constant TrClMR added
 
 (for-each pp (map rename-variables (idpredconst-name-to-clauses "TrClMR")))
 
-;; allnc x^,y^
-;;  all alpha510^(
-;;   (Pvar alpha510 alpha alpha)_333 alpha510^ x^ y^ -->
-;;   (Pvar lnat alpha510 alpha alpha)_334((LnatZero alpha510)alpha510^)x^ y^)
-;; allnc x^,y^,z^
-;;  all alpha510^(
-;;   (Pvar alpha510 alpha alpha)_333 alpha510^ x^ y^ -->
-;;   all (lnat alpha510)^0(
-;;    (Pvar lnat alpha510 alpha alpha)_334(lnat alpha510)^0 y^ z^ ->
-;;    (Pvar lnat alpha510 alpha alpha)_334
-;;    ((LnatSucc alpha510)alpha510^(lnat alpha510)^0)
-;;    x^
-;;    z^))
+;; all x^,y^,alpha694^(
+;;  (Pvar alpha694 alpha alpha)^419 alpha694^ x^ y^ -> 
+;;  (Pvar lnat alpha694 alpha alpha)^420((LnatZero alpha694)alpha694^)x^ y^)
+;; all x^,y^,z^,alpha694^(
+;;  (Pvar alpha694 alpha alpha)^419 alpha694^ x^ y^ -> 
+;;  all (lnat alpha694)^0(
+;;   (Pvar lnat alpha694 alpha alpha)^420(lnat alpha694)^0 y^ z^ -> 
+;;   (Pvar lnat alpha694 alpha alpha)^420
+;;   ((LnatSucc alpha694)alpha694^(lnat alpha694)^0)
+;;   x^ 
+;;   z^))
+
+(add-mr-ids "RTC")
+
+(for-each pp (map rename-variables (idpredconst-name-to-clauses "RTCMR")))
+
+;; all x^,y^,alpha694^(
+;;  (Pvar alpha694 alpha alpha)^425 alpha694^ x^ y^ -> 
+;;  (Pvar algRTC alpha694 alpha alpha)^426((CInitRTC alpha694)alpha694^)x^ y^)
+;; all x^,y^(
+;;  R x^ y^ -> (Pvar algRTC alpha694 alpha alpha)^426(CLInitRTC alpha694)x^ x^)
+;; all x^,y^(
+;;  R x^ y^ -> (Pvar algRTC alpha694 alpha alpha)^426(CRInitRTC alpha694)y^ y^)
+;; all x^,y^,z^,alpha694^(
+;;  (Pvar alpha694 alpha alpha)^425 alpha694^ x^ y^ -> 
+;;  all (algRTC alpha694)^0(
+;;   (Pvar algRTC alpha694 alpha alpha)^426(algRTC alpha694)^0 y^ z^ -> 
+;;   (Pvar algRTC alpha694 alpha alpha)^426
+;;   ((CGenRTC alpha694)alpha694^(algRTC alpha694)^0)
+;;   x^ 
+;;   z^))
+
+;; The general function add-mr-ids adds for any c.r. inductive
+;; predicate I an n.c. inductive predicate IMR such that IMR(n0,n)
+;; says that n0 realizes I(n).  For the special case of totality
+;; predicates like TotalNat we obtain TotalNatMR with clauses
+
+;; TotalNatZeroMR:	TotalNatMR Zero Zero
+;; TotalNatSuccMR:
+;; all nat^,nat^0(TotalNatMR nat^0 nat^ -> TotalNatMR(Succ nat^0)(Succ nat^))
+
+;; Note that the two arguments must always be equal; in fact, one can
+;; easily prove all n^1,n^(TotalNatMR n^1 n^ -> n^1 eqd n^):
+
+;; TotalNatMRToEq
+(set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> nat^1 eqd nat^)")
+(assume "nat^1" "nat^" "TMRn1n")
+(elim "TMRn1n")
+(use "InitEqD")
+(assume "nat^2" "nat^3" "Useless" "n2=n3")
+(simp "n2=n3")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+
+;; Therefore add-mr-ids is an overkill for totality predicates.  It
+;; suffices to use the n.c. predicate TotalNatNC
+
+(add-ids (list (list "TotalNatNC" (make-arity (py "nat"))))
+	 '("TotalNatNC Zero" "TotalNatZeroNC")
+	 '("all nat^(TotalNatNC nat^ -> TotalNatNC(Succ nat^))"
+	   "TotalNatSuccNC"))
+
+;; Then we can prove
+
+(set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> TotalNatNC nat^)")
+(assume "nat^1" "nat^" "TMRn1n")
+(elim "TMRn1n")
+(use "TotalNatZeroNC")
+(assume "nat^2" "nat^3" "Useless")
+(use "TotalNatSuccNC")
+;; Proof finished.
+;; (cdp)
+
+;; and the converse
+
+(set-goal "all nat^(TotalNatNC nat^ -> TotalNatMR nat^ nat^)")
+(assume "nat^" "TNCn")
+(elim "TNCn")
+(use "TotalNatZeroMR")
+(assume "nat^1" "Useless")
+(use "TotalNatSuccMR")
+;; Proof finished.
+;; (cdp)
 
 ;; Tests for add-totality
 

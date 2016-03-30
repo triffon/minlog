@@ -35,7 +35,7 @@
 ;; nullary initial constructor type expected for
 ;; nix
 
-;; Zero and succussor labelled natural numbers.
+;; Zero and successor labelled natural numbers.
 
 (add-algs "zsnat"
 	  '("alpha=>zsnat" "ZsnatZero")
@@ -286,6 +286,14 @@
 (add-ids (list (list "RTrCl" (make-arity (py "alpha") (py "alpha")) "list"))
 	 '("allnc x^ RTrCl x^ x^" "InitRTrCl")
 	 '("allnc x^,y^,z^(R x^ y^ -> RTrCl y^ z^ -> RTrCl x^ z^)" "GenRTrCl"))
+
+;; Another form of reflexive transitive closure with R used c.r. and n.c.
+
+(add-ids (list (list "RTC" (make-arity (py "alpha") (py "alpha")) "algRTC"))
+	 '("allnc x^,y^(R x^ y^ -> RTC x^ y^)" "InitRTC")
+	 '("allnc x^,y^(R x^ y^ --> RTC x^ x^)" "LInitRTC")
+	 '("allnc x^,y^(R x^ y^ --> RTC y^ y^)" "RInitRTC")
+	 '("allnc x^,y^,z^(R x^ y^ -> RTC y^ z^ -> RTC x^ z^)" "GenRTC"))
 
 ;; We define accessibility w.r.t. a relation given by a boolean-valued
 ;; function r.
