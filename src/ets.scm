@@ -106,8 +106,6 @@
 	   (formula-to-et-type (ex-form-to-kernel formula))))
     ((allnc)
      (formula-to-et-type (allnc-form-to-kernel formula)))
-    ((exnc) ;obsolete
-     (formula-to-et-type (exnc-form-to-kernel formula)))
     ((exca excl excu)
      (formula-to-et-type (unfold-formula formula)))
     (else (myerror "formula-to-et-type" "formula expected" formula))))
@@ -265,9 +263,8 @@
 	 (let* ((name (idpredconst-to-name pred))
 		(opt-alg-name (idpredconst-name-to-opt-alg-name name)))
 	   (or (null? opt-alg-name)
-	       (and (string=? "identity" (car opt-alg-name))
-		    (equal? (make-tconst "nulltype")
-			    (idpredconst-to-et-type pred))))))
+	       (equal? (make-tconst "nulltype")
+		       (idpredconst-to-et-type pred)))))
 	(else (myerror "formula-of-nulltype?" "predicate expected" pred)))))
     ((imp) (formula-of-nulltype? (imp-form-to-conclusion formula)))
     ((impnc) (formula-of-nulltype? (impnc-form-to-conclusion formula)))
@@ -276,8 +273,6 @@
     ((all) (formula-of-nulltype? (all-form-to-kernel formula)))
     ((ex) #f)
     ((allnc) (formula-of-nulltype? (allnc-form-to-kernel formula)))
-    ((exnc) ;obsolete
-     (formula-of-nulltype? (exnc-form-to-kernel formula)))
     ((exca excl excu) (formula-of-nulltype? (unfold-formula formula)))
     (else (myerror "formula-of-nulltype?" "formula expected" formula))))
 
@@ -315,8 +310,6 @@
     ((ex) #f)
     ((allnc)
      (formula-of-nulltype-under-extension? (allnc-form-to-kernel formula)))
-    ((exnc) ;obsolete
-     (formula-of-nulltype-under-extension? (exnc-form-to-kernel formula)))
     ((exca excl excu)
      (formula-of-nulltype-under-extension? (unfold-formula formula)))
     (else (myerror "formula-of-nulltype-under-extension?"
@@ -331,15 +324,10 @@
 ;; initial theorems, with the same name.  This makes it easy to use
 ;; them in interactive proofs.  Further abbreviation axioms
 ;; AtomToEqDTrue EqDTrueToAtom ExTotalIntro (was ExPartial-Ex) and
-;; ExTotalElim (was Ex-ExPartial) will be added to THEOREMS in
-;; ets.scm, when Leibniz equality EqD and ExR are available.  From
-;; them Truth := atom(True) (a preferred alternative to Truth-Axiom)
-;; is proved and added to THEOREMS.  Then EqDCompat EqDCompatRev
-;; EqDSym EqDTrans EqDCompatApp EFEqD are proven and added to
-;; THEOREMS.  Also InhabTotal (needed to express that an arbitrary
-;; type given by a type variable is inhabited) and InhabTotalMR
-;; (needed for its realizability interpretation) are proved from the
-;; corresponding axioms and added (in ets.scm) to THEOREMS.
+;; ExTotalElim (was Ex-ExPartial) are added to THEOREMS .  From them
+;; Truth := atom(True) (a preferred alternative to Truth-Axiom) is
+;; proved and added to THEOREMS.  Then EqDCompat EqDCompatRev EqDSym
+;; EqDTrans EqDCompatApp EFEqD are proven and added to THEOREMS
 
 (set!
  THEOREMS
@@ -352,26 +340,14 @@
 	(make-proof-in-aconst-form allnctotal-intro-aconst))
   (list "AllncTotalElim" allnctotal-elim-aconst
 	(make-proof-in-aconst-form allnctotal-elim-aconst))
+					;the following are obsolete
   ;; (list "AtomTrue" atom-true-aconst atom-true-proof)
   ;; (list "AtomFalse" atom-false-aconst atom-false-proof)
-  ;; the following are obsolete
-  ;; (list "Efq-Atom" efq-atom-aconst efq-atom-proof)
-  (list "All-AllPartial" all-allpartial-aconst
-	(make-proof-in-aconst-form all-allpartial-aconst))
-  (list "AllPartial-All" allpartial-all-aconst
-	(make-proof-in-aconst-form allpartial-all-aconst))
-  (list "Eq-Compat-Rev" eq-compat-rev-aconst eq-compat-rev-proof)
-;;  (list "Truth-Axiom" truth-aconst (make-proof-in-aconst-form truth-aconst))
+  ;; (list "EfqAtom" efq-atom-aconst efq-atom-proof)
+  ;; (list "Truth-Axiom" truth-aconst (make-proof-in-aconst-form truth-aconst))
   (list "Truth-Axiom" (make-aconst "Truth-Axiom" 'axiom truth empty-subst)
 	(make-proof-in-aconst-form
-	 (make-aconst "Truth-Axiom" 'axiom truth empty-subst)))
-  (list "Eq-Refl" eq-refl-aconst (make-proof-in-aconst-form eq-refl-aconst))
-  (list "Eq-Sym" eq-sym-aconst (make-proof-in-aconst-form eq-sym-aconst))
-  (list "Eq-Trans" eq-trans-aconst
-	(make-proof-in-aconst-form eq-trans-aconst))
-  (list "Eq-Ext" ext-aconst (make-proof-in-aconst-form ext-aconst))
-  (list "Eq-Compat" eq-compat-aconst
-	(make-proof-in-aconst-form eq-compat-aconst))))
+	 (make-aconst "Truth-Axiom" 'axiom truth empty-subst)))))
 
 ;; We add totality for the algebras introduced before.  This can be
 ;; done only here, because we need formula-of-nulltype?
@@ -451,14 +427,10 @@
 ;; lemma is animated.  However, in some cases theorem-to-extracted-term
 ;; directly gives short and meaningful terms:
 
-;; InhabTotal -> (Inhab rho)
+;; obsolete: InhabTotal -> (Inhab rho)
 
-;; AllTotalIntro AllTotalElim AllncTotalIntro AllncTotalElim
-;; ExTotalIntro ExTotalElim -> [x]x
-
-;; obsolete: All-AllPartial AllPartial-All Ex-ExPartial ExPartial-Ex -> [x]x
-
-;; Eq-Compat Eq-Compat-Rev -> [x]x
+;; AllTotalIntro AllTotalElim AllncTotalIntro AllncTotalElim MRIntro
+;; MRElim ExTotalIntro ExTotalElim -> [x]x
 
 ;; Pconst+Total -> Pconst
 
@@ -723,10 +695,11 @@
      	     (uninst-fla (aconst-to-uninst-formula aconst))
      	     (kernel (all-allnc-form-to-final-kernel uninst-fla))
      	     (prem (imp-form-to-premise kernel))
-     	     (uninst-alg (if (not (formula-of-nulltype? prem))
-     			     (formula-to-et-type prem)
-     			     (myerror "axiom-to-extracted-term"
-     				      "formula with content expected" prem)))
+     	     (uninst-alg
+	      (if (not (formula-of-nulltype? prem))
+		  (formula-to-et-type prem)
+		  (myerror "axiom-to-extracted-term"
+			   "formula with computational content expected" prem)))
      	     (alg (type-substitute uninst-alg tsubst)))
      	(make-term-in-const-form (alg-to-destr-const alg))))
      ((string=? "Gfp" name)
@@ -774,60 +747,30 @@
       (ex-formula-to-ex-intro-et (car (aconst-to-repro-data aconst))))
      ((string=? "Ex-Elim" name)
       (apply ex-formula-and-concl-to-ex-elim-et (aconst-to-repro-data aconst)))
-     ((string=? "InhabTotal" name)
+     ((string=? "MRIntro" name)
+      (let* ((imp-fla (aconst-to-uninst-formula mr-intro-aconst))
+	     (exl-fla (imp-form-to-conclusion imp-fla))
+	     (var (exl-form-to-var exl-fla)))
+	(make-term-in-abst-form var (make-term-in-var-form var))))
+     ((string=? "MRElim" name)
+      (let* ((imp-fla (aconst-to-uninst-formula mr-elim-aconst))
+	     (exl-fla (imp-form-to-premise imp-fla))
+	     (var (exl-form-to-var exl-fla)))
+	(make-term-in-abst-form var (make-term-in-var-form var))))
+     ((member name '("ExTotalIntro" "ExTotalElim"
+		     "ExDTotalIntro" "ExLTotalIntro" "ExRTotalIntro"
+		     "ExDTotalElim" "ExLTotalElim" "ExRTotalElim"
+		     "AllTotalIntro" "AllTotalElim"
+		     "AllncTotalIntro" "AllncTotalElim"))
+      (let* ((imp-fla (aconst-to-inst-formula aconst))
+	     (prem (imp-form-to-premise imp-fla))
+	     (type (formula-to-et-type prem))
+	     (var (type-to-new-var type)))
+	(make-term-in-abst-form var (make-term-in-var-form var))))
+     ((string=? "InhabTotal" name) ;obsolete
       (let* ((formula (aconst-to-formula aconst))
 	     (args (predicate-form-to-args formula)))
 	(car args)))
-     ((string=? "Exnc-Intro" name) ;obsolete
-      (exnc-formula-to-exnc-intro-et (car (aconst-to-repro-data aconst))))
-     ((string=? "Exnc-Elim" name) ;obsolete
-      (apply exnc-formula-and-concl-to-exnc-elim-et
-	     (aconst-to-repro-data aconst)))
-     ((string=? "Eq-Compat" name) ;obsolete
-      (let* ((formula (unfold-formula (aconst-to-formula aconst)))
-	     (type (formula-to-et-type formula))
-	     (arg-type (if (arrow-form? type)
-			   (arrow-form-to-arg-type type)
-			   (myerror "axiom-to-extracted-term"
-				    "arrow type expected"
-				    type)))
-	     (var (type-to-new-var arg-type)))
-	(make-term-in-abst-form var (make-term-in-var-form var))))
-					;the next item is obsolete
-     ((or (and (<= (string-length "AllTotal") (string-length name))
-	       (string=? (substring name 0 (string-length "AllTotal"))
-			 "AllTotal"))
-	  (and (<= (string-length "AllncTotal") (string-length name))
-	       (string=? (substring name 0 (string-length "AllncTotal"))
-			 "AllncTotal"))
-	  (and (<= (string-length "ExTotal") (string-length name))
-	       (string=? (substring name 0 (string-length "ExTotal"))
-			 "ExTotal")))
-      (let* ((formula (unfold-formula (aconst-to-formula aconst)))
-	     (type (formula-to-et-type formula))
-	     (arg-type (if (arrow-form? type)
-			   (arrow-form-to-arg-type type)
-			   (myerror "axiom-to-extracted-term"
-				    "arrow type expected"
-				    type)))
-	     (var (type-to-new-var arg-type)))
-	(make-term-in-abst-form var (make-term-in-var-form var))))
-					;the next item is obsolete
-     ((or (and (<= (string-length "All-AllPartial") (string-length name))
-	       (member (substring name 0 (string-length "All-AllPartial"))
-		       (list "All-AllPartial" "AllPartial-All")))
-	  (and (<= (string-length "ExPartial-Ex") (string-length name))
-	       (member (substring name 0 (string-length "ExPartial-Ex"))
-		       (list "ExPartial-Ex" "Ex-ExPartial"))))
-      (let* ((formula (unfold-formula (aconst-to-formula aconst)))
-	     (type (formula-to-et-type formula))
-	     (arg-type (if (arrow-form? type)
-			   (arrow-form-to-arg-type type)
-			   (myerror "axiom-to-extracted-term"
-				    "arrow type expected"
-				    type)))
-	     (var (type-to-new-var arg-type)))
-	(make-term-in-abst-form var (make-term-in-var-form var))))
      (else (myerror "axiom-to-extracted-term" "axiom expected" name)))))
 
 (define (theorem-to-extracted-term aconst . opt-unfold-let-flag)
@@ -848,9 +791,8 @@
 	 (car (predicate-form-to-args formula))))
       ((member thm-name (list "AllTotalIntro" "AllTotalElim"
 			      "AllncTotalIntro" "AllncTotalElim"
-			      "ExTotalIntro" "ExTotalElim" ;obsolete:
-			      "All-AllPartial" "AllPartial-All"
-			      "Ex-ExPartial" "ExPartial-Ex"))
+			      "MRIntro" "MRElim"
+			      "ExTotalIntro" "ExTotalElim"))
        (let* ((formula (unfold-formula (aconst-to-formula aconst)))
 	      (type (formula-to-et-type formula))
 	      (arg-type (if (arrow-form? type)
@@ -859,15 +801,10 @@
 				     "arrow type expected" type)))
 	      (var (type-to-new-partial-var arg-type)))
 	 (make-term-in-abst-form var (make-term-in-var-form var))))
-      ((member thm-name (list "Eq-Compat" "Eq-Compat-Rev"))
-       (comment "warning: Equal is obsolete.  Use EqD instead.")
+      ((final-substring? "TotalVar" thm-name)
        (let* ((formula (unfold-formula (aconst-to-formula aconst)))
-	      (type (formula-to-et-type formula))
-	      (arg-type (if (arrow-form? type)
-			    (arrow-form-to-arg-type type)
-			    (myerror "theorem-to-extracted-term"
-				     "arrow type expected" type)))
-	      (var (type-to-new-partial-var arg-type)))
+	      (type (var-to-type (all-form-to-var formula)))
+	      (var (type-to-new-partial-var type)))
 	 (make-term-in-abst-form var (make-term-in-var-form var))))
       ((and (final-substring? "Total" thm-name)
 	    (pconst-name? (substring thm-name 0 (- (string-length thm-name)
@@ -964,7 +901,7 @@
 	      (kernel (allnc-form-to-final-kernel formula))
 	      (concl (imp-form-to-conclusion kernel)))
 	 (case (tag concl)
-	   ((atom predicate ex exnc)
+	   ((atom predicate ex)
 	    (if
 	     (not (equal? falsity-log concl))
 	     (let* ((pconst
@@ -986,7 +923,7 @@
 	      (kernel (allnc-form-to-final-kernel formula))
 	      (concl (imp-form-to-conclusion kernel)))
 	 (case (tag concl)
-	   ((atom predicate ex exnc)
+	   ((atom predicate ex)
 	    (if (not (equal? falsity-log concl))
 		(let* ((pconst
 			(theorem-or-global-assumption-to-pconst aconst))
@@ -1006,12 +943,7 @@
        (let* ((formula (aconst-to-formula aconst))
 	      (etype (formula-to-et-type formula)))
 	 (type-to-canonical-inhabitant etype)))
-      ((or (and (<= (string-length "Eq-Compat-Rev")
-		    (string-length name))
-		(string=?
-		 (substring name 0 (string-length "Eq-Compat-Rev"))
-		 "Eq-Compat-Rev"))
-	   (and (<= (string-length "Compat-Rev")
+      ((or (and (<= (string-length "Compat-Rev")
 		    (string-length name))
 		(string=?
 		 (substring name 0 (string-length "Compat-Rev"))
@@ -1320,28 +1252,6 @@
 	    (make-term-in-lcomp-form pair-var-term)
 	    (make-term-in-rcomp-form pair-var-term)))))))
 
-(define (exnc-formula-to-exnc-intro-et exnc-formula) ;obsolete
-  (let* ((kernel (exnc-form-to-kernel exnc-formula))
-	 (kernel-type (formula-to-et-type kernel))
-	 (new-var (type-to-new-var kernel-type)))
-    (make-term-in-abst-form new-var (make-term-in-var-form new-var))))
-
-(define (exnc-formula-and-concl-to-exnc-elim-et exnc-formula concl) ;obsolete
-  (let* ((kernel (exnc-form-to-kernel exnc-formula))
-	 (kernel-type (formula-to-et-type kernel))
-	 (concl-type (formula-to-et-type concl))
-	 (new-var (type-to-new-var concl-type)))
-    (if (nulltype? kernel-type)
-	(make-term-in-abst-form new-var (make-term-in-var-form new-var))
-	(let* ((kernel-var (type-to-new-var kernel-type))
-	       (fct-type (make-arrow kernel-type concl-type))
-	       (fct-var (type-to-new-var fct-type)))
-	  (mk-term-in-abst-form
-	   kernel-var fct-var
-	   (make-term-in-app-form
-	    (make-term-in-var-form fct-var)
-	    (make-term-in-var-form kernel-var)))))))
-
 ;; Moreover we initially supply the identity theorem Id: Pvar -> Pvar.
 ;; This can be done only here, because for add-theorem we need
 ;; formula-to-et-type.
@@ -1471,10 +1381,16 @@
 	       (pf "all boole^(boole^ -> boole^ eqd True)")
 	       empty-subst))
 
+(add-theorem "AtomToEqDTrue"
+	     (make-proof-in-aconst-form atom-to-eqd-true-aconst))
+
 (define eqd-true-to-atom-aconst
   (make-aconst "EqDTrueToAtom" 'axiom
 	       (pf "all boole^(boole^ eqd True -> boole^)")
 	       empty-subst))
+
+(add-theorem "EqDTrueToAtom"
+	     (make-proof-in-aconst-form eqd-true-to-atom-aconst))
 
 (define truth-proof
   (let* ((idpc (make-idpredconst "EqD" (list (make-alg "boole")) '()))
@@ -1566,31 +1482,10 @@
 	       (pf "all boole((boole -> F) -> boole=False)")
 	       empty-subst))
 
-;; efq-atom-proof imp-to-atom-proof atom-to-imp-proof
+;; imp-to-atom-proof atom-to-imp-proof
 ;; and-atom-to-left-proof and-atom-to-right-proof
 ;; atoms-to-and-atom-proof dec-cases-proof moved here, because they
 ;; need truth-aconst .
-
-(define efq-atom-proof ;obsolete.  Use in examples/ordinals not really needed
-  (let ((var (type-to-new-var (py "boole"))))
-    (make-proof-in-all-intro-form
-     var
-     (mk-proof-in-elim-form
-      (make-proof-in-aconst-form
-       (all-formula-to-cases-aconst (pf "all boole(F -> boole)")))
-      (make-term-in-var-form var)
-      (let ((u1 (formula-to-new-avar (pf "F") "u")))
-        (mk-proof-in-intro-form
-         u1 (make-proof-in-aconst-form truth-aconst)))
-      (let ((u1 (formula-to-new-avar (pf "F") "u")))
-        (mk-proof-in-intro-form u1 (make-proof-in-avar-form u1)))))))
-
-(add-theorem "Efq-Atom" efq-atom-proof) ;obsolete
-
-(define efq-atom-aconst ;obsolete.  Use in examples/ordinals not really needed
-  (make-aconst "Efq-Atom" 'theorem
-	       (pf "all boole(F -> boole)")
-	       empty-subst))
 
 ;; We prove "(boole1 -> boole2) -> boole1 impb boole2" from cases axioms
 
@@ -1919,7 +1814,7 @@
 
 (add-theorem "EqDCompatRev" eqd-compat-rev-proof)
 
-(define efeqd-proof
+(define efqeqd-proof
   (let* ((aconst (theorem-name-to-aconst "EqDCompat"))
 	 (uninst-formula (aconst-to-uninst-formula aconst))
 	 (tvar (var-to-type (allnc-form-to-var uninst-formula)))
@@ -1942,9 +1837,12 @@
 				   (aconst-to-kind aconst) ;'theorem
 				   uninst-formula
 				   (append tsubst psubst)))
-	 (avar (formula-to-new-avar (make-eqd
-				     (make-term-in-const-form false-const)
-				     (make-term-in-const-form true-const))))
+	 (falsity-avar (formula-to-new-avar falsity))
+	 (false-eqd-true-proof
+	  (mk-proof-in-elim-form
+	   (make-proof-in-aconst-form atom-to-eqd-true-aconst)
+	   (make-term-in-const-form false-const)
+	   (make-proof-in-avar-form falsity-avar)))
 	 (idpc (make-idpredconst "EqD" (list tvar) '()))
 	 (initeqd-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
 	 (initeqd-proof (mk-proof-in-elim-form
@@ -1955,17 +1853,43 @@
 		      varterm1 varterm2
 		      (make-term-in-const-form false-const)
 		      (make-term-in-const-form true-const)
-		      (make-proof-in-avar-form avar)
+		      false-eqd-true-proof
 		      initeqd-proof))
 	 (elim-proof-with-normalized-formula
-	   (list 'proof-in-imp-elim-form
-		 (nf (proof-to-formula elim-proof))
-		 (proof-in-imp-elim-form-to-op elim-proof)
-		 (proof-in-imp-elim-form-to-arg elim-proof))))
-    (mk-proof-in-nc-intro-form
-     var1 var2 avar elim-proof-with-normalized-formula)))
+	  (list 'proof-in-imp-elim-form
+		(nf (proof-to-formula elim-proof))
+		(proof-in-imp-elim-form-to-op elim-proof)
+		(proof-in-imp-elim-form-to-arg elim-proof))))
+    (mk-proof-in-intro-form
+     falsity-avar var1 var2 elim-proof-with-normalized-formula)))
 
-(add-theorem "EFEqD" efeqd-proof)
+(add-theorem "EfqEqD" efqeqd-proof)
+
+(define efq-atom-proof
+  (let* ((aconst (theorem-name-to-aconst "EfqEqD"))
+	 (uninst-formula (aconst-to-uninst-formula aconst))
+	 (tvar (var-to-type (all-form-to-var
+				    (imp-form-to-conclusion uninst-formula))))
+	 (tsubst (make-subst tvar (make-alg "boole")))
+	 (subst-aconst (aconst-substitute aconst tsubst))
+	 (inst-formula (aconst-to-inst-formula subst-aconst))
+	 (var (all-form-to-var (imp-form-to-conclusion inst-formula)))
+	 (falsity-avar (formula-to-new-avar falsity))
+	 (elim-proof1
+	   (mk-proof-in-elim-form
+	    (make-proof-in-aconst-form subst-aconst)
+	    (make-proof-in-avar-form falsity-avar)
+	    (make-term-in-var-form var)
+	    (make-term-in-const-form true-const)))
+	 (elim-proof2
+	   (mk-proof-in-elim-form
+	    (make-proof-in-aconst-form eqd-true-to-atom-aconst)
+	    (make-term-in-var-form var)
+	    elim-proof1)))
+    (mk-proof-in-intro-form
+     falsity-avar var elim-proof2)))
+
+(add-theorem "EfqAtom" efq-atom-proof)
 
 ;; extotal-elim-aconst and extotal-intro-aconst can be added only here,
 ;; because they need ExR.
@@ -2013,11 +1937,7 @@
 (add-theorem "ExTotalIntro" (make-proof-in-aconst-form extotal-intro-aconst))
 (add-theorem "ExTotalElim" (make-proof-in-aconst-form extotal-elim-aconst))
 
-;; ex-expartial-aconst and expartial-ex-aconst can be added only here,
-;; because they need ExR.
-
-;; Obsolete (but kept for backwards compatability)
-(define ex-expartial-aconst
+(define exdtotal-intro-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
 	 (var (make-var tvar -1 1 name))
@@ -2025,17 +1945,37 @@
 	 (varterm (make-term-in-var-form var))
 	 (varpartialterm (make-term-in-var-form varpartial))
 	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (ex-fla (mk-ex var (make-predicate-formula pvar varterm)))
+	 (exd-fla (mk-exd var (make-predicate-formula pvar varterm)))
 	 (expartial-fla
 	  (mk-exr varpartial
-		  (mk-and (make-total varpartialterm)
-			  (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-ex-expartial-aconst (mk-imp ex-fla expartial-fla)))
-    (make-aconst "Ex-ExPartial"
-		 'axiom formula-of-ex-expartial-aconst empty-subst)))
+		  (mk-andd (make-total varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exdtotal-intro-aconst (mk-imp expartial-fla exd-fla)))
+    (make-aconst "ExDTotalIntro"
+		 'axiom formula-of-exdtotal-intro-aconst empty-subst)))
 
-;; Obsolete (but kept for backwards compatability)
-(define expartial-ex-aconst
+(add-theorem "ExDTotalIntro" (make-proof-in-aconst-form exdtotal-intro-aconst))
+
+(define exltotal-intro-aconst
+  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
+	 (name (default-var-name tvar))
+	 (var (make-var tvar -1 1 name))
+	 (varpartial (make-var tvar -1 t-deg-zero name))
+	 (varterm (make-term-in-var-form var))
+	 (varpartialterm (make-term-in-var-form varpartial))
+	 (pvar (make-pvar (make-arity tvar) -1 h-deg-one n-deg-one ""))
+	 (exl-fla (mk-exl var (make-predicate-formula pvar varterm)))
+	 (expartial-fla
+	  (mk-exr varpartial
+		  (mk-andl (make-total varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exltotal-intro-aconst (mk-imp expartial-fla exl-fla)))
+    (make-aconst "ExLTotalIntro"
+		 'axiom formula-of-exltotal-intro-aconst empty-subst)))
+
+(add-theorem "ExLTotalIntro" (make-proof-in-aconst-form exltotal-intro-aconst))
+
+(define exrtotal-intro-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
 	 (var (make-var tvar -1 1 name))
@@ -2043,163 +1983,126 @@
 	 (varterm (make-term-in-var-form var))
 	 (varpartialterm (make-term-in-var-form varpartial))
 	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (ex-fla (mk-ex var (make-predicate-formula pvar varterm)))
+	 (exr-fla (mk-exr var (make-predicate-formula pvar varterm)))
 	 (expartial-fla
 	  (mk-exr varpartial
-		  (mk-and (make-total varpartialterm)
-			  (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-expartial-ex-aconst (mk-imp expartial-fla ex-fla)))
-    (make-aconst "ExPartial-Ex"
-		 'axiom formula-of-expartial-ex-aconst empty-subst)))
+		  (mk-andr (make-totalmr varpartialterm varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exrtotal-intro-aconst (mk-imp expartial-fla exr-fla)))
+    (make-aconst "ExRTotalIntro"
+		 'axiom formula-of-exrtotal-intro-aconst empty-subst)))
 
-;; Obsolete (but kept for backwards compatability)
-(add-theorem "Ex-ExPartial" (make-proof-in-aconst-form ex-expartial-aconst))
-(add-theorem "ExPartial-Ex" (make-proof-in-aconst-form expartial-ex-aconst))
+(add-theorem "ExRTotalIntro" (make-proof-in-aconst-form exrtotal-intro-aconst))
 
-(add-theorem "AtomToEqDTrue"
-	     (make-proof-in-aconst-form atom-to-eqd-true-aconst))
-
-(add-theorem "EqDTrueToAtom"
-	     (make-proof-in-aconst-form eqd-true-to-atom-aconst))
-
-(define exdtotal-aconst
+(define exutotal-intro-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
+	 (var (make-var tvar -1 1 name))
+	 (varpartial (make-var tvar -1 t-deg-zero name))
 	 (varterm (make-term-in-var-form var))
+	 (varpartialterm (make-term-in-var-form varpartial))
 	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exdtotal-fla
-	  (mk-exd vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exr-fla (mk-exr var (mk-andd (make-total varterm)
-				       (make-predicate-formula pvar varterm))))
-	 (formula-of-exdtotal-aconst (mk-imp exdtotal-fla exr-fla)))
-    (make-aconst "ExDTotal" 'axiom formula-of-exdtotal-aconst empty-subst)))
+	 (exu-fla (mk-exu var (make-predicate-formula pvar varterm)))
+	 (expartial-fla
+	  (mk-exu varpartial
+		  (mk-andu (make-total varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exutotal-intro-aconst (mk-imp expartial-fla exu-fla)))
+    (make-aconst "ExUTotalIntro"
+		 'axiom formula-of-exutotal-intro-aconst empty-subst)))
 
-(define exltotal-aconst
+(add-theorem "ExUTotalIntro" (make-proof-in-aconst-form exutotal-intro-aconst))
+
+;; (pp (aconst-to-formula exdtotal-intro-aconst))
+;; (pp (aconst-to-formula exltotal-intro-aconst))
+;; (pp (aconst-to-formula exrtotal-intro-aconst))
+;; (pp (aconst-to-formula exutotal-intro-aconst))
+
+;; ;; 2012-09-13.  These (and some of the later) axioms can and should be
+;; ;; proved.
+
+(define exdtotal-elim-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
+	 (var (make-var tvar -1 1 name))
+	 (varpartial (make-var tvar -1 t-deg-zero name))
 	 (varterm (make-term-in-var-form var))
+	 (varpartialterm (make-term-in-var-form varpartial))
 	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exltotal-fla
-	  (mk-exl vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exr-fla (mk-exr var (mk-andr (make-predicate-formula pvar varterm)
-				       (make-total varterm))))
-	 (formula-of-exltotal-aconst (mk-imp exltotal-fla exr-fla)))
-    (make-aconst "ExLTotal" 'axiom formula-of-exltotal-aconst empty-subst)))
+	 (exd-fla (mk-exd var (make-predicate-formula pvar varterm)))
+	 (expartial-fla
+	  (mk-exr varpartial
+		  (mk-andd (make-total varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exdtotal-elim-aconst (mk-imp exd-fla expartial-fla)))
+    (make-aconst "ExDTotalElim"
+		 'axiom formula-of-exdtotal-elim-aconst empty-subst)))
 
-(define exrtotal-aconst
+(add-theorem "ExDTotalElim" (make-proof-in-aconst-form exdtotal-elim-aconst))
+
+(define exltotal-elim-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
+	 (var (make-var tvar -1 1 name))
+	 (varpartial (make-var tvar -1 t-deg-zero name))
 	 (varterm (make-term-in-var-form var))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exrtotal-fla
-	  (mk-exr vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exr-fla (mk-exr var (mk-andr (make-total varterm)
-				       (make-predicate-formula pvar varterm))))
-	 (formula-of-exrtotal-aconst (mk-imp exrtotal-fla exr-fla)))
-    (make-aconst "ExRTotal" 'axiom formula-of-exrtotal-aconst empty-subst)))
+	 (varpartialterm (make-term-in-var-form varpartial))
+	 (pvar (make-pvar (make-arity tvar) -1 h-deg-one n-deg-one ""))
+	 (exl-fla (mk-exl var (make-predicate-formula pvar varterm)))
+	 (expartial-fla
+	  (mk-exr varpartial
+		  (mk-andl (make-total varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exltotal-elim-aconst (mk-imp exl-fla expartial-fla)))
+    (make-aconst "ExLTotalElim"
+		 'axiom formula-of-exltotal-elim-aconst empty-subst)))
 
-(define exutotal-aconst
+(add-theorem "ExLTotalElim" (make-proof-in-aconst-form exltotal-elim-aconst))
+
+(define exrtotal-elim-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
+	 (var (make-var tvar -1 1 name))
+	 (varpartial (make-var tvar -1 t-deg-zero name))
 	 (varterm (make-term-in-var-form var))
+	 (varpartialterm (make-term-in-var-form varpartial))
 	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exutotal-fla
-	  (mk-exu vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exu-fla (mk-exu var (mk-andu (make-total varterm)
-				       (make-predicate-formula pvar varterm))))
-	 (formula-of-exutotal-aconst (mk-imp exutotal-fla exu-fla)))
-    (make-aconst "ExUTotal" 'axiom formula-of-exutotal-aconst empty-subst)))
+	 (exr-fla (mk-exr var (make-predicate-formula pvar varterm)))
+	 (expartial-fla
+	  (mk-exr varpartial
+		  (mk-andr (make-totalmr varpartialterm varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exrtotal-elim-aconst (mk-imp exr-fla expartial-fla)))
+    (make-aconst "ExRTotalElim"
+		 'axiom formula-of-exrtotal-elim-aconst empty-subst)))
 
-;; (pp (aconst-to-formula exdtotal-aconst))
-;; (pp (aconst-to-formula exltotal-aconst))
-;; (pp (aconst-to-formula exrtotal-aconst))
-;; (pp (aconst-to-formula exutotal-aconst))
+(add-theorem "ExRTotalElim" (make-proof-in-aconst-form exrtotal-elim-aconst))
 
-;; 2012-09-13.  These (and some of the later) axioms can and should be
-;; proved.
-
-(define exdtotal-rev-aconst
+(define exutotal-elim-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
+	 (var (make-var tvar -1 1 name))
+	 (varpartial (make-var tvar -1 t-deg-zero name))
 	 (varterm (make-term-in-var-form var))
+	 (varpartialterm (make-term-in-var-form varpartial))
 	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exdtotal-fla
-	  (mk-exd vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exr-fla (mk-exr var (mk-andd (make-total varterm)
-				       (make-predicate-formula pvar varterm))))
-	 (formula-of-exdtotal-rev-aconst (mk-imp exr-fla exdtotal-fla)))
-    (make-aconst
-     "ExDTotalRev" 'axiom formula-of-exdtotal-rev-aconst empty-subst)))
+	 (exu-fla (mk-exu var (make-predicate-formula pvar varterm)))
+	 (expartial-fla
+	  (mk-exu varpartial
+		  (mk-andu (make-total varpartialterm)
+			   (make-predicate-formula pvar varpartialterm))))
+	 (formula-of-exutotal-elim-aconst (mk-imp exu-fla expartial-fla)))
+    (make-aconst "ExUTotalElim"
+		 'axiom formula-of-exutotal-elim-aconst empty-subst)))
 
-(define exltotal-rev-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
-	 (varterm (make-term-in-var-form var))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exltotal-fla
-	  (mk-exl vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exr-fla (mk-exr var (mk-andr (make-predicate-formula pvar varterm)
-				       (make-total varterm))))
-	 (formula-of-exltotal-rev-aconst (mk-imp exr-fla exltotal-fla)))
-    (make-aconst
-     "ExLTotalRev" 'axiom formula-of-exltotal-rev-aconst empty-subst)))
+(add-theorem "ExUTotalElim" (make-proof-in-aconst-form exutotal-elim-aconst))
 
-(define exrtotal-rev-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
-	 (varterm (make-term-in-var-form var))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exrtotal-fla
-	  (mk-exr vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exr-fla (mk-exr var (mk-andr (make-total varterm)
-				       (make-predicate-formula pvar varterm))))
-	 (formula-of-exrtotal-rev-aconst (mk-imp exr-fla exrtotal-fla)))
-    (make-aconst
-     "ExRTotalRev" 'axiom formula-of-exrtotal-rev-aconst empty-subst)))
+;; (pp (aconst-to-formula exdtotal-elim-aconst))
+;; (pp (aconst-to-formula exltotal-elim-aconst))
+;; (pp (aconst-to-formula exrtotal-elim-aconst))
+;; (pp (aconst-to-formula exutotal-elim-aconst))
 
-(define exutotal-rev-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
-	 (varterm (make-term-in-var-form var))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exutotal-fla
-	  (mk-exu vartotal (make-predicate-formula pvar vartotalterm)))
-	 (exu-fla (mk-exu var (mk-andu (make-total varterm)
-				       (make-predicate-formula pvar varterm))))
-	 (formula-of-exutotal-rev-aconst (mk-imp exu-fla exutotal-fla)))
-    (make-aconst
-     "ExUTotalRev" 'axiom formula-of-exutotal-rev-aconst empty-subst)))
-
-;; (pp (aconst-to-formula exdtotal-rev-aconst))
-;; (pp (aconst-to-formula exltotal-rev-aconst))
-;; (pp (aconst-to-formula exrtotal-rev-aconst))
-;; (pp (aconst-to-formula exutotal-rev-aconst))
-
-(define inhabtotal-aconst
+(define inhabtotal-aconst ;obsolete
   (let ((formula-of-inhab-total-aconst
 	 (make-total (make-term-in-const-form
 		      (pconst-name-to-pconst "Inhab")))))
@@ -2208,7 +2111,7 @@
 
 (add-theorem "InhabTotal" (make-proof-in-aconst-form inhabtotal-aconst))
 
-(define inhabtotalmr-aconst
+(define inhabtotalmr-aconst ;obsolete
   (let* ((inhab-term (make-term-in-const-form (pconst-name-to-pconst "Inhab")))
 	 (formula-of-inhab-totalmr-aconst
 	  (make-totalmr inhab-term inhab-term)))
@@ -2567,6 +2470,49 @@
 
 (add-theorem "YsumTotalVar" ysum-total-var-proof)
 
+;; For invariance axioms we need aconsts mr-intro-aconst mr-elim-aconst.
+
+(define PVAR-TO-MR-PVAR-ALIST '())
+
+(define (PVAR-TO-MR-PVAR pvar)
+  (let ((info (assoc pvar PVAR-TO-MR-PVAR-ALIST)))
+    (if info
+	(cadr info)
+	(let* ((type (PVAR-TO-TVAR pvar))
+	       (arity (pvar-to-arity pvar))
+	       (types (arity-to-types arity))
+	       (newarity (apply make-arity type types))
+	       (newpvar (arity-to-new-harrop-pvar newarity)))
+	      (set! PVAR-TO-MR-PVAR-ALIST
+		    (cons (list pvar newpvar) PVAR-TO-MR-PVAR-ALIST))
+	      newpvar))))
+
+(define mr-intro-aconst
+  (let* ((pvar (make-pvar (make-arity) -1 h-deg-zero n-deg-zero ""))
+	 (mr-pvar (PVAR-TO-MR-PVAR pvar))
+	 (pvar-fla (make-predicate-formula pvar))
+	 (tvar (PVAR-TO-TVAR pvar))
+	 (var (type-to-new-partial-var tvar))
+	 (varterm (make-term-in-var-form var))
+	 (real-fla (real-and-formula-to-mr-formula varterm pvar-fla))
+	 (exl-fla (rename-variables (make-exl var real-fla))))
+    (make-aconst "MRIntro" 'axiom (make-imp pvar-fla exl-fla) empty-subst)))
+
+(add-theorem "MRIntro" (make-proof-in-aconst-form mr-intro-aconst))
+
+(define mr-elim-aconst
+  (let* ((pvar (make-pvar (make-arity) -1 h-deg-zero n-deg-zero ""))
+	 (mr-pvar (PVAR-TO-MR-PVAR pvar))
+	 (pvar-fla (make-predicate-formula pvar))
+	 (tvar (PVAR-TO-TVAR pvar))
+	 (var (type-to-new-partial-var tvar))
+	 (varterm (make-term-in-var-form var))
+	 (real-fla (real-and-formula-to-mr-formula varterm pvar-fla))
+	 (exl-fla (rename-variables (make-exl var real-fla))))
+    (make-aconst "MRElim" 'axiom (make-imp exl-fla pvar-fla) empty-subst)))
+
+(add-theorem "MRElim" (make-proof-in-aconst-form mr-elim-aconst))
+
 (set! COMMENT-FLAG #t)
 
 ;; We now aim at giving an internal proof of soundness.
@@ -2590,24 +2536,9 @@
 		   (arity (pvar-to-arity pvar))
 		   (types (arity-to-types arity))
 		   (newarity (apply make-arity type types))
-		   (newpvar (arity-to-new-pvar newarity)))
+		   (newpvar (arity-to-new-harrop-pvar newarity)))
 	      (set! assoc-list (cons (list pvar newpvar) assoc-list))
 	      newpvar))))))
-
-(define PVAR-TO-MR-PVAR-ALIST '())
-
-(define (PVAR-TO-MR-PVAR pvar)
-  (let ((info (assoc pvar PVAR-TO-MR-PVAR-ALIST)))
-    (if info
-	(cadr info)
-	(let* ((type (PVAR-TO-TVAR pvar))
-	       (arity (pvar-to-arity pvar))
-	       (types (arity-to-types arity))
-	       (newarity (apply make-arity type types))
-	       (newpvar (arity-to-new-pvar newarity)))
-	      (set! PVAR-TO-MR-PVAR-ALIST
-		    (cons (list pvar newpvar) PVAR-TO-MR-PVAR-ALIST))
-	      newpvar))))
 
 (define (idpredconst-to-mr-idpredconst idpc)
   (let* ((idpc-name (idpredconst-to-name idpc))
@@ -2623,43 +2554,42 @@
 	 (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
 	 (mr-et-tvars (list-transform-positive clause-et-tvars
 			(lambda (tvar) (member tvar et-tvars-of-param-pvars))))
-	 (pvar-et-type-list
+	 (pvar-et-type-alist
 	  (map (lambda (pvar cterm)
 		 (let ((formula (cterm-to-formula cterm)))
 		   (list pvar (if (formula-of-nulltype? formula)
 				  (make-alg "unit")
 				  (formula-to-et-type formula)))))
 	       param-pvars cterms))
-	 (c-r-pvar-et-type-list
-	  (list-transform-positive pvar-et-type-list
+	 (relevant-pvar-et-type-alist
+	  (list-transform-positive pvar-et-type-alist
 	    (lambda (x) (member (PVAR-TO-TVAR (car x)) mr-et-tvars))))
 	 (et-tsubst (map (lambda (x)
 			   (let ((pvar (car x))
 				 (et-type (cadr x)))
 			     (list (PVAR-TO-TVAR pvar) et-type)))
-			 c-r-pvar-et-type-list))
+			 relevant-pvar-et-type-alist))
 	 (orig-and-mr-tvars (idpredconst-name-to-tvars mr-idpc-name))
 	 (orig-and-mr-types (map (lambda (tvar)
 				   (let ((info1 (assoc tvar tsubst))
 					 (info2 (assoc tvar et-tsubst)))
-				     (cond
-				      (info1 (cadr info1))
-				      (info2 (cadr info2))
-				      (else tvar))))
+				     (cond (info1 (cadr info1))
+					   (info2 (cadr info2))
+					   (else tvar))))
 				 orig-and-mr-tvars))
-	 (mr-cterms
+	 (orig-and-mr-pvars (idpredconst-name-to-param-pvars mr-idpc-name))
+	 (pvar-cterm-alist (map list param-pvars cterms)) ;not a psubst
+	 (mr-pvar-cterm-alist
 	  (map (lambda (pvar cterm)
 		 (let ((vars (cterm-to-vars cterm))
 		       (formula (cterm-to-formula cterm)))
-		   (if ;c.r. param-pvar
+		   (if ;relevant param-pvar
 		    (member (PVAR-TO-TVAR pvar) mr-et-tvars)
 		    (if ;n.c. cterm
 		     (formula-of-nulltype? formula)
-		     (let* ((mr-formula (real-and-formula-to-mr-formula-aux
-					 'eps formula))
-			    (mr-var (type-to-new-partial-var (make-alg "unit")))
-			    (mr-vars (cons mr-var vars)))
-		       (apply make-cterm (append mr-vars (list mr-formula))))
+		     (myerror
+		      "idpredconst-to-mr-idpredconst" "c.r. formula expected"
+		      formula "for relevant param-pvar" pvar)
 					;else c.r. cterm
 		     (let* ((et-type (formula-to-et-type formula))
 			    (mr-var (type-to-new-partial-var et-type))
@@ -2667,269 +2597,23 @@
 			    (mr-formula (real-and-formula-to-mr-formula-aux
 					 (make-term-in-var-form mr-var)
 					 formula)))
-		       (apply make-cterm (append mr-vars (list mr-formula)))))
-					;else n.c. param-pvar
-		    (if ;n.c. cterm
-		     (formula-of-nulltype? formula)
-		     (let ((mr-formula (real-and-formula-to-mr-formula-aux
-					'eps formula)))
-		       (apply make-cterm (append vars (list mr-formula))))
-					;else c.r. cterm
-		     (let* ((et-type (formula-to-et-type formula))
-			    (mr-var (type-to-new-partial-var et-type))
-			    (mr-formula (real-and-formula-to-mr-formula-aux
-					 (make-term-in-var-form mr-var)
-					 formula))
-			    (exu-mr-formula (make-exu mr-var mr-formula)))
-		       (apply make-cterm
-			      (append vars (list exu-mr-formula))))))))
-	       param-pvars cterms)))
-    (make-idpredconst mr-idpc-name orig-and-mr-types mr-cterms)))
-
-(define (real-and-formula-to-mr-formula real formula)
-  (let ((type (formula-to-et-type formula)))
-    (if (or (and (eq? 'eps real) (nulltype? type))
-	    (and (term-form? real) (equal? (term-to-type real) type)))
-	(real-and-formula-to-mr-formula-aux real formula)
-	(myerror "real-and-formula-to-mr-formula" "equal types expected"
-		 (if (term-form? real)
-		     (type-to-string (term-to-type real))
-		     real)
-		 type))))
-
-(define (real-and-formula-to-mr-formula-aux real formula)
-  (case (tag formula)
-    ((atom) formula)
-    ((predicate)
-     (let ((pred (predicate-form-to-predicate formula))
-	   (args (predicate-form-to-args formula)))
-       (cond
-	((pvar-form? pred)
-	 (if (pvar-with-positive-content? pred)
-	     (apply make-predicate-formula (PVAR-TO-MR-PVAR pred) real args)
-	     formula))
-	((predconst-form? pred)
-	 (if (string=? "Total" (predconst-to-name pred))
-	     (let* ((arg (car args))
-		    (type (term-to-type arg)))
-	       (cond ((tvar-form? type) (make-totalmr real arg))
-		     ((or (alg-form? type)
-			  (arrow-form? type)
-			  (star-form? type))
-		      (real-and-formula-to-mr-formula-aux
-		       real (unfold-formula formula)))
-		     (else (myerror
-			    "real-and-formula-to-mr-formula-aux"
-			    "type of tvar-, alg-, arrow- or star-form expected"
-			    type))))
-	     formula))
-	((idpredconst-form? pred)
-	 (let* ((idpc-name (idpredconst-to-name pred))
-		(clauses (idpredconst-name-to-clauses idpc-name))
-		(opt-alg-name (idpredconst-name-to-opt-alg-name idpc-name)))
-	   (cond
-	    ((pair? opt-alg-name) ;c.r.idpc
-	     (if ;ExL, ExR, ExLT, ExRT, AndL, AndR
-	      (string=? "identity" (car opt-alg-name))
-	      (cond
-	       ((member idpc-name '("ExL" "ExLT"))
-		(let* ((var (exl-form-to-var formula))
-		       (kernel (exl-form-to-kernel formula))
-		       (subst-kernel (formula-subst kernel var real)))
-		  (if
-		   (formula-of-nulltype? kernel)
-		   (real-and-formula-to-mr-formula-aux 'eps subst-kernel)
-		   (let* ((realvar (type-to-new-partial-var
-				    (formula-to-et-type kernel)))
-			  (realterm (make-term-in-var-form realvar)))
-		     (make-exu realvar
-			       (real-and-formula-to-mr-formula-aux
-				realterm subst-kernel))))))
-	       ((member idpc-name '("ExR" "ExRT"))
-		(let ((var (exl-form-to-var formula))
-		      (kernel (exl-form-to-kernel formula)))
-		  (make-exu var (real-and-formula-to-mr-formula-aux
-				 real kernel))))
-	       ((string=? "AndL" idpc-name)
-		(let ((left (andl-form-to-left formula))
-		      (right (andl-form-to-right formula)))
-		  (if
-		   (formula-of-nulltype? right)
-		   (make-andu (real-and-formula-to-mr-formula-aux real left)
-			      (real-and-formula-to-mr-formula-aux 'eps right))
-		   (let* ((right-type (formula-to-et-type right))
-			  (right-realvar (type-to-new-partial-var right-type))
-			  (right-realterm (make-term-in-var-form
-					   right-realvar)))
-		     (make-andu (real-and-formula-to-mr-formula-aux
-				 real left)
-				(make-exu
-				 right-realvar
-				 (real-and-formula-to-mr-formula-aux
-				  right-realterm right)))))))
-	       ((string=? "AndR" idpc-name)
-		(let ((left (andr-form-to-left formula))
-		      (right (andr-form-to-right formula)))
-		  (if
-		   (formula-of-nulltype? left)
-		   (make-andu (real-and-formula-to-mr-formula-aux 'eps left)
-			      (real-and-formula-to-mr-formula-aux real right))
-		   (let* ((left-type (formula-to-et-type left))
-			  (left-realvar (type-to-new-partial-var left-type))
-			  (left-realterm (make-term-in-var-form left-realvar)))
-		     (make-andu (make-exu
-				 left-realvar
-				 (real-and-formula-to-mr-formula-aux
-				  left-realterm left))
-				(real-and-formula-to-mr-formula-aux
-				 real right))))))
-	       (else (myerror "real-and-formula-to-mr-formula-aux"
-			      "ExL, ExR, ExLT, ExRT, AndL or AndR expected"
-			      idpc-name)))
-					;else use mr-idpredconst
-	      (apply make-predicate-formula
-		     (idpredconst-to-mr-idpredconst pred)
-		     real args)))
-	    (;non-computational one-clause defined idpc like "EqD" "ExU" "AndU"
-	     (and (= 1 (length clauses))
-		  (predicate-form?
-		   (impnc-form-to-final-conclusion
-		    (allnc-form-to-final-kernel (car clauses)))))
-	     (let* ;same mr formula with exu x(x mr A) / eps mr A for
-					;c.r./n.c. param formulas A
-		 ((types (idpredconst-to-types pred))
-		  (cterms (idpredconst-to-cterms pred))
-		  (formulas (map cterm-to-formula cterms))
-		  (et-types (map formula-to-et-type formulas))
-		  (vars-and-eps
-		   (map (lambda (x) (if (nulltype? x) 'eps
-					(type-to-new-partial-var x)))
-			et-types))
-		  (mr-formulas
-		   (map (lambda (x formula)
-			  (if (var-form? x)
-			      (make-exu
-			       x (real-and-formula-to-mr-formula-aux
-				  (make-term-in-var-form x)
-				  formula))
-			      (real-and-formula-to-mr-formula-aux
-			       'eps formula)))
-			vars-and-eps formulas))
-		  (mr-cterms
-		   (map (lambda (cterm mr-formula)
-			  (apply make-cterm (append (cterm-to-vars cterm)
-						    (list mr-formula))))
-			cterms mr-formulas))
-		  (mr-idpc (make-idpredconst idpc-name types mr-cterms)))
-	       (apply make-predicate-formula mr-idpc args)))
-	    (else ;witnessing idpc like "EvenMR"
-	     formula)))))))
-    ((imp)
-     (let* ((prem (imp-form-to-premise formula))
-	    (type1 (formula-to-et-type prem))
-	    (concl (imp-form-to-conclusion formula))
-	    (type2 (formula-to-et-type concl)))
-       (cond
-	((nulltype? type1)
-	 (make-impnc (real-and-formula-to-mr-formula-aux 'eps prem)
-		     (real-and-formula-to-mr-formula-aux real concl)))
-	((nulltype? type2)
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var)))
-	   (make-allnc var (make-impnc (real-and-formula-to-mr-formula-aux
-					varterm prem)
-				       (real-and-formula-to-mr-formula-aux
-					'eps concl)))))
-	(else ;neither type1 nor type2 equals nulltype
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var))
-		 (appterm (make-term-in-app-form real varterm)))
-	   (make-allnc var (make-impnc (real-and-formula-to-mr-formula-aux
-					varterm prem)
-				       (real-and-formula-to-mr-formula-aux
-					appterm concl))))))))
-    ((impnc)
-     (let* ((prem (impnc-form-to-premise formula))
-	    (type1 (formula-to-et-type prem))
-	    (concl (impnc-form-to-conclusion formula))
-	    (type2 (formula-to-et-type concl)))
-       (cond
-	((nulltype? type1)
-	 (make-impnc (real-and-formula-to-mr-formula-aux 'eps prem)
-		     (real-and-formula-to-mr-formula-aux real concl)))
-	((nulltype? type2)
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var)))
-	   (make-allnc var (make-impnc (real-and-formula-to-mr-formula-aux
-					varterm prem)
-				       (real-and-formula-to-mr-formula-aux
-					'eps concl)))))
-	(else ;neither type1 nor type2 equals nulltype
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var)))
-	   (make-allnc var (make-impnc (real-and-formula-to-mr-formula-aux
-					varterm prem)
-				       (real-and-formula-to-mr-formula-aux
-					real concl))))))))
-    ((and)
-     (let* ((left (and-form-to-left formula))
-	    (type1 (formula-to-et-type left))
-	    (right (and-form-to-right formula))
-	    (type2 (formula-to-et-type right)))
-       (cond
-	((and (nulltype? type1) (nulltype? type2))
-	 (make-and (real-and-formula-to-mr-formula-aux 'eps left)
-		   (real-and-formula-to-mr-formula-aux 'eps right)))
-	((nulltype? type1)
-	 (make-and (real-and-formula-to-mr-formula-aux 'eps left)
-		   (real-and-formula-to-mr-formula-aux real right)))
-	((nulltype? type2)
-	 (make-and (real-and-formula-to-mr-formula-aux real left)
-		   (real-and-formula-to-mr-formula-aux 'eps right)))
-	(else ;neither type1 nor type2 equals nulltype
-	 (let*  ((term1 (make-term-in-lcomp-form real))
-		 (term2 (make-term-in-rcomp-form real)))
-	   (make-and (real-and-formula-to-mr-formula-aux term1 left)
-		     (real-and-formula-to-mr-formula-aux term2 right)))))))
-    ((all)
-     (let* ((var (all-form-to-var formula))
-	    (kernel (all-form-to-kernel formula))
-	    (type (formula-to-et-type kernel)))
-       (if (nulltype? type)
-	   (make-allnc var (real-and-formula-to-mr-formula-aux 'eps kernel))
-	   (let* ((varterm (make-term-in-var-form var))
-		  (appterm (make-term-in-app-form real varterm)))
-	     (make-allnc var (real-and-formula-to-mr-formula-aux
-			      appterm kernel))))))
-    ((allnc)
-     (let* ((var (allnc-form-to-var formula))
-	    (kernel (allnc-form-to-kernel formula))
-	    (type (formula-to-et-type kernel)))
-       (if (nulltype? type)
-	   (make-allnc var (real-and-formula-to-mr-formula-aux 'eps kernel))
-	   (make-allnc var (real-and-formula-to-mr-formula-aux real kernel)))))
-    ((ex)
-     (let* ((var (ex-form-to-var formula))
-	    (kernel (ex-form-to-kernel formula))
-	    (type (formula-to-et-type kernel)))
-       (if (nulltype? type)
-	   (real-and-formula-to-mr-formula-aux
-	    'eps (formula-subst kernel var real))
-	   (let* ((term1 (make-term-in-lcomp-form real))
-		  (term2 (make-term-in-rcomp-form real)))
-	     (real-and-formula-to-mr-formula-aux
-	      term2 (formula-subst kernel var term1))))))
-    ((exnc) ;obsolete
-     (let* ((var (exnc-form-to-var formula))
-	    (kernel (exnc-form-to-kernel formula))
-	    (type (formula-to-et-type kernel)))
-       (if (nulltype? type)
-	   (make-exnc var (real-and-formula-to-mr-formula-aux 'eps kernel))
-	   (make-exnc var (real-and-formula-to-mr-formula-aux real kernel)))))
-    ((exca excl excu)
-     (real-and-formula-to-mr-formula-aux real (unfold-formula formula)))
-    (else (myerror "real-and-formula-to-mr-formula-aux" "formula expected"
-		   formula))))
+		       (list
+			(PVAR-TO-MR-PVAR pvar)
+			(apply make-cterm (append mr-vars (list mr-formula))))))
+					;else irrelevant param-pvar.  Not used
+		    (list pvar cterm))))
+	       param-pvars cterms))
+	 (orig-and-mr-cterms
+	  (map (lambda (pvar)
+		 (let ((info1 (assoc pvar pvar-cterm-alist))
+		       (info2 (assoc pvar mr-pvar-cterm-alist)))
+		   (cond (info1 (cadr info1))
+			 (info2 (cadr info2))
+			 (else (myerror "idpredconst-to-mr-idpredconst"
+					"unexpected orig-and-mr-pvars"
+					orig-and-mr-pvars)))))
+	       orig-and-mr-pvars)))
+    (make-idpredconst mr-idpc-name orig-and-mr-types orig-and-mr-cterms)))
 
 (define (all-formulas-to-mr-ind-proof . all-formulas)
   (if (nested-alg-name?
@@ -2944,13 +2628,17 @@
 	 (orig-ind-aconst (apply all-formulas-to-ind-aconst all-formulas))
 	 (orig-inst-formula (aconst-to-inst-formula orig-ind-aconst))
 	 (step-formulas ;D1 ... Dk
-	  (imp-form-to-premises (all-form-to-kernel orig-inst-formula)))
+	  (imp-form-to-premises
+	   (all-form-to-kernel orig-inst-formula)
+	   (length (imp-form-to-premises
+		    (all-form-to-kernel
+		     (aconst-to-uninst-formula orig-ind-aconst))))))
 	 (real-vars-with-eps ;f1 ... eps ... fk
 	  (map (lambda (fla)
 		 (let ((et-type (formula-to-et-type fla)))
 		   (if (nulltype? et-type)
 		       'eps
-		       (type-to-new-var et-type))))
+		       (type-to-new-partial-var et-type))))
 	       step-formulas))
 	 (real-terms-with-eps
 	  (map (lambda (x)
@@ -3105,7 +2793,7 @@
 	       var-lists
 	       mr-step-formula-real-term-and-prem-avar-lists)))
     (apply
-     mk-proof-in-nc-intro-form
+     mk-proof-in-intro-form
      (append
       free
       (list
@@ -3143,7 +2831,8 @@
 	    (cases-aconst (all-formula-to-cases-aconst mr-all-formula)))
        (make-proof-in-aconst-form cases-aconst))
      (let* ((real-vars ;f1 ... fq
-	     (map (lambda (fla) (type-to-new-var (formula-to-et-type fla)))
+	     (map (lambda (fla)
+		    (type-to-new-partial-var (formula-to-et-type fla)))
 		  cases-step-formulas))
 	    (real-terms (map make-term-in-var-form real-vars))
 	    (avars ;u1: f1 mr Di1 ... uq: fq mr Diq
@@ -3161,7 +2850,7 @@
 			    if-term kernel)))
 	    (cases-aconst (all-formula-to-cases-aconst mr-all-formula)))
        (apply
-	mk-proof-in-nc-intro-form
+	mk-proof-in-intro-form
 	(append
 	 free
 	 (list
@@ -3188,168 +2877,161 @@
          (vars (cdr measure-var-and-vars))
          (m (length vars))
          (kernel-formula (all-form-to-final-kernel all-formula m)) ;A(xs)
-         (kernel-formula-et-type (formula-to-et-type kernel-formula)))
-    (if
-     (nulltype? kernel-formula-et-type)
-     (let* ((mr-all-formula
-             (real-and-formula-to-mr-formula-aux 'eps all-formula))
-            (gind-aconst
-	     (all-formula-and-number-to-gind-aconst mr-all-formula m)))
-       (make-proof-in-aconst-form gind-aconst))
-     (let* ((inst-formula (aconst-to-inst-formula aconst))
-            (prog-formula ;Prog_mu{xs | A(xs)}
-             (imp-form-to-premise (all-form-to-final-kernel inst-formula)))
-            (prog-formula-et-type (formula-to-et-type prog-formula))
-            (real-var (type-to-new-var prog-formula-et-type)) ;G
-            (real-term (make-term-in-var-form real-var))
-            (prog-avar ;v: G mr Prog_mu{xs | A(xs)}
-             (formula-to-new-avar
-              (real-and-formula-to-mr-formula-aux real-term prog-formula)
-              "v"))
-            (types (map term-to-type vars))
-            (tpsubst (aconst-to-tpsubst aconst))
-            (tsubst (list-transform-positive tpsubst
-                      (lambda (x) (tvar-form? (car x)))))
-            (type-info (append types (list kernel-formula-et-type)))
-	    (grec-const (type-info-to-grec-const type-info))
-            (grec-term (make-term-in-const-form grec-const)) ;[[GInd]]
-            (grecguard-const (type-info-to-grecguard-const type-info))
-	    (grecguard-term (make-term-in-const-form grecguard-const))
-            (applied-grec-term
-             (apply mk-term-in-app-form
-                    grec-term
-		    (append (map make-term-in-var-form
-				 measure-var-and-vars)
-			    (list real-term))))
-	    (mr-kernel-formula ;GRec mu xs G mr A(xs)
-             (real-and-formula-to-mr-formula-aux
-              applied-grec-term kernel-formula))
-            (mr-all-formula ;all xs.GRec mu xs G mr A(xs)
-             (apply mk-all (append vars (list mr-kernel-formula))))
-            (mr-free (formula-to-free mr-all-formula))
-            (mr-gind-aconst
-             (all-formula-and-number-to-gind-aconst mr-all-formula m))
-            (mr-gind-inst-formula
-             (aconst-to-inst-formula mr-gind-aconst))
-            (mr-measure-var (all-form-to-var mr-gind-inst-formula))
-            (mr-prog-formula
-             (imp-form-to-premise
-              (all-form-to-final-kernel mr-gind-inst-formula)))
-            (subst-mr-prog-formula
-             (formula-subst mr-prog-formula mr-measure-var
-                            (make-term-in-var-form measure-var)))
-            (mr-prog-prem-avar ;u:all ys(mu ys < mu xs -> GRec mu ys G mr A(ys))
-             (formula-to-new-avar
-              (imp-form-to-premise
-               (all-form-to-final-kernel subst-mr-prog-formula)) "u"))
-            (new-vars (map var-to-new-var vars)) ;ys
-            (test-term ;mu ys < mu xs
-             (mk-term-in-app-form
-	      (if (not (assoc "nat" ALGEBRAS))
-		  (myerror "First execute (libload \"nat.scm\")")
-		  (pt "NatLt"))
-	      (apply mk-term-in-app-form
-		     (map make-term-in-var-form
-			  (cons measure-var new-vars)))
-	      (apply mk-term-in-app-form
-		     (map make-term-in-var-form
-			  measure-var-and-vars))))
-	    (prev-applied-grecguard-term ;GRecGuard mu ys G (mu xs < mu ys)
-             (apply mk-term-in-app-form
-                    grecguard-term
-		    (make-term-in-var-form measure-var)
-		    (append (map make-term-in-var-form new-vars)
-			    (list real-term test-term))))
-	    (test-var (type-to-new-partial-var (py "boole")))
-            (prev-applied-grecguard-var-term
-             (apply mk-term-in-app-form
-                    grecguard-term
-		    (make-term-in-var-form measure-var)
-		    (append (map make-term-in-var-form new-vars)
-			    (list real-term
-				  (make-term-in-var-form test-var)))))
-            (vars-to-new-vars-subst
-             (make-substitution vars (map make-term-in-var-form new-vars)))
-            (subst-kernel-formula
-             (formula-substitute kernel-formula vars-to-new-vars-subst))
-            (cterm (make-cterm test-var
-                               (real-and-formula-to-mr-formula-aux
-                                prev-applied-grecguard-var-term
-                                subst-kernel-formula)))
+         (kernel-formula-et-type (formula-to-et-type kernel-formula))
+	 (inst-formula (aconst-to-inst-formula aconst))
+	 (prog-formula ;Prog_mu{xs | A(xs)}
+	  (imp-form-to-premise (all-form-to-final-kernel inst-formula)))
+	 (prog-formula-et-type (formula-to-et-type prog-formula))
+	 (real-var (type-to-new-var prog-formula-et-type)) ;G
+	 (real-term (make-term-in-var-form real-var))
+	 (prog-avar ;v: G mr Prog_mu{xs | A(xs)}
+	  (formula-to-new-avar
+	   (real-and-formula-to-mr-formula-aux real-term prog-formula)
+	   "v"))
+	 (types (map term-to-type vars))
+	 (tpsubst (aconst-to-tpsubst aconst))
+	 (tsubst (list-transform-positive tpsubst
+		   (lambda (x) (tvar-form? (car x)))))
+	 (type-info (append types (list kernel-formula-et-type)))
+	 (grec-const (type-info-to-grec-const type-info))
+	 (grec-term (make-term-in-const-form grec-const)) ;[[GInd]]
+	 (grecguard-const (type-info-to-grecguard-const type-info))
+	 (grecguard-term (make-term-in-const-form grecguard-const))
+	 (applied-grec-term
+	  (apply mk-term-in-app-form
+		 grec-term
+		 (append (map make-term-in-var-form
+			      measure-var-and-vars)
+			 (list real-term))))
+	 (mr-kernel-formula ;GRec mu xs G mr A(xs)
+	  (real-and-formula-to-mr-formula-aux
+	   applied-grec-term kernel-formula))
+	 (mr-all-formula ;all xs.GRec mu xs G mr A(xs)
+	  (apply mk-all (append vars (list mr-kernel-formula))))
+	 (mr-free (formula-to-free mr-all-formula))
+	 (mr-gind-aconst
+	  (all-formula-and-number-to-gind-aconst mr-all-formula m))
+	 (mr-gind-inst-formula
+	  (aconst-to-inst-formula mr-gind-aconst))
+	 (mr-measure-var (all-form-to-var mr-gind-inst-formula))
+	 (mr-prog-formula
+	  (imp-form-to-premise
+	   (all-form-to-final-kernel mr-gind-inst-formula)))
+	 (subst-mr-prog-formula
+	  (formula-subst mr-prog-formula mr-measure-var
+			 (make-term-in-var-form measure-var)))
+	 (mr-prog-prem-avar ;u:all ys(mu ys<mu xs -> GRec mu ys G mr A(ys))
+	  (formula-to-new-avar
+	   (imp-form-to-premise
+	    (all-form-to-final-kernel subst-mr-prog-formula)) "u"))
+	 (new-vars (map var-to-new-var vars)) ;ys
+	 (test-term ;mu ys<mu xs
+	  (mk-term-in-app-form
+	   (if (not (assoc "nat" ALGEBRAS))
+	       (myerror "First execute (libload \"nat.scm\")")
+	       (pt "NatLt"))
+	   (apply mk-term-in-app-form
+		  (map make-term-in-var-form
+		       (cons measure-var new-vars)))
+	   (apply mk-term-in-app-form
+		  (map make-term-in-var-form
+		       measure-var-and-vars))))
+	 (prev-applied-grecguard-term ;GRecGuard mu ys G (mu xs<mu ys)
+	  (apply mk-term-in-app-form
+		 grecguard-term
+		 (make-term-in-var-form measure-var)
+		 (append (map make-term-in-var-form new-vars)
+			 (list real-term test-term))))
+	 (test-var (type-to-new-partial-var (py "boole")))
+	 (prev-applied-grecguard-var-term
+	  (apply mk-term-in-app-form
+		 grecguard-term
+		 (make-term-in-var-form measure-var)
+		 (append (map make-term-in-var-form new-vars)
+			 (list real-term
+			       (make-term-in-var-form test-var)))))
+	 (vars-to-new-vars-subst
+	  (make-substitution vars (map make-term-in-var-form new-vars)))
+	 (subst-kernel-formula
+	  (formula-substitute kernel-formula vars-to-new-vars-subst))
+	 (cterm (make-cterm test-var
+			    (real-and-formula-to-mr-formula-aux
+			     prev-applied-grecguard-var-term
+			     subst-kernel-formula)))
 					;this is a hack ... is there no better
 					;way to do this substitution?
-            (tsubst-eq-compat-rev-proof
-             (proof-subst (make-proof-in-aconst-form eq-compat-rev-aconst)
-                          (car (formula-to-tvars
-                                (aconst-to-formula eq-compat-rev-aconst)))
-                          (py "boole")))
-            (tpsubst-eq-compat-rev-proof
-             (proof-subst tsubst-eq-compat-rev-proof
-                          (car (formula-to-pvars
-                                (proof-to-formula tsubst-eq-compat-rev-proof)))
-                          cterm))
-            (aux-avar (formula-to-new-avar (make-atomic-formula test-term)))
-            (aux-proof ;M' : all ys(mu ys < mu xs -> GRecGuard
-					;mu ys G (mu ys < mu xs) mr A(ys))
-             (apply
-              mk-proof-in-intro-form
-              (append
-               new-vars
-               (list
-                aux-avar
-                (mk-proof-in-elim-form
-                 tpsubst-eq-compat-rev-proof test-term (pt "True")
-                 (mk-proof-in-elim-form
-                  (make-proof-in-aconst-form
-                   (finalg-to-=-to-eq-aconst (py "boole")))
-                  test-term (pt "True")
-                  (mk-proof-in-elim-form
-                   (make-proof-in-aconst-form atom-true-aconst)
-                   test-term
-                   (make-proof-in-avar-form aux-avar)))
-                 (apply mk-proof-in-elim-form
-                        (make-proof-in-avar-form mr-prog-prem-avar)
-			(append (map make-term-in-var-form new-vars)
-				(list (make-proof-in-avar-form
-				       aux-avar)))))))))
-	    (mr-prog-proof ;M : Prog_mu{xs | GRec mu xs G mr A(xs)}
-             (apply
-              mk-proof-in-intro-form
-              (append
-               vars
-               (list
-                mr-prog-prem-avar
-                (apply
-                 mk-proof-in-elim-form
-                 (make-proof-in-avar-form prog-avar)
-		 (append
-		  (map make-term-in-var-form vars)
-		  (list
-		   (apply mk-term-in-abst-form
-			  (append new-vars
-				  (list prev-applied-grecguard-term)))
-		   aux-proof))))))))
-       (apply
-        mk-proof-in-nc-intro-form
-        (append
-         free
-         (list
-          (apply
-           mk-proof-in-intro-form
-           measure-var
+	 (tsubst-eq-compat-rev-proof
+	  (proof-subst (make-proof-in-aconst-form eq-compat-rev-aconst)
+		       (car (formula-to-tvars
+			     (aconst-to-formula eq-compat-rev-aconst)))
+		       (py "boole")))
+	 (tpsubst-eq-compat-rev-proof
+	  (proof-subst tsubst-eq-compat-rev-proof
+		       (car (formula-to-pvars
+			     (proof-to-formula tsubst-eq-compat-rev-proof)))
+		       cterm))
+	 (aux-avar (formula-to-new-avar (make-atomic-formula test-term)))
+	 (aux-proof ;M' : all ys(mu ys<mu xs -> GRecGuard
+					;mu ys G (mu ys<mu xs) mr A(ys))
+	  (apply
+	   mk-proof-in-intro-form
+	   (append
+	    new-vars
+	    (list
+	     aux-avar
+	     (mk-proof-in-elim-form
+	      tpsubst-eq-compat-rev-proof test-term (pt "True")
+	      (mk-proof-in-elim-form
+	       (make-proof-in-aconst-form
+		(finalg-to-=-to-eq-aconst (py "boole")))
+	       test-term (pt "True")
+	       (mk-proof-in-elim-form
+		(make-proof-in-aconst-form atom-true-aconst)
+		test-term
+		(make-proof-in-avar-form aux-avar)))
+	      (apply mk-proof-in-elim-form
+		     (make-proof-in-avar-form mr-prog-prem-avar)
+		     (append (map make-term-in-var-form new-vars)
+			     (list (make-proof-in-avar-form
+				    aux-avar)))))))))
+	 (mr-prog-proof ;M : Prog_mu{xs | GRec mu xs G mr A(xs)}
+	  (apply
+	   mk-proof-in-intro-form
 	   (append
 	    vars
 	    (list
-	     real-var
-	     prog-avar
+	     mr-prog-prem-avar
 	     (apply
 	      mk-proof-in-elim-form
-	      (make-proof-in-aconst-form mr-gind-aconst)
+	      (make-proof-in-avar-form prog-avar)
 	      (append
-	       (map make-term-in-var-form mr-free)
-	       (list (make-term-in-var-form measure-var))
 	       (map make-term-in-var-form vars)
-	       (list mr-prog-proof)))))))))))))
+	       (list
+		(apply mk-term-in-abst-form
+		       (append new-vars
+			       (list prev-applied-grecguard-term)))
+		aux-proof))))))))
+    (apply
+     mk-proof-in-intro-form
+     (append
+      free
+      (list
+       (apply
+	mk-proof-in-intro-form
+	measure-var
+	(append
+	 vars
+	 (list
+	  real-var
+	  prog-avar
+	  (apply
+	   mk-proof-in-elim-form
+	   (make-proof-in-aconst-form mr-gind-aconst)
+	   (append
+	    (map make-term-in-var-form mr-free)
+	    (list (make-term-in-var-form measure-var))
+	    (map make-term-in-var-form vars)
+	    (list mr-prog-proof)))))))))))
 
 (define (type-to-inhabtotal-mr-proof type)
   (let* ((uninst-formula (aconst-to-uninst-formula inhabtotalmr-aconst))
@@ -3406,22 +3088,19 @@
 	 (kernel-type (formula-to-et-type kernel)))
     (if
      (nulltype? kernel-type)
-     (let* ((mr-formula (real-and-formula-to-mr-formula-aux 'eps kernel))
-	    (avar (formula-to-new-avar mr-formula "u")))
+     (let ((avar (formula-to-new-avar kernel "u")))
        (apply
-	mk-proof-in-nc-intro-form
-	(append free (list (mk-proof-in-intro-form
-			    var avar (make-proof-in-avar-form avar))))))
-     (let* ((real-var (type-to-new-var kernel-type))
+	mk-proof-in-intro-form
+	(append free (list var avar (make-proof-in-avar-form avar)))))
+     (let* ((real-var (type-to-new-partial-var kernel-type))
 	    (real-term (make-term-in-var-form real-var))
 	    (mr-formula (real-and-formula-to-mr-formula-aux
 			 real-term kernel))
 	    (avar (formula-to-new-avar mr-formula "u")))
        (apply
-	mk-proof-in-nc-intro-form
-	(append free (list (mk-proof-in-intro-form
-			    var real-var avar
-			    (make-proof-in-avar-form avar)))))))))
+	mk-proof-in-intro-form
+	(append free (list var real-var avar
+			   (make-proof-in-avar-form avar))))))))
 
 (define (ex-formula-and-concl-to-ex-elim-mr-proof ex-formula concl)
   (let* ((free (union (formula-to-free ex-formula) (formula-to-free concl)))
@@ -3433,37 +3112,22 @@
 	 (concl-type (formula-to-et-type concl)))
     (if
      (nulltype? kernel-type)
-     (let* ((mr-kernel (real-and-formula-to-mr-formula-aux 'eps kernel))
-	    (u (formula-to-new-avar mr-kernel "u")))
-       (if
-	(nulltype? concl-type)
-	(let* ((mr-concl (real-and-formula-to-mr-formula-aux 'eps concl))
-	       (v (formula-to-new-avar
-		   (make-all var (make-imp mr-kernel mr-concl)) "v")))
-	  (apply
-	   mk-proof-in-nc-intro-form
-	   (append free (list (mk-proof-in-intro-form
-			       var u v (mk-proof-in-elim-form
-					(make-proof-in-avar-form v)
-					(make-term-in-var-form var)
-					(make-proof-in-avar-form u)))))))
-	(let* ((z (type-to-new-var
-		   (formula-to-et-type
-		    (make-all var (make-imp kernel concl)))))
-	       (zx (make-term-in-app-form (make-term-in-var-form z)
-					  (make-term-in-var-form var)))
-	       (mr-concl (real-and-formula-to-mr-formula-aux zx concl))
-	       (v (formula-to-new-avar
-		   (make-all var (make-imp mr-kernel mr-concl)) "v")))
-	  (apply
-	   mk-proof-in-nc-intro-form
-	   (append free (list (mk-proof-in-intro-form
-			       var u z v
-			       (mk-proof-in-elim-form
-				(make-proof-in-avar-form v)
-				(make-term-in-var-form var)
-				(make-proof-in-avar-form u)))))))))
-     (let* ((pair-var (type-to-new-var (make-star type kernel-type)))
+     (let* ((u (formula-to-new-avar kernel "u"))
+	    (z (type-to-new-partial-var
+		(formula-to-et-type
+		 (make-all var (make-imp kernel concl)))))
+	    (zx (make-term-in-app-form (make-term-in-var-form z)
+				       (make-term-in-var-form var)))
+	    (mr-concl (real-and-formula-to-mr-formula-aux zx concl))
+	    (v (formula-to-new-avar
+		(make-all var (make-imp kernel mr-concl)) "v"))
+	    (elim-proof (mk-proof-in-elim-form
+			 (make-proof-in-avar-form v)
+			 (make-term-in-var-form var)
+			 (make-proof-in-avar-form u))))
+       (apply mk-proof-in-intro-form
+	      (append free (list var u z v elim-proof))))
+     (let* ((pair-var (type-to-new-partial-var (make-star type kernel-type)))
 	    (pair-var-term (make-term-in-var-form pair-var))
 	    (left-term (make-term-in-lcomp-form pair-var-term))
 	    (right-term (make-term-in-rcomp-form pair-var-term))
@@ -3472,145 +3136,30 @@
 			(formula-subst
 			 kernel var (make-term-in-lcomp-form pair-var-term))))
 	    (u (formula-to-new-avar mr-kernel "u"))
-	    (g (type-to-new-var (formula-to-et-type
-				 kernel)))
-	    (g-mr-kernel (real-and-formula-to-mr-formula-aux
-			  (make-term-in-var-form g) kernel)))
-       (if
-	(nulltype? concl-type)
-	(let* ((mr-concl (real-and-formula-to-mr-formula-aux 'eps concl))
-	       (v (formula-to-new-avar
-		   (make-all var (make-imp g-mr-kernel mr-concl)) "v")))
-	  (apply
-	   mk-proof-in-nc-intro-form
-	   (append free (list (mk-proof-in-intro-form
-			       pair-var u v
-			       (mk-proof-in-elim-form
-				(make-proof-in-avar-form v)
-				left-term right-term
-				(make-proof-in-avar-form u)))))))
-	(let* ((z (type-to-new-var
-		   (formula-to-et-type
-		    (make-all var (make-imp kernel concl)))))
-	       (zxg (mk-term-in-app-form (make-term-in-var-form z)
-					 (make-term-in-var-form var)
-					 (make-term-in-var-form g)))
-	       (mr-concl (real-and-formula-to-mr-formula-aux zxg concl))
-	       (mr-kernel-with-var-and-g
-		(real-and-formula-to-mr-formula-aux
-		 (make-term-in-var-form g) kernel))
-	       (v (formula-to-new-avar
-		   (mk-all var g (make-imp mr-kernel-with-var-and-g
-					   mr-concl)) "v")))
-	  (apply
-	   mk-proof-in-nc-intro-form
-	   (append free (list (mk-proof-in-intro-form
-			       pair-var u z v
-			       (mk-proof-in-elim-form
-				(make-proof-in-avar-form v)
-				left-term right-term
-				(make-proof-in-avar-form u))))))))))))
-
-(define (exnc-formula-to-exnc-intro-mr-proof ;obsolete
-	 exnc-formula)
-  (let* ((free (formula-to-free exnc-formula))
-	 (var (exnc-form-to-var exnc-formula))
-	 (kernel (exnc-form-to-kernel exnc-formula))
-	 (kernel-type (formula-to-et-type kernel)))
-    (if
-     (nulltype? kernel-type)
-     (let* ((mr-formula (real-and-formula-to-mr-formula-aux
-			 'eps exnc-formula))
-	    (mr-free (formula-to-free mr-formula))
-	    (aconst (exnc-formula-to-exnc-intro-aconst mr-formula)))
-       (apply
-	mk-proof-in-intro-form
-	(append
-	 free
-	 (list (apply mk-proof-in-elim-form
-		      (make-proof-in-aconst-form aconst)
-		      (map make-term-in-var-form mr-free))))))
-     (let* ((real-var (type-to-new-var kernel-type))
-	    (real-term (make-term-in-var-form real-var))
-	    (mr-formula (real-and-formula-to-mr-formula-aux
-			 real-term exnc-formula))
-	    (mr-free (formula-to-free mr-formula))
-	    (aconst (exnc-formula-to-exnc-intro-aconst mr-formula)))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append
-	 free
-	 (list var
-	       (make-proof-in-all-intro-form
-		real-var
-		(apply mk-proof-in-elim-form
-		       (make-proof-in-aconst-form aconst)
-		       (map make-term-in-var-form
-			    (append mr-free (list var))))))))))))
-
-(define (compat-aconst-to-mr-compat-proof aconst)
-  (let* ((name (aconst-to-name aconst))
-	 (kind (aconst-to-kind aconst))
-	 (tpsubst (aconst-to-tpsubst aconst))
-	 (tsubst (list-transform-positive tpsubst
-		   (lambda (x) (tvar-form? (car x)))))
-	 (psubst (list-transform-positive tpsubst
-		   (lambda (x) (pvar-form? (car x)))))
-	 (uninst-formula (aconst-to-uninst-formula aconst))
-	 (var1 (allnc-form-to-var uninst-formula))
-	 (kernel1 (allnc-form-to-kernel uninst-formula))
-	 (var2 (allnc-form-to-var kernel1))
-	 (kernel2 (allnc-form-to-kernel kernel1))
-	 (eq-fla (imp-form-to-premise kernel2))
-	 (fla1 (imp-form-to-premise (imp-form-to-conclusion kernel2)))
-	 (pvar (predicate-form-to-predicate fla1))
-	 (cterm (if (pair? psubst)
-		    (cadr (car psubst))
-		    (make-cterm var1 (make-predicate-formula
-				      pvar (make-term-in-var-form var1)))))
-	 (fla (cterm-to-formula cterm))
-	 (et-type (formula-to-et-type fla)))
-    (if
-     (nulltype? et-type)
-     (let* ((mr-fla (real-and-formula-to-mr-formula-aux 'eps fla))
-	    (vars (cterm-to-vars cterm))
-	    (var (if (pair? vars)
-		     (car vars)
-		     (myerror
-		      "eq-compat-aconst-to-mr-eq-compat-proof"
-		      "var expected in cterm" cterm)))
-	    (new-cterm (make-cterm var mr-fla))
-	    (new-tpsubst (append tsubst (list (list pvar new-cterm))))
-	    (new-aconst (make-aconst name kind uninst-formula new-tpsubst)))
-       (make-proof-in-aconst-form new-aconst))
-     (let* ((free (cterm-to-free cterm))
-	    (y1 (car (cterm-to-vars cterm)))
-	    (y2 (var-to-new-var y1))
-	    (f (type-to-new-var et-type))
-	    (y1-term (make-term-in-var-form y1))
-	    (y2-term (make-term-in-var-form y2))
-	    (f-term (make-term-in-var-form f))
-	    (mr-fla (real-and-formula-to-mr-formula-aux f-term fla))
-	    (new-cterm (make-cterm y1 mr-fla))
-	    (new-tpsubst (append tsubst (list (list pvar new-cterm))))
-	    (new-aconst (make-aconst name kind uninst-formula new-tpsubst))
-	    (subst-eq-fla (formula-substitute
-			   eq-fla
-			   (list (list var1 y1-term) (list var2 y2-term))))
-	    (u (formula-to-new-avar subst-eq-fla "u")))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append
-	 free
-	 (list y1 y2 u
-	       (make-proof-in-all-intro-form
-		f
-		(apply
-		 mk-proof-in-elim-form
-		 (make-proof-in-aconst-form new-aconst) f-term
-		 (append
-		  (map make-term-in-var-form free)
-		  (list y1-term y2-term (make-proof-in-avar-form u))))))))))))
+	    (y (type-to-new-partial-var (formula-to-et-type kernel)))
+	    (y-mr-kernel (real-and-formula-to-mr-formula-aux
+			  (make-term-in-var-form y) kernel))
+	    (z (type-to-new-partial-var
+		(formula-to-et-type
+		 (make-all var (make-imp kernel concl)))))
+	    (zxy (mk-term-in-app-form (make-term-in-var-form z)
+				      (make-term-in-var-form var)
+				      (make-term-in-var-form y)))
+	    (mr-concl (real-and-formula-to-mr-formula-aux zxy concl))
+	    (mr-kernel-with-var-and-y
+	     (real-and-formula-to-mr-formula-aux
+	      (make-term-in-var-form y) kernel))
+	    (v (formula-to-new-avar
+		(mk-all var y (make-imp mr-kernel-with-var-and-y
+					mr-concl)) "v"))
+	    (elim-proof (mk-proof-in-elim-form
+			 (make-proof-in-avar-form v)
+			 left-term right-term
+			 (make-proof-in-avar-form u))))
+       (apply mk-proof-in-intro-form
+	      (append free (list (mk-proof-in-intro-form
+				  pair-var u z v
+				  elim-proof))))))))
 
 (define (efq-ga-to-mr-efq-ga-proof aconst)
   (let* ((name (aconst-to-name aconst)) ;EfqLog or Efq
@@ -3628,9 +3177,7 @@
 		    (make-cterm fla1)))
 	 (fla (cterm-to-formula cterm))
 	 (et-type (formula-to-et-type fla))
-	 (real (if (nulltype? et-type)
-		   'eps
-		   (type-to-canonical-inhabitant et-type)))
+	 (real (type-to-canonical-inhabitant et-type))
 	 (mr-fla (real-and-formula-to-mr-formula-aux real fla))
 	 (new-cterm (make-cterm mr-fla))
 	 (new-tpsubst (append tsubst (list (list pvar new-cterm))))
@@ -3643,11 +3190,11 @@
 		  (make-proof-in-aconst-form intro-aconst)))
 	 (mr-type (arrow-form-to-final-val-type (term-to-type constr)))
 	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
-	 (mr-intro-aconst (number-and-idpredconst-to-intro-aconst i mr-idpc))
+	 (intro-mr-aconst (number-and-idpredconst-to-intro-aconst i mr-idpc))
 	 (inst-clause (aconst-to-inst-formula intro-aconst))
 	 (inst-clause-vars (all-allnc-form-to-vars inst-clause))
 	 (inst-clause-kernel (all-allnc-form-to-final-kernel inst-clause))
-	 (inst-mr-clause (aconst-to-inst-formula mr-intro-aconst))
+	 (inst-mr-clause (aconst-to-inst-formula intro-mr-aconst))
 	 (inst-mr-clause-vars (all-allnc-form-to-vars inst-mr-clause))
 	 (inst-mr-clause-kernel
 	  (all-allnc-form-to-final-kernel inst-mr-clause))
@@ -3701,7 +3248,7 @@
 	 (mr-free (formula-to-free inst-mr-clause))
 	 (elim-proof
 	  (apply mk-proof-in-elim-form
-		 (make-proof-in-aconst-form mr-intro-aconst)
+		 (make-proof-in-aconst-form intro-mr-aconst)
 		 (append (map make-term-in-var-form mr-free)
 			 (map make-term-in-var-form inst-mr-clause-vars)
 			 (map make-proof-in-avar-form avars)))))
@@ -3823,28 +3370,28 @@
 		(all-form-to-kernel
 		 (aconst-to-uninst-formula mr-elim-aconst)))))
 	 (mr-clause-proofs
-	  (map ;as many as we have avars 
-					;u0: w0 mr K0 ... ui: eps mr Ki ... 
+	  (map ;as many as we have avars u0: w0 mr K0 ... ui: eps mr Ki ... 
 					;u{k-1}: w{k-1} mr K{k-1}
 	   (lambda (mr-clause uninst-mr-clause avar-proof)
-	     (let* ((vars-and-prems
-		     (imp-impnc-all-allnc-form-to-vars-and-premises
-		      mr-clause))
-		    (uninst-vars-and-prems
+	     (let* ((uninst-vars-and-prems
 		     (imp-impnc-all-allnc-form-to-vars-and-premises
 		      uninst-mr-clause))
-		    (vars-and-avars
-		     (map (lambda (var-or-prem)
-			    (if (var-form? var-or-prem)
-				var-or-prem
-				(formula-to-new-avar var-or-prem)))
-			  vars-and-prems))
+		    (l (length uninst-vars-and-prems))
+		    (vars-and-prems
+		     (imp-impnc-all-allnc-form-to-vars-and-premises
+		      mr-clause l))
 		    (uninst-vars-and-avars
 		     (map (lambda (uninst-var-or-prem)
 			    (if (var-form? uninst-var-or-prem)
 				uninst-var-or-prem
 				(formula-to-new-avar uninst-var-or-prem)))
 			  uninst-vars-and-prems))
+		    (vars-and-avars
+		     (map (lambda (var-or-prem)
+			    (if (var-form? var-or-prem)
+				var-or-prem
+				(formula-to-new-avar var-or-prem)))
+			  vars-and-prems))
 		    (one-or-two-element-lists
 		     (map
 		      (lambda (var-or-avar uninst-var-or-avar)
@@ -3929,737 +3476,123 @@
 			  (cons (make-proof-in-avar-form mr-prem-avar)
 				mr-clause-proofs)))))))))
 
+(define (exd-formula-to-exd-intro-mr-proof exd-formula)
+  (let* ((idpc (predicate-form-to-predicate exd-formula))
+	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
+	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
+    (make-proof-in-aconst-form mr-aconst)))
+
 (define (exl-formula-to-exl-intro-mr-proof exl-formula)
-  (let* ((free (formula-to-free exl-formula))
-	 (var (exl-form-to-var exl-formula))
-	 (kernel (exl-form-to-kernel exl-formula))
-	 (kernel-type (formula-to-et-type kernel)))
-    (if
-     (nulltype? kernel-type)
-     (let* ((mr-formula ;x mr exl x A, which is the same as eps mr A
-	     (real-and-formula-to-mr-formula-aux 'eps kernel))
-	    (avar (formula-to-new-avar mr-formula)))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append free (list var avar (make-proof-in-avar-form avar)))))
-     (let* ((real-var (type-to-new-partial-var kernel-type))
-	    (real-term (make-term-in-var-form real-var))
-	    (mr-formula (real-and-formula-to-mr-formula-aux real-term kernel))
-	    (exu-formula (make-exu real-var mr-formula))
-	    (idpc (predicate-form-to-predicate exu-formula))
-	    (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	    (inst-formula (aconst-to-inst-formula aconst))
-	    (inst-formula-free (formula-to-free inst-formula)))
-       (if (equal? inst-formula-free (append free (list var)))
-	   (make-proof-in-aconst-form aconst)
-	   (apply
-	    mk-proof-in-nc-intro-form
-	    (append free (list var (apply mk-proof-in-elim-form
-					  (make-proof-in-aconst-form aconst)
-					  (map make-term-in-var-form
-					       inst-formula-free))))))))))
+  (let* ((idpc (predicate-form-to-predicate exl-formula))
+	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
+	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
+    (make-proof-in-aconst-form mr-aconst)))
 
 (define (exr-formula-to-exr-intro-mr-proof exr-formula)
-  (let* ((free (formula-to-free exr-formula))
-	 (var (exr-form-to-var exr-formula))
-	 (kernel (exr-form-to-kernel exr-formula))
-	 (kernel-type (formula-to-et-type kernel)))
-    (if
-     (nulltype? kernel-type)
-     (let* ((mr-formula ;eps mr A
-	     (real-and-formula-to-mr-formula-aux 'eps kernel))
-	    (exu-formula (make-exu var mr-formula))
-	    (idpc (predicate-form-to-predicate exu-formula))
-	    (aconst (number-and-idpredconst-to-intro-aconst 0 idpc)))
-       (make-proof-in-aconst-form aconst))
-     (let* ((real-var (type-to-new-partial-var kernel-type)) ;a
-	    (real-term (make-term-in-var-form real-var))
-	    (mr-formula ;a mr A
-	     (real-and-formula-to-mr-formula-aux real-term kernel))
-	    (exu-formula (make-exu var mr-formula))
-	    (idpc (predicate-form-to-predicate exu-formula))
-	    (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	    (exu-formula-free (formula-to-free exu-formula))
-	    (elim-proof (apply mk-proof-in-elim-form
-			       (make-proof-in-aconst-form aconst)
-			       (append
-				(map make-term-in-var-form exu-formula-free)
-				(list (make-term-in-var-form var))))))
-       (apply mk-proof-in-nc-intro-form
-	      (append free (list var real-var elim-proof)))))))
-
-(define (exu-formula-to-exu-intro-mr-proof exu-formula)
-  (let* ((free (formula-to-free exu-formula))
-	 (var (exu-form-to-var exu-formula))
-	 (kernel (exu-form-to-kernel exu-formula))
-	 (kernel-type (formula-to-et-type kernel)))
-    (if
-     (nulltype? kernel-type)
-     (let* ((mr-formula ;eps mr A
-	     (real-and-formula-to-mr-formula-aux 'eps kernel))
-	    (exu-formula (make-exu var mr-formula))
-	    (idpc (predicate-form-to-predicate exu-formula))
-	    (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	    (inst-formula (aconst-to-inst-formula aconst))
-	    (inst-formula-free (formula-to-free inst-formula)))
-       (if (equal? inst-formula-free (append free (list var)))
-	   (make-proof-in-aconst-form aconst)
-	   (apply
-	    mk-proof-in-nc-intro-form
-	    (append free (list var (apply mk-proof-in-elim-form
-					  (make-proof-in-aconst-form aconst)
-					  (map make-term-in-var-form
-					       inst-formula-free)))))))
-     (let* ((real-var (type-to-new-partial-var kernel-type)) ;a
-	    (real-term (make-term-in-var-form real-var))
-	    (mr-formula ;a mr A
-	     (real-and-formula-to-mr-formula-aux real-term kernel))
-	    (exu-formula1 (make-exu real-var mr-formula))
-	    (u (formula-to-new-avar mr-formula))
-	    (free1 (formula-to-free exu-formula1))
-	    (idpc1 (predicate-form-to-predicate exu-formula1))
-	    (aconst1 (number-and-idpredconst-to-intro-aconst 0 idpc1))
-	    (elim-proof1 ;of exu a a mr A from u:a mr A
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst1)
-		    (append (map make-term-in-var-form free1)
-			    (list (make-term-in-var-form real-var)
-				  (make-proof-in-avar-form u)))))
-	    (exu-formula2 (make-exu var exu-formula1))
-	    (free2 (formula-to-free exu-formula2))
-	    (idpc2 (predicate-form-to-predicate exu-formula2))
-	    (aconst2 (number-and-idpredconst-to-intro-aconst 0 idpc2))
-	    (elim-proof2 ;of exu x,a a mr A from u:a mr A
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst2)
-		    (append (map make-term-in-var-form free2)
-			    (list (make-term-in-var-form var)
-				  elim-proof1)))))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append free (list var real-var u elim-proof2)))))))
+  (let* ((idpc (predicate-form-to-predicate exr-formula))
+	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
+	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
+    (make-proof-in-aconst-form mr-aconst)))
 
 (define (andr-formula-to-andr-intro-mr-proof andr-formula)
-  (let* ((free (formula-to-free andr-formula))
-	 (left (andr-form-to-left andr-formula))
-	 (right (andr-form-to-right andr-formula))
-	 (left-type (formula-to-et-type left))
-	 (right-type (formula-to-et-type right))
-	 (right-realvar (type-to-new-partial-var right-type)) ;b
-	 (right-realterm (make-term-in-var-form right-realvar))
-	 (mr-right-formula ;b mr B
-	  (real-and-formula-to-mr-formula-aux right-realterm right)))
-    (if
-     (nulltype? left-type)
-     (let* ((mr-left-formula ;eps mr A
-	     (real-and-formula-to-mr-formula-aux 'eps left))
-	    (andu-formula ;eps mr A andu b mr B
-	     (make-andu mr-left-formula mr-right-formula))
-	    (mr-free (formula-to-free andu-formula))
-	    (idpc (predicate-form-to-predicate andu-formula))
-	    (andu-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	    (mr-left-avar (formula-to-new-avar mr-left-formula)))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append
-	 free (list mr-left-avar right-realvar
-		    (apply
-		     mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-aconst)
-		     (append (map make-term-in-var-form mr-free)
-			     (list (make-proof-in-avar-form
-				    mr-left-avar))))))))
-     (let* ((left-realvar (type-to-new-partial-var left-type)) ;a
-	    (left-realterm (make-term-in-var-form left-realvar))
-	    (mr-left-formula ;a mr A
-	     (real-and-formula-to-mr-formula-aux left-realterm left))
-	    (mr-left-free (formula-to-free mr-left-formula))
-	    (exu-formula ;exu a a mr A
-	     (make-exu left-realvar mr-left-formula))
-	    (exu-idpc (predicate-form-to-predicate exu-formula))
-	    (exu-aconst (number-and-idpredconst-to-intro-aconst 0 exu-idpc))
-	    (mr-left-avar (formula-to-new-avar mr-left-formula))
-	    (andu-formula ;exu a a mr A andu b mr B
-	     (make-andu exu-formula mr-right-formula))
-	    (mr-free (formula-to-free andu-formula))
-	    (andu-idpc (predicate-form-to-predicate andu-formula))
-	    (andu-aconst (number-and-idpredconst-to-intro-aconst 0 andu-idpc))
-	    (mr-left-avar (formula-to-new-avar mr-left-formula))
-	    (exu-proof ;of exu a a mr A
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form exu-aconst)
-		    (append (map make-term-in-var-form mr-left-free)
-			    (list (make-proof-in-avar-form mr-left-avar))))))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append
-	 free (list left-realvar mr-left-avar right-realvar
-		    (apply
-		     mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-aconst)
-		     (append (map make-term-in-var-form mr-free)
-			     (list exu-proof))))))))))
+  (let* ((idpc (predicate-form-to-predicate andr-formula))
+	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
+	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
+    (make-proof-in-aconst-form mr-aconst)))
 
 (define (andl-formula-to-andl-intro-mr-proof andl-formula)
-  (let* ((free (formula-to-free andl-formula))
-	 (left (andl-form-to-left andl-formula))
-	 (right (andl-form-to-right andl-formula))
-	 (left-type (formula-to-et-type left))
-	 (right-type (formula-to-et-type right))
-	 (left-realvar (type-to-new-partial-var left-type)) ;a
-	 (left-realterm (make-term-in-var-form left-realvar))
-	 (mr-left-formula ;a mr A
-	  (real-and-formula-to-mr-formula-aux left-realterm left)))
-    (if
-     (nulltype? right-type)
-     (let* ((mr-right-formula ;eps mr B
-	     (real-and-formula-to-mr-formula-aux 'eps right))
-	    (andu-formula ;a mr A andu eps mr B
-	     (make-andu mr-left-formula mr-right-formula))
-	    (mr-free (formula-to-free andu-formula))
-	    (idpc (predicate-form-to-predicate andu-formula))
-	    (andu-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	    (mr-right-avar (formula-to-new-avar mr-right-formula)))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append
-	 free (list left-realvar mr-right-avar
-		    (apply
-		     mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-aconst)
-		     (append (map make-term-in-var-form mr-free)
-			     (list (make-proof-in-avar-form
-				    mr-right-avar)))))))) ;check
-     (let* ((right-realvar (type-to-new-partial-var right-type)) ;a
-	    (right-realterm (make-term-in-var-form right-realvar))
-	    (mr-right-formula ;b mr B
-	     (real-and-formula-to-mr-formula-aux right-realterm right))
-	    (mr-right-free (formula-to-free mr-right-formula))
-	    (exu-formula ;exu b b mr B
-	     (make-exu right-realvar mr-right-formula))
-	    (exu-idpc (predicate-form-to-predicate exu-formula))
-	    (exu-aconst (number-and-idpredconst-to-intro-aconst 0 exu-idpc))
-	    (mr-right-avar (formula-to-new-avar mr-right-formula))
-	    (andu-formula ;a mr A andu exu b b mr B
-	     (make-andu mr-left-formula exu-formula))
-	    (mr-free (formula-to-free andu-formula))
-	    (andu-idpc (predicate-form-to-predicate andu-formula))
-	    (andu-aconst (number-and-idpredconst-to-intro-aconst 0 andu-idpc))
-	    (mr-right-avar (formula-to-new-avar mr-right-formula))
-	    (exu-proof ;of exu b b mr B
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form exu-aconst)
-		    (append (map make-term-in-var-form mr-right-free)
-			    (list (make-proof-in-avar-form mr-right-avar))))))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append
-	 free (list left-realvar right-realvar mr-right-avar
-		    (apply
-		     mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-aconst)
-		     (append (map make-term-in-var-form mr-free)
-			     (list exu-proof))))))))))
+  (let* ((idpc (predicate-form-to-predicate andl-formula))
+	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
+	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
+    (make-proof-in-aconst-form mr-aconst)))
 
 (define (exl-formula-and-concl-to-exl-elim-mr-proof exl-formula concl)
   (let* ((free (union (formula-to-free exl-formula) (formula-to-free concl)))
 	 (var (exl-form-to-var exl-formula))
 	 (var-term (make-term-in-var-form var))
 	 (type (var-to-type var))
-	 (kernel (exl-form-to-kernel exl-formula))
-	 (kernel-type (formula-to-et-type kernel))
-	 (concl-type (formula-to-et-type concl))
-	 (f-or-eps (if (nulltype? concl-type) 'eps
-		       (type-to-new-partial-var (make-arrow type concl-type))))
-	 (f-term-or-eps (if (nulltype? concl-type) 'eps
-			    (make-term-in-var-form f-or-eps)))
+	 (kernel (exl-form-to-kernel exl-formula)) ;n.c.
+	 (concl-type (formula-to-et-type concl)) ;c.r.
+	 (f (type-to-new-partial-var (make-arrow type concl-type)))
+	 (f-term (make-term-in-var-form f))
 	 (v-formula ;f mr all x(A --> P)
 	  (real-and-formula-to-mr-formula-aux
-	   f-term-or-eps (make-all var (make-impnc kernel concl))))
-	 (v (formula-to-new-avar v-formula "v")))
-    (if
-     (nulltype? kernel-type)
-     (let* ((mr-kernel ;x mr exl x A, which is the same as eps mr A
-	     (real-and-formula-to-mr-formula-aux 'eps kernel))
-	    (u (formula-to-new-avar mr-kernel "u"))
-	    (elim-proof (mk-proof-in-elim-form
-			 (make-proof-in-avar-form v)
-			 var-term (make-proof-in-avar-form u))))
-       (apply mk-proof-in-nc-intro-form
-	      (append free (if (nulltype? concl-type)
-			       (list var u v elim-proof)
-			       (list var u f-or-eps v elim-proof)))))
-     (let* ((real-var ;a
-	     (type-to-new-partial-var kernel-type))
-	    (real-term (make-term-in-var-form real-var))
-	    (mr-kernel ;x mr exl x A, which is exu a a mr A
-	     (real-and-formula-to-mr-formula-aux var-term exl-formula))
-	    (u (formula-to-new-avar mr-kernel "u"))
-	    (mr-concl ;fx mr P
-	     (real-and-formula-to-mr-formula-aux
-	      (if (nulltype? concl-type) 'eps
-		  (make-term-in-app-form f-term-or-eps var-term))
-	      concl))
-	    (imp-formula (make-imp mr-kernel mr-concl))
-	    (aconst (imp-formulas-to-elim-aconst imp-formula))
-	    (aconst-free (formula-to-free imp-formula))
-	    (elim-proof ;of fx mr P
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst)
-		    (append (map make-term-in-var-form aconst-free)
-			    (list (make-proof-in-avar-form u)
-				  (mk-proof-in-elim-form
-				   (make-proof-in-avar-form v) var-term))))))
-       (apply mk-proof-in-nc-intro-form
-	      (append free (if (nulltype? concl-type)
-			       (list var u v elim-proof)
-			       (list var u f-or-eps v elim-proof))))))))
+	   f-term (make-all var (make-impnc kernel concl))))
+	 (v (formula-to-new-avar v-formula "v"))
+	 (u (formula-to-new-avar kernel "u"))
+	 (elim-proof (mk-proof-in-elim-form
+		      (make-proof-in-avar-form v)
+		      var-term (make-proof-in-avar-form u))))
+    (apply mk-proof-in-intro-form
+	   (append free (list var u f v elim-proof)))))
 
 (define (exr-formula-and-concl-to-exr-elim-mr-proof exr-formula concl)
-  (let* ((free (union (formula-to-free exr-formula) (formula-to-free concl)))
-	 (var (exr-form-to-var exr-formula))
-	 (var-term (make-term-in-var-form var))
-	 (type (var-to-type var))
-	 (kernel (exr-form-to-kernel exr-formula))
-	 (kernel-type (formula-to-et-type kernel))
-	 (concl-type (formula-to-et-type concl)))
-    (if
-     (nulltype? kernel-type)
-     (let* ((mr-kernel ;eps mr exr x A, which is the same as exu x eps mr A
-	     (real-and-formula-to-mr-formula-aux 'eps exr-formula))
-	    (u (formula-to-new-avar mr-kernel "u"))
-	    (b-or-eps (if (nulltype? concl-type) 'eps
-			  (type-to-new-partial-var concl-type)))
-	    (b-term-or-eps (if (nulltype? concl-type) 'eps
-			       (make-term-in-var-form b-or-eps)))
-	    (v-formula ;b mr allnc x(A -> P)
-	     (real-and-formula-to-mr-formula-aux
-	      b-term-or-eps (make-allnc var (make-imp kernel concl))))
-	    (v (formula-to-new-avar v-formula "v"))
-	    (mr-concl ;b mr P
-	     (real-and-formula-to-mr-formula-aux b-term-or-eps concl))
-	    (imp-formula (make-imp mr-kernel mr-concl))
-	    (aconst (imp-formulas-to-elim-aconst imp-formula))
-	    (aconst-free (formula-to-free imp-formula))
-	    (elim-proof ;of b mr P
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst)
-		    (append (map make-term-in-var-form aconst-free)
-			    (list (make-proof-in-avar-form u)
-				  (make-proof-in-avar-form v))))))
-       (apply mk-proof-in-nc-intro-form
-	      (append free (if (nulltype? concl-type)
-			       (list u v elim-proof)
-			       (list u b-or-eps v elim-proof)))))
-     (let* ((real-var ;a
-	     (type-to-new-partial-var kernel-type))
-	    (real-term (make-term-in-var-form real-var))
-	    (mr-kernel ;a mr exr x A, which is exu x a mr A
-	     (real-and-formula-to-mr-formula-aux real-term exr-formula))
-	    (u (formula-to-new-avar mr-kernel "u"))
-	    (f-or-eps (if (nulltype? concl-type) 'eps
-			  (type-to-new-partial-var
-			   (make-arrow kernel-type concl-type))))
-	    (f-term-or-eps (if (nulltype? concl-type) 'eps
-			       (make-term-in-var-form f-or-eps)))
-	    (v-formula ;f mr allnc x(A -> P)
-	     (real-and-formula-to-mr-formula-aux
-	      f-term-or-eps (make-allnc var (make-imp kernel concl))))
-	    (v (formula-to-new-avar v-formula "v"))
-	    (mr-concl ;fa mr P
-	     (real-and-formula-to-mr-formula-aux
-	      (if (nulltype? concl-type) 'eps
-		  (make-term-in-app-form f-term-or-eps real-term))
-	      concl))
-	    (imp-formula (make-imp mr-kernel mr-concl))
-	    (aconst (imp-formulas-to-elim-aconst imp-formula))
-	    (aconst-free (formula-to-free imp-formula))
-	    (elim-proof ;of fa mr P
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst)
-		    (append (map make-term-in-var-form aconst-free)
-			    (list (make-proof-in-avar-form u)
-				  (mk-proof-in-nc-intro-form
-				   var (mk-proof-in-elim-form
-					(make-proof-in-avar-form v)
-					var-term real-term)))))))
-       (apply mk-proof-in-nc-intro-form
-	      (append free (if (nulltype? concl-type)
-			       (list u v elim-proof)
-			       (list real-var u f-or-eps v elim-proof))))))))
+  (let* ((exr-vars (formula-to-free exr-formula))
+	 (concl-vars (formula-to-free concl))
+	 (exr-type (formula-to-et-type exr-formula))
+	 (real-var (type-to-new-partial-var exr-type)) ;a
+	 (real-term (make-term-in-var-form real-var))
+	 (mr-exr-fla ;a mr exr x Y x
+	  (real-and-formula-to-mr-formula-aux real-term exr-formula))
+	 (mr-exr-fla-avar (formula-to-new-avar mr-exr-fla)) ;w
+	 (concl-type (formula-to-et-type concl))
+	 (f (type-to-new-partial-var (make-arrow exr-type concl-type)))
+	 (f-term (make-term-in-var-form f)) ;f
+	 (app-term (make-term-in-app-form f-term real-term)) ;fa
+	 (mr-concl ;fa mr concl
+	  (real-and-formula-to-mr-formula-aux app-term concl))
+	 (imp-fla (make-imp mr-exr-fla mr-concl))
+	 (elim-aconst (imp-formulas-to-elim-aconst imp-fla))
+	 (free (append exr-vars concl-vars))
+	 (intro-proof
+	  (apply mk-proof-in-intro-form
+		 (append free (list (make-proof-in-aconst-form elim-aconst)))))
+	 (elim-proof
+	  (apply mk-proof-in-elim-form
+		 intro-proof
+		 (append (map make-term-in-var-form
+			      (append exr-vars (cons f concl-vars)))
+			 (list real-term
+			       (make-proof-in-avar-form mr-exr-fla-avar))))))
+    (apply mk-proof-in-intro-form
+	   (append exr-vars concl-vars
+		   (list real-var mr-exr-fla-avar f elim-proof)))))
 
-(define (andr-formula-and-concl-to-andr-elim-mr-proof andr-formula concl)
-  (let* ((free (union (formula-to-free andr-formula) (formula-to-free concl)))
-	 (left (andr-form-to-left andr-formula))
-	 (left-type (formula-to-et-type left))
-	 (right (andr-form-to-right andr-formula))
-	 (right-type (formula-to-et-type right))
-	 (concl-type (formula-to-et-type concl)))
-    (cond
-     ((and (nulltype? left-type) (nulltype? right-type))
-      (let* ((mr-andr ;eps mr (A andr B), which is eps mr A andu eps mr B
-	      (real-and-formula-to-mr-formula-aux 'eps andr-formula))
-	     (u (formula-to-new-avar mr-andr "u"))
-	     (c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var concl-type)))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (v-formula ;eps mr A --> eps mr B --> c mr P, i.e.,
-					;f mr (A --> B -> P)
-	      (real-and-formula-to-mr-formula-aux
-	       c-term-or-eps (make-impnc left (make-imp right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;c mr P
-	      (real-and-formula-to-mr-formula-aux c-term-or-eps concl))
-	     (andu-imp-formula (make-imp mr-andr mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   (make-proof-in-avar-form v))))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list u v andu-elim-proof)
-				(list u c-or-eps v andu-elim-proof))))))
-     ((and (nulltype? left-type) (not (nulltype? right-type)))
-      (let* ((b (type-to-new-partial-var right-type))
-	     (b-term (make-term-in-var-form b))
-	     (mr-andr ;b mr (A andr B), which is eps mr A andu b mr B
-	      (real-and-formula-to-mr-formula-aux b-term andr-formula))
-	     (u (formula-to-new-avar mr-andr "u"))
-	     (f-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var
-			    (make-arrow right-type concl-type))))
-	     (f-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form f-or-eps)))
-	     (v-formula ;eps mr A --> allnc b(b mr B --> fb mr P), i.e.,
-					;f mr (A --> B -> P)
-	      (real-and-formula-to-mr-formula-aux
-	       f-term-or-eps (make-impnc left (make-imp right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;fb mr P
-	      (real-and-formula-to-mr-formula-aux
-	       (if (nulltype? concl-type) 'eps
-		   (make-term-in-app-form f-term-or-eps b-term))
-	       concl))
-	     (u1 (formula-to-new-avar (andu-form-to-left mr-andr))) ;eps mr A
-	     (v-elim-proof ;of b mr B --> fb mr P
-	      (mk-proof-in-elim-form (make-proof-in-avar-form v)
-				     (make-proof-in-avar-form u1)
-				     (make-term-in-var-form b)))
-	     (v-intro-proof ;of eps mr A --> b mr B --> fb mr P
-	      (mk-proof-in-nc-intro-form u1 v-elim-proof))
-	     (andu-imp-formula (make-imp mr-andr mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of fb mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   v-intro-proof)))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list b u v andu-elim-proof)
-				(list b u f-or-eps v andu-elim-proof))))))
-     ((and (not (nulltype? left-type)) (nulltype? right-type))
-      (let* ((a (type-to-new-partial-var left-type))
-	     (a-term (make-term-in-var-form a))
-	     (mr-andr ;eps mr (A andr B), which is exu a a mr A andu eps mr B
-	      (real-and-formula-to-mr-formula-aux 'eps andr-formula))
-	     (u (formula-to-new-avar mr-andr "u"))
-	     (c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var concl-type)))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (v-formula ;allnc a(a mr A --> eps mr B --> c mr P)), i.e.,
-					;c mr (A --> B -> P)
-	      (real-and-formula-to-mr-formula-aux
-	       c-term-or-eps (make-impnc left (make-imp right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;c mr P
-	      (real-and-formula-to-mr-formula-aux c-term-or-eps concl))
-	     (exu-imp-formula ;exu a a mr A -> eps mr B --> c mr P)
-	      (make-imp
-	       (andu-form-to-left mr-andr)
-	       (make-impnc (andu-form-to-right mr-andr) mr-concl)))
-	     (exu-elim-aconst (imp-formulas-to-elim-aconst exu-imp-formula))
-	     (exu-elim-aconst-free (formula-to-free exu-imp-formula))
-	     (u1 ;exu a a mr A
-	      (formula-to-new-avar (andu-form-to-left mr-andr)))
-	     (u2 (formula-to-new-avar (andu-form-to-right mr-andr))) ;eps mr B
-	     (exu-elim-proof ;of b mr B --> c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form exu-elim-aconst)
-		     (append (map make-term-in-var-form exu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u1)
-				   (make-proof-in-avar-form v)))))
-	     (exu-intro-proof ;of exu a a mr A --> eps mr B --> c mr P
-	      (mk-proof-in-nc-intro-form u1 exu-elim-proof))
-	     (andu-imp-formula (make-imp mr-andr mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   exu-intro-proof)))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list u v andu-elim-proof)
-				(list u c-or-eps v andu-elim-proof))))))
-     ((and (not (nulltype? left-type)) (not (nulltype? right-type)))
-      (let* ((a (type-to-new-partial-var left-type))
-	     (a-term (make-term-in-var-form a))
-	     (b (type-to-new-partial-var right-type))
-	     (b-term (make-term-in-var-form b))
-	     (mr-andr ;b mr (A andr B), which is exu a a mr A andu b mr B
-	      (real-and-formula-to-mr-formula-aux b-term andr-formula))
-	     (u (formula-to-new-avar mr-andr "u"))
-	     (f-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var
-			    (make-arrow right-type concl-type))))
-	     (f-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form f-or-eps)))
-	     (v-formula ;allnc a(a mr A --> allnc b(b mr B --> fb mr P)), i.e.,
-					;f mr (A --> B -> P)
-	      (real-and-formula-to-mr-formula-aux
-	       f-term-or-eps (make-impnc left (make-imp right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;fb mr P
-	      (real-and-formula-to-mr-formula-aux
-	       (if (nulltype? concl-type) 'eps
-		   (make-term-in-app-form f-term-or-eps b-term))
-	       concl))
-	     (exu-imp-formula ;exu a a mr A -> allnc b(b mr B --> fb mr P)
-	      (make-imp
-	       (andu-form-to-left mr-andr)
-	       (make-allnc
-		b (make-impnc (andu-form-to-right mr-andr) mr-concl))))
-	     (exu-elim-aconst (imp-formulas-to-elim-aconst exu-imp-formula))
-	     (exu-elim-aconst-free (formula-to-free exu-imp-formula))
-	     (u1 ;exu a a mr A
-	      (formula-to-new-avar (andu-form-to-left mr-andr)))
-	     (exu-elim-proof ;of b mr B --> fb mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form exu-elim-aconst)
-		     (append (map make-term-in-var-form exu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u1)
-				   (make-proof-in-avar-form v)
-				   (make-term-in-var-form b)))))
-	     (exu-intro-proof ;of exu a a mr A --> b mr B --> fb mr P
-	      (mk-proof-in-nc-intro-form u1 exu-elim-proof))
-	     (andu-imp-formula (make-imp mr-andr mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of fb mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   exu-intro-proof)))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list b u v andu-elim-proof)
-				(list b u f-or-eps v andu-elim-proof))))))
-     (else (myerror "andr-formula-and-concl-to-andr-elim-mr-proof"
-		    "unexpected types" left-type right-type)))))
+;; For andr-formula-and-concl-to-andr-elim-mr-proof the definition is
+;; the same as for andl-formula-and-concl-to-andl-elim-mr-proof .
+;; Thus we use andlr-formula-and-concl-to-andlr-elim-mr-proof
 
-(define (andl-formula-and-concl-to-andl-elim-mr-proof andl-formula concl)
-  (let* ((free (union (formula-to-free andl-formula) (formula-to-free concl)))
-	 (left (andl-form-to-left andl-formula))
-	 (left-type (formula-to-et-type left))
-	 (right (andl-form-to-right andl-formula))
-	 (right-type (formula-to-et-type right))
-	 (concl-type (formula-to-et-type concl)))
-    (cond
-     ((and (nulltype? left-type) (nulltype? right-type))
-      (let* ((mr-andl ;eps mr (A andl B), which is eps mr A andu eps mr B
-	      (real-and-formula-to-mr-formula-aux 'eps andl-formula))
-	     (u (formula-to-new-avar mr-andl "u"))
-	     (c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var concl-type)))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (v-formula ;eps mr A --> eps mr B --> c mr P, i.e.,
-					;f mr (A -> B --> P)
-	      (real-and-formula-to-mr-formula-aux
-	       c-term-or-eps (make-imp left (make-impnc right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;c mr P
-	      (real-and-formula-to-mr-formula-aux c-term-or-eps concl))
-	     (andu-imp-formula (make-imp mr-andl mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   (make-proof-in-avar-form v))))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list u v andu-elim-proof)
-				(list u c-or-eps v andu-elim-proof))))))
-     ((and (nulltype? left-type) (not (nulltype? right-type)))
-      (let* ((b (type-to-new-partial-var right-type))
-	     (b-term (make-term-in-var-form b))
-	     (mr-andl ;eps mr (A andl B), which is eps mr A andu exu b b mr B
-	      (real-and-formula-to-mr-formula-aux eps andl-formula))
-	     (u (formula-to-new-avar mr-andr "u"))
-	     (c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var
-			    (make-arrow right-type concl-type))))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (v-formula ;eps mr A --> allnc b(b mr B --> c mr P), i.e.,
-					;c mr (A -> B --> P)
-	      (real-and-formula-to-mr-formula-aux
-	       c-term-or-eps (make-impnc left (make-imp right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;c mr P
-	      (real-and-formula-to-mr-formula-aux c-term-or-eps concl))
-	     (exu-imp-formula ;eps mr A -> exu b b mr B -> c mr P)
-	      (make-imp
-	       (andu-form-to-left mr-andr)
-	       (make-imp (andu-form-to-right mr-andr) mr-concl)))
-	     (exu-elim-aconst (imp-formulas-to-elim-aconst exu-imp-formula))
-	     (exu-elim-aconst-free (formula-to-free exu-imp-formula))
-	     (u1 (formula-to-new-avar (andu-form-to-left mr-andr))) ;eps mr A
-	     (u2 ;exu b b mr B
-	      (formula-to-new-avar (andu-form-to-right mr-andr)))
-	     (exu-elim-proof ;of exu b b mr B --> c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form exu-elim-aconst)
-		     (append (map make-term-in-var-form exu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u1)
-				   (make-proof-in-avar-form v)))))
-	     (exu-intro-proof ;of eps mr A --> exu b b mr B --> c mr P
-	      (mk-proof-in-nc-intro-form u1 exu-elim-proof))
-	     (andu-imp-formula (make-imp mr-andl mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   exu-intro-proof)))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list u v andu-elim-proof)
-				(list u c-or-eps v andu-elim-proof))))))
-     ((and (not (nulltype? left-type)) (nulltype? right-type))
-      (let* ((a (type-to-new-partial-var left-type))
-	     (a-term (make-term-in-var-form a))
-	     (mr-andl ;eps mr (A andl B), which is exu a a mr A andu eps mr B
-	      (real-and-formula-to-mr-formula-aux 'eps andl-formula))
-	     (u (formula-to-new-avar mr-andr "u"))
-	     (f-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var
-			    (make-arrow left-type concl-type))))
-	     (f-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form f-or-eps)))
-	     (v-formula ;allnc a(a mr A --> eps mr B --> fa mr P)), i.e.,
-					;f mr (A -> B --> P)
-	      (real-and-formula-to-mr-formula-aux
-	       f-term-or-eps (make-imp left (make-impnc right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;fa mr P
-	      (real-and-formula-to-mr-formula-aux
-	       (if (nulltype? concl-type) 'eps
-		   (make-term-in-app-form f-term-or-eps a-term))
-	       concl))
-	     (exu-imp-formula ;exu a a mr A -> eps mr B --> c mr P)
-	      (make-imp
-	       (andu-form-to-left mr-andl)
-	       (make-impnc (andu-form-to-right mr-andl) mr-concl)))
-	     (exu-elim-aconst (imp-formulas-to-elim-aconst exu-imp-formula))
-	     (exu-elim-aconst-free (formula-to-free exu-imp-formula))
-	     (u1 ;exu a a mr A
-	      (formula-to-new-avar (andu-form-to-left mr-andl)))
-	     (u2 (formula-to-new-avar (andu-form-to-right mr-andl))) ;eps mr B
-	     (exu-elim-proof ;of eps mr B --> c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form exu-elim-aconst)
-		     (append (map make-term-in-var-form exu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u1)
-				   (make-proof-in-avar-form v)))))
-	     (exu-intro-proof ;of exu a a mr A --> eps mr B --> c mr P
-	      (mk-proof-in-nc-intro-form u1 exu-elim-proof))
-	     (andu-imp-formula (make-imp mr-andl mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of c mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   exu-intro-proof)))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list u v andu-elim-proof)
-				(list u c-or-eps v andu-elim-proof))))))
-     ((and (not (nulltype? left-type)) (not (nulltype? right-type)))
-      (let* ((a (type-to-new-partial-var left-type))
-	     (a-term (make-term-in-var-form a))
-	     (b (type-to-new-partial-var right-type))
-	     (b-term (make-term-in-var-form b))
-	     (mr-andl ;b mr (A andl B), which is exu a a mr A andu b mr B
-	      (real-and-formula-to-mr-formula-aux b-term andl-formula))
-	     (u (formula-to-new-avar mr-andl "u"))
-	     (f-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var
-			    (make-arrow right-type concl-type))))
-	     (f-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form f-or-eps)))
-	     (v-formula ;allnc a(a mr A --> allnc b(b mr B --> fb mr P)), i.e.,
-					;f mr (A --> B -> P)
-	      (real-and-formula-to-mr-formula-aux
-	       f-term-or-eps (make-impnc left (make-imp right concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (mr-concl ;fb mr P
-	      (real-and-formula-to-mr-formula-aux
-	       (if (nulltype? concl-type) 'eps
-		   (make-term-in-app-form f-term-or-eps b-term))
-	       concl))
-	     (exu-imp-formula ;exu a a mr A -> allnc b(b mr B --> fb mr P)
-	      (make-imp
-	       (andu-form-to-left mr-andl)
-	       (make-allnc
-		b (make-impnc (andu-form-to-right mr-andl) mr-concl))))
-	     (exu-elim-aconst (imp-formulas-to-elim-aconst exu-imp-formula))
-	     (exu-elim-aconst-free (formula-to-free exu-imp-formula))
-	     (u1 ;exu a a mr A
-	      (formula-to-new-avar (andu-form-to-left mr-andl)))
-	     (exu-elim-proof ;of b mr B --> fb mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form exu-elim-aconst)
-		     (append (map make-term-in-var-form exu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u1)
-				   (make-proof-in-avar-form v)
-				   (make-term-in-var-form b)))))
-	     (exu-intro-proof ;of exu a a mr A --> b mr B --> fb mr P
-	      (mk-proof-in-nc-intro-form u1 exu-elim-proof))
-	     (andu-imp-formula (make-imp mr-andl mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (andu-elim-aconst-free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of fb mr P
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form andu-elim-aconst-free)
-			     (list (make-proof-in-avar-form u)
-				   exu-intro-proof)))))
-	(apply mk-proof-in-nc-intro-form
-	       (append free (if (nulltype? concl-type)
-				(list b u v andu-elim-proof)
-				(list b u f-or-eps v andu-elim-proof))))))
-     (else (myerror "andl-formula-and-concl-to-andl-elim-mr-proof"
-		    "unexpected types" left-type right-type)))))
+(define (andlr-formula-and-concl-to-andlr-elim-mr-proof andlr-formula concl)
+  (let* ((andlr-vars (formula-to-free andlr-formula))
+	 (concl-vars (formula-to-free concl))
+	 (andlr-type (formula-to-et-type andlr-formula))
+	 (real-var (type-to-new-partial-var andlr-type)) ;a
+	 (real-term (make-term-in-var-form real-var))
+	 (mr-andlr-fla ;a mr X andl Y^ or a mr X^ andr Y
+	  (real-and-formula-to-mr-formula-aux real-term andlr-formula))
+	 (mr-andlr-fla-avar (formula-to-new-avar mr-andlr-fla)) ;w
+	 (concl-type (formula-to-et-type concl))
+	 (f (type-to-new-partial-var (make-arrow andlr-type concl-type)))
+	 (f-term (make-term-in-var-form f)) ;f
+	 (app-term (make-term-in-app-form f-term real-term)) ;fa
+	 (mr-concl ;fa mr concl
+	  (real-and-formula-to-mr-formula-aux app-term concl))
+	 (imp-fla (make-imp mr-andlr-fla mr-concl))
+	 (elim-aconst (imp-formulas-to-elim-aconst imp-fla))
+	 (free (append andlr-vars concl-vars))
+	 (intro-proof
+	  (apply mk-proof-in-intro-form
+		 (append free (list (make-proof-in-aconst-form elim-aconst)))))
+	 (elim-proof
+	  (apply mk-proof-in-elim-form
+		 intro-proof
+		 (append (map make-term-in-var-form
+			      (append andlr-vars (cons f concl-vars)))
+			 (list real-term
+			       (make-proof-in-avar-form mr-andlr-fla-avar))))))
+    (apply mk-proof-in-intro-form
+	   (append andlr-vars concl-vars
+		   (list real-var mr-andlr-fla-avar f elim-proof)))))
 
 (define (eqd-elim-aconst-to-eqd-mr-elim-proof aconst)
   (let* ((imp-formulas (aconst-to-repro-data aconst))
@@ -4679,7 +3612,7 @@
 		   (cterm-to-formula cterm)
 		   (make-substitution-wrt var-term-equal? vars eqd-terms)))
 	 (et-type (formula-to-et-type formula))
-	 (real (if (nulltype? et-type)
+	 (real (if (nulltype? et-type) ;this cannot happen
 		   'eps
 		   (make-term-in-var-form (type-to-new-partial-var et-type))))
 	 (mr-formula (real-and-formula-to-mr-formula-aux real formula))
@@ -4693,296 +3626,54 @@
 			     eqd-elim-aconst-with-mr-formula)
 			    (append (map make-term-in-var-form free)
 				    (list (make-proof-in-avar-form u))))))
-    (if (nulltype? et-type)
-	(apply mk-proof-in-nc-intro-form
+    (if (nulltype? et-type) ;this cannot happen
+	(apply mk-proof-in-intro-form
 	       (append free (list u elim-proof)))
 	(let ((z (term-in-var-form-to-var real)))
-	  (apply mk-proof-in-nc-intro-form
+	  (apply mk-proof-in-intro-form
 		 (append (remove z free) (list u z elim-proof)))))))
 
 (define (exu-formula-and-concl-to-exu-elim-mr-proof exu-formula concl)
-  (let* ((free (union (formula-to-free exu-formula) (formula-to-free concl)))
-	 (var (exu-form-to-var exu-formula))
-	 (var-term (make-term-in-var-form var))
-	 (type (var-to-type var))
-	 (kernel (exu-form-to-kernel exu-formula))
-	 (kernel-type (formula-to-et-type kernel))
-	 (concl-type (formula-to-et-type concl)))
-    (if
-     (nulltype? kernel-type)
-     (let* ((mr-kernel ;eps mr exu x A, which is the same as exu x eps mr A
-	     (real-and-formula-to-mr-formula-aux 'eps exu-formula))
-	    (u (formula-to-new-avar mr-kernel "u"))
-	    (b-or-eps (if (nulltype? concl-type) 'eps
-			  (type-to-new-partial-var concl-type)))
-	    (b-term-or-eps (if (nulltype? concl-type) 'eps
-			       (make-term-in-var-form b-or-eps)))
-	    (v-formula ;b mr allnc x(A -> P)
-	     (real-and-formula-to-mr-formula-aux
-	      b-term-or-eps (make-allnc var (make-imp kernel concl))))
-	    (v (formula-to-new-avar v-formula "v"))
-	    (mr-concl ;b mr P
-	     (real-and-formula-to-mr-formula-aux b-term-or-eps concl))
-	    (imp-formula (make-imp mr-kernel mr-concl))
-	    (aconst (imp-formulas-to-elim-aconst imp-formula))
-	    (aconst-free (formula-to-free imp-formula))
-	    (elim-proof ;of b mr P
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst)
-		    (append (map make-term-in-var-form aconst-free)
-			    (list (make-proof-in-avar-form u)
-				  (make-proof-in-avar-form v))))))
-       (apply mk-proof-in-nc-intro-form
-	      (append free (if (nulltype? concl-type)
-			       (list u v elim-proof)
-			       (list u b-or-eps v elim-proof)))))
-     (let* ((real-var ;a
-	     (type-to-new-partial-var kernel-type))
-	    (real-term (make-term-in-var-form real-var))
-	    (mr-kernel ;a mr A
-	     (real-and-formula-to-mr-formula-aux real-term kernel))
-	    (u1 ;exu a a mr A
-	     (formula-to-new-avar (make-exu real-var mr-kernel)))
-	    (b-or-eps (if (nulltype? concl-type) 'eps
-			  (type-to-new-partial-var concl-type)))
-	    (b-term-or-eps (if (nulltype? concl-type) 'eps
-			       (make-term-in-var-form b-or-eps)))
-	    (mr-concl ;b mr P
-	     (real-and-formula-to-mr-formula-aux b-term-or-eps concl))
-	    (v-formula ;allnc x,a(a mr A --> b mr P)
-	     (mk-allnc var real-var (make-impnc mr-kernel mr-concl)))
-	    (v (formula-to-new-avar v-formula "v"))
-	    (imp-formula1 ;exu a a mr A -> b mr P
-	     (make-imp (make-exu real-var mr-kernel) mr-concl))
-	    (aconst1 (imp-formulas-to-elim-aconst imp-formula1))
-	    (aconst1-free (formula-to-free imp-formula1))
-	    (elim-proof1 ;of b mr P
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst1)
-		    (append (map make-term-in-var-form aconst1-free)
-			    (list (make-proof-in-avar-form u1)
-				  (mk-proof-in-elim-form
-				   (make-proof-in-avar-form v)
-				   var-term)))))
-	    (intro-proof ;of allnc x(exu a a mr A --> b mr P)
-	     (mk-proof-in-nc-intro-form var u1 elim-proof1))
-	    (u ;exu x,a a mr A
-	     (formula-to-new-avar (mk-exu var real-var mr-kernel)))
-	    (imp-formula ;exu x,a a mr A -> b mr P
-	     (make-imp (mk-exu var real-var mr-kernel) mr-concl))
-	    (aconst (imp-formulas-to-elim-aconst imp-formula))
-	    (aconst-free (formula-to-free imp-formula))
-	    (elim-proof ;of b mr P
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-aconst-form aconst)
-		    (append (map make-term-in-var-form aconst-free)
-			    (list (make-proof-in-avar-form u)
-				  intro-proof)))))
-       (apply mk-proof-in-nc-intro-form
-	      (append free (if (nulltype? concl-type)
-			       (list u v elim-proof)
-			       (list u b-or-eps v elim-proof))))))))
+  (let* ((free-exu (formula-to-free exu-formula))
+	 (free-concl (formula-to-free concl))
+	 (free (union free-exu free-concl))
+	 (concl-type (formula-to-et-type concl))
+	 (real-var (type-to-new-partial-var concl-type))
+	 (real (make-term-in-var-form real-var))
+	 (mr-concl (real-and-formula-to-mr-formula-aux real concl))
+	 (imp-formula (make-imp exu-formula mr-concl))
+	 (aconst (imp-formulas-to-elim-aconst imp-formula))
+	 (avar (formula-to-new-avar exu-formula))
+	 (elim-proof
+	  (apply mk-proof-in-elim-form
+		 (make-proof-in-aconst-form aconst)
+		 (append (map make-term-in-var-form free-exu)
+			 (list real)
+			 (map make-term-in-var-form free-concl)
+			 (list (make-proof-in-avar-form avar))))))
+    (apply mk-proof-in-intro-form
+	   (append free-exu free-concl (list avar real-var elim-proof)))))
 
 (define (andu-formula-and-concl-to-andu-elim-mr-proof andu-formula concl)
-  (let* ((free (union (formula-to-free andu-formula) (formula-to-free concl)))
-	 (left (andu-form-to-left andu-formula))
-	 (left-type (formula-to-et-type left))
-	 (right (andu-form-to-right andu-formula))
-	 (right-type (formula-to-et-type right))
-	 (concl-type (formula-to-et-type concl)))
-    (cond
-     ((and (nulltype? left-type) (nulltype? right-type))
-      (let* ((c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var concl-type)))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (eps-mr-left (real-and-formula-to-mr-formula-aux 'eps left))
-	     (eps-mr-right (real-and-formula-to-mr-formula-aux 'eps right))
-	     (u-formula ;eps mr A andu eps mr B
-	      (make-andu eps-mr-left eps-mr-right))
-	     (u (formula-to-new-avar u-formula "u"))
-	     (c-mr-concl (real-and-formula-to-mr-formula-aux
-			  c-term-or-eps concl))
-	     (v-formula (mk-impnc eps-mr-left eps-mr-right c-mr-concl))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (andu-imp-formula (make-imp u-formula c-mr-concl))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (free (formula-to-free andu-imp-formula))
-	     (andu-elim-proof ;of c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form free)
-			     (list (make-proof-in-avar-form u)
-				   (make-proof-in-avar-form v))))))
-	(if (nulltype? concl-type)
-	    (apply mk-proof-in-nc-intro-form
-		   (append free (list u v andu-elim-proof)))
-	    (apply mk-proof-in-nc-intro-form
-		   (append (remove c-or-eps free)
-			   (list u c-or-eps v andu-elim-proof))))))
-     ((and (nulltype? left-type) (not (nulltype? right-type)))
-      (let* ((b (type-to-new-partial-var right-type))
-	     (b-term (make-term-in-var-form b))
-	     (c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var concl-type)))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (eps-mr-left (real-and-formula-to-mr-formula-aux 'eps left))
-	     (u1 (formula-to-new-avar eps-mr-left "u"))
-	     (b-mr-right (real-and-formula-to-mr-formula-aux b-term right))
-	     (c-mr-concl (real-and-formula-to-mr-formula-aux
-			  c-term-or-eps concl))
-	     (v-formula (make-impnc
-			 eps-mr-left (make-allnc
-				      b (make-impnc b-mr-right c-mr-concl))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (u2-formula (make-exu b b-mr-right)) ;exu b b mr B
-	     (u2 (formula-to-new-avar u2-formula "u"))
-	     (u-formula ;eps mr A andu exu b b mr B
-	      (make-andu eps-mr-left u2-formula))
-	     (u (formula-to-new-avar u-formula "u"))
-	     (imp-formula2 (make-imp u2-formula c-mr-concl))
-	     (andu-imp-formula (make-imp u-formula c-mr-concl))
-	     (aconst2 (imp-formulas-to-elim-aconst imp-formula2))
-	     (free2 (formula-to-free imp-formula2))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (free (formula-to-free andu-imp-formula))
-	     (elim-proof2 ;of c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form aconst2)
-		     (append (map make-term-in-var-form free2)
-			     (list (make-proof-in-avar-form u2)
-				   (mk-proof-in-elim-form
-				    (make-proof-in-avar-form v)
-				    (make-proof-in-avar-form u1))))))
-	     (intro-proof2 ;of eps mr A --> exu b b mr B --> c mr C
-	      (mk-proof-in-nc-intro-form u1 u2 elim-proof2))
-	     (andu-elim-proof ;of c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form free)
-			     (list (make-proof-in-avar-form u)
-				   intro-proof2)))))
-	(if (nulltype? concl-type)
-	    (apply mk-proof-in-nc-intro-form
-		   (append free (list u v andu-elim-proof)))
-	    (apply mk-proof-in-nc-intro-form
-		   (append (remove c-or-eps free)
-			   (list u c-or-eps v andu-elim-proof))))))
-     ((and (not (nulltype? left-type)) (nulltype? right-type))
-      (let* ((a (type-to-new-partial-var left-type))
-	     (a-term (make-term-in-var-form a))
-	     (c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var concl-type)))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (a-mr-left (real-and-formula-to-mr-formula-aux a-term left))
-	     (eps-mr-right (real-and-formula-to-mr-formula-aux 'eps right))
-	     (c-mr-concl (real-and-formula-to-mr-formula-aux
-			  c-term-or-eps concl))
-	     (v-formula (make-allnc
-			 a (mk-impnc a-mr-left eps-mr-right c-mr-concl)))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (u1-formula (make-exu a a-mr-left)) ;exu a a mr A
-	     (u1 (formula-to-new-avar u1-formula "u"))
-	     (u-formula ;exu a a mr A andu eps mr B
-	      (make-andu u1-formula eps-mr-right))
-	     (u (formula-to-new-avar u-formula "u"))
-	     (imp-formula1 (make-imp u1-formula
-				     (make-impnc eps-mr-right c-mr-concl)))
-	     (andu-imp-formula (make-imp u-formula c-mr-concl))
-	     (aconst1 (imp-formulas-to-elim-aconst imp-formula1))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (free (formula-to-free andu-imp-formula)) ;same as free1
-	     (elim-proof1 ;of eps mr B --> c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form aconst1)
-		     (append (map make-term-in-var-form free)
-			     (list (make-proof-in-avar-form u1)
-				   (make-proof-in-avar-form v)))))
-	     (intro-proof1 ;of exu a a mr A --> eps mr B --> c mr C
-	      (mk-proof-in-nc-intro-form u1 elim-proof1))
-	     (andu-elim-proof ;of c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form free)
-			     (list (make-proof-in-avar-form u)
-				   intro-proof1)))))
-	(if (nulltype? concl-type)
-	    (apply mk-proof-in-nc-intro-form
-		   (append free (list u v andu-elim-proof)))
-	    (apply mk-proof-in-nc-intro-form
-		   (append (remove c-or-eps free)
-			   (list u c-or-eps v andu-elim-proof))))))
-     ((and (not (nulltype? left-type)) (not (nulltype? right-type)))
-      (let* ((a (type-to-new-partial-var left-type))
-	     (a-term (make-term-in-var-form a))
-	     (b (type-to-new-partial-var right-type))
-	     (b-term (make-term-in-var-form b))
-	     (c-or-eps (if (nulltype? concl-type) 'eps
-			   (type-to-new-partial-var concl-type)))
-	     (c-term-or-eps (if (nulltype? concl-type) 'eps
-				(make-term-in-var-form c-or-eps)))
-	     (a-mr-left (real-and-formula-to-mr-formula-aux a-term left))
-	     (u11 (formula-to-new-avar a-mr-left "u"))
-	     (b-mr-right (real-and-formula-to-mr-formula-aux b-term right))
-	     (c-mr-concl (real-and-formula-to-mr-formula-aux
-			  c-term-or-eps concl))
-	     (v-formula (make-allnc
-			 a (make-impnc
-			    a-mr-left
-			    (make-allnc
-			     b (make-impnc b-mr-right c-mr-concl)))))
-	     (v (formula-to-new-avar v-formula "v"))
-	     (u1-formula (make-exu a a-mr-left)) ;exu a a mr A
-	     (u1 (formula-to-new-avar u1-formula "u"))
-	     (u2-formula (make-exu b b-mr-right)) ;exu b b mr B
-	     (u2 (formula-to-new-avar u2-formula "u"))
-	     (u-formula ;exu a a mr A andu exu b b mr B
-	      (make-andu u1-formula u2-formula))
-	     (u (formula-to-new-avar u-formula "u"))
-	     (imp-formula2 (make-imp u2-formula c-mr-concl))
-	     (imp-formula1 (make-imp u1-formula
-				     (make-impnc u2-formula c-mr-concl)))
-	     (andu-imp-formula (make-imp u-formula c-mr-concl))
-	     (aconst2 (imp-formulas-to-elim-aconst imp-formula2))
-	     (free2 (formula-to-free imp-formula2))
-	     (aconst1 (imp-formulas-to-elim-aconst imp-formula1))
-	     (andu-elim-aconst (imp-formulas-to-elim-aconst andu-imp-formula))
-	     (free (formula-to-free andu-imp-formula)) ;same as free1
-	     (elim-proof2 ;of c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form aconst2)
-		     (append (map make-term-in-var-form free2)
-			     (list (make-proof-in-avar-form u2)
-				   (mk-proof-in-elim-form
-				    (make-proof-in-avar-form v)
-				    a-term
-				    (make-proof-in-avar-form u11))))))
-	     (intro-proof2 ;of allnc a(a mr A --> exu b b mr B --> c mr C)
-	      (mk-proof-in-nc-intro-form a u11 u2 elim-proof2))
-	     (elim-proof1 ;of exu b b mr B --> c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form aconst1)
-		     (append (map make-term-in-var-form free)
-			     (list (make-proof-in-avar-form u1)
-				   intro-proof2))))
-	     (intro-proof1 ;of exu a a mr A --> exu b b mr B --> c mr C
-	      (mk-proof-in-nc-intro-form u1 elim-proof1))
-	     (andu-elim-proof ;of c mr C
-	      (apply mk-proof-in-elim-form
-		     (make-proof-in-aconst-form andu-elim-aconst)
-		     (append (map make-term-in-var-form free)
-			     (list (make-proof-in-avar-form u)
-				   intro-proof1)))))
-	(if (nulltype? concl-type)
-	    (apply mk-proof-in-nc-intro-form
-		   (append free (list u v andu-elim-proof)))
-	    (apply mk-proof-in-nc-intro-form
-		   (append (remove c-or-eps free)
-			   (list u c-or-eps v andu-elim-proof))))))
-     (else (myerror "andu-formula-and-concl-to-andu-elim-mr-proof"
-		    "unexpected types" left-type right-type)))))
+  (let* ((free-andu (formula-to-free andu-formula))
+	 (free-concl (formula-to-free concl))
+	 (free (union free-andu free-concl))
+	 (concl-type (formula-to-et-type concl))
+	 (real-var (type-to-new-partial-var concl-type))
+	 (real (make-term-in-var-form real-var))
+	 (mr-concl (real-and-formula-to-mr-formula-aux real concl))
+	 (imp-formula (make-imp andu-formula mr-concl))
+	 (aconst (imp-formulas-to-elim-aconst imp-formula))
+	 (avar (formula-to-new-avar andu-formula))
+	 (elim-proof
+	  (apply mk-proof-in-elim-form
+		 (make-proof-in-aconst-form aconst)
+		 (append (map make-term-in-var-form free-andu)
+			 (list real)
+			 (map make-term-in-var-form free-concl)
+			 (list (make-proof-in-avar-form avar))))))
+    (apply mk-proof-in-intro-form
+	   (append free-andu free-concl (list avar real-var elim-proof)))))
 
 (define (coidpredconst-to-closure-mr-proof coidpc)
   (let* ((closure-aconst (coidpredconst-to-closure-aconst coidpc))
@@ -4990,13 +3681,12 @@
 	 (goal-formula (proof-to-soundness-formula
 			(make-proof-in-aconst-form
 			 (aconst-substitute closure-aconst tpsubst))))
-	 (goal-vars (allnc-form-to-vars goal-formula))
-	 (goal-kernel (allnc-form-to-final-kernel goal-formula))
-	 (goal-prem (impnc-form-to-premise goal-kernel))
+	 (goal-vars (all-form-to-vars goal-formula))
+	 (goal-kernel (all-form-to-final-kernel goal-formula))
+	 (goal-prem (imp-form-to-premise goal-kernel))
 	 (goal-prem-avar (formula-to-new-avar goal-prem))
-	 (goal-concl (impnc-form-to-conclusion goal-kernel))
-	 (coidpc-avar
-	  (formula-to-new-avar (impnc-form-to-premise goal-kernel)))
+	 (goal-concl (imp-form-to-conclusion goal-kernel))
+	 (coidpc-avar (formula-to-new-avar goal-prem))
 	 (mr-coidpc (idpredconst-to-mr-idpredconst coidpc))
 	 (mr-closure-aconst (coidpredconst-to-closure-aconst mr-coidpc))
 	 (mr-closure-concl-proof
@@ -5006,11 +3696,11 @@
 			 (list
 			  (make-proof-in-avar-form goal-prem-avar))))))
     (apply
-     mk-proof-in-nc-intro-form
+     mk-proof-in-intro-form
      (append
       goal-vars
       (list
-       (make-proof-in-impnc-intro-form
+       (make-proof-in-imp-intro-form
 	goal-prem-avar
 	(make-proof-in-imp-elim-form
 	 (coidpredconst-to-closure-mr-proof-or-elim
@@ -6151,7 +4841,7 @@
 
 (define (make-avar-or-ga-to-mr-avar avar-or-ga-to-var)
   ;; returns a procedure assigning to an avar or ga u:A a new avar
-  ;; u':x_u mr A.  Remembers the assignment done so far.
+  ;; u':v_u mr A.  Remembers the assignment done so far.
   (let ((avar-assoc-list '())
 	(ga-assoc-list '()))
     (lambda (x)
@@ -6163,13 +4853,12 @@
 	    (let* ((formula (if (avar-form? x)
 				(avar-to-formula x)
 				(aconst-to-formula x)))
-		   (type (formula-to-et-type formula))
-		   (mr-formula (real-and-formula-to-mr-formula-aux
-				(if (nulltype? type)
-				    'eps
+		   (mr-formula (if (formula-of-nulltype? formula)
+				   formula
+				   (real-and-formula-to-mr-formula-aux
 				    (make-term-in-var-form
-				     (avar-or-ga-to-var x)))
-				formula))
+				     (avar-or-ga-to-var x))
+				    formula)))
 		   (mr-avar (formula-to-new-avar mr-formula "umr")))
 	      (if (avar-form? x)
 		  (begin (set! avar-assoc-list
@@ -6188,12 +4877,14 @@
 			   (theorem-name-to-proof proof-or-thm-name))
 			  (else (myerror "proof-to-soundness-proof"
 					 "proof or theorem name expected"
-					 proof-or-thm-name))))
-	     (avar-or-ga-to-var (make-avar-or-ga-to-var))
-	     (avar-or-ga-to-mr-avar (make-avar-or-ga-to-mr-avar
-				     avar-or-ga-to-var)))
-	(proof-to-soundness-proof-aux
-	 proof avar-or-ga-to-var avar-or-ga-to-mr-avar))))
+					 proof-or-thm-name)))))
+	(if (formula-of-nulltype? (proof-to-formula proof))
+	    proof
+	    (let* ((avar-or-ga-to-var (make-avar-or-ga-to-var))
+		   (avar-or-ga-to-mr-avar (make-avar-or-ga-to-mr-avar
+					   avar-or-ga-to-var)))
+	      (proof-to-soundness-proof-aux
+	       proof avar-or-ga-to-var avar-or-ga-to-mr-avar))))))
 
 (define (proof-to-soundness-proof-aux
 	 proof avar-or-ga-to-var avar-or-ga-to-mr-avar)
@@ -6203,74 +4894,57 @@
 	    (mr-avar (avar-or-ga-to-mr-avar avar)))
        (make-proof-in-avar-form mr-avar)))
     ((proof-in-aconst-form)
-     (if
-      (non-computational-invariant? (proof-to-formula proof) '())
-      proof
-      (let* ((aconst (proof-in-aconst-form-to-aconst proof))
-	     (name (aconst-to-name aconst)))
-	(case (aconst-to-kind aconst)
-	  ((axiom) (axiom-to-soundness-proof aconst))
-	  ((theorem) (theorem-to-soundness-proof aconst))
-	  ((global-assumption) (global-assumption-to-soundness-proof
-				aconst avar-or-ga-to-mr-avar))
-	  (else (myerror
-		 "proof-to-soundness-proof-aux" "unknown kind of aconst"
-		 (aconst-to-kind aconst)))))))
+     (let* ((aconst (proof-in-aconst-form-to-aconst proof))
+	    (name (aconst-to-name aconst)))
+       (case (aconst-to-kind aconst)
+	 ((axiom) (axiom-to-soundness-proof aconst))
+	 ((theorem) (theorem-to-soundness-proof aconst))
+	 ((global-assumption) (global-assumption-to-soundness-proof
+			       aconst avar-or-ga-to-mr-avar))
+	 (else (myerror
+		"proof-to-soundness-proof-aux" "unknown kind of aconst"
+		(aconst-to-kind aconst))))))
     ((proof-in-imp-intro-form)
      (let* ((avar (proof-in-imp-intro-form-to-avar proof))
-	    (mr-avar (avar-or-ga-to-mr-avar avar))
-	    (avar-type (formula-to-et-type (avar-to-formula avar)))
 	    (kernel (proof-in-imp-intro-form-to-kernel proof))
+	    (avar-fla (avar-to-formula avar))
 	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	    (impnc-intro-proof
-	     (mk-proof-in-nc-intro-form mr-avar kernel-proof)))
-       (if (nulltype? avar-type)
-	   impnc-intro-proof
-	   (mk-proof-in-nc-intro-form
-	    (avar-or-ga-to-var avar) impnc-intro-proof))))
+			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+       (if (not (formula-of-nulltype? avar-fla))
+	   (let ((mr-avar (avar-or-ga-to-mr-avar avar)))
+	     (mk-proof-in-intro-form
+	      (avar-or-ga-to-var avar) mr-avar kernel-proof))
+	   (mk-proof-in-intro-form avar kernel-proof))))
     ((proof-in-imp-elim-form)
      (let* ((op (proof-in-imp-elim-form-to-op proof))
 	    (arg (proof-in-imp-elim-form-to-arg proof))
-	    (arg-type (formula-to-et-type (proof-to-formula arg)))
+	    (arg-fla (proof-to-formula arg))
 	    (op-proof (proof-to-soundness-proof-aux
-		       op avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	    (arg-proof (proof-to-soundness-proof-aux
-			arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (if (nulltype? arg-type)
-	   (mk-proof-in-elim-form op-proof arg-proof)
+		       op avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+       (if (not (formula-of-nulltype? arg-fla))
 	   (mk-proof-in-elim-form
 	    op-proof
 	    (proof-to-extracted-term-aux
 	     arg avar-or-ga-to-var #t) ;unfold-let-flag is true here
-	    arg-proof))))
+	    (proof-to-soundness-proof-aux
+	     arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
+	   (mk-proof-in-elim-form op-proof arg))))
     ((proof-in-impnc-intro-form)
      (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
-	    (mr-avar (avar-or-ga-to-mr-avar avar))
-	    (avar-type (formula-to-et-type (avar-to-formula avar)))
 	    (kernel (proof-in-impnc-intro-form-to-kernel proof))
+	    (avar-fla (avar-to-formula avar))
 	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	    (impnc-intro-proof
-	     (mk-proof-in-nc-intro-form mr-avar kernel-proof)))
-       (if (nulltype? avar-type)
-	   impnc-intro-proof
-	   (mk-proof-in-nc-intro-form
-	    (avar-or-ga-to-var avar) impnc-intro-proof))))
+			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+       (if (not (formula-of-nulltype? avar-fla))
+	   (mk-proof-in-intro-form
+	    (avar-or-ga-to-var avar) (avar-or-ga-to-mr-avar avar) kernel-proof))
+	   (mk-proof-in-intro-form avar kernel-proof)))
     ((proof-in-impnc-elim-form)
      (let* ((op (proof-in-impnc-elim-form-to-op proof))
 	    (arg (proof-in-impnc-elim-form-to-arg proof))
-	    (arg-type (formula-to-et-type (proof-to-formula arg)))
 	    (op-proof (proof-to-soundness-proof-aux
-		       op avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	    (arg-proof (proof-to-soundness-proof-aux
-			arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (if (nulltype? arg-type)
-	   (mk-proof-in-elim-form op-proof arg-proof)
-	   (mk-proof-in-elim-form
-	    op-proof
-	    (proof-to-extracted-term-aux arg avar-or-ga-to-var #t)
-	    arg-proof))))
+		       op avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+       (mk-proof-in-elim-form op-proof arg)))
     ((proof-in-and-intro-form)
      (let* ((left (proof-in-and-intro-form-to-left proof))
 	    (right (proof-in-and-intro-form-to-right proof))
@@ -6294,7 +4968,7 @@
 	    (kernel (proof-in-all-intro-form-to-kernel proof))
 	    (kernel-proof (proof-to-soundness-proof-aux
 			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (mk-proof-in-nc-intro-form var kernel-proof)))
+       (mk-proof-in-intro-form var kernel-proof)))
     ((proof-in-all-elim-form)
      (let* ((op (proof-in-all-elim-form-to-op proof))
 	    (op-proof (proof-to-soundness-proof-aux
@@ -6306,7 +4980,7 @@
 	    (kernel (proof-in-allnc-intro-form-to-kernel proof))
 	    (kernel-proof (proof-to-soundness-proof-aux
 			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (mk-proof-in-nc-intro-form var kernel-proof)))
+       (mk-proof-in-intro-form var kernel-proof)))
     ((proof-in-allnc-elim-form)
      (let* ((op (proof-in-allnc-elim-form-to-op proof))
 	    (op-proof (proof-to-soundness-proof-aux
@@ -6314,6 +4988,72 @@
 	    (arg (proof-in-allnc-elim-form-to-arg proof)))
        (mk-proof-in-elim-form op-proof arg)))
     (else (myerror "proof-to-soundness-proof-aux" "proof expected" proof))))
+
+(define alltotal-intro-mr-aconst
+  (let* ((formula-of-alltotal-intro-aconst
+	  (aconst-to-uninst-formula alltotal-intro-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form alltotal-intro-aconst)))
+	 (formula-of-alltotal-intro-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-alltotal-intro-aconst)))
+    (make-aconst "AllTotalIntroSound"
+		 'axiom formula-of-alltotal-intro-mr-aconst empty-subst)))
+
+(define alltotal-elim-mr-aconst
+  (let* ((formula-of-alltotal-elim-aconst
+	  (aconst-to-uninst-formula alltotal-elim-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form alltotal-elim-aconst)))
+	 (formula-of-alltotal-elim-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-alltotal-elim-aconst)))
+    (make-aconst "AllTotalElimSound"
+		 'axiom formula-of-alltotal-elim-mr-aconst empty-subst)))
+
+(define allnctotal-intro-mr-aconst
+  (let* ((formula-of-allnctotal-intro-aconst
+	  (aconst-to-uninst-formula allnctotal-intro-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form allnctotal-intro-aconst)))
+	 (formula-of-allnctotal-intro-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-allnctotal-intro-aconst)))
+    (make-aconst "AllncTotalIntroSound"
+		 'axiom formula-of-allnctotal-intro-mr-aconst empty-subst)))
+
+(define allnctotal-elim-mr-aconst
+  (let* ((formula-of-allnctotal-elim-aconst
+	  (aconst-to-uninst-formula allnctotal-elim-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form allnctotal-elim-aconst)))
+	 (formula-of-allnctotal-elim-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-allnctotal-elim-aconst)))
+    (make-aconst "AllncTotalElimSound"
+		 'axiom formula-of-allnctotal-elim-mr-aconst empty-subst)))
+
+(define mr-intro-mr-aconst
+  (let* ((formula-of-mr-intro-aconst
+	  (aconst-to-uninst-formula mr-intro-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form mr-intro-aconst)))
+	 (formula-of-mr-intro-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-mr-intro-aconst)))
+    (make-aconst "MRIntroSound"
+		 'axiom formula-of-mr-intro-mr-aconst empty-subst)))
+
+(define mr-elim-mr-aconst
+  (let* ((formula-of-mr-elim-aconst
+	  (aconst-to-uninst-formula mr-elim-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form mr-elim-aconst)))
+	 (formula-of-mr-elim-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-mr-elim-aconst)))
+    (make-aconst "MRElimSound"
+		 'axiom formula-of-mr-elim-mr-aconst empty-subst)))
 
 (define (axiom-to-soundness-proof aconst)
   (let ((name (aconst-to-name aconst)))
@@ -6341,12 +5081,6 @@
 		 (exr-formula (make-exr (car (cterm-to-vars cterm))
 					(cterm-to-formula cterm))))
 	    (exr-formula-to-exr-intro-mr-proof exr-formula)))
-	 ((member idpc-name '("ExU" "ExUT"))
-	  (let* ((cterms (idpredconst-to-cterms idpc))
-		 (cterm (car cterms))
-		 (exu-formula (make-exu (car (cterm-to-vars cterm))
-					(cterm-to-formula cterm))))
-	    (exu-formula-to-exu-intro-mr-proof exu-formula)))
 	 ((string=? "AndL" idpc-name)
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (left-cterm (car cterms))
@@ -6372,7 +5106,7 @@
 	     (idpc (predicate-form-to-predicate prem))
 	     (idpc-name (idpredconst-to-name idpc)))
 	(cond ;extra treatment for ExL, ExR, ExLT, ExRT, AndL, AndR
-					;EqD, ExU, ExUT, AndU
+					;EqD, ExU, ExUT, AndU, to aviod Rec
 	 ((member idpc-name '("ExL" "ExLT"))
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (cterm (car cterms))
@@ -6385,22 +5119,17 @@
 		 (exr-formula (make-exr (car (cterm-to-vars cterm))
 					(cterm-to-formula cterm))))
 	    (exr-formula-and-concl-to-exr-elim-mr-proof exr-formula concl)))
-	 ((string=? "AndL" idpc-name)
+	 ((member idpc-name '("AndL" "AndR"))
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (left-cterm (car cterms))
 		 (right-cterm (cadr cterms))
 		 (left (cterm-to-formula left-cterm))
 		 (right (cterm-to-formula right-cterm))
-		 (andl-formula (make-andl left right)))
-	    (andl-formula-and-concl-to-andl-elim-mr-proof andl-formula concl)))
-	 ((string=? "AndR" idpc-name)
-	  (let* ((cterms (idpredconst-to-cterms idpc))
-		 (left-cterm (car cterms))
-		 (right-cterm (cadr cterms))
-		 (left (cterm-to-formula left-cterm))
-		 (right (cterm-to-formula right-cterm))
-		 (andr-formula (make-andr left right)))
-	    (andr-formula-and-concl-to-andr-elim-mr-proof andr-formula concl)))
+		 (andlr-formula (if (string=? "AndL" idpc-name)
+				    (make-andl left right)
+				    (make-andr left right))))
+	    (andlr-formula-and-concl-to-andlr-elim-mr-proof
+	     andlr-formula concl)))
 	 ((string=? "EqD" idpc-name)
 	  (eqd-elim-aconst-to-eqd-mr-elim-proof aconst))
 	 ((member idpc-name '("ExU" "ExUT"))
@@ -6432,22 +5161,74 @@
      ((string=? "Ex-Elim" name)
       (apply ex-formula-and-concl-to-ex-elim-mr-proof
 	     (aconst-to-repro-data aconst)))
-     ((string=? "InhabTotal" name)
+     ((member name (list "AllTotalIntro" "AllTotalElim"
+			 "AllncTotalIntro" "AllncTotalElim"
+			 "MRIntro" "MRElim"
+			 "ExDTotalIntro" "ExDTotalElim"
+			 "ExLTotalIntro" "ExLTotalElim"
+			 "ExRTotalIntro" "ExRTotalElim"
+			 "ExTotalIntro" "ExTotalElim"))
+      (let* ((tpsubst (aconst-to-tpsubst aconst))
+	     (uninst-formula (aconst-to-uninst-formula aconst))
+	     (final-concl
+	      (imp-impnc-all-allnc-form-to-final-conclusion uninst-formula))
+	     (final-atom ;P x^
+	      (if (string=? "ExTotalIntro" name)
+		  (ex-form-to-kernel final-concl)
+		  final-concl))
+	     (pvar (predicate-form-to-predicate final-atom)) ;P
+	     (args (predicate-form-to-args final-atom)) ;(x^)
+	     (pvar-tvar (PVAR-TO-TVAR pvar))
+	     (tvar (term-to-type (car args))) ;alpha
+	     (type (let ((info (assoc tvar tpsubst))) ;rho
+	     	     (if info (cadr info) tvar)))
+	     (cterm (let ((info (assoc pvar tpsubst))) ;{n^|A(n^)}
+		      (if info (cadr info) (predicate-to-cterm pvar))))
+	     (cterm-var (car (cterm-to-vars cterm))) ;n^
+	     (cterm-fla (cterm-to-formula cterm)) ;A(n^)
+	     (cterm-type (formula-to-et-type cterm-fla))
+	     (new-tsubst (make-substitution (list tvar pvar-tvar)
+					    (list type cterm-type)))
+	     (var (type-to-new-partial-var cterm-type)) ;u^
+	     (mr-cterm-fla ;u^ mr A(n^)
+	      (real-and-formula-to-mr-formula
+	       (make-term-in-var-form var) cterm-fla))
+	     (mr-cterm ;{u^,n^|u^ mr A(n^)}
+	      (make-cterm var cterm-var mr-cterm-fla))
+	     (mr-pvar (PVAR-TO-MR-PVAR pvar))
+	     (new-psubst (make-subst-wrt pvar-cterm-equal? mr-pvar mr-cterm))
+	     (new-aconst
+	      (cond
+	       ((string=? name "AllTotalIntro")	alltotal-intro-mr-aconst)
+	       ((string=? name "AllTotalElim") alltotal-elim-mr-aconst)
+	       ((string=? name "AllncTotalIntro") allnctotal-intro-mr-aconst)
+	       ((string=? name "AllncTotalElim") allnctotal-elim-mr-aconst)
+	       ((string=? name "MRIntro") mr-intro-mr-aconst)
+	       ((string=? name "MRElim") mr-elim-mr-aconst)
+	       ((string=? name "ExDTotalIntro")	exdtotal-intro-mr-aconst)
+	       ((string=? name "ExDTotalElim") exdtotal-elim-mr-aconst)
+	       ((string=? name "ExLTotalIntro")	exltotal-intro-mr-aconst)
+	       ((string=? name "ExLTotalElim") exltotal-elim-mr-aconst)
+	       ((string=? name "ExRTotalIntro")	exrtotal-intro-mr-aconst)
+	       ((string=? name "ExRTotalElim") exrtotal-elim-mr-aconst)
+	       ((string=? name "ExTotalIntro") extotal-intro-mr-aconst)
+	       ((string=? name "ExTotalElim") extotal-elim-mr-aconst))))
+	(make-proof-in-aconst-form
+	 (make-aconst (string-append name "Sound")
+		      'axiom
+		      (aconst-to-uninst-formula new-aconst)
+		      (append new-tsubst new-psubst)))))
+     ((string=? "InhabTotal" name) ;obsolete
       (let* ((formula (aconst-to-formula aconst))
 	     (arg (car (predicate-form-to-args formula)))
 	     (type (term-to-type arg)))
 	(type-to-inhabtotal-mr-proof type)))
-     ((string=? "InhabTotalMR" name) (make-proof-in-aconst-form aconst))
-     ((string=? "Exnc-Intro" name) ;obsolete
-      (exnc-formula-to-exnc-intro-mr-proof
-       (car (aconst-to-repro-data aconst))))
-     ((string=? "Eq-Compat" name) ;obsolete
-      (compat-aconst-to-mr-compat-proof aconst))
+     ((string=? "InhabTotalMR" name) ;obsolete
+      (make-proof-in-aconst-form aconst))
      (else (myerror "axiom-to-soundness-proof" "unexpected axiom" name)))))
 
 (define (theorem-to-soundness-proof aconst)
   (let* ((thm-name (aconst-to-name aconst))
-	 (proof (theorem-name-to-proof thm-name))
 	 (tpsubst (aconst-to-tpsubst aconst))
 	 (tsubst (list-transform-positive tpsubst
 		   (lambda (x) (tvar-form? (car x)))))
@@ -6463,37 +5244,27 @@
 			  (cadr info)
 			  (predicate-to-cterm pvar))))
 	     (cterm-formula (cterm-to-formula cterm))
-	     (et-type (formula-to-et-type cterm-formula)))
-	(if
-	 (nulltype? et-type)
-	 (let* ((mr-formula (real-and-formula-to-mr-formula
-			     'eps cterm-formula))
-		(mr-cterm (make-cterm mr-formula))
-		(mr-tpsubst (append tsubst (list (list pvar mr-cterm))))
-		(orig-aconst (theorem-name-to-aconst thm-name))
-		(mr-aconst (aconst-substitute orig-aconst mr-tpsubst)))
-	   (make-proof-in-aconst-form mr-aconst))
-					;et-type not nulltype
-	 (let* ((mr-var (type-to-new-partial-var et-type))
-		(mr-formula (real-and-formula-to-mr-formula
-			     (make-term-in-var-form mr-var) cterm-formula))
-		(mr-cterm (make-cterm mr-formula))
-		(mr-tpsubst (append tsubst (list (list pvar mr-cterm))))
-		(orig-aconst (theorem-name-to-aconst thm-name))
-		(mr-aconst (aconst-substitute orig-aconst mr-tpsubst))
-					;allnc xs(a mr A -> a mr A)
-		(mr-aconst-formula (aconst-to-formula mr-aconst))
-		(vars (all-allnc-form-to-vars mr-aconst-formula)))
-	   (if (equal? vars (append (remove mr-var vars) (list mr-var)))
-	       (make-proof-in-aconst-form mr-aconst)
-	       (let ((elim-proof
-		      (apply
-		       mk-proof-in-elim-form
-		       (make-proof-in-aconst-form mr-aconst)
-		       (map make-term-in-var-form vars))))
-		 (apply mk-proof-in-nc-intro-form
-			(append (remove mr-var vars)
-				(list mr-var elim-proof)))))))))
+	     (et-type (formula-to-et-type cterm-formula))
+	     (mr-var (type-to-new-partial-var et-type))
+	     (mr-formula (real-and-formula-to-mr-formula
+			  (make-term-in-var-form mr-var) cterm-formula))	
+	     (mr-cterm (make-cterm mr-formula))
+	     (mr-tpsubst (append tsubst (list (list pvar mr-cterm))))
+	     (orig-aconst (theorem-name-to-aconst thm-name))
+	     (mr-aconst (aconst-substitute orig-aconst mr-tpsubst))
+					;all xs(a mr A -> a mr A)
+	     (mr-aconst-formula (aconst-to-formula mr-aconst))
+	     (vars (all-allnc-form-to-vars mr-aconst-formula)))
+	(if (equal? vars (append (remove mr-var vars) (list mr-var)))
+	    (make-proof-in-aconst-form mr-aconst)
+	    (let ((elim-proof
+		   (apply
+		    mk-proof-in-elim-form
+		    (make-proof-in-aconst-form mr-aconst)
+		    (map make-term-in-var-form vars))))
+	      (apply mk-proof-in-intro-form
+		     (append (remove mr-var vars)
+			     (list mr-var elim-proof)))))))
      ((member thm-name (list "EqDCompatRev" "EqDCompat"))
       (let* ((pvar (predicate-form-to-predicate
 		    (imp-impnc-all-allnc-form-to-final-conclusion
@@ -6504,73 +5275,84 @@
 			  (predicate-to-cterm pvar))))
 	     (cterm-vars (cterm-to-vars cterm))
 	     (cterm-formula (cterm-to-formula cterm))
-	     (et-type (formula-to-et-type cterm-formula)))
-	(if
-	 (nulltype? et-type)
-	 (let* ((mr-formula (real-and-formula-to-mr-formula
-			     'eps cterm-formula))
-		(mr-cterm
-		 (apply make-cterm (append cterm-vars (list mr-formula))))
-		(mr-tpsubst (append tsubst (list (list pvar mr-cterm))))
-		(orig-aconst (theorem-name-to-aconst thm-name))
-		(mr-aconst (aconst-substitute orig-aconst mr-tpsubst)))
-	   (make-proof-in-aconst-form mr-aconst))
-					;et-type not nulltype
-	 (let* ((mr-var (type-to-new-partial-var et-type))
-		(mr-formula (real-and-formula-to-mr-formula
-			     (make-term-in-var-form mr-var) cterm-formula))
-		(mr-cterm
-		 (apply make-cterm (append cterm-vars (list mr-formula))))
-		(mr-tpsubst (append tsubst (list (list pvar mr-cterm))))
-		(orig-aconst (theorem-name-to-aconst thm-name))
-		(mr-aconst (aconst-substitute orig-aconst mr-tpsubst))
-					;allnc xs,n,m(n=m -> a mr A(m) ->
+	     (et-type (formula-to-et-type cterm-formula))
+	     (mr-var (type-to-new-partial-var et-type))
+	     (mr-formula (real-and-formula-to-mr-formula
+			  (make-term-in-var-form mr-var) cterm-formula))
+	     (mr-cterm
+	      (apply make-cterm (append cterm-vars (list mr-formula))))
+	     (mr-tpsubst (append tsubst (list (list pvar mr-cterm))))
+	     (orig-aconst (theorem-name-to-aconst thm-name))
+	     (mr-aconst (aconst-substitute orig-aconst mr-tpsubst))
+					;all xs,n,m(n=m -> a mr A(m) ->
 					;a mr A(n)) or conversely
-		(mr-aconst-formula (aconst-to-formula mr-aconst))
-		(vars (all-allnc-form-to-vars mr-aconst-formula))
-		(eqd-hyp ;n=m
-		 (car (imp-impnc-form-to-premises
-		       (all-allnc-form-to-final-kernel mr-aconst-formula))))
-		(u (formula-to-new-avar eqd-hyp))
-		(elim-proof
-		 (apply mk-proof-in-elim-form
-			(make-proof-in-aconst-form mr-aconst)
-			(append (map make-term-in-var-form vars)
-				(list (make-proof-in-avar-form u))))))
-	   (apply mk-proof-in-nc-intro-form
-		  (append (remove mr-var vars)
-			  (list u mr-var elim-proof)))))))
+	     (mr-aconst-formula (aconst-to-formula mr-aconst))
+	     (vars (all-allnc-form-to-vars mr-aconst-formula))
+	     (eqd-hyp ;n=m
+	      (car (imp-impnc-form-to-premises
+		    (all-allnc-form-to-final-kernel mr-aconst-formula))))
+	     (u (formula-to-new-avar eqd-hyp))
+	     (elim-proof
+	      (apply mk-proof-in-elim-form
+		     (make-proof-in-aconst-form mr-aconst)
+		     (append (map make-term-in-var-form vars)
+			     (list (make-proof-in-avar-form u))))))
+	(apply mk-proof-in-intro-form
+	       (append (remove mr-var vars)
+		       (list u mr-var elim-proof)))))
      (else
       (let ((info (assoc (string-append thm-name "Sound") THEOREMS)))
-	(if info
-	    (make-proof-in-aconst-form (cadr info))
-	    (let* ((inst-proof (theorem-aconst-to-inst-proof aconst))
-		   (free (formula-to-free (proof-to-formula inst-proof)))
-		   (closed-inst-proof
-		    (apply mk-proof-in-nc-intro-form
-			   (append free (list inst-proof)))))
-	      (proof-to-soundness-proof closed-inst-proof))))))))
+	(if
+	 info ;ThmSound exists
+	 (let* ((sname (string-append thm-name "Sound"))
+		(mr-aconst (theorem-name-to-aconst sname))
+		(mr-proof (theorem-name-to-proof sname))
+		(uninst-formula (aconst-to-uninst-formula aconst))
+		(pvars (formula-to-pvars uninst-formula))
+		(mr-pvars (map PVAR-TO-MR-PVAR pvars))
+		(tvars (map PVAR-TO-TVAR pvars))
+		(cterms (map (lambda (pvar)
+			       (let ((info (assoc pvar psubst)))
+				 (if info
+				     (cadr info)
+				     (predicate-to-cterm pvar))))
+			     pvars))
+		(cterm-varss (map cterm-to-vars cterms))
+		(cterm-formulas (map cterm-to-formula cterms))
+		(et-types (map formula-to-et-type cterm-formulas))
+		(mr-vars (map type-to-new-partial-var et-types))
+		(mr-formulas
+		 (map (lambda (mr-var cterm-fla)
+			(real-and-formula-to-mr-formula
+			 (make-term-in-var-form mr-var) cterm-fla))
+		      mr-vars cterm-formulas))
+		(mr-cterms
+		 (map (lambda (mr-var cterm-vars mr-fla)
+			(apply make-cterm
+			       mr-var (append cterm-vars (list mr-fla))))
+		      mr-vars cterm-varss mr-formulas))
+		(mr-psubst (make-substitution-wrt
+			    pvar-cterm-equal? mr-pvars mr-cterms))
+		(mr-tsubst (make-substitution tvars et-types))
+		(subst-mr-aconst
+		 (aconst-substitute
+		  mr-aconst (append tsubst mr-tsubst psubst mr-psubst))))
+	   (make-proof-in-aconst-form subst-mr-aconst))
+	 (let* ((inst-proof (theorem-aconst-to-inst-proof aconst))
+		(free (formula-to-free (proof-to-formula inst-proof)))
+		(closed-inst-proof
+		 (apply mk-proof-in-intro-form
+			(append free (list inst-proof)))))
+	   (proof-to-soundness-proof closed-inst-proof))))))))
 
 (define (global-assumption-to-soundness-proof aconst avar-or-ga-to-mr-avar)
   (let* ((name (aconst-to-name aconst))
 	 (info (assoc name GLOBAL-ASSUMPTIONS)))
     (if info
-	(cond
-	 ((or (string=? "Efq" name) (string=? "EfqLog" name))
-	  (efq-ga-to-mr-efq-ga-proof aconst))
-					;the next item is obsolete
-	 ((or (and (<= (string-length "Eq-Compat-Rev") (string-length name))
-		   (string=? (substring name 0 (string-length "Eq-Compat-Rev"))
-			     "Eq-Compat-Rev"))
-	      (and (<= (string-length "Compat-Rev") (string-length name))
-		   (string=? (substring name 0 (string-length "Compat-Rev"))
-			     "Compat-Rev"))
-	      (and (<= (string-length "Compat") (string-length name))
-		   (string=? (substring name 0 (string-length "Compat"))
-			     "Compat")))
-	  (compat-aconst-to-mr-compat-proof aconst))
-	 (else (let ((mr-avar (avar-or-ga-to-mr-avar aconst)))
-		 (make-proof-in-avar-form mr-avar))))
+	(if (or (string=? "Efq" name) (string=? "EfqLog" name))
+	    (efq-ga-to-mr-efq-ga-proof aconst)
+	    (let ((mr-avar (avar-or-ga-to-mr-avar aconst)))
+	      (make-proof-in-avar-form mr-avar)))
 	(myerror "global-assumption-to-soundness-proof"
 		 "global assumption expected" name))))
 
