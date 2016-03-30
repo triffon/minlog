@@ -109,7 +109,7 @@
 ;; these are considered to be bound in the assumption constant.  An
 ;; exception are the Elim and Gfp aconsts, where the argument variables
 ;; xs^ of the (co)inductively defined predicate are formally free in the
-;; uninstantiated formula;; however, they are considered bound as well.
+;; uninstantiated formula.  However, they are considered bound as well.
 ;; In the proof the bound type variables are implicitely instantiated
 ;; by types, and the bound predicate variables by cterms.  Since we do
 ;; not have type and predicate quantification in formulas, the aconst
@@ -135,8 +135,6 @@
 ;; all-formula-to-cases-aconst
 ;; ex-formula-to-ex-intro-aconst
 ;; ex-formula-and-concl-to-ex-elim-aconst
-;; exnc-formula-to-exnc-intro-aconst ;obsolete
-;; exnc-formula-and-concl-to-exnc-elim-aconst ;obsolete
 
 ;; The reproduction data can be computed from the name, the
 ;; uninstantiated formula, the tpsubst of an axiom, by
@@ -166,17 +164,20 @@
 	    (string=? "Gfp" name)
 	    (string=? "ElimMR" name))
 	(all-form-to-final-kernel
-	 (formula-substitute
-	  (apply mk-all (append (formula-to-free uninst-formula)
-				(list uninst-formula)))
-	  tpsubst)
+	 (unfold-formula ;to transform Total n into TotalNat n
+	  (formula-substitute
+	   (apply mk-all (append (formula-to-free uninst-formula)
+				 (list uninst-formula)))
+	   tpsubst))
 	 (length (formula-to-free uninst-formula)))
-	(formula-substitute uninst-formula tpsubst))))
+	(unfold-formula (formula-substitute uninst-formula tpsubst)))))
 
 (define (aconst-to-formula aconst)
   (let* ((inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula)))
-    (apply mk-allnc (append free (list inst-formula)))))
+    (if (formula-of-nulltype? inst-formula)
+	(apply mk-all (append free (list inst-formula)))
+	(apply mk-allnc (append free (list inst-formula))))))
 
 (define (aconst-form? x) (and (pair? x) (eq? 'aconst (car x))))
 
@@ -248,33 +249,6 @@
 		       (myerror "aconst-to-computed-repro-data"
 				"nullary cterm expected" cterm2))))
 	(list (make-ex var1 formula1) formula2)))
-     ((string=? name "Exnc-Intro") ;obsolete
-      (let* ((cterms (map cadr psubst))
-	     (cterm (if (= 1 (length cterms)) (car cterms)
-			(myerror "aconst-to-computed-repro-data"
-				 "only one cterm expected" cterms)))
-	     (vars (cterm-to-vars cterm))
-	     (formula (cterm-to-formula cterm))
-	     (var (if (= 1 (length vars)) (car vars)
-		      (myerror "aconst-to-computed-repro-data"
-			       "unary cterm expected" cterm))))
-	(list (make-exnc var formula))))
-     ((string=? name "Exnc-Elim") ;obsolete
-      (let* ((cterms (map cadr psubst))
-	     (cterm1 (if (= 2 (length cterms)) (car cterms)
-			 (myerror "aconst-to-computed-repro-data"
-				  "two cterms expected" cterms)))
-	     (cterm2 (cadr cterms))
-	     (vars1 (cterm-to-vars cterm1))
-	     (var1 (if (= 1 (length vars1)) (car vars1)
-		       (myerror "aconst-to-computed-repro-data"
-				"unary cterm expected" cterm1)))
-	     (formula1 (cterm-to-formula cterm1))
-	     (vars2 (cterm-to-vars cterm2))
-	     (formula2 (if (null? vars2) (cterm-to-formula cterm2)
-		       (myerror "aconst-to-computed-repro-data"
-				"nullary cterm expected" cterm2))))
-	(list (make-exnc var1 formula1) formula2)))
      ((member name '("Intro"))
       (intro-aconst-to-computed-repro-data aconst))
      ((string=? name "Elim")
@@ -486,7 +460,6 @@
   (if (not (aconst-form? x))
       (myerror "check-aconst" "aconst expected" x))
   (if (not (list? x))
-
       (myerror "check-aconst" "list expected" x))
   (if (not (<= 5 (length x)))
       (myerror "check-aconst" "list of length at least 5 expected" x))
@@ -590,30 +563,28 @@
 		  "Intro" "Elim" "Closure" "Gfp" "ElimMR"
 		  "Ind" "Cases" "GInd"
 		  "Ex-Intro" "Ex-Elim"
-		  "Exnc-Intro" "Exnc-Elim" ;obsolete
 		  "Comp" ;added 2013-12-08
 		  "Truth-Axiom" ;obsolete
-		  "Eq-Refl" "Eq-Sym" "Eq-Trans" "Eq-Compat" "Ext" ;obsolete
 		  "Pair-Elim" "Total"
-		  "InhabTotal" "InhabTotalMR"
+		  "InhabTotal" "InhabTotalMR" ;obsolete
 		  "AllTotal" "AllncTotal" "ExTotal" ;obsolete
-		  "ExTotalElim"
+		  "ExTotalIntro" "ExTotalIntroSound"
+		  "ExTotalElim" "ExTotalElimSound"
+		  "ExDTotalIntro" "ExLTotalIntro"
+		  "ExRTotalIntro" "ExUTotalIntro"
 		  "ExDTotalElim" "ExLTotalElim" "ExRTotalElim" "ExUTotalElim"
 		  "ExDTotal" "ExLTotal" "ExRTotal" "ExUTotal" ;obsolete
 		  "AllTotalRev" "AllncTotalRev" "ExTotalRev" ;obsolete
-		  "ExTotalIntro"
-		  "ExDTotalIntro" "ExLTotalIntro"
-		  "ExRTotalIntro" "ExUTotalIntro"
 		  "ExDTotalRev" "ExLTotalRev" ;obsolete
 		  "ExRTotalRev" "ExUTotalRev" ;obsolete
 		  "Constr-Total" "Constr-Total-Args" ;obsolete
 		  "Total-Pair" "Total-Proj"
-		  "AllTotalIntro" "AllTotalElim"
-		  "AllncTotalIntro" "AllncTotalElim"
-		  "All-AllPartial" "AllPartial-All" ;obsolete
-		  "Allnc-AllncPartial" "AllncPartial-Allnc" ;obsolete
-		  "Ex-ExPartial" "ExPartial-Ex" ;obsolete
-		  "Exnc-ExncPartial" "ExncPartial-Exnc" ;obsolete
+		  "AllTotalIntro" "AllTotalIntroSound"
+		  "AllTotalElim" "AllTotalElimSound"
+		  "AllncTotalIntro" "AllncTotalIntroSound"
+		  "AllncTotalElim" "AllncTotalElimSound"
+		  "MRIntro" "MRIntroSound"
+		  "MRElim" "MRElimSound"
 		  "AtomToEqDTrue" "EqDTrueToAtom"))
 	       (apply
 		or-op
@@ -622,19 +593,11 @@
 		   (and (<= (string-length string) (string-length name))
 			(string=? (substring name 0 (string-length string))
 				  string)))
-		 '("Eq-to-=-1-"
-		   "Eq-to-=-2-"
-		   "=-to-Eq-"
-		   "=-to-E-"
+		 '("=-to-E-"
 		   "=-to-E-"
 		   "E-to-Total-"
 		   "SE-to-E-"
-		   "Total-to-E-"
-		   "All-AllPartial-"
-		   "Allnc-AllncPartial-"
-		   "ExPartial-Ex-"
-		   "ExncPartial-Exnc-" ;obsolete
-		   ))))))
+		   "Total-to-E-"))))))
 	(myerror "check-aconst" "axiom expected" name))
     (if (and (eq? kind 'theorem)
 	     (not (assoc name THEOREMS)))
@@ -751,7 +714,6 @@
             name
             '("Ind" "Cases" "GInd" "Intro" "Elim"
 	      "Ex-Intro" "Ex-Elim"
-	      "Exnc-Intro" "Exnc-Elim" ;obsolete
 	      )))))))
 
 (define (aconst-to-string aconst)
@@ -772,10 +734,6 @@
      ((string=? "Elim" name) (string-append "(Elim" repro-string ")"))
      ((string=? "Ex-Intro" name) (string-append "(Ex-Intro" repro-string ")"))
      ((string=? "Ex-Elim" name) (string-append "(Ex-Elim" repro-string ")"))
-     ((string=? "Exnc-Intro" name) ;obsolete
-      (string-append "(Exnc-Intro" repro-string ")"))
-     ((string=? "Exnc-Elim" name) ;obsolete
-      (string-append "(Exnc-Elim" repro-string ")"))
      (else name))))
 
 ;; pvar-to-cterm is superseded by the more general predicate-to-cterm.
@@ -803,80 +761,6 @@
     (make-aconst "Comp" 'axiom
 		 (apply mk-all (append partial-vars (list uninst-eqd-formula)))
 		 tsubst)))
-
-(define eq-refl-aconst ;obsolete
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (formula-of-eq-refl-aconst
-	  (mk-allnc var (make-eq varterm varterm))))
-    (make-aconst "Eq-Refl" 'axiom formula-of-eq-refl-aconst empty-subst)))
-
-(define eq-sym-aconst ;obsolete
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var1 (make-var tvar 1 t-deg-zero name))
-	 (var2 (make-var tvar 2 t-deg-zero name))
-	 (varterm1 (make-term-in-var-form var1))
-	 (varterm2 (make-term-in-var-form var2))
-	 (formula-of-eq-sym-aconst
-	  (mk-allnc var1 var2 (mk-imp (make-eq varterm1 varterm2)
-				      (make-eq varterm2 varterm1)))))
-    (make-aconst "Eq-Sym" 'axiom formula-of-eq-sym-aconst empty-subst)))
-
-(define eq-trans-aconst ;obsolete
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var1 (make-var tvar 1 t-deg-zero name))
-	 (var2 (make-var tvar 2 t-deg-zero name))
-	 (var3 (make-var tvar 3 t-deg-zero name))
-	 (varterm1 (make-term-in-var-form var1))
-	 (varterm2 (make-term-in-var-form var2))
-	 (varterm3 (make-term-in-var-form var3))
-	 (formula-of-eq-trans-aconst
-	  (mk-allnc var1 var2 var3 (mk-imp (make-eq varterm1 varterm2)
-					   (make-eq varterm2 varterm3)
-					   (make-eq varterm1 varterm3)))))
-    (make-aconst "Eq-Trans" 'axiom formula-of-eq-trans-aconst empty-subst)))
-
-(define ext-aconst ;obsolete
-  (let* ((tvar1 (make-tvar 1 DEFAULT-TVAR-NAME))
-	 (tvar2 (make-tvar 2 DEFAULT-TVAR-NAME))
-	 (arrow-type (make-arrow tvar1 tvar2))
-	 (fname (default-var-name arrow-type))
-	 (fvar1 (make-var arrow-type 1 t-deg-zero fname))
-	 (fvar2 (make-var arrow-type 2 t-deg-zero fname))
-	 (name (default-var-name tvar1))
-	 (var (make-var tvar1 -1 t-deg-zero name))
-	 (fterm1 (make-term-in-app-form
-		  (make-term-in-var-form fvar1)
-		  (make-term-in-var-form var)))
-	 (fterm2 (make-term-in-app-form
-		  (make-term-in-var-form fvar2)
-		  (make-term-in-var-form var)))
-	 (prem-eq-fla (make-eq fterm1 fterm2))
-	 (concl-eq-fla (make-eq (make-term-in-var-form fvar1)
-				(make-term-in-var-form fvar2)))
-	 (formula-of-ext-aconst
-	  (mk-allnc fvar1 fvar2 (mk-imp (mk-allnc var prem-eq-fla)
-					concl-eq-fla))))
-    (make-aconst "Ext" 'axiom formula-of-ext-aconst empty-subst)))
-
-(define eq-compat-aconst ;obsolete
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var1 (make-var tvar 1 t-deg-zero name))
-	 (var2 (make-var tvar 2 t-deg-zero name))
-	 (varterm1 (make-term-in-var-form var1))
-	 (varterm2 (make-term-in-var-form var2))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (eq-fla (make-eq varterm1 varterm2))
-	 (fla1 (make-predicate-formula pvar varterm1))
-	 (fla2 (make-predicate-formula pvar varterm2))
-	 (formula-of-eq-compat-aconst
-	  (mk-allnc var1 var2 (mk-imp eq-fla fla1 fla2))))
-    (make-aconst "Eq-Compat" 'axiom formula-of-eq-compat-aconst empty-subst)))
 
 (define pair-elim-aconst
   (let* ((tvar1 (make-tvar 1 DEFAULT-TVAR-NAME))
@@ -921,51 +805,6 @@
 		 (aconst-to-kind pair-elim-aconst)
 		 (aconst-to-uninst-formula pair-elim-aconst)
 		 (append tsubst psubst))))
-
-;; The following axioms involve the obsolete Equal predconst and should
-;; be removed.  However, some of them are still used in simp-with.  One
-;; should first replace them there, using EqD.
-
-(define (finalg-to-eq-to-=-1-aconst finalg)
-  (let* ((name (default-var-name finalg))
-	 (var1 (make-var finalg 1 t-deg-zero name))
-	 (var2 (make-var finalg 2 t-deg-zero name))
-	 (varterm1 (make-term-in-var-form var1))
-	 (varterm2 (make-term-in-var-form var2))
-	 (eq-fla (make-eq varterm1 varterm2))
-	 (e-fla1 (make-e varterm1))
-	 (=-fla (make-= varterm1 varterm2))
-	 (formula-of-eq-to-=-1-aconst
-	  (mk-allnc var1 var2 (mk-imp eq-fla e-fla1 =-fla)))
-	 (aconst-name (string-append "Eq-to-=-1-" (type-to-string finalg))))
-    (make-aconst aconst-name 'axiom formula-of-eq-to-=-1-aconst empty-subst)))
-
-(define (finalg-to-eq-to-=-2-aconst finalg)
-  (let* ((name (default-var-name finalg))
-	 (var1 (make-var finalg 1 t-deg-zero name))
-	 (var2 (make-var finalg 2 t-deg-zero name))
-	 (varterm1 (make-term-in-var-form var1))
-	 (varterm2 (make-term-in-var-form var2))
-	 (eq-fla (make-eq varterm1 varterm2))
-	 (e-fla2 (make-e varterm2))
-	 (=-fla (make-= varterm1 varterm2))
-	 (formula-of-eq-to-=-2-aconst
-	  (mk-allnc var1 var2 (mk-imp eq-fla e-fla2 =-fla)))
-	 (aconst-name (string-append "Eq-to-=-2-" (type-to-string finalg))))
-    (make-aconst aconst-name 'axiom formula-of-eq-to-=-2-aconst empty-subst)))
-
-(define (finalg-to-=-to-eq-aconst finalg)
-  (let* ((name (default-var-name finalg))
-	 (var1 (make-var finalg 1 t-deg-zero name))
-	 (var2 (make-var finalg 2 t-deg-zero name))
-	 (varterm1 (make-term-in-var-form var1))
-	 (varterm2 (make-term-in-var-form var2))
-	 (=-fla (make-= varterm1 varterm2))
-	 (eq-fla (make-eq varterm1 varterm2))
-	 (formula-of-=-to-eq-aconst
-	  (mk-allnc var1 var2 (mk-imp =-fla eq-fla)))
-	 (aconst-name (string-append "=-to-Eq-" (type-to-string finalg))))
-    (make-aconst aconst-name 'axiom formula-of-=-to-eq-aconst empty-subst)))
 
 ;; The following two axioms are almost special cases of the assertion
 ;; that two pconsts defined by the same computation rules are equal on
@@ -1056,49 +895,6 @@
     (make-aconst
      aconst-name 'axiom formula-of-total-to-stotal-aconst empty-subst)))
 
-(define alltotal-elim-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (vartotal (make-var tvar -1 t-deg-one name))
-	 (var (make-var tvar -1 t-deg-zero name))
-	 (vartotalterm (make-term-in-var-form vartotal))
-	 (varterm (make-term-in-var-form var))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (alltotal-fla
-	  (mk-all vartotal (make-predicate-formula pvar vartotalterm)))
-	 (allnc-fla
-	  (mk-allnc var (mk-imp (make-total varterm)
-				(make-predicate-formula pvar varterm))))
-	 (formula-of-alltotal-elim-aconst (mk-imp alltotal-fla allnc-fla)))
-    (make-aconst "AllTotalElim"
-		 'axiom formula-of-alltotal-elim-aconst empty-subst)))
-
-;; (pp (aconst-to-formula alltotal-elim-aconst))
-;; all alpha (Pvar alpha)alpha ->
-;; allnc alpha^(Total alpha^ -> (Pvar alpha)alpha^)
-
-;; Obsolete (but kept for backwards compatability)
-
-(define all-allpartial-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var (make-var tvar -1 1 name))
-	 (varpartial (make-var tvar -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (all-fla (mk-all var (make-predicate-formula pvar varterm)))
-	 (allpartial-fla
-	  (mk-allnc varpartial
-		    (mk-imp (make-total varpartialterm)
-			    (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-all-allpartial-aconst (mk-imp all-fla allpartial-fla)))
-    (make-aconst "All-AllPartial"
-		 'axiom formula-of-all-allpartial-aconst empty-subst)))
-
-;; (pp (aconst-to-formula all-allpartial-aconst))
-;; all x (Pvar alpha)x -> allnc x^(Total x^ -> (Pvar alpha)x^)
-
 (define alltotal-intro-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
@@ -1120,27 +916,26 @@
 ;; allnc alpha^(Total alpha^ -> (Pvar alpha)alpha^) ->
 ;; all alpha (Pvar alpha)alpha
 
-;; Obsolete (but kept for backwards compatability)
-
-(define allpartial-all-aconst
+(define alltotal-elim-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
 	 (name (default-var-name tvar))
-	 (var (make-var tvar -1 1 name))
-	 (varpartial (make-var tvar -1 t-deg-zero name))
+	 (vartotal (make-var tvar -1 t-deg-one name))
+	 (var (make-var tvar -1 t-deg-zero name))
+	 (vartotalterm (make-term-in-var-form vartotal))
 	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
 	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (all-fla (mk-all var (make-predicate-formula pvar varterm)))
-	 (allpartial-fla
-	  (mk-allnc varpartial
-		    (mk-imp (make-total varpartialterm)
-			    (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-allpartial-all-aconst (mk-imp allpartial-fla all-fla)))
-    (make-aconst "AllPartial-All"
-		 'axiom formula-of-allpartial-all-aconst empty-subst)))
+	 (alltotal-fla
+	  (mk-all vartotal (make-predicate-formula pvar vartotalterm)))
+	 (allnc-fla
+	  (mk-allnc var (mk-imp (make-total varterm)
+				(make-predicate-formula pvar varterm))))
+	 (formula-of-alltotal-elim-aconst (mk-imp alltotal-fla allnc-fla)))
+    (make-aconst "AllTotalElim"
+		 'axiom formula-of-alltotal-elim-aconst empty-subst)))
 
-;; (pp (aconst-to-formula allpartial-all-aconst))
-;; allnc x^(Total x^ -> (Pvar alpha)x^) -> all x (Pvar alpha)x
+;; (pp (aconst-to-formula alltotal-elim-aconst))
+;; all alpha (Pvar alpha)alpha ->
+;; allnc alpha^(Total alpha^ -> (Pvar alpha)alpha^)
 
 (define allnctotal-intro-aconst
   (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
@@ -1185,73 +980,6 @@
 ;; (pp (aconst-to-formula allnctotal-elim-aconst))
 ;; allnc alpha (Pvar alpha)alpha ->
 ;; allnc alpha^(Total alpha^ --> (Pvar alpha)alpha^)
-
-(define (finalg-to-all-allpartial-aconst finalg)
-  (let* ((name (default-var-name finalg))
-	 (var (make-var finalg -1 1 name))
-	 (varpartial (make-var finalg -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity finalg) -1 h-deg-zero n-deg-zero ""))
-	 (all-fla (mk-all var (make-predicate-formula pvar varterm)))
-	 (allpartial-fla
-	  (mk-all varpartial
-		    (mk-imp (make-e varpartialterm)
-			    (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-all-allpartial-aconst
-	  (mk-imp all-fla allpartial-fla))
-	 (name (string-append "All-AllPartial-" (type-to-string finalg))))
-    (make-aconst name 'axiom formula-of-all-allpartial-aconst empty-subst)))
-
-(define (finalg-to-allnc-allncpartial-aconst finalg)
-  (let* ((name (default-var-name finalg))
-	 (var (make-var finalg -1 1 name))
-	 (varpartial (make-var finalg -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity finalg) -1 h-deg-zero n-deg-zero ""))
-	 (allnc-fla (mk-allnc var (make-predicate-formula pvar varterm)))
-	 (allncpartial-fla
-	  (mk-allnc varpartial
-		    (mk-imp (make-e varpartialterm)
-			    (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-allnc-allncpartial-aconst
-	  (mk-imp allnc-fla allncpartial-fla))
-	 (name (string-append "Allnc-AllncPartial-" (type-to-string finalg))))
-    (make-aconst name 'axiom formula-of-allnc-allncpartial-aconst
-		 empty-subst)))
-
-(define (finalg-to-expartial-ex-aconst finalg)
-  (let* ((name (default-var-name finalg))
-	 (var (make-var finalg -1 1 name))
-	 (varpartial (make-var finalg -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity finalg) -1 h-deg-zero n-deg-zero ""))
-	 (ex-fla (mk-ex var (make-predicate-formula pvar varterm)))
-	 (expartial-fla
-	  (mk-ex varpartial
-		 (mk-and (make-e varpartialterm)
-			 (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-expartial-ex-aconst (mk-imp expartial-fla ex-fla))
-	 (name (string-append "ExPartial-Ex-" (type-to-string finalg))))
-    (make-aconst name 'axiom formula-of-expartial-ex-aconst empty-subst)))
-
-(define (finalg-to-exncpartial-exnc-aconst finalg) ;obsolete
-  (let* ((name (default-var-name finalg))
-	 (var (make-var finalg -1 1 name))
-	 (varpartial (make-var finalg -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity finalg) -1 h-deg-zero n-deg-zero ""))
-	 (exnc-fla (mk-exnc var (make-predicate-formula pvar varterm)))
-	 (exncpartial-fla
-	  (mk-exnc varpartial
-		   (mk-and (make-e varpartialterm)
-			   (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-exncpartial-exnc-aconst (mk-imp exncpartial-fla exnc-fla))
-	 (name (string-append "ExncPartial-Exnc-" (type-to-string finalg))))
-    (make-aconst name 'axiom formula-of-exncpartial-exnc-aconst empty-subst)))
 
 ;; Now for induction.  We define a procedure that takes all-formulas
 ;; and returns the corresponding induction axiom.
@@ -1848,71 +1576,6 @@
     (make-aconst "Ex-Elim" 'axiom imp-formula (append tsubst psubst)
 		 ex-formula concl)))
 
-;; Now the introduction and elimination axioms for the exnc quantifier.
-
-;; We define a procedure that takes an exnc formula and returns the
-;; corresponding existence introduction axiom:
-;; exnc-intro: allnc zs,z(A -> exnc z A)
-
-(define (exnc-formula-to-exnc-intro-aconst exnc-formula) ;obsolete
-  (let* ((var (exnc-form-to-var exnc-formula))
-	 (kernel (exnc-form-to-kernel exnc-formula))
-	 (cterm (make-cterm var kernel))
-	 (type (var-to-type var))
-	 (tvar (new-tvar))
-	 (new-var (type-to-new-var tvar var))
-	 (arity (make-arity tvar))
-	 (pvar (if (nulltype? (cterm-to-formula cterm))
-		   (arity-to-new-pvar arity)
-		   (arity-to-new-general-pvar arity)))
-	 (predicate-formula
-	  (make-predicate-formula pvar (make-term-in-var-form new-var)))
-	 (imp-formula (make-imp predicate-formula
-				(make-exnc new-var predicate-formula)))
-	 (uninst-exnc-intro-formula (make-allnc new-var imp-formula))
-	 (tsubst (make-subst tvar type))
-	 (psubst (make-subst-wrt pvar-cterm-equal? pvar cterm)))
-    (make-aconst
-     "Exnc-Intro" 'axiom uninst-exnc-intro-formula (append tsubst psubst)
-     exnc-formula)))
-
-;; We define a procedure that takes an exnc formula and a
-;; conclusion, and returns the corresponding exnc elimination axiom:
-;; exnc-elim: allnc zs(exnc z A -> allnc z(A -> B) -> B)
-
-(define (exnc-formula-and-concl-to-exnc-elim-aconst ;obsolete
-	 exnc-formula concl)
-  (let* ((var (exnc-form-to-var exnc-formula))
-	 (kernel (exnc-form-to-kernel exnc-formula))
-	 (cterm1 (make-cterm var kernel))
-	 (cterm2 (make-cterm concl))
-	 (type (var-to-type var))
-	 (tvar (new-tvar))
-	 (new-var (type-to-new-var tvar var))
-	 (arity1 (make-arity tvar))
-	 (pvar1 (if (nulltype? (cterm-to-formula cterm1))
-		    (arity-to-new-pvar arity1)
-		    (arity-to-new-general-pvar arity1)))
-	 (predicate-formula1
-	  (make-predicate-formula pvar1 (make-term-in-var-form new-var)))
-	 (arity2 (make-arity))
-	 (pvar2 (if (nulltype? (cterm-to-formula cterm2))
-		    (arity-to-new-pvar arity2)
-		    (arity-to-new-general-pvar arity2)))
-	 (predicate-formula2 (make-predicate-formula pvar2))
-	 (imp-formula
-	  (mk-imp
-	   (make-exnc new-var predicate-formula1)
-	   (make-allnc new-var
-		       (make-imp predicate-formula1 predicate-formula2))
-	   predicate-formula2))
-	 (tsubst (make-subst tvar type))
-	 (psubst (make-substitution-wrt pvar-cterm-equal?
-					(list pvar1 pvar2)
-					(list cterm1 cterm2))))
-    (make-aconst "Exnc-Elim" 'axiom imp-formula (append tsubst psubst)
-		 exnc-formula concl)))
-
 ;; all boole^1,boole^2(boole^1 andb boole^2 -> boole^1) etc can be
 ;; proved in TCF+ from the computation rules for AndConst .
 
@@ -2393,8 +2056,14 @@
    ((impnc-form? formula)
     (let ((prem (impnc-form-to-premise formula))
 	  (conc (impnc-form-to-conclusion formula)))
-      (and (non-computational-invariant? prem param-pvars)
+      (and (or (non-computational-invariant? prem param-pvars)
+	       (and (predicate-form? prem)
+		    (let ((pred (predicate-form-to-predicate prem)))
+		      (and (predconst-form? pred)
+			   (string=? "Total" (predconst-to-name pred))))))
 	   (non-computational-invariant? conc param-pvars))))
+      ;; (and (non-computational-invariant? prem param-pvars)
+      ;; 	   (non-computational-invariant? conc param-pvars))))
    ((and-form? formula)
     (let ((left (and-form-to-left formula))
 	  (right (and-form-to-right formula)))
@@ -2406,7 +2075,7 @@
       (and (non-computational-invariant? left param-pvars)
 	   (non-computational-invariant? right param-pvars))))
    ((andl-form? formula)
-    (let ((right (andl-form-to-left formula)))
+    (let ((left (andl-form-to-left formula)))
       (non-computational-invariant? left param-pvars)))
    ((andr-form? formula)
     (let ((right (andr-form-to-right formula)))
@@ -2422,9 +2091,6 @@
    ((ex-form? formula) #f)
    ((allnc-form? formula)
     (let ((kernel (allnc-form-to-kernel formula)))
-      (non-computational-invariant? kernel param-pvars)))
-   ((exnc-form? formula) ;obsolete
-    (let ((kernel (exnc-form-to-kernel formula)))
       (non-computational-invariant? kernel param-pvars)))
    ((exd-form? formula) #f)
    ((exl-form? formula) #f)
@@ -2999,11 +2665,14 @@
 	    (name (aconst-to-name aconst)))
        (if (or (member
 		name
-		'("Ind" "Cases" "GInd" "Intro" "Elim" "Closure" "Gfp"
-		  "Ex-Intro" "Ex-Elim"
-		  "Exnc-Intro" "Exnc-Elim" ;obsolete
-		  "Eq-Compat"))
-
+		'("Cases" "Ex-Intro" "Ex-Elim"))
+	       (and (string=? "Gfp" name)
+		    (formula=? (pf "F")
+			       (imp-form-to-premise
+				(all-allnc-form-to-final-kernel
+				 (aconst-to-formula aconst)))))
+	       ;; '("Ind" "Cases" "GInd" "Intro" "Elim" "Closure" "Gfp"
+	       ;;   "Ex-Intro" "Ex-Elim"))
 	       (apply
 		or-op
 		(map
@@ -3011,8 +2680,8 @@
 		   (and (<= (string-length string) (string-length name))
 			(string=? (substring name 0 (string-length string))
 				  string)))
-		 '("All-AllPartial" "ExPartial-Ex"
-		   "ExclIntro" "ExclElim" "MinPr"))))
+		 '("AllTotal" "AllncTotal" "ExclIntro" "ExclElim" "MinPr"))))
+	   ;; '("ExclIntro" "ExclElim" "MinPr"))))
 	   '()
 	   (let* ((uninst-formula (aconst-to-uninst-formula aconst))
 		  (tpsubst (aconst-to-tpsubst aconst))
