@@ -29,8 +29,6 @@
 
 ;; - (and formula1 formula2) conjunction
 ;; - (ex x formula) existential quantification
-;; - (exnc x formula) ;obsolete
-;;    existential quantification without computational content
 
 ;; Temporarily we also allow prime formulas of the form (atom r) with a
 ;; term r of type boole.  They can be replaced by Leibniz equality of
@@ -87,21 +85,6 @@
 	   (finalg-to-=-const type1)) ;includes check for finalg
 	  term1 term2))
 	(make-eqd term1 term2))))
-
-;; Since Equal is to be replaced by the Leibniz equality, make-eq is
-;; not needed any more.
-
-(define (make-eq term1 term2) ;obsolete
-  (let* ((type1 (term-to-type term1))
-         (type2 (term-to-type term2))
-	 (tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (equal-predconst
-	  (if (equal? type1 type2)
-	      (make-predconst (make-arity tvar tvar)
-			      (make-subst tvar type1)
-			      -1 "Equal")
-	      (myerror "make-eq" "equal types expected" type1 type2))))
-    (make-predicate-formula equal-predconst term1 term2)))
 
 (define (make-e term)
   (let* ((type (term-to-type term))
@@ -209,13 +192,6 @@
 (define (allnc-form? x)
   (and (list? x) (= 3 (length x)) (eq? 'allnc (car x)) (var? (cadr x))))
 
-(define (make-exnc var kernel) ;obsolete
-  (list 'exnc var kernel))
-(define exnc-form-to-var cadr) ;obsolete
-(define exnc-form-to-kernel caddr) ;obsolete
-(define (exnc-form? x) ;obsolete
-  (and (list? x) (= 3 (length x)) (eq? 'exnc (car x)) (var? (cadr x))))
-
 (define (make-exca vars kernel) (list 'exca vars kernel))
 (define exca-form-to-vars cadr)
 (define exca-form-to-kernel caddr)
@@ -248,7 +224,6 @@
 		       all
 		       ex
 		       allnc
-		       exnc ;obsolete
 		       exca
 		       excl
 		       excu))))
@@ -928,73 +903,6 @@
    (else (myerror "all-allnc-form-to-prefix" "non-negative integer expected"
 		  (car x)))))
 
-;; (mk-exnc var1 ... formula) results from formula by first quantifying
-;; var1, then var2 etc.
-
-(define (mk-exnc x . rest) ;obsolete
-  (if (null? rest)
-      x
-      (make-exnc x (apply mk-exnc rest))))
-
-;; exnc-form-to-vars computes the first (car x) vars of a formula.
-
-(define (exnc-form-to-vars formula . x) ;obsolete
-  (cond
-   ((null? x)
-    (if (exnc-form? formula)
-	(cons (exnc-form-to-var formula)
-	      (exnc-form-to-vars (exnc-form-to-kernel formula)))
-	'()))
-   ((and (integer? (car x)) (not (negative? (car x))))
-    (let ((n (car x)))
-      (do ((rho formula (exnc-form-to-kernel rho))
-	   (i 0 (+ 1 i))
-	   (res '() (cons (exnc-form-to-var rho) res)))
-	  ((or (= n i) (not (exnc-form? rho)))
-	   (if (= n i)
-	       (reverse res)
-	       (myerror "exnc-form-to-vars" n "vars expected in"
-			formula))))))
-   (else (myerror "exnc-form-to-vars" "non-negative integer expected"
-		  (car x)))))
-
-;; exnc-form-to-final-kernel computes the final kernel (kernel
-;; after removing the first (car x) vars) of a formula.
-
-(define (exnc-form-to-final-kernel formula . x) ;obsolete
-  (cond
-   ((null? x)
-    (if (exnc-form? formula)
-	(exnc-form-to-final-kernel (exnc-form-to-kernel formula))
-	formula))
-   ((and (integer? (car x)) (not (negative? (car x))))
-    (let ((n (car x)))
-      (do ((rho formula (exnc-form-to-kernel rho))
-	   (i 0 (+ 1 i))
-	   (res formula (exnc-form-to-kernel res)))
-	  ((or (= n i) (not (exnc-form? rho)))
-	   (if (= n i)
-	       res
-	       (myerror "exnc-form-to-final-kernel"
-			n "vars expected in"
-			formula))))))
-   (else (myerror "exnc-form-to-final-kernel" "non-negative integer expected"
-		  (car x)))))
-
-(define (exnc-form-to-vars-and-final-kernel formula) ;obsolete
-  (if (exnc-form? formula)
-      (let* ((rec-result (exnc-form-to-vars-and-final-kernel
-			  (exnc-form-to-kernel formula)))
-	     (vars (car rec-result))
-	     (final-kernel (cadr rec-result)))
-	(list (cons (exnc-form-to-var formula) vars) final-kernel))
-      (list '() formula)))
-
-(define ex-exnc-form-to-var cadr) ;obsolete
-(define ex-exnc-form-to-kernel caddr) ;obsolete
-(define (ex-exnc-form? x) ;obsolete
-  (and (list? x) (= 3 (length x)) (memq (car x) '(ex exnc)) (var? (cadr x))))
-
 (define (mk-exca x . rest)
   (if (null? rest)
       x
@@ -1393,8 +1301,7 @@
 	 (and (idpredconst-form? pred)
 	      (member
 	       (idpredconst-to-name pred)
-	       (list ;;"ExNc"
-		"ExU" "ExL" "ExR" "ExD"))))))
+	       (list "ExU" "ExL" "ExR" "ExD"))))))
 
 (define (exi-mr-exi-form? formula)
   (and (predicate-form? formula)
@@ -1402,8 +1309,7 @@
 	 (and (idpredconst-form? pred)
 	      (member
 	       (idpredconst-to-name pred)
-	       (list ;;"ExNc"
-		"ExU" "ExL" "ExR" "ExD"
+	       (list "ExU" "ExL" "ExR" "ExD"
 		"ExUMR" "ExLMR" "ExRMR" "ExDMR"))))))
 
 (define (exi-mr-exi-form-to-vars formula)
@@ -1450,16 +1356,6 @@
 	      (cterm-to-formula cterm)
 	      (list (append vars (cterm-to-vars cterm)) conjs))))
 	  (else (list vars (snoc conjs formula))))))
-
-(define (make-exnci var kernel)
-  (if (formula-of-nulltype? kernel)
-      (make-exu var kernel)
-      (make-exr var kernel)))
-
-(define (mk-exnci x . rest)
-  (if (null? rest)
-      x
-      (make-exnci x (apply mk-exnci rest))))
 
 (define (make-exdt var kernel)
   (make-predicate-formula
@@ -2227,7 +2123,6 @@
     ((all) (make-all (car vars) kernel))
     ((ex) (make-ex (car vars) kernel))
     ((allnc) (make-allnc (car vars) kernel))
-    ((exnc) (make-exnc (car vars) kernel)) ;obsolete
     ((exd) (make-exd (car vars) kernel))
     ((exl) (make-exl (car vars) kernel))
     ((exr) (make-exr (car vars) kernel))
@@ -2254,7 +2149,6 @@
   (or (all-form? x)
       (ex-form? x)
       (allnc-form? x)
-      (exnc-form? x) ;obsolete
       (exd-form? x)
       (exl-form? x)
       (exr-form? x)
@@ -2272,7 +2166,6 @@
    ((all-form? x) 'all)
    ((ex-form? x) 'ex)
    ((allnc-form? x) 'allnc)
-   ((exnc-form? x) 'exnc) ;obsolete
    ((exd-form? x) 'exd)
    ((exl-form? x) 'exl)
    ((exr-form? x) 'exr)
@@ -2291,7 +2184,6 @@
    ((all-form? x) (list (all-form-to-var x)))
    ((ex-form? x) (list (ex-form-to-var x)))
    ((allnc-form? x) (list (allnc-form-to-var x)))
-   ((exnc-form? x) (list (exnc-form-to-var x))) ;obsolete
    ((exd-form? x) (list (exd-form-to-var x)))
    ((exl-form? x) (list (exl-form-to-var x)))
    ((exr-form? x) (list (exr-form-to-var x)))
@@ -2310,7 +2202,6 @@
    ((all-form? x) (all-form-to-kernel x))
    ((ex-form? x) (ex-form-to-kernel x))
    ((allnc-form? x) (allnc-form-to-kernel x))
-   ((exnc-form? x) (exnc-form-to-kernel x)) ;obsolete
    ((exd-form? x) (exd-form-to-kernel x))
    ((exl-form? x) (exl-form-to-kernel x))
    ((exr-form? x) (exr-form-to-kernel x))
@@ -2407,7 +2298,7 @@
 	  (vars (quant-form-to-vars formula))
 	  (kernel (quant-form-to-kernel formula)))
       (case quant
-	((all ex allnc exnc exd exl exr exu exdt exlt exrt exut)
+	((all ex allnc exd exl exr exu exdt exlt exrt exut)
 	 (make-quant quant vars (unfold-formula kernel)))
 	((exca)
 	 (mk-neg
@@ -2522,7 +2413,7 @@
 	(formula-with-illegal-tensor? (bicon-form-to-right formula))))
    ((and (quant-form? formula)
 	 (memq (quant-form-to-quant formula)
-	       '(all ex allnc exnc exd exl exr exu exdt exlt exrt exut)))
+	       '(all ex allnc exd exl exr exu exdt exlt exrt exut)))
     (formula-with-illegal-tensor? (quant-form-to-kernel formula)))
    (else (myerror "formula-with-illegal-tensor?"
 		  "unfolded formula expected" formula))))
@@ -2572,7 +2463,7 @@
 	  (vars (quant-form-to-vars formula))
 	  (kernel (quant-form-to-kernel formula)))
       (case quant
-	((all ex allnc exnc exd exl exr exu exdt exlt exrt exut)
+	((all ex allnc exd exl exr exu exdt exlt exrt exut)
 	 (make-quant quant vars (unfold-totality kernel)))
 	((exca)
 	 (mk-neg
@@ -2763,7 +2654,7 @@
 	 (ex-free-formula? (bicon-form-to-right formula))))
    ((quant-form? formula)
     (and (not (memq (quant-form-to-quant formula)
-		    '(ex exnc exd exl exr exu exdt exlt exrt exut)))
+		    '(ex exd exl exr exu exdt exlt exrt exut)))
 	 (ex-free-formula? (quant-form-to-kernel formula))))
    (else (myerror "ex-free-formula?" "formula expected" formula))))
 
@@ -2808,7 +2699,7 @@
    ((or (all-form? formula) (allnc-form? formula))
     (make-arrow (var-to-type (car (quant-form-to-vars formula)))
 		(nbe-formula-to-type (quant-form-to-kernel formula))))
-   ((or (ex-form? formula) (exnc-form? formula)) (make-tconst "existential"))
+   ((ex-form? formula) (make-tconst "existential"))
    ((and (quant-form? formula)
 	 (memq (quant-form-to-quant formula) '(exca excl excu)))
     (nbe-formula-to-type (unfold-formula formula)))
@@ -2845,7 +2736,7 @@
      (quant-form-to-kernel formula)))
    ((and (quant-form? formula)
 	 (memq (quant-form-to-quant formula)
-	       '(ex exnc exd exl exr exu exdt exlt exrt exut)))
+	       '(ex exd exl exr exu exdt exlt exrt exut)))
     (cons formula
 	  (formula-to-positive-existential-subformulas
 	   (quant-form-to-kernel formula))))
@@ -2873,7 +2764,7 @@
      (quant-form-to-kernel formula)))
    ((and (quant-form? formula)
 	 (memq (quant-form-to-quant formula)
-	       '(ex exnc exd exl exr exu exdt exlt exrt exut)))
+	       '(ex exd exl exr exu exdt exlt exrt exut)))
     (cons formula
 	  (formula-to-negative-existential-subformulas
 	   (quant-form-to-kernel formula))))
@@ -4359,10 +4250,6 @@
     (make-token-tree
      'allnc-op (var-to-string (allnc-form-to-var formula))
      (formula-to-token-tree (allnc-form-to-kernel formula))))
-   ((exnc-form? formula) ;obsolete
-    (make-token-tree
-     'exnc-op (var-to-string (exnc-form-to-var formula))
-     (formula-to-token-tree (exnc-form-to-kernel formula))))
    ((exd-form? formula)
     (make-token-tree
      'exd-op (var-to-string (exd-form-to-var formula))
@@ -4613,16 +4500,16 @@
 		  (make-idpredconst name subst-types subst-cterms)))
 	    (apply make-predicate-formula subst-idpredconst subst-args)))
 	 (else (myerror "formula-substitute" "predicate expected" pred)))))
-     ;; An active impnc inactive after substitution is changed to imp
-     ((impnc-form? formula)
-      (let* ((prem (impnc-form-to-premise formula))
-	     (concl (impnc-form-to-conclusion formula))
-	     (subst-prem (formula-substitute prem topsubst))
-	     (subst-concl (formula-substitute concl topsubst)))
-	(if (and (not (formula-of-nulltype? prem))
-		 (formula-of-nulltype? subst-prem))
-	    (make-imp subst-prem subst-concl)
-	    (make-impnc subst-prem subst-concl))))
+     ;; ;; An active impnc inactive after substitution is changed to imp
+     ;; ((impnc-form? formula)
+     ;;  (let* ((prem (impnc-form-to-premise formula))
+     ;; 	     (concl (impnc-form-to-conclusion formula))
+     ;; 	     (subst-prem (formula-substitute prem topsubst))
+     ;; 	     (subst-concl (formula-substitute concl topsubst)))
+     ;; 	(if (and (not (formula-of-nulltype? prem))
+     ;; 		 (formula-of-nulltype? subst-prem))
+     ;; 	    (make-imp subst-prem subst-concl)
+     ;; 	    (make-impnc subst-prem subst-concl))))
      ((bicon-form? formula)
       (make-bicon
        (bicon-form-to-bicon formula)
