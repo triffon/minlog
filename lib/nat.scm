@@ -1,4 +1,7 @@
 ;; $Id: nat.scm 2677 2014-01-08 10:03:39Z schwicht $
+
+;; (load "~/git/minlog/init.scm")
+
 (display "loading nat.scm ...") (newline)
 
 (add-mr-ids "TotalBoole")
@@ -361,7 +364,7 @@
 (use "IH")
 (use "Tnat1")
 ;; Proof finished
-(save "NatTimesTotal")
+(save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
 ;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
@@ -1924,6 +1927,27 @@
 ;; Proof finished.
 (save "ExBNatElim")
 
+;; AllBNatExBNat
+(set-goal "all nat=>boole,nat1(
+ negb(ExBNat nat1([nat](nat=>boole)nat))=
+ AllBNat nat1([nat]negb((nat=>boole)nat)))")
+(assume "nat=>boole")
+(ind)
+(ng)
+(use "Truth")
+(assume "nat1" "IH")
+(ng)
+(simp "<-" "IH")
+(cases (pt "(nat=>boole)nat1"))
+(ng)
+(strip)
+(use "Truth")
+(ng)
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "AllBNatExBNat")
+
 (set-totality-goal "NatLeast")
 (assume "nat^" "Tnat")
 (elim "Tnat")
@@ -2168,6 +2192,22 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "(nat2--nat3)*nat1" "nat2*nat1--nat3*nat1")
+
+;; SuccNatMinus
+(set-goal "all nat2,nat1(nat2<nat1 -> Succ(nat1--nat2)=Succ(nat1)--nat2)")
+(ind)
+(ng)
+(strip)
+(use "Truth")
+(assume "nat2" "IH")
+(cases)
+(ng)
+(assume "Absurd")
+(use "Absurd")
+(assume "nat1")
+(use "IH")
+;; Proof finished
+(save "SuccNatMinus")
 
 ;; NatLeMonPlus
 (set-goal
@@ -2764,6 +2804,254 @@
 (use "IH")
 ;; Proof finished.
 (save "NatHalfSuccDouble")
+
+;; NatPlusDouble
+(set-goal "all nat1,nat2 NatDouble nat1+NatDouble nat2=NatDouble(nat1+nat2)")
+(assume "nat1")
+(ind)
+(use "Truth")
+(assume "nat2" "IH")
+(ng #t)
+(use "IH")
+;; Proof finished.
+(save "NatPlusDouble")
+
+;; NatDoubleLt
+(set-goal "all nat1,nat2 (NatDouble nat1<NatDouble nat2)=(nat1<nat2)")
+(ind)
+(ng)
+(cases)
+(use "Truth")
+(strip)
+(use "Truth")
+;; 3
+(assume "nat1" "IH")
+(cases)
+(ng)
+(use "Truth")
+(ng)
+(use "IH")
+;; Proof finished.
+(save "NatDoubleLt")
+
+;; NatDoubleLe
+(set-goal "all nat1,nat2 (NatDouble nat1<=NatDouble nat2)=(nat1<=nat2)")
+(ind)
+(ng)
+(strip)
+(use "Truth")
+;; 3
+(assume "nat1" "IH")
+(cases)
+(ng)
+(use "Truth")
+(ng)
+(use "IH")
+;; Proof finished.
+(save "NatDoubleLe")
+
+;; NatLt0Double
+(set-goal "all nat(Zero<nat -> Zero<NatDouble nat)")
+(cases)
+(assume "Absurd")
+(use "Absurd")
+(strip)
+(use "Truth")
+;; Proof finished
+(save "NatLt0Double")
+
+;; NatDoubleMinus
+(set-goal "all nat1,nat2 NatDouble(nat1--nat2)=NatDouble nat1--NatDouble nat2")
+(ind)
+;; 2-3
+(ng)
+(strip)
+(use "Truth")
+;; 3
+(assume "nat1" "IH1")
+(cases)
+;; 7,8
+(ng)
+(use "Truth")
+;; 8
+(ng)
+(use "IH1")
+;; Proof finished.
+(save "NatDoubleMinus")
+
+;; NatLtSZeroSOne 
+;; NatLtSOneSZero
+;; NatLtSOneSOne
+
+;; NatLeSZeroSOne
+;; NatLeSOneSZero
+;; NatLeSOneSOne
+
+;; NatLtOneSZero
+;; NatLtOneSOne
+
+;; NatLeSZeroOne
+;; NatLtSZeroOne
+
+;; moved here from numbers.scm.  The terminology comes from pos: Double
+;; for NatDouble, SOne for Succ(NatDouble)
+
+;; NatLtDoubleSuccDouble
+(set-goal "all nat1,nat2 (NatDouble nat1<Succ(NatDouble nat2))=(nat1<=nat2)")
+(ind) ;2-3
+(assume "nat2")
+(ng #t)
+(use "Truth")
+;; 3
+(assume "nat1" "IH1")
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "IH1")
+;; Proof finished.
+(save "NatLtDoubleSuccDouble")
+
+;; NatLtSuccDoubleDouble
+(set-goal "all nat1,nat2 (Succ(NatDouble nat1)<NatDouble nat2)=(nat1<nat2)")
+(ind) ;2-3
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "Truth")
+;; 3
+(assume "nat1" "IH1")
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "IH1")
+;; Proof finished.
+(save "NatLtSuccDoubleDouble")
+
+;; NatLtSuccDoubleSuccDouble
+(set-goal "all nat1,nat2
+ (Succ(NatDouble nat1)<Succ(NatDouble nat2))=(nat1<nat2)")
+(ind) ;2-3
+(cases)
+(ng #t)
+(strip)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "Truth")
+;; 3
+(assume "nat1" "IH1")
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "IH1")
+;; Proof finished.
+(save "NatLtSuccDoubleSuccDouble")
+
+;; NatLeDoubleSuccDouble
+(set-goal "all nat1,nat2 (NatDouble nat1<=Succ(NatDouble nat2))=(nat1<=nat2)")
+(ind) ;2-3
+(assume "nat2")
+(ng #t)
+(use "Truth")
+;; 3
+(assume "nat1" "IH1")
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "IH1")
+;; Proof finished.
+(save "NatLeDoubleSuccDouble")
+
+;; NatLeSuccDoubleDouble
+(set-goal "all nat1,nat2 (Succ(NatDouble nat1)<=NatDouble nat2)=(nat1<nat2)")
+(ind) ;2-3
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "Truth")
+;; 3
+(assume "nat1" "IH1")
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "IH1")
+;; Proof finished.
+(save "NatLeSuccDoubleDouble")
+
+;; NatLeSuccDoubleSuccDouble
+(set-goal "all nat1,nat2
+ (Succ(NatDouble nat1)<=Succ(NatDouble nat2))=(nat1<=nat2)")
+(ind) ;2-3
+(ng #t)
+(strip)
+(use "Truth")
+;; 3
+(assume "nat1" "IH1")
+(cases)
+(ng #t)
+(use "Truth")
+(assume "nat2")
+(ng #t)
+(use "IH1")
+;; Proof finished.
+(save "NatLeSuccDoubleSuccDouble")
+
+;; NatLtOneDouble
+(set-goal "all nat(Zero<nat -> Succ Zero<NatDouble nat)")
+(cases)
+(assume "Absurd")
+(use "Absurd")
+(ng #t)
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "NatLtOneDouble")
+
+;; NatLtOneSuccDouble
+(set-goal "all nat(Zero<nat -> Succ Zero<Succ(NatDouble nat))")
+(assume "nat" "0<n")
+(use "NatLtTrans" (pt "NatDouble nat"))
+(use "NatLtOneDouble")
+(use "0<n")
+(use "Truth")
+;; Proof finished.
+(save "NatLtOneSuccDouble")
+
+;; NatLeDoubleOne
+(set-goal "all nat(Zero<nat -> NatDouble nat<=Succ Zero -> F)")
+(cases)
+(assume "Absurd" "Useless")
+(use "Absurd")
+(ng #t)
+(assume "nat" "Useless" "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "NatLeDoubleOne")
+
+;; NatLtDoubleOne
+(set-goal "all nat(Zero<nat -> NatDouble nat<Succ Zero -> F)")
+(cases)
+(assume "Absurd" "Useless")
+(use "Absurd")
+(ng #t)
+(assume "nat" "Useless" "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "NatLtDoubleOne")
 
 ;; Reason to have a local efq assumption in CVIndPvar: soundness proof
 ;; does not normalize for Efq a global assumption.  Check
