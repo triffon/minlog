@@ -1,5 +1,51 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done dev branch 2016-04-09
+
+In examples/classical
+
+Added fuerst.scm
+
+Extraction of computational content from Fuerstenberg's topological
+proof of the existence of infinitely many primes.  This is the
+fifth of {Six proofs of the infinity of primes}, Problem 1 in
+M. Aigner and G. Ziegler, Proofs from THE BOOK, Springer 1998.
+Original reference: H. Fuerstenberg, On the infinitude of primes,
+Amer. Math. Monthly 62 (1955), 353.
+
+In lib/nat.scm
+
+SuccNatMinus NatPlusDouble NatDoubleLt NatDoubleLe NatLt0Double
+NatDoubleMinus NatLtDoubleSuccDouble NatLtSuccDoubleDouble
+NatLtSuccDoubleSuccDouble NatLeDoubleSuccDouble NatLeSuccDoubleDouble
+NatLeSuccDoubleSuccDouble NatLtOneDouble NatLtOneSuccDouble
+NatLeDoubleOne NatLtDoubleOne added
+
+NatLeSZeroSZero renamed into NatDoubleLe
+NatLtSZeroSZero renamed into NatDoubleLt
+NatLtOneFalse renamed into NatLtSZeroOne
+NatLeSOneOne removed (all formerly in numbers.scm, moved here)
+
+set-totality-goal used for NatTimesTotal
+
+AllBNatExBNat added
+
+In lib/pos.scm
+
+Based on the former numbers.scm.  PosToNatLt and NatToPosLt added.
+PosLeCases added.  Theorems like PosEqTotalReal PosPlusTotalReal
+removed.  They were designed for use in proof-to-soundness-proof at
+theorem like PosEqTotal PosPlusTotal.  But proof-to-soundness-proof
+should not use soundness proofs for theorems of the form Pconst+Total
+and AlgEqTotal: these proofs have terms involving Rec as content, but
+proof-to-extracted-term assigns Pconst or identities to them.
+
+In lib/int.scm
+
+Based on the former numbers.scm.  NatToIntDouble removed.
+PosToNatToInt renamed into PosToNatToIntId
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done in dev branch 2016-03-30
 
 In typ.scm
