@@ -18,7 +18,9 @@
     (setq minlogpath "---MINLOGPATH---"))
 
   ;; which scheme to use ?
-  (cond ((getenv "SCHEME") (setq scheme (getenv "SCHEME")))
+  (cond ((eq system-type 'windows-nt)
+	 (setq scheme "---PETITEEXEPATH---"))
+	((getenv "SCHEME") (setq scheme (getenv "SCHEME")))
 	((and (file-readable-p "/usr/bin/petite")
 	      (string= system-type "gnu/linux"))
 	 (setq scheme "/usr/bin/petite"))
@@ -45,12 +47,14 @@
   (delete-other-frames)
   (delete-other-windows)
   ;; setup the frames
-  (case window-system
-    (x (setup-minlog-frames filename))
-    (otherwise (setup-minlog-frame-nox filename)))
+  (if (eq window-system nil)
+      (setup-minlog-frame-nox filename)
+    (setup-minlog-frames filename))
 
   ;; start scheme
-  (run-scheme (concat scheme " " heapload)))
+  (if (eq system-type 'windows-nt)
+      (run-scheme (concat (quote-string scheme) " " (quote-string heapload)))
+    (run-scheme (concat scheme " " heapload))))
 
 (defun setup-minlog-frames (&optional filename)
   (let* ((orig-frame (selected-frame))
@@ -61,12 +65,13 @@
 	 (lt (if (< (+ left-frame-lt (* wh 2)) (x-display-pixel-width))
 		 left-frame-lt 0))
 	 (ht (/ (x-display-pixel-height) (frame-char-height)))
-	 (border (frame-parameter left-frame 'border-width)))
+	 (border (frame-parameter left-frame 'border-width))
+	 (tp  (cdr (assoc 'top (frame-parameters (selected-frame))))))
     (delete-frame orig-frame)
-    (set-frame-size left-frame 80 ht)
-    (set-frame-size right-frame 80 ht)
-    (set-frame-position left-frame lt 0)
-    (set-frame-position right-frame (+ lt wh (* 2 border)) 0)
+    ;(set-frame-size left-frame 80 ht)
+    ;(set-frame-size right-frame 80 ht)
+    (set-frame-position left-frame lt tp)
+    (set-frame-position right-frame (+ lt wh (* 2 border)) tp)
     (if filename
 	(progn (select-frame-set-input-focus left-frame)
 	       (find-file filename)))
