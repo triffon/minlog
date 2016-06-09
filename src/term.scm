@@ -3591,6 +3591,94 @@ intDestr n | n > 0  = Left n
 		(string-append res ", " (term-to-string (car l)))))
 	  ((null? l) (string-append "(" res ")")))))
 
+(define (term-to-name-tree term)
+  (cond
+   ((is-numeric-term? term)
+    (numeric-term-to-number term))
+   ((term-in-var-form? term)
+    (let ((string (term-in-var-form-to-string term)))
+      (if (member #\( (string->list string))
+	  string
+	  (string->symbol string))))
+   ((term-in-const-form? term)
+    (let ((string (term-in-const-form-to-string term)))
+      (if (member #\( (string->list string))
+	  string
+	  (string->symbol string))))
+   ((term-in-abst-form? term)
+    (list
+     'lambda
+     (let ((string (var-to-string (term-in-abst-form-to-var term))))
+       (if (member #\( (string->list string))
+	   string
+	   (string->symbol string)))
+     (term-to-name-tree (term-in-abst-form-to-kernel term))))
+   ((term-in-app-form? term)
+    (let* ((op (term-in-app-form-to-final-op term))
+	   (args (term-in-app-form-to-args term)))
+      (if (= 2 (length args))
+	  (list (term-to-name-tree (car args))
+		(term-to-name-tree op)
+		(term-to-name-tree (cadr args)))
+	  (cons (term-to-name-tree op)
+		(map term-to-name-tree args)))))
+   ((term-in-pair-form? term)
+    (list (term-to-name-tree (term-in-pair-form-to-left term))
+	  '@
+	  (term-to-name-tree (term-in-pair-form-to-right term))))
+   ((term-in-lcomp-form? term)
+    (list 'left (term-to-name-tree (term-in-lcomp-form-to-kernel term))))
+   ((term-in-rcomp-form? term)
+    (list 'right (term-to-name-tree (term-in-rcomp-form-to-kernel term))))
+   ((term-in-if-form? term)
+    (let* ((test (term-in-if-form-to-test term))
+	   (alts (term-in-if-form-to-alts term))
+	   (alg (term-to-type test))
+	   (alg-name (alg-form-to-name alg)))
+      (if
+       (and CASE-DISPLAY (not (nested-alg-name? alg-name)))
+       (let* ((typed-constr-names (alg-name-to-typed-constr-names alg-name))
+	      (constr-names (map typed-constr-name-to-name typed-constr-names))
+	      (constr-types (map typed-constr-name-to-type typed-constr-names))
+	      (alg-tvars (alg-name-to-tvars alg-name))
+	      (tparams (alg-form-to-types alg))
+	      (tsubst (make-substitution alg-tvars tparams))
+	      (constrs (map (lambda (constr-name)
+			      (const-substitute
+			       (constr-name-to-constr constr-name)
+			       tsubst #t))
+			    constr-names))
+	      (lengths-of-arg-types
+	       (map (lambda (x) (length (arrow-form-to-arg-types x)))
+		    constr-types))
+	      (expanded-alts
+	       (map (lambda (alt l)
+		      (term-to-simple-outer-eta-expansion alt l))
+		    alts lengths-of-arg-types))
+	      (alt-vars-list (map (lambda (alt l)
+				    (term-in-abst-form-to-vars alt l))
+				  expanded-alts lengths-of-arg-types))
+	      (patterns
+	       (map (lambda (constr vars)
+		      (apply mk-term-in-app-form
+			     (make-term-in-const-form constr)
+			     (map make-term-in-var-form vars)))
+		    constrs alt-vars-list))
+	      (alt-kernels (map (lambda (alt l)
+				  (term-in-abst-form-to-final-kernel alt l))
+				expanded-alts lengths-of-arg-types)))
+	 (apply list "case"
+		(term-to-name-tree test)
+		(map (lambda (pattern alt-kernel)
+		       (list (term-to-name-tree pattern)
+			     '->
+			     (term-to-name-tree alt-kernel)))
+		     patterns alt-kernels)))
+       (apply list 'if
+	      (term-to-name-tree (term-in-if-form-to-test term))
+	      (map term-to-name-tree
+		   (term-in-if-form-to-alts term))))))
+    (else (myerror "term-to-name-tree" "term expected" term))))
 
 ;; 6-4. Normalization by evaluation
 ;; ================================
@@ -8252,7 +8340,8 @@ intDestr n | n > 0  = Left n
 		    rest-unif-pairs)
 	    flex-flex-pairs opsubst bd)))
 	((and (term-in-if-form? op1)
-	      (term-in-if-form? op2))
+	      (term-in-if-form? op2)
+	      (= (length args1) (length args2)))
 	 (let ((test1 (term-in-if-form-to-test op1))
 	       (alts1 (term-in-if-form-to-alts op1))
 	       (test2 (term-in-if-form-to-test op2))
@@ -8492,10 +8581,15 @@ intDestr n | n > 0  = Left n
       (huet-unifiers-match
        sig-opvars flex-opvars forb-vars ignore-deco-flag
        expr2 expr1 rest-unif-pairs flex-flex-pairs opsubst bd))
-     (else ;expr1 is flex and expr2 rigid
+     ;; (else ;expr1 is flex and expr2 rigid
+     ;;  (huet-unifiers-match
+     ;;   sig-opvars flex-opvars forb-vars ignore-deco-flag
+     ;;   expr1 expr2 rest-unif-pairs flex-flex-pairs opsubst bd))
+     (expr1-is-flex? ;expr1 is flex and expr2 rigid
       (huet-unifiers-match
        sig-opvars flex-opvars forb-vars ignore-deco-flag
-       expr1 expr2 rest-unif-pairs flex-flex-pairs opsubst bd)))))
+       expr1 expr2 rest-unif-pairs flex-flex-pairs opsubst bd))
+     (else '()))))
 
 ;; In huet-unifiers-match expr1 is flexible and expr2 is rigid.
 
@@ -8716,8 +8810,8 @@ intDestr n | n > 0  = Left n
    ((bicon-form? rigid-formula)
     (let* ((bicon (bicon-form-to-bicon rigid-formula))
 	   (arity (apply make-arity betas))
-	   (new-pvar1 (arity-to-new-general-pvar arity))
-	   (new-pvar2 (arity-to-new-general-pvar arity))
+	   (new-pvar1 (arity-to-new-pvar arity pvar))
+	   (new-pvar2 (arity-to-new-pvar arity pvar))
 	   (formula1 (apply make-predicate-formula
 			    (cons new-pvar1 (map make-term-in-var-form xs))))
 	   (formula2 (apply make-predicate-formula
@@ -8731,7 +8825,7 @@ intDestr n | n > 0  = Left n
 	   (vars (quant-form-to-vars rigid-formula))
 	   (alphas (map var-to-type vars))
 	   (arity (apply make-arity (append alphas betas)))
-	   (new-pvar (arity-to-new-general-pvar arity))
+	   (new-pvar (arity-to-new-pvar arity pvar))
 	   (new-kernel (apply make-predicate-formula
 			      new-pvar (map make-term-in-var-form
 					    (append vars xs))))
