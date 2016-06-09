@@ -3191,7 +3191,23 @@
 
 ;; Probably PVAR-TO-TVARP is not necessary.  PVAR-TO-TVAR should suffice.
 
-(define PVAR-TO-TVAR-ALIST '())
+;; PVAR-TO-TVAR-ALIST initially has
+;; (Pvar alpha) -> gamma
+;; Pvar2 -> beta2
+;; Pvar1 -> beta1
+;; Pvar  -> beta
+
+(define PVAR-TO-TVAR-ALIST
+  (list
+   (list (make-pvar (make-arity (make-tvar -1 "alpha"))
+		    -1 h-deg-zero n-deg-zero "")
+	 (make-tvar -1 "gamma"))
+   (list (make-pvar (make-arity) 2 h-deg-zero n-deg-zero "")
+	 (make-tvar 2 "beta"))
+   (list (make-pvar (make-arity) 1 h-deg-zero n-deg-zero "")
+	 (make-tvar 1 "beta"))
+   (list (make-pvar (make-arity) -1 h-deg-zero n-deg-zero "")
+	 (make-tvar -1 "beta"))))	      
 
 (define (PVAR-TO-TVAR pvar)
   (let ((info (assoc pvar PVAR-TO-TVAR-ALIST)))
