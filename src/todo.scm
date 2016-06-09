@@ -1,4 +1,8 @@
-;; 2015-06-07.  todo.scm
+;; 2016-06-09.  todo.scm
+
+;; 2016-06-09.  Replace axiom mr-intro-mr-aconst by a theorem
+
+;; 2016-06-09.  Parsing of (i) cases display (ii) predicates
 
 ;; 2015-06-07.  axiom-to-soundness-proof has problems at intro and
 ;; elim axioms for idpcs with parameters (already in the unnested case).
