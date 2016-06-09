@@ -5,6 +5,9 @@
 ;; First we add some tokens (this can only be done after loading
 ;; minitab.scm, which is done immediately before loading the present file).
 
+(add-token "beta" 'tvar-name "beta")
+(add-token "gamma" 'tvar-name "gamma")
+
 (add-token "andd" 'and-jct make-andd)
 (add-token "andr" 'and-jct make-andr)
 (add-token "andl" 'and-jct make-andl)
@@ -165,9 +168,10 @@
 (define (make-negation formula) (make-imp formula falsity))
 (add-token "not" 'prefix-jct make-negation)
 
-(define falsity-log
-  (make-predicate-formula
-   (make-pvar (make-arity) -1 h-deg-zero n-deg-zero "bot")))
+(define falsity-log-pvar
+  (make-pvar (make-arity) -1 h-deg-zero n-deg-zero "bot"))
+
+(define falsity-log (make-predicate-formula falsity-log-pvar))
 
 (define (make-negation-log formula) (make-imp formula falsity-log))
 (add-token "notl" 'prefix-jct make-negation-log)
