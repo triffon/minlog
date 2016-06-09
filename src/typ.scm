@@ -155,7 +155,10 @@
 
 (define DEFAULT-TVAR-NAME "alpha")
 
-(define TYPE-VARIABLES (list (list DEFAULT-TVAR-NAME)))
+(define TYPE-VARIABLES
+  (list (list "gamma")
+	(list "beta")
+	(list DEFAULT-TVAR-NAME)))
 
 (define (add-tvar-name . x)
   (if (null? x)
