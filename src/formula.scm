@@ -4110,13 +4110,26 @@
    ((predconst-form? pred)
     (make-token-tree 'predconst (predconst-to-string pred)))
    ((idpredconst-form? pred)
-    (let ((cterms (idpredconst-to-cterms pred)))
+    (let* ((name (idpredconst-to-name pred))
+	   (types (idpredconst-to-types pred))
+	   (cterms (idpredconst-to-cterms pred))
+	   (param-tvars (idpredconst-name-to-tvars name))
+	   (param-pvars (idpredconst-name-to-param-pvars name))
+	   (pvar (idpredconst-name-to-pvar name))
+	   (uninst-arity (pvar-to-arity pvar))
+	   (uninst-types (arity-to-types uninst-arity))
+	   (non-inferable-param-tvars
+	    (set-minus param-tvars
+		       (apply union (map type-to-tvars uninst-types)))))
       (if (null? cterms)
 	  (make-token-tree 'idpredconst (idpredconst-to-string pred))
 	  (apply make-token-tree
 		 'idpredconst-op
 		 (idpredconst-to-name pred)
-		 (map cterm-to-token-tree cterms)))))
+		 (if (null? non-inferable-param-tvars)
+		     (map cterm-to-token-tree cterms)
+		     (append (map type-to-token-tree types)
+			     (map cterm-to-token-tree cterms)))))))
    (else (myerror "predicate-to-token-tree" "predicate expected" pred))))
 
 (define (cterm-to-token-tree cterm)
@@ -4296,6 +4309,56 @@
      (formula-to-token-tree (excu-form-to-kernel formula))))
    (else
     (myerror "formula-to-token-tree" "formula expected" formula))))
+
+(define (formula-to-name-tree formula)
+  (cond
+   ((atom-form? formula)
+    (term-to-name-tree (atom-form-to-kernel formula)))
+   ((prime-predicate-form? formula)
+    (let* ((pred (predicate-form-to-predicate formula))
+	   (args (predicate-form-to-args formula))
+	   (pred-string
+	    (cond ((pvar-form? pred) (pvar-to-string pred))
+		  ((predconst-form? pred) (predconst-to-string pred))
+		  ((idpredconst-form? pred) (idpredconst-to-string pred))
+		  (else (myerror "formula-to-name-tree" "predicate expected"
+				 pred)))))
+      (apply list pred-string (map term-to-name-tree args))))
+   ((bicon-form? formula)
+    (list (formula-to-name-tree (bicon-form-to-left formula))
+	  (bicon-form-to-bicon formula)
+	  (formula-to-name-tree (bicon-form-to-right formula))))
+   ((quant-form? formula)
+    (list (quant-form-to-quant formula)
+	  (map term-to-name-tree
+	       (map make-term-in-var-form (quant-form-to-vars formula)))
+	  (formula-to-name-tree (quant-form-to-kernel formula))))
+   (else (myerror "formula-to-name-tree" "formula expected" formula))))
+
+;; ppn (pretty print with names) helps to see the implicit coercions
+;; for nat sub pos sub int sub rat sub rea.
+
+(define (ppn x)
+  (cond
+   ((term-form? x)
+    (term-to-name-tree (rename-variables x)))
+   ((formula-form? x)
+    (formula-to-name-tree (fold-formula (rename-variables x))))
+   ((string? x)
+    (formula-to-name-tree
+     (let ((info1 (assoc x THEOREMS)))
+       (if info1
+	   (fold-formula
+	    (rename-variables
+	     (proof-to-formula (theorem-name-to-proof x))))
+	   (let ((info2 (assoc x GLOBAL-ASSUMPTIONS)))
+	     (if info2
+		 (fold-formula
+		  (rename-variables (aconst-to-formula (cadr info2))))
+		 (myerror
+		  "ppn" "name of theorem or global assumption expected"
+		  x)))))))
+   (else (myerror "ppn" "term or formula expected" x))))
 
 ;; 7-6. Check
 ;; ==========
