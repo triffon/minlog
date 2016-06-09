@@ -13,7 +13,6 @@
 ;; considered.  However, the var and pvar names below will be kept
 ;; fixed and not removed.  This allows for more readable clauses.
 
-(add-tvar-name "beta" "gamma")
 (add-var-name "x" "y" "z" (py "alpha"))
 (add-var-name "xs" "ys" "zs" (py "list alpha"))
 
