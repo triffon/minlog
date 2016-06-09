@@ -385,54 +385,47 @@
 
 ;; A display function for program constants:
 
-(define (display-pconst . x)
+(define (display-pconst . names)
   (if
    COMMENT-FLAG
-   (let ((reduced-pconsts (if (null? x)
-			      PROGRAM-CONSTANTS
-			      (do ((l PROGRAM-CONSTANTS (cdr l))
-				   (res '() (if (member (caar l) x)
-						(cons (car l) res)
-						res)))
-				  ((null? l) res)))))
-     (for-each
-      (lambda (pconst)
-	(let* ((name (car pconst))
-	       (comprules (pconst-name-to-comprules name))
-	       (rewrules (pconst-name-to-rewrules name))
-	       (external-code (pconst-name-to-external-code name)))
-	  (display name) (newline)
-	  (if (pair? comprules)
-	      (begin
-		(display "  comprules") (newline)
-		(do ((lc comprules (cdr lc)))
-		    ((null? lc))
-		  (begin (display tab)
-			 (dt (rule-to-lhs (car lc)))
-			 (display tab)
-			 (dt (term-to-eta-nf (rule-to-rhs (car lc))))
-			 (newline)))))
-	  (if (pair? rewrules)
-	      (begin
-		(display "  rewrules") (newline)
-		(do ((lr rewrules (cdr lr)))
-		    ((null? lr))
-		  (begin (display tab)
-			 (dt (rule-to-lhs (car lr)))
-			 (display tab)
-			 (dt (term-to-eta-nf (rule-to-rhs (car lr))))
-			 (newline)))))
-	  (if (pair? external-code)
-	      (let* ((char-list (string->list name))
-		     (lower-case-pconst-name
-		      (list->string
-		       (map char-downcase char-list)))
-		     (code-name (string-append lower-case-pconst-name
-					       "-code")))
-		(begin (display "  external code present: evaluate ")
-		       (display code-name)
-		       (newline))))))
-      reduced-pconsts))))
+   (for-each
+    (lambda (name)
+      (let* ((pconst (pconst-name-to-pconst name))
+	     (comprules (pconst-name-to-comprules name))
+	     (rewrules (pconst-name-to-rewrules name))
+	     (external-code (pconst-name-to-external-code name)))
+	(display name) (newline)
+	(if (pair? comprules)
+	    (begin
+	      (display "  comprules") (newline)
+	      (do ((lc comprules (cdr lc)))
+		  ((null? lc))
+		(begin (display tab)
+		       (dt (rule-to-lhs (car lc)))
+		       (display tab)
+		       (dt (term-to-eta-nf (rule-to-rhs (car lc))))
+		       (newline)))))
+	(if (pair? rewrules)
+	    (begin
+	      (display "  rewrules") (newline)
+	      (do ((lr rewrules (cdr lr)))
+		  ((null? lr))
+		(begin (display tab)
+		       (dt (rule-to-lhs (car lr)))
+		       (display tab)
+		       (dt (term-to-eta-nf (rule-to-rhs (car lr))))
+		       (newline)))))
+	(if (pair? external-code)
+	    (let* ((char-list (string->list name))
+		   (lower-case-pconst-name
+		    (list->string
+		     (map char-downcase char-list)))
+		   (code-name (string-append lower-case-pconst-name
+					     "-code")))
+	      (begin (display "  external code present: evaluate ")
+		     (display code-name)
+		     (newline))))))
+    names)))
 
 ;; For backwards compatibility we keep
 
