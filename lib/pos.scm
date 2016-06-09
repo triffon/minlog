@@ -1,17 +1,21 @@
-;; 2016-04-02.  pos.scm.  Based on the former numbers.scm.
+;; 2016-04-12.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
 ;; (libload "nat.scm")
-;; (libload "pos.scm")
 ;; (set! COMMENT-FLAG #t)
 
 (if (not (assoc "nat" ALGEBRAS))
     (myerror "First execute (libload \"nat.scm\")"))
 
+;; ;; lib/list.scm needed for representing pos as list of booleans
+
+;; (if (not (assoc "list" ALGEBRAS))
+;;     (myerror "First execute (libload \"list.scm\")"))
+
 (display "loading pos.scm ...") (newline)
 
-(remove-var-name "k")
+;; (remove-var-name "k")
 
 ;; (remove-nat-tokens) removes all tokens added in nat.scm and from
 ;; DISPLAY-FUNCTIONS all items (nat proc).  The reason is that they
@@ -68,14 +72,16 @@
 ;; Moreover, a number should be displayed at the lowest possible level.
 
 (add-algs "pos" '("One" "pos") '("SZero" "pos=>pos") '("SOne" "pos=>pos"))
+(add-var-name "p" "q" "r" (py "pos"))
+
 (add-totality "pos")
 (add-mr-ids "TotalPos")
 
 ;; PosTotalVar
-(set-goal "all pos TotalPos pos")
+(set-goal "all p TotalPos p")
 (use "AllTotalIntro")
-(assume "pos^" "Tpos")
-(use "Tpos")
+(assume "p^" "Tp")
+(use "Tp")
 ;; Proof finished.
 (save "PosTotalVar")
 
@@ -83,103 +89,103 @@
 ;; Uses the axiom AllTotalIntroSound.
 
 ;; Alternative proof:
-;; (set-goal "all pos TotalPos pos")
+;; (set-goal "all p TotalPos p")
 ;; (ind)
 ;; (use "TotalPosOne")
-;; (assume "pos" "Tpos")
+;; (assume "p" "Tp")
 ;; (use "TotalPosSZero")
-;; (use "Tpos")
-;; (assume "pos" "Tpos")
+;; (use "Tp")
+;; (assume "p" "Tp")
 ;; (use "TotalPosSOne")
-;; (use "Tpos")
+;; (use "Tp")
 
 ;; PosEqToEqD
-(set-goal "all pos1,pos2(pos1=pos2 -> pos1 eqd pos2)")
+(set-goal "all p,q(p=q -> p eqd q)")
 (ind) ;2-4
 (cases) ;5-7
 (assume "Useless")
 (use "InitEqD")
 ;; 6
-(assume "pos1" "1=SZero p1")
+(assume "p" "1=SZero p")
 (use "EfqEqD")
-(use "1=SZero p1")
+(use "1=SZero p")
 ;; 7
-(assume "pos1" "1=SOne p1")
+(assume "p" "1=SOne p")
 (use "EfqEqD")
-(use "1=SOne p1")
+(use "1=SOne p")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases) ;14-16
-(assume "SZero p1=1")
+(assume "SZero p=1")
 (use "EfqEqD")
-(use "SZero p1=1")
+(use "SZero p=1")
 ;; 15
-(assume "pos2" "SZero p1=SZero p2")
-(assert "pos1 eqd pos2")
+(assume "q" "SZero p=SZero q")
+(assert "p eqd q")
  (use "IH1")
- (use "SZero p1=SZero p2")
-(assume "pos1 eqd pos2")
-(elim "pos1 eqd pos2")
-(assume "pos^1")
+ (use "SZero p=SZero q")
+(assume "p eqd q")
+(elim "p eqd q")
+(strip)
 (use "InitEqD")
 ;; 18
-(assume "pos2" "SZero p1=SOne p2")
+(assume "q" "SZero p=SOne q")
 (use "EfqEqD")
-(use "SZero p1=SOne p2")
+(use "SZero p=SOne q")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases) ;29-31
-(assume "SOne p1=1")
+(assume "SOne p=1")
 (use "EfqEqD")
-(use "SOne p1=1")
+(use "SOne p=1")
 ;; 30
-(assume "pos2" "SOne p1=SZero p2")
+(assume "q" "SOne p=SZero q")
 (use "EfqEqD")
-(use "SOne p1=SZero p2")
+(use "SOne p=SZero q")
 ;; 31
-(assume "pos2" "SOne p1=SOne p2")
-(assert "pos1 eqd pos2")
+(assume "q" "SOne p=SOne q")
+(assert "p eqd q")
  (use "IH1")
- (use "SOne p1=SOne p2")
-(assume "pos1 eqd pos2")
-(elim "pos1 eqd pos2")
-(assume "pos^1")
+ (use "SOne p=SOne q")
+(assume "p eqd q")
+(elim "p eqd q")
+(strip)
 (use "InitEqD")
 ;; Proof finished.
 (save "PosEqToEqD")
 
 ;; PosIfTotal
-(set-goal "allnc pos^(TotalPos pos^ ->
+(set-goal "allnc p^(TotalPos p^ ->
  allnc alpha^,(pos=>alpha)^1,(pos=>alpha)^2(
  Total alpha^ ->
- allnc pos^1(TotalPos pos^1 -> Total((pos=>alpha)^1 pos^1)) ->
- allnc pos^1(TotalPos pos^1 -> Total((pos=>alpha)^2 pos^1)) ->
- Total[if pos^ alpha^ (pos=>alpha)^1 (pos=>alpha)^2]))")
-(assume "pos^" "Tpos" "alpha^" "(pos=>alpha)^1" "(pos=>alpha)^2"
+ allnc p^1(TotalPos p^1 -> Total((pos=>alpha)^1 p^1)) ->
+ allnc p^1(TotalPos p^1 -> Total((pos=>alpha)^2 p^1)) ->
+ Total[if p^ alpha^ (pos=>alpha)^1 (pos=>alpha)^2]))")
+(assume "p^" "Tp" "alpha^" "(pos=>alpha)^1" "(pos=>alpha)^2"
 	"Talpha" "Tf1" "Tf2")
-(elim "Tpos")
+(elim "Tp")
 (use "Talpha")
-(assume "pos^1" "Tpos1" "Useless")
+(assume "p^1" "Tp1" "Useless")
 (ng #t)
 (use "Tf1")
-(use "Tpos1")
-(assume "pos^1" "Tpos1" "Useless")
+(use "Tp1")
+(assume "p^1" "Tp1" "Useless")
 (ng #t)
 (use "Tf2")
-(use "Tpos1")
+(use "Tp1")
 ;; Proof finished.
 (save "PosIfTotal")
 
 ;; PosRecTotal
 (set-goal (rename-variables (term-to-totality-formula (pt "(Rec pos=>alpha)"))))
-(assume "pos^" "Tp")
+(assume "p^" "Tp")
 (elim "Tp") ;3-5
 (ng #t)
 (assume "alpha^" "Talpha")
 (strip)
 (use "Talpha")
 ;; 4
-(assume "pos^1" "Tp1" "IH" "alpha^" "Talpha"
+(assume "p^1" "Tp1" "IH" "alpha^" "Talpha"
 	"(pos=>alpha=>alpha)^1" "Tf1" "(pos=>alpha=>alpha)^2" "Tf2")
 (ng #t)
 (use "Tf1")
@@ -189,7 +195,7 @@
 (use "Tf1")
 (use "Tf2")
 ;; 5
-(assume "pos^1" "Tp1" "IH" "alpha^" "Talpha"
+(assume "p^1" "Tp1" "IH" "alpha^" "Talpha"
 	"(pos=>alpha=>alpha)^1" "Tf1" "(pos=>alpha=>alpha)^2" "Tf2")
 (ng #t)
 (use "Tf2")
@@ -356,6 +362,10 @@
 
 (add-program-constant "PosLe" (py "pos=>pos=>boole"))
 
+;; We define the logarithm os a positive number
+
+(add-program-constant "PosLog" (py "pos=>nat"))
+
 ;; Program constants used for extraction of program constants to
 ;; Haskell, where computation rules
 ;;
@@ -491,8 +501,6 @@
 ;; 3. Arithmetic for positive numbers
 ;; ==================================
 
-(add-var-name "p" "q" (py "pos"))
-
 ;; BooleEqTotal is proved in ets.scm.  NatEqTotal is proved in nat.scm
 
 ;; PosEqTotal
@@ -592,8 +600,8 @@
 
 (add-computation-rules
  "PosS One" "SZero One"
- "PosS(SZero pos)" "SOne pos"
- "PosS(SOne pos)" "SZero(PosS pos)")
+ "PosS(SZero p)" "SOne p"
+ "PosS(SOne p)" "SZero(PosS p)")
 
 ;; PosSTotal
 (set-totality-goal "PosS")
@@ -603,14 +611,14 @@
 (ng #t)
 (use "TotalPosSZero")
 (use "TotalPosOne")
-;; ?_4:allnc pos^(
-;;      TotalPos pos^ -> TotalPos(PosS pos^) -> TotalPos(PosS(SZero pos^)))
+;; ?_4:allnc p^(
+;;      TotalPos p^ -> TotalPos(PosS p^) -> TotalPos(PosS(SZero p^)))
 (assume "q^" "Tq" "TSq")
 (ng #t)
 (use "TotalPosSOne")
 (use "Tq")
-;; ?_5:allnc pos^(
-;;      TotalPos pos^ -> TotalPos(PosS pos^) -> TotalPos(PosS(SOne pos^)))
+;; ?_5:allnc p^(
+;;      TotalPos p^ -> TotalPos(PosS p^) -> TotalPos(PosS(SOne p^)))
 (assume "q^" "Tq" "TSq")
 (ng #t)
 (use "TotalPosSZero")
@@ -677,9 +685,9 @@
 (add-computation-rules
  "PosPred One" "One"
  "PosPred(SZero One)" "One"
- "PosPred(SZero(SZero pos))" "SOne(PosPred(SZero pos))"
- "PosPred(SZero(SOne pos))" "SOne(SZero pos)"
- "PosPred(SOne pos)" "SZero pos")
+ "PosPred(SZero(SZero p))" "SOne(PosPred(SZero p))"
+ "PosPred(SZero(SOne p))" "SOne(SZero p)"
+ "PosPred(SOne p)" "SZero p")
 
 ;; PosPredTotal
 (set-totality-goal "PosPred")
@@ -688,34 +696,29 @@
 ;; ?_3:TotalPos(PosPred 1)
 (ng #t)
 (use "TotalPosOne")
-;; ?_4:allnc pos^(
-;;      TotalPos pos^ ->
-;;      TotalPos(PosPred pos^) -> TotalPos(PosPred(SZero pos^)))
+;; allnc p^(TotalPos p^ -> TotalPos(PosPred p^) -> TotalPos(PosPred(SZero p^)))
 (assume "q^" "Tq" "TPq")
 (ng #t)
 (elim "Tq")
 ;; ?_9:TotalPos(PosPred 2)
 (ng #t)
 (use "TotalPosOne")
-;; ?_10:allnc pos^(
-;;       TotalPos pos^ ->
-;;       TotalPos(PosPred(SZero pos^)) ->
-;;       TotalPos(PosPred(SZero(SZero pos^))))
+;; ?_10:allnc p^(
+;;       TotalPos p^ -> 
+;;       TotalPos(PosPred(SZero p^)) -> TotalPos(PosPred(SZero(SZero p^))))
 (assume "q^0" "Tq0" "TPSZq0")
 (ng #t)
 (use "TotalPosSOne")
 (use "TPSZq0")
-;; ?_11:allnc pos^(
-;;       TotalPos pos^ ->
-;;       TotalPos(PosPred(SZero pos^)) -> TotalPos(PosPred(SZero(SOne pos^))))
+;; ?_11:allnc p^(
+;;       TotalPos p^ -> 
+;;       TotalPos(PosPred(SZero p^)) -> TotalPos(PosPred(SZero(SOne p^))))
 (assume "q^1" "Tq1" "TPSZq1")
 (ng #t)
 (use "TotalPosSOne")
 (use "TotalPosSZero")
 (use "Tq1")
-;; ?_5:allnc pos^(
-;;      TotalPos pos^ ->
-;;      TotalPos(PosPred pos^) -> TotalPos(PosPred(SOne pos^)))
+;; allnc p^(TotalPos p^ -> TotalPos(PosPred p^) -> TotalPos(PosPred(SOne p^)))
 (assume "q^" "Tq" "TPq")
 (ng #t)
 (use "TotalPosSZero")
@@ -757,8 +760,8 @@
 
 (add-computation-rules
  "PosHalf One" "One"
- "PosHalf(SZero pos)" "pos"
- "PosHalf(SOne pos)" "pos")
+ "PosHalf(SZero p)" "p"
+ "PosHalf(SOne p)" "p")
 
 ;; PosHalfTotal
 (set-totality-goal "PosHalf")
@@ -767,15 +770,15 @@
 ;; ?_3:TotalPos(PosHalf 1)
 (ng #t)
 (use "TotalPosOne")
-;; ?_4:allnc pos^(
-;;      TotalPos pos^ ->
-;;      TotalPos(PosHalf pos^) -> TotalPos(PosHalf(SZero pos^)))
+;; ?_4:allnc p^(
+;;      TotalPos p^ ->
+;;      TotalPos(PosHalf p^) -> TotalPos(PosHalf(SZero p^)))
 (assume "q^" "Tq" "THq")
 (ng #t)
 (use "Tq")
-;; ?_5:allnc pos^(
-;;      TotalPos pos^ ->
-;;      TotalPos(PosHalf pos^) -> TotalPos(PosHalf(SOne pos^)))
+;; ?_5:allnc p^(
+;;      TotalPos p^ ->
+;;      TotalPos(PosHalf p^) -> TotalPos(PosHalf(SOne p^)))
 (assume "q^" "Tq" "THq")
 (ng #t)
 (use "Tq")
@@ -786,22 +789,22 @@
 
 (add-computation-rules
  "PosToNat One" "Succ Zero"
- "PosToNat(SZero pos)" "NatDouble(PosToNat pos)"
- "PosToNat(SOne pos)" "Succ(PosToNat(SZero pos))")
+ "PosToNat(SZero p)" "NatDouble(PosToNat p)"
+ "PosToNat(SOne p)" "Succ(PosToNat(SZero p))")
 
 ;; PosToNatTotal
 (set-totality-goal "PosToNat")
-(assume "pos^" "Tpos")
-(elim "Tpos") ;3-5
+(assume "p^" "Tp")
+(elim "Tp") ;3-5
 (use "TotalNatSucc")
 (use "TotalNatZero")
 ;; 4
-(assume "pos^1" "Tpos1" "IH")
+(assume "p^1" "Tp1" "IH")
 (ng #t)
 (use "NatDoubleTotal")
 (use "IH")
 ;; 5
-(assume "pos^1" "Tpos1" "IH")
+(assume "p^1" "Tp1" "IH")
 (ng #t)
 (use "TotalNatSucc")
 (use "NatDoubleTotal")
@@ -810,15 +813,15 @@
 (save-totality)
 
 ;; PosToNatDefSZero is obsolete.  Use PosToNat1CompRule instead.
-;; (set-goal "all pos PosToNat(SZero pos)=NatDouble(PosToNat pos)")
-;; (assume "pos")
+;; (set-goal "all p PosToNat(SZero p)=NatDouble(PosToNat p)")
+;; (assume "p")
 ;; (use "Truth")
 ;; ;; Proof finished.
 ;; (save "PosToNatDefSZero")
 
 ;; PosToNatDefSOne is obsolete.  Use PosToNat2CompRule instead.
-;; (set-goal "all pos PosToNat(SOne pos)=Succ(PosToNat(SZero pos))")
-;; (assume "pos")
+;; (set-goal "all p PosToNat(SOne p)=Succ(PosToNat(SZero p))")
+;; (assume "p")
 ;; (use "Truth")
 ;; ;; Proof finished.
 ;; (save "PosToNatDefSOne")
@@ -830,32 +833,32 @@
 ;; Rules for NatToPosStep
 
 (add-computation-rules
- "NatToPosStep nat(nat=>pos)"
- "[if (NatEven nat)
-      (SZero((nat=>pos)(NatHalf nat)))
-      [if (nat=Succ Zero) One (SOne((nat=>pos)(NatHalf nat)))]]")
+ "NatToPosStep n(nat=>pos)"
+ "[if (NatEven n)
+      (SZero((nat=>pos)(NatHalf n)))
+      [if (n=Succ Zero) One (SOne((nat=>pos)(NatHalf n)))]]")
 
 ;; NatToPosStepTotal
 (set-totality-goal "NatToPosStep")
-(assume "nat^" "Tnat" "(nat=>pos)^" "Th")
+(assume "n^" "Tn" "(nat=>pos)^" "Th")
 (ng #t)
 (use "BooleIfTotal")
 (use "NatEvenTotal")
-(use "Tnat")
+(use "Tn")
 (use "TotalPosSZero")
 (use "Th")
 (use "NatHalfTotal")
-(use "Tnat")
+(use "Tn")
 (use "BooleIfTotal")
 (use "NatEqTotal")
-(use "Tnat")
+(use "Tn")
 (use "TotalNatSucc")
 (use "TotalNatZero")
 (use "TotalPosOne")
 (use "TotalPosSOne")
 (use "Th")
 (use "NatHalfTotal")
-(use "Tnat")
+(use "Tn")
 ;; Proof finished.
 (save-totality)
 
@@ -864,7 +867,7 @@
 ;; Rules for NatToPos
 
 (add-computation-rules
- "NatToPos nat" "(GRec nat pos)([nat]nat)nat NatToPosStep")
+ "NatToPos n" "(GRec nat pos)([n]n)n NatToPosStep")
 
 ;; NatToPosTotal
 (set-totality-goal  "NatToPos")
@@ -888,8 +891,8 @@
 (save-totality)
 
 ;; NatToPosDef
-(set-goal "all nat NatToPos nat=(GRec nat pos)([nat]nat)nat NatToPosStep")
-(assume "nat")
+(set-goal "all n NatToPos n=(GRec nat pos)([n]n)n NatToPosStep")
+(assume "n")
 (use "Truth")
 ;; Proof finished
 (save "NatToPosDef")
@@ -897,13 +900,13 @@
 ;; Rules for PosPlus
 
 (add-computation-rules
- "pos1+One" "PosS pos1"
- "One+SZero pos1" "SOne pos1"
- "SZero pos1+SZero pos2" "SZero(pos1+pos2)"
- "SOne pos1+SZero pos2" "SOne(pos1+pos2)"
- "One+SOne pos1" "SZero(PosS pos1)"
- "SZero pos1+SOne pos2" "SOne(pos1+pos2)"
- "SOne pos1+SOne pos2" "SZero(PosS(pos1+pos2))")
+ "p+One" "PosS p"
+ "One+SZero p" "SOne p"
+ "SZero p+SZero q" "SZero(p+q)"
+ "SOne p+SZero q" "SOne(p+q)"
+ "One+SOne p" "SZero(PosS p)"
+ "SZero p+SOne q" "SOne(p+q)"
+ "SOne p+SOne q" "SZero(PosS(p+q))")
 
 ;; PosPlusTotal
 (set-totality-goal "PosPlus")
@@ -927,12 +930,10 @@
 (use "TotalPosSZero")
 (use "PosSTotal")
 (use "Tq1")
-
-;; ?_4:allnc pos^(
-;;      TotalPos pos^ ->
-;;      allnc p^(TotalPos p^ -> TotalPos(pos^ +p^)) ->
-;;      allnc p^(TotalPos p^ -> TotalPos(SZero pos^ +p^)))
-
+;; ?_4:allnc p^(
+;;      TotalPos p^ -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(p^ +p^0)) -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(SZero p^ +p^0)))
 (assume "q^" "Tq" "IHq" "q^1" "Tq1")
 (elim "Tq1")
 (ng #t)
@@ -950,12 +951,10 @@
 (use "TotalPosSOne")
 (use "IHq")
 (use "Tq2")
-
-;; ?_5:allnc pos^(
-;;      TotalPos pos^ ->
-;;      allnc p^(TotalPos p^ -> TotalPos(pos^ +p^)) ->
-;;      allnc p^(TotalPos p^ -> TotalPos(SOne pos^ +p^)))
-
+;; ?_5:allnc p^(
+;;      TotalPos p^ -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(p^ +p^0)) -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(SOne p^ +p^0)))
 (assume "q^" "Tq" "IHq" "q^1" "Tq1")
 (elim "Tq1")
 (ng #t)
@@ -1052,11 +1051,11 @@
 ;; (save "PosPlusTotalReal")
 
 ;; NatLt0Pos
-(set-goal "all pos Zero<pos")
+(set-goal "all p Zero<p")
 (ind)
 (use "Truth")
 (ng #t)
-(assume "pos" "0<p")
+(assume "p" "0<p")
 (use "NatLt0Double")
 (use "0<p")
 (ng #t)
@@ -1069,12 +1068,12 @@
 ;; the sum of the lengths of summands, where the rhs counts more than
 ;; the lhs.
 
-(set-goal "all pos PosPred(PosS pos)=pos")
+(set-goal "all p PosPred(PosS p)=p")
 (ind) ;2-4
 (ng #t)
 (use "Truth")
 ;; 3
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "Truth")
 ;; 4
@@ -1086,42 +1085,42 @@
 (strip)
 (use "Truth")
 (ng #t)
-(assume "pos" "Hyp")
+(assume "p" "Hyp")
 (use "Hyp")
 ;; Proof finished.
-(add-rewrite-rule "PosPred(PosS pos)" "pos")
+(add-rewrite-rule "PosPred(PosS p)" "p")
 
-(set-goal "all pos PosPred(SZero(PosS pos))=SOne pos")
+(set-goal "all p PosPred(SZero(PosS p))=SOne p")
 (ind)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "IH")
 ;; Proof finished.
-(add-rewrite-rule "PosPred(SZero(PosS pos))" "SOne pos")
+(add-rewrite-rule "PosPred(SZero(PosS p))" "SOne p")
 
-(set-goal "all pos PosS(PosPred(SZero pos))=SZero pos")
+(set-goal "all p PosS(PosPred(SZero p))=SZero p")
 (ind)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "IH")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "PosS(PosPred(SZero pos))" "SZero pos")
+(add-rewrite-rule "PosS(PosPred(SZero p))" "SZero p")
 
-(set-goal "all pos One+pos=PosS pos")
+(set-goal "all p One+p=PosS p")
 (cases)
 (auto)
 ;; Proof finished
-(add-rewrite-rule "One+pos" "PosS pos")
+(add-rewrite-rule "One+p" "PosS p")
 
-(set-goal "all pos1,pos2 PosS pos1+pos2=PosS(pos1+pos2)")
+(set-goal "all p,q PosS p+q=PosS(p+q)")
 (ind)
   (ind)
   (auto)
@@ -1132,9 +1131,9 @@
 (ind)
 (auto)
 ;; Proof finished
-(add-rewrite-rule "PosS pos1+pos2" "PosS(pos1+pos2)")
+(add-rewrite-rule "PosS p+q" "PosS(p+q)")
 
-(set-goal "all pos1,pos2 pos1+PosS pos2=PosS(pos1+pos2)")
+(set-goal "all p,q p+PosS q=PosS(p+q)")
 (ind)
   (cases)
 (auto)
@@ -1145,9 +1144,9 @@
 (cases)
 (auto)
 ;; Proof finished
-(add-rewrite-rule "pos1+PosS pos2" "PosS(pos1+pos2)")
+(add-rewrite-rule "p+PosS q" "PosS(p+q)")
 
-;; To prove "all pos1,pos2,pos3 pos1+(pos2+pos3)=pos1+pos2+pos3" by
+;; To prove "all p,q,r p+(q+r)=p+q+r" by
 ;; pos-induction seems to be difficult.  Solutions: (1) Using the rules
 ;; just proved one can mimic the proof in nat.  This requires
 ;; successor-induction for pos, which has to be proven before (see
@@ -1166,228 +1165,229 @@
 (save "GRecDef")
 
 ;; NatToPosEqSZeroNatToPosHalf
-(set-goal "all nat(Zero<nat -> NatEven nat ->
-                   NatToPos nat=SZero(NatToPos(NatHalf nat)))")
-(assume "nat" "0<nat" "Enat")
+(set-goal "all n(Zero<n -> NatEven n ->
+                   NatToPos n=SZero(NatToPos(NatHalf n)))")
+(assume "n" "0<n" "En")
 (ng #t)
-(simp "Enat")
+(simp "En")
 (ng #t)
-(assert "NatHalf nat<nat")
+(assert "NatHalf n<n")
  (use "NatHalfLt")
- (use "0<nat")
-(assume "NatHalf nat<nat")
-(simp "NatHalf nat<nat")
+ (use "0<n")
+(assume "NatHalf n<n")
+(simp "NatHalf n<n")
 (ng #t)
 (use "Truth")
 ;; Proof finished.
 (save "NatToPosEqSZeroNatToPosHalf")
 
 ;; NatToPosEqSOneNatToPosHalf
-(set-goal "all nat(Zero<nat -> (NatEven nat -> F) -> (nat=Succ Zero -> F) ->
-                   NatToPos nat=SOne(NatToPos(NatHalf nat)))")
-(assume "nat" "0<nat" "NatEven nat -> F" "nat=Succ Zero -> F")
+(set-goal "all n(Zero<n -> (NatEven n -> F) -> (n=Succ Zero -> F) ->
+                 NatToPos n=SOne(NatToPos(NatHalf n)))")
+(assume "n" "0<n" "NatEven n -> F" "n=Succ Zero -> F")
 (ng #t)
-(simp "NatEven nat -> F")
+(simp "NatEven n -> F")
 (ng #t)
-(simp "nat=Succ Zero -> F")
+(simp "n=Succ Zero -> F")
 (ng #t)
-(assert "NatHalf nat<nat")
+(assert "NatHalf n<n")
  (use "NatHalfLt")
- (use "0<nat")
-(assume "NatHalf nat<nat")
-(simp "NatHalf nat<nat")
+ (use "0<n")
+(assume "NatHalf n<n")
+(simp "NatHalf n<n")
 (ng #t)
 (use "Truth")
 ;; Proof finished.
 (save "NatToPosEqSOneNatToPosHalf")
 
 ;; NatHalfSuccEven
-(set-goal "all nat(NatEven nat -> NatHalf(Succ nat)=NatHalf nat)")
+(set-goal "all n(NatEven n -> NatHalf(Succ n)=NatHalf n)")
 (use "CVIndPvar")
 (assume "Absurd")
 (strip)
 (use "EfqAtom")
 (use "Absurd")
-(assume "nat" "Prog" "Enat")
-(cases (pt "nat"))
+(assume "n" "Prog" "En")
+(cases (pt "n"))
 (ng #t)
 (strip)
 (use "Truth")
-(assume "nat1" "nat=Sn1")
-(cases (pt "nat1"))
+(assume "n1" "n=Sn1")
+(cases (pt "n1"))
 (ng #t)
-(assume "nat1=0")
-(simphyp-with-to "nat=Sn1" "nat1=0" "nat=1")
-(simphyp-with-to "Enat" "nat=1" "Absurd")
+(assume "n1=0")
+(simphyp-with-to "n=Sn1" "n1=0" "n=1")
+(simphyp-with-to "En" "n=1" "Absurd")
 (use "Absurd")
-(assume "nat2" "nat1=Sn2")
+(assume "n2" "n1=Sn2")
 (ng #t)
 (use "Prog")
-(simp "nat=Sn1")
-(simp "nat1=Sn2")
-(use "NatLtTrans" (pt "Succ nat2"))
+(simp "n=Sn1")
+(simp "n1=Sn2")
+(use "NatLtTrans" (pt "Succ n2"))
 (use "Truth")
 (use "Truth")
-(simphyp-with-to "Enat" "nat=Sn1" "EnatSimp")
-(simphyp-with-to "EnatSimp" "nat1=Sn2" "EnatSimpSimp")
-(use "EnatSimpSimp")
+(simphyp-with-to "En" "n=Sn1" "EnSimp")
+(simphyp-with-to "EnSimp" "n1=Sn2" "EnSimpSimp")
+(use "EnSimpSimp")
 ;; Proof finished.
 (save "NatHalfSuccEven")
 
 ;; PosToNatToPosId
-(set-goal "all nat(Zero<nat -> PosToNat(NatToPos nat)=nat)")
+(set-goal "all n(Zero<n -> PosToNat(NatToPos n)=n)")
 (use "CVIndPvar")
 (assume "Absurd")
 (strip)
 (use "EfqAtom")
 (use "Absurd")
-(assume "nat" "Prog" "0<nat")
-(cases (pt "NatEven nat")) ;8,9
-(assume "Enat")
-(assert "NatToPos nat=SZero(NatToPos(NatHalf nat))")
+(assume "n" "Prog" "0<n")
+(cases (pt "NatEven n"))
+;; 8,9
+(assume "En")
+(assert "NatToPos n=SZero(NatToPos(NatHalf n))")
  (use "NatToPosEqSZeroNatToPosHalf")
- (use "0<nat")
- (use "Enat")
-(assume "NatToPos nat=SZero(NatToPos(NatHalf nat))")
-(simp "NatToPos nat=SZero(NatToPos(NatHalf nat))")
+ (use "0<n")
+ (use "En")
+(assume "NatToPos n=SZero(NatToPos(NatHalf n))")
+(simp "NatToPos n=SZero(NatToPos(NatHalf n))")
 (simp "PosToNat1CompRule")
 (simp "Prog")
 (use "NatDoubleHalfEven")
-(use "Enat")
+(use "En")
 (use "NatLtZeroHalfEven")
-(use "0<nat")
-(use "Enat")
+(use "0<n")
+(use "En")
 (use "NatHalfLt")
-(use "0<nat")
+(use "0<n")
 ;; 9
-(assume "NatEven nat -> F")
-(cases (pt "nat=Succ Zero"))
-(assume "nat=1")
-(simp "nat=1")
+(assume "NatEven n -> F")
+(cases (pt "n=Succ Zero"))
+(assume "n=1")
+(simp "n=1")
 (ng #t)
-(simp "NatEven nat -> F")
+(simp "NatEven n -> F")
 (ng #t)
-(simp "nat=1")
+(simp "n=1")
 (use "Truth")
-(assume "nat=1 -> F")
-(assert "NatToPos nat=SOne(NatToPos(NatHalf nat))")
+(assume "n=1 -> F")
+(assert "NatToPos n=SOne(NatToPos(NatHalf n))")
  (use "NatToPosEqSOneNatToPosHalf")
- (use "0<nat")
- (use "NatEven nat -> F")
- (use "nat=1 -> F")
-(assume "NatToPos nat=SOne(NatToPos(NatHalf nat))")
-(simp "NatToPos nat=SOne(NatToPos(NatHalf nat))")
+ (use "0<n")
+ (use "NatEven n -> F")
+ (use "n=1 -> F")
+(assume "NatToPos n=SOne(NatToPos(NatHalf n))")
+(simp "NatToPos n=SOne(NatToPos(NatHalf n))")
 (simp "PosToNat2CompRule")
-(cases (pt "nat"))
-(assume "nat=0")
+(cases (pt "n"))
+(assume "n=0")
 (use "EfqAtom")
-(simphyp-with-to "NatEven nat -> F" "nat=0" "Absurd")
+(simphyp-with-to "NatEven n -> F" "n=0" "Absurd")
 (use "Absurd")
 (use "Truth")
-(assume "nat1" "nat=Succ nat1")
+(assume "n1" "n=Succ n1")
 (simp "PosToNat1CompRule")
-(assert "NatEven nat1")
+(assert "NatEven n1")
 (use "NatOddSuccToEven")
-(simp "<-" "nat=Succ nat1")
-(use "NatEven nat -> F")
-(assume "Enat1")
+(simp "<-" "n=Succ n1")
+(use "NatEven n -> F")
+(assume "En1")
 (simp "NatHalfSuccEven")
-(assert "PosToNat(SZero(NatToPos(NatHalf nat1)))=nat1")
+(assert "PosToNat(SZero(NatToPos(NatHalf n1)))=n1")
  (simp "PosToNat1CompRule")
  (simp "Prog")
  (use "NatDoubleHalfEven")
- (use "Enat1")
- (cases (pt "nat1"))
- (assume "nat1=0")
- (use "nat=1 -> F")
- (simp "nat=Succ nat1")
- (use "nat1=0")
+ (use "En1")
+ (cases (pt "n1"))
+ (assume "n1=0")
+ (use "n=1 -> F")
+ (simp "n=Succ n1")
+ (use "n1=0")
  (cases)
  (ng #t)
- (assume "nat1=1")
- (simphyp-with-to "Enat1" "nat1=1" "Absurd")
+ (assume "n1=1")
+ (simphyp-with-to "En1" "n1=1" "Absurd")
  (use "Absurd")
  (ng #t)
  (strip)
  (use "Truth")
- (simp "nat=Succ nat1")
+ (simp "n=Succ n1")
  (use "NatHalfLtSucc")
-(assume "PosToNat(SZero(NatToPos(NatHalf nat1)))=nat1")
+(assume "PosToNat(SZero(NatToPos(NatHalf n1)))=n1")
 (simp "Prog")
 (simp "NatDoubleHalfEven")
 (use "Truth")
-(use "Enat1")
+(use "En1")
 (use "NatLtZeroHalfEven")
-(cases (pt "nat1"))
-(assume "nat1=0")
-(use "nat=1 -> F")
-(simp "nat=Succ nat1")
-(use "nat1=0")
+(cases (pt "n1"))
+(assume "n1=0")
+(use "n=1 -> F")
+(simp "n=Succ n1")
+(use "n1=0")
 (strip)
 (use "Truth")
-(use "Enat1")
-(simp "nat=Succ nat1")
+(use "En1")
+(simp "n=Succ n1")
 (use "NatHalfLtSucc")
-(use "Enat1")
+(use "En1")
 ;; Proof finished.
 (save "PosToNatToPosId")
 
 ;; NatToPosToNatId
-(set-goal "all pos NatToPos(PosToNat pos)=pos")
+(set-goal "all p NatToPos(PosToNat p)=p")
 (ind) 
 ;; 2-4
 (ng #t)
 (use "Truth")
 ;; 3
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (simp "NatEvenDouble")
 (ng #t)
-(assert "Zero<NatDouble(PosToNat pos)")
- (ind (pt "pos"))
+(assert "Zero<NatDouble(PosToNat p)")
+ (ind (pt "p"))
  (use "Truth")
- (assume "pos1" "IH1")
+ (assume "p1" "IH1")
  (ng #t)
  (use "NatLt0Double")
  (use "IH1")
- (assume "pos1" "IH1")
+ (assume "p1" "IH1")
  (ng #t)
  (use "Truth")
-(assume "Zero<NatDouble(PosToNat pos)")
-(assert "NatHalf(NatDouble(PosToNat pos))<NatDouble(PosToNat pos)")
+(assume "Zero<NatDouble(PosToNat p)")
+(assert "NatHalf(NatDouble(PosToNat p))<NatDouble(PosToNat p)")
  (use "NatHalfLt")
- (use "Zero<NatDouble(PosToNat pos)")
-(assume "NatHalf(NatDouble(PosToNat pos))<NatDouble(PosToNat pos)")
-(simp "NatHalf(NatDouble(PosToNat pos))<NatDouble(PosToNat pos)")
+ (use "Zero<NatDouble(PosToNat p)")
+(assume "NatHalf(NatDouble(PosToNat p))<NatDouble(PosToNat p)")
+(simp "NatHalf(NatDouble(PosToNat p))<NatDouble(PosToNat p)")
 (simp "NatHalfDouble")
 (simp "IH")
 (use "Truth")
 ;; 4
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
-(assert "NatEven(Succ(NatDouble(PosToNat pos))) -> F")
+(assert "NatEven(Succ(NatDouble(PosToNat p))) -> F")
  (use "NatEvenSucc")
  (use "NatEvenDouble")
-(assume "NatEven(Succ(NatDouble(PosToNat pos))) -> F")
-(simp "NatEven(Succ(NatDouble(PosToNat pos))) -> F")
+(assume "NatEven(Succ(NatDouble(PosToNat p))) -> F")
+(simp "NatEven(Succ(NatDouble(PosToNat p))) -> F")
 (ng #t)
-(assert "Zero<NatDouble(PosToNat pos)")
+(assert "Zero<NatDouble(PosToNat p)")
  (use "NatLt0Double")
  (use "NatLt0Pos")
-(assume "Zero<NatDouble(PosToNat pos)")
-(assert "NatDouble(PosToNat pos)=Zero -> F")
- (assume "NatDouble(PosToNat pos)=Zero")
- (simphyp-with-to "Zero<NatDouble(PosToNat pos)" "NatDouble(PosToNat pos)=Zero"
+(assume "Zero<NatDouble(PosToNat p)")
+(assert "NatDouble(PosToNat p)=Zero -> F")
+ (assume "NatDouble(PosToNat p)=Zero")
+ (simphyp-with-to "Zero<NatDouble(PosToNat p)" "NatDouble(PosToNat p)=Zero"
 		  "Absurd")
  (use "Absurd")
-(assume "NatDouble(PosToNat pos)=Zero -> F")
-(simp "NatDouble(PosToNat pos)=Zero -> F")
+(assume "NatDouble(PosToNat p)=Zero -> F")
+(simp "NatDouble(PosToNat p)=Zero -> F")
 (ng #t)
-(assert "NatHalf(Succ(NatDouble(PosToNat pos)))<Succ(NatDouble(PosToNat pos))")
+(assert "NatHalf(Succ(NatDouble(PosToNat p)))<Succ(NatDouble(PosToNat p))")
  (use "NatHalfLt")
  (use "Truth")
-(assume "NatHalf(Succ(NatDouble(PosToNat pos)))<Succ(NatDouble(PosToNat pos))")
-(simp "NatHalf(Succ(NatDouble(PosToNat pos)))<Succ(NatDouble(PosToNat pos))")
+(assume "NatHalf(Succ(NatDouble(PosToNat p)))<Succ(NatDouble(PosToNat p))")
+(simp "NatHalf(Succ(NatDouble(PosToNat p)))<Succ(NatDouble(PosToNat p))")
 (simp "NatHalfSuccDouble")
 (simp "IH")
 (use "Truth")
@@ -1395,44 +1395,28 @@
 (save "NatToPosToNatId")
 
 ;; PosToNatInj
-(set-goal "all pos1,pos2(PosToNat pos1=PosToNat pos2 -> pos1=pos2)")
-(assume "pos1" "pos2" "EqHyp")
-(assert "NatToPos(PosToNat pos1)=NatToPos(PosToNat pos2)")
+(set-goal "all p,q(PosToNat p=PosToNat q -> p=q)")
+(assume "p" "q" "EqHyp")
+(assert "NatToPos(PosToNat p)=NatToPos(PosToNat q)")
  (simp "EqHyp")
  (use "Truth")
  (simp "NatToPosToNatId")
  (simp "NatToPosToNatId")
-(assume "p1=p2")
-(use "p1=p2")
+(assume "p=q")
+(use "p=q")
 ;; Proof finished.
 (save "PosToNatInj")
 
-;; NatLt0PosToNat
-(set-goal "all pos Zero<PosToNat pos")
-(ind)
-;; 2-4
-(use "Truth")
-;; 3
-(assume "pos" "IH")
-(ng)
-(use "NatLt0Double")
-(use "IH")
-;; 4
-(assume "pos" "IH")
-(use "Truth")
-;; Proof finished.
-(save "NatLt0PosToNat")
-
 ;; SuccPosS
-(set-goal "all nat(Zero<nat -> NatToPos(Succ nat)=PosS(NatToPos nat))")
-(assert "all nat(Zero<nat -> Succ nat=PosToNat(PosS(NatToPos nat)))")
+(set-goal "all n(Zero<n -> NatToPos(Succ n)=PosS(NatToPos n))")
+(assert "all n(Zero<n -> Succ n=PosToNat(PosS(NatToPos n)))")
 (use "CVIndPvar")
 (assume "Absurd")
 (strip)
 (use "EfqAtom")
 (use "Absurd")
-(assume "nat" "Prog" "0<n")
-(cases (pt "NatEven nat")) ;10,11
+(assume "n" "Prog" "0<n")
+(cases (pt "NatEven n")) ;10,11
 (assume "En")
 (simp "NatToPosEqSZeroNatToPosHalf")
 (simp "PosS1CompRule")
@@ -1449,7 +1433,7 @@
 (use "0<n")
 ;; 11
 (assume "On")
-(cases (pt "nat=Succ Zero"))
+(cases (pt "n=Succ Zero"))
 (assume "n=1")
 (simp "n=1")
 ;; simp normalizes the goal, which we do not want.  Why?  Ok if order
@@ -1475,7 +1459,7 @@
 (use "On")
 (use "0<n")
 ;; Assertion proved
-(assume "SuccPosSAux" "nat" "0<n")
+(assume "SuccPosSAux" "n" "0<n")
 (simp "SuccPosSAux")
 (simp "NatToPosToNatId")
 (use "Truth")
@@ -1484,9 +1468,9 @@
 (save "SuccPosS")
 
 ;; PosSSucc
-(set-goal "all pos PosToNat(PosS pos)=Succ(PosToNat pos)")
-(assume "pos")
-(assert "PosToNat(PosS pos)=PosToNat(PosS(NatToPos(PosToNat pos)))")
+(set-goal "all p PosToNat(PosS p)=Succ(PosToNat p)")
+(assume "p")
+(assert "PosToNat(PosS p)=PosToNat(PosS(NatToPos(PosToNat p)))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp")
@@ -1502,62 +1486,62 @@
 ;; We prove that PosToNat is an isomorphism w.r.t. +
 
 ;; PosToNatPlus
-(set-goal "all pos1,pos2 PosToNat(pos1+pos2)=PosToNat pos1+PosToNat pos2")
+(set-goal "all p,q PosToNat(p+q)=PosToNat p+PosToNat q")
 (ind) 
 ;; 2-4
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "PosSSucc")
-(assume "pos1" "IH1")
+;; 3
+(assume "p" "IH")
 (cases) ;8-10
 (ng #t)
 (use "Truth")
 ;; 9
-(assume "pos2")
+(assume "q")
 (ng #t)
 (simp "NatPlusDouble")
-(simp "IH1")
+(simp "IH")
 (use "Truth")
 ;; 10
-(assume "pos2")
+(assume "q")
 (ng #t)
 (simp "NatPlusDouble")
-(simp "IH1")
+(simp "IH")
 (use "Truth")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH")
 (cases) ;21-23
 (ng #t)
 (simp "PosSSucc")
 (ng #t)
 (use "Truth")
 ;; 22
-(assume "pos2")
+(assume "q")
 (ng #t)
 (simp "NatPlusDouble")
-(simp "IH1")
+(simp "IH")
 (use "Truth")
 ;; 23
-(assume "pos2")
+(assume "q")
 (ng #t)
 (simp "PosSSucc")
 (ng #t)
 (simp "NatPlusDouble")
-(simp "IH1")
+(simp "IH")
 (use "Truth")
 ;; Proof finished.
 (save "PosToNatPlus")
 
 ;; NatToPosPlus
-(set-goal "all nat1,nat2(Zero<nat1 -> Zero<nat2 ->
-  NatToPos(nat1+nat2)=NatToPos nat1+NatToPos nat2)")
-(assume "nat1" "nat2" "0<nat1" "0<nat2")
-(assert "nat1+nat2=PosToNat(NatToPos nat1)+PosToNat(NatToPos nat2)")
+(set-goal "all n,m(Zero<n -> Zero<m -> NatToPos(n+m)=NatToPos n+NatToPos m)")
+(assume "n" "m" "0<n" "0<m")
+(assert "n+m=PosToNat(NatToPos n)+PosToNat(NatToPos m)")
  (simp "PosToNatToPosId")
  (simp "PosToNatToPosId")
  (use "Truth")
- (use "0<nat2")
- (use "0<nat1")
+ (use "0<m")
+ (use "0<n")
 (assume "EqHyp")
 (simp "EqHyp")
 (simp "<-" "PosToNatPlus")
@@ -1568,25 +1552,25 @@
 
 ;; Commutativity of + for pos
 ;; PosPlusComm
-(set-goal "all pos1,pos2 pos1+pos2=pos2+pos1")
-(assume "pos1" "pos2")
-(assert "pos1+pos2=NatToPos(PosToNat(pos1+pos2))")
+(set-goal "all p,q p+q=q+p")
+(assume "p" "q")
+(assert "p+q=NatToPos(PosToNat(p+q))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp1")
 (simp "EqHyp1")
-(assert "pos2+pos1=NatToPos(PosToNat(pos2+pos1))")
+(assert "q+p=NatToPos(PosToNat(q+p))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp2")
 (simp "EqHyp2")
-(assert "PosToNat(pos1+pos2)=PosToNat pos1+PosToNat pos2")
+(assert "PosToNat(p+q)=PosToNat p+PosToNat q")
  (simp "PosToNatPlus")
  (use "Truth")
 (assume "EqHyp3")
 (simp "EqHyp3")
 (simp "NatPlusComm")
-(assert "PosToNat(pos2+pos1)=PosToNat pos2+PosToNat pos1")
+(assert "PosToNat(q+p)=PosToNat q+PosToNat p")
  (simp "PosToNatPlus")
  (use "Truth")
 (assume "EqHyp4")
@@ -1596,25 +1580,25 @@
 (save "PosPlusComm")
 
 ;; Associativity of + for pos
-(set-goal "all pos1,pos2,pos3 pos1+(pos2+pos3)=pos1+pos2+pos3")
-(assume "pos1" "pos2" "pos3")
-(assert "pos1+(pos2+pos3)=NatToPos(PosToNat(pos1+(pos2+pos3)))")
+(set-goal "all p,q,r p+(q+r)=p+q+r")
+(assume "p" "q" "r")
+(assert "p+(q+r)=NatToPos(PosToNat(p+(q+r)))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp1")
 (simp "EqHyp1")
-(assert "PosToNat(pos1+(pos2+pos3))=PosToNat(pos1)+PosToNat(pos2+pos3)")
+(assert "PosToNat(p+(q+r))=PosToNat(p)+PosToNat(q+r)")
  (simp "PosToNatPlus")
  (use "Truth")
 (assume "EqHyp2")
 (simp "EqHyp2")
-(assert "PosToNat(pos2+pos3)=PosToNat pos2+PosToNat pos3")
+(assert "PosToNat(q+r)=PosToNat q+PosToNat r")
  (simp "PosToNatPlus")
  (use "Truth")
 (assume "EqHyp3")
 (simp "EqHyp3")
-(assert "PosToNat pos1+(NatPlus(PosToNat pos2)(PosToNat pos3))=
-         NatPlus(PosToNat pos1+PosToNat pos2)(PosToNat pos3)")
+(assert "PosToNat p+(NatPlus(PosToNat q)(PosToNat r))=
+         NatPlus(PosToNat p+PosToNat q)(PosToNat r)")
  (use "Truth")
 (assume "EqHyp4")
 (simp "EqHyp4")
@@ -1623,15 +1607,15 @@
 (use "NatToPosToNatId")
 ;; Proof finished.
 (save "PosPlusAssoc")
-(add-rewrite-rule "pos1+(pos2+pos3)" "pos1+pos2+pos3")
+(add-rewrite-rule "p+(q+r)" "p+q+r")
 
 ;; The following (former) rules are not used any more, because they
 ;; increase the number of +'s.
 
-;; (add-rewrite-rule "pos1+SZero pos2" "pos1+pos2+pos2")
-;; (add-rewrite-rule "pos1+SOne pos2" "pos1+pos2+pos2+1")
-;; (add-rewrite-rule "SZero pos1+pos2" "pos1+pos1+pos2") ;no term. for 2+m
-;; (add-rewrite-rule "SOne pos1+pos2" "pos1+pos1+1+pos2"
+;; (add-rewrite-rule "p+SZero q" "p+q+q")
+;; (add-rewrite-rule "p+SOne q" "p+q+q+1")
+;; (add-rewrite-rule "SZero p+q" "p+p+q") ;no term. for 2+m
+;; (add-rewrite-rule "SOne p+q" "p+p+1+q"
 
 ;; (display-pconst "PosPlus")
 
@@ -1642,9 +1626,9 @@
 ;; Rules for PosTimes:
 
 (add-computation-rules
- "pos*One" "pos"
- "pos1*SZero pos2" "SZero(pos1*pos2)"
- "pos1*SOne pos2" "SZero(pos1*pos2)+pos1")
+ "p*One" "p"
+ "p*SZero q" "SZero(p*q)"
+ "p*SOne q" "SZero(p*q)+p")
 
 ;; PosTimesTotal
 (set-totality-goal "PosTimes")
@@ -1690,65 +1674,64 @@
 ;; ;; Proof finished.
 ;; (save "PosTimesTotalReal")
 
-(set-goal "all pos One*pos=pos")
+(set-goal "all p One*p=p")
 (ind)
 (auto)
 ;; Proof finished.
-(add-rewrite-rule "One*pos" "pos")
+(add-rewrite-rule "One*p" "p")
 
-(set-goal "all pos1,pos2 SZero pos1*pos2=SZero(pos1*pos2)")
-(assume "pos1")
+(set-goal "all p,q SZero p*q=SZero(p*q)")
+(assume "p")
 (ind)
 (auto)
-(assume "pos2" "IHone")
+(assume "q" "IHone")
 (ng)
 (simp "IHone")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "SZero pos1*pos2" "SZero(pos1*pos2)")
+(add-rewrite-rule "SZero p*q" "SZero(p*q)")
 
 ;; We prove that NatToPos is an isomorphism w.r.t. *
 
 ;; NatDoublePlus
-(set-goal "all nat1,nat2 NatDouble(nat1+nat2)=NatDouble nat1+NatDouble nat2")
-(assume "nat1")
+(set-goal "all n,m NatDouble(n+m)=NatDouble n+NatDouble m")
+(assume "n")
 (ind)
 (use "Truth")
-(assume "nat2" "IH")
+(assume "m" "IH")
 (ng #t)
 (use "IH")
 ;; Proof finished.
 (save "NatDoublePlus")
 
 ;; NatDoublePlusEq
-(set-goal "all nat nat+nat=NatDouble nat")
+(set-goal "all n n+n=NatDouble n")
 (ind)
 (use "Truth")
-(assume "nat" "IH")
+(assume "n" "IH")
 (ng #t)
 (use "IH")
 ;; Proof finished.
 (save "NatDoublePlusEq")
 
 ;; NatTimesDouble
-(set-goal "all nat1,nat2 NatDouble nat1*NatDouble nat2=
-                         NatDouble(NatDouble(nat1*nat2))")
-(assume "nat1")
+(set-goal "all n,m NatDouble n*NatDouble m=NatDouble(NatDouble(n*m))")
+(assume "n")
 (ind)
 (use "Truth")
-(assume "nat2" "IH")
+(assume "m" "IH")
 (ng #t)
 (simp "IH")
-(assert "NatDouble(nat1*nat2+nat1)=NatDouble(nat1*nat2)+NatDouble nat1")
+(assert "NatDouble(n*m+n)=NatDouble(n*m)+NatDouble n")
  (use "NatDoublePlus")
 (assume "EqHyp1")
 (simp "EqHyp1")
-(assert "NatDouble(NatDouble(nat1*nat2)+NatDouble nat1)=
-         NatDouble(NatDouble(nat1*nat2))+NatDouble(NatDouble(nat1))")
+(assert "NatDouble(NatDouble(n*m)+NatDouble n)=
+         NatDouble(NatDouble(n*m))+NatDouble(NatDouble(n))")
  (use "NatDoublePlus")
 (assume "EqHyp2")
 (simp "EqHyp2")
-(assert "NatDouble(NatDouble nat1)=NatDouble nat1+NatDouble nat1")
+(assert "NatDouble(NatDouble n)=NatDouble n+NatDouble n")
  (simp "NatDoublePlusEq")
  (use "Truth")
 (assume "EqHyp3")
@@ -1758,15 +1741,15 @@
 (save "NatTimesDouble")
 
 ;; NatDoubleTimes2
-(set-goal "all nat1,nat2 NatDouble(nat1*nat2)=nat1*NatDouble nat2")
-(assume "nat1")
+(set-goal "all n,m NatDouble(n*m)=n*NatDouble m")
+(assume "n")
 (ind)
 (use "Truth")
-(assume "nat2" "IH")
+(assume "m" "IH")
 (ng #t)
 (simp "NatDoublePlus")
 (simp "IH")
-(assert "NatDouble nat1=nat1+nat1")
+(assert "NatDouble n=n+n")
  (simp "NatDoublePlusEq")
  (use "Truth")
 (assume "EqHyp1")
@@ -1776,19 +1759,19 @@
 (save "NatDoubleTimes2")
 
 ;; PosToNatTimes
-(set-goal "all pos1,pos2 PosToNat(pos1*pos2)=PosToNat pos1*PosToNat pos2")
-(assume "pos1")
+(set-goal "all p,q PosToNat(p*q)=PosToNat p*PosToNat q")
+(assume "p")
 (ind) ;3-5
 (ng #t)
 (use "Truth")
 ;; 4
-(assume "pos2" "IH")
+(assume "q" "IH")
 (ng #t)
 (simp "IH")
 (simp "NatDoubleTimes2")
 (use "Truth")
 ;; 5
-(assume "pos2" "IH")
+(assume "q" "IH")
 (ng #t)
 (simp "PosToNatPlus")
 (ng #t)
@@ -1799,15 +1782,14 @@
 (save "PosToNatTimes")
 
 ;; NatToPosTimes
-(set-goal "all nat1,nat2(Zero<nat1 -> Zero<nat2 ->
- NatToPos(nat1*nat2)=NatToPos nat1*NatToPos nat2)")
-(assume "nat1" "nat2" "0<nat1" "0<nat2")
-(assert "nat1*nat2=PosToNat(NatToPos nat1)*PosToNat(NatToPos nat2)")
+(set-goal "all n,m(Zero<n -> Zero<m -> NatToPos(n*m)=NatToPos n*NatToPos m)")
+(assume "n" "m" "0<n" "0<m")
+(assert "n*m=PosToNat(NatToPos n)*PosToNat(NatToPos m)")
  (simp "PosToNatToPosId")
  (simp "PosToNatToPosId")
  (use "Truth")
- (use "0<nat2")
- (use "0<nat1")
+ (use "0<m")
+ (use "0<n")
 (assume "EqHyp")
 (simp "EqHyp")
 (simp "<-" "PosToNatTimes")
@@ -1817,14 +1799,14 @@
 (save "NatToPosTimes")
 
 ;; PosTimesPlusDistr
-(set-goal "all pos1,pos2,pos3 pos1*(pos2+pos3)=pos1*pos2+pos1*pos3")
-(assume "pos1" "pos2" "pos3")
-(assert "pos1*(pos2+pos3)=NatToPos(PosToNat(pos1*(pos2+pos3)))")
+(set-goal "all p,q,r p*(q+r)=p*q+p*r")
+(assume "p" "q" "r")
+(assert "p*(q+r)=NatToPos(PosToNat(p*(q+r)))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp1")
 (simp "EqHyp1")
-(assert "pos1*pos2+pos1*pos3=NatToPos(PosToNat(pos1*pos2+pos1*pos3))")
+(assert "p*q+p*r=NatToPos(PosToNat(p*q+p*r))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp2")
@@ -1838,29 +1820,29 @@
 (use "Truth")
 ;; Proof finished.
 (save "PosTimesPlusDistr")
-(add-rewrite-rule "pos1*(pos2+pos3)" "pos1*pos2+pos1*pos3")
+(add-rewrite-rule "p*(q+r)" "p*q+p*r")
 
 ;; Commutativity of * for pos
 ;; PosTimesComm
-(set-goal "all pos1,pos2 pos1*pos2=pos2*pos1")
-(assume "pos1" "pos2")
-(assert "pos1*pos2=NatToPos(PosToNat(pos1*pos2))")
+(set-goal "all p,q p*q=q*p")
+(assume "p" "q")
+(assert "p*q=NatToPos(PosToNat(p*q))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp1")
 (simp "EqHyp1")
-(assert "pos2*pos1=NatToPos(PosToNat(pos2*pos1))")
+(assert "q*p=NatToPos(PosToNat(q*p))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp2")
 (simp "EqHyp2")
-(assert "PosToNat(pos1*pos2)=PosToNat pos1*PosToNat pos2")
+(assert "PosToNat(p*q)=PosToNat p*PosToNat q")
  (simp "PosToNatTimes")
  (use "Truth")
 (assume "EqHyp3")
 (simp "EqHyp3")
 (simp "NatTimesComm")
-(assert "PosToNat(pos2*pos1)=PosToNat pos2*PosToNat pos1")
+(assert "PosToNat(q*p)=PosToNat q*PosToNat p")
  (simp "PosToNatTimes")
  (use "Truth")
 (assume "EqHyp4")
@@ -1870,37 +1852,37 @@
 (save "PosTimesComm")
 
 ;; PosTimesPlusDistrLeft
-(set-goal "all pos1,pos2,pos3 (pos1+pos2)*pos3=(pos1*pos3)+(pos2*pos3)")
-(assume "pos1" "pos2" "pos3")
-(simp-with "PosTimesComm" (pt "pos1+pos2") (pt "pos3"))
+(set-goal "all p,q,r (p+q)*r=(p*r)+(q*r)")
+(assume "p" "q" "r")
+(simp-with "PosTimesComm" (pt "p+q") (pt "r"))
 (ng)
-(simp-with "PosTimesComm" (pt "pos1") (pt "pos3"))
-(simp-with "PosTimesComm" (pt "pos2") (pt "pos3"))
+(simp-with "PosTimesComm" (pt "p") (pt "r"))
+(simp-with "PosTimesComm" (pt "q") (pt "r"))
 (use "Truth")
 ;; Proof finished.
 (save "PosTimesPlusDistrLeft")
-(add-rewrite-rule "(pos1+pos2)*pos3" "pos1*pos3+pos2*pos3")
+(add-rewrite-rule "(p+q)*r" "p*r+q*r")
 
 ;; Associativity of * for pos
-(set-goal "all pos1,pos2,pos3 pos1*(pos2*pos3)=pos1*pos2*pos3")
-(assume "pos1" "pos2" "pos3")
-(assert "pos1*(pos2*pos3)=NatToPos(PosToNat(pos1*(pos2*pos3)))")
+(set-goal "all p,q,r p*(q*r)=p*q*r")
+(assume "p" "q" "r")
+(assert "p*(q*r)=NatToPos(PosToNat(p*(q*r)))")
  (simp "NatToPosToNatId")
  (use "Truth")
 (assume "EqHyp1")
 (simp "EqHyp1")
-(assert "PosToNat(pos1*(pos2*pos3))=PosToNat(pos1)*PosToNat(pos2*pos3)")
+(assert "PosToNat(p*(q*r))=PosToNat(p)*PosToNat(q*r)")
  (simp "PosToNatTimes")
  (use "Truth")
 (assume "EqHyp2")
 (simp "EqHyp2")
-(assert "PosToNat(pos2*pos3)=PosToNat pos2*PosToNat pos3")
+(assert "PosToNat(q*r)=PosToNat q*PosToNat r")
  (simp "PosToNatTimes")
  (use "Truth")
 (assume "EqHyp3")
 (simp "EqHyp3")
-(assert "PosToNat pos1*(NatTimes(PosToNat pos2)(PosToNat pos3))=
-         NatTimes(PosToNat pos1*PosToNat pos2)(PosToNat pos3)")
+(assert "PosToNat p*(NatTimes(PosToNat q)(PosToNat r))=
+         NatTimes(PosToNat p*PosToNat q)(PosToNat r)")
  (use "Truth")
 (assume "EqHyp4")
 (simp "EqHyp4")
@@ -1909,43 +1891,43 @@
 (use "NatToPosToNatId")
 ;; Proof finished.
 (save "PosTimesAssoc")
-(add-rewrite-rule "pos1*(pos2*pos3)" "pos1*pos2*pos3")
+(add-rewrite-rule "p*(q*r)" "p*q*r")
 
-(set-goal "all pos1,pos2 SOne pos1*pos2=SZero(pos1*pos2)+pos2")
-(assume "pos1")
+(set-goal "all p,q SOne p*q=SZero(p*q)+q")
+(assume "p")
 (ind)
 (ng #t)
 (use "Truth")
 ;; 4
-(assume "pos2" "IH")
+(assume "q" "IH")
 (ng #t)
 (use "IH")
 ;; 5
-(assume "pos2" "IH")
+(assume "q" "IH")
 (ng #t)
 (simp "IH")
-(assert "SZero(pos1*pos2)+pos2+pos1=SZero(pos1*pos2)+(pos2+pos1)")
+(assert "SZero(p*q)+q+p=SZero(p*q)+(q+p)")
  (use "Truth")
 (assume "EqHyp1")
 (simp "EqHyp1")
-(assert "SZero(pos1*pos2)+pos1+pos2=SZero(pos1*pos2)+(pos1+pos2)")
+(assert "SZero(p*q)+p+q=SZero(p*q)+(p+q)")
  (use "Truth")
 (assume "EqHyp2")
 (simp "EqHyp2")
-(assert "pos1+pos2=pos2+pos1")
+(assert "p+q=q+p")
  (use "PosPlusComm")
-(assume "pos1+pos2=pos2+pos1")
-(simp "pos1+pos2=pos2+pos1")
+(assume "p+q=q+p")
+(simp "p+q=q+p")
 (use "Truth")
 ;; Proof finished.
 (save "PosTimesSOne")
-(add-rewrite-rule "SOne pos1*pos2" "SZero(pos1*pos2)+pos2")
+(add-rewrite-rule "SOne p*q" "SZero(p*q)+q")
 
 ;; Rules for PosExp : pos=>nat=>pos
 
 (add-computation-rules
- "pos**Zero" "One"
- "pos1**Succ nat2" "pos1**nat2*pos1")
+ "p**Zero" "One"
+ "p**Succ m" "p**m*p")
 
 ;; PosExpTotal
 (set-totality-goal "PosExp")
@@ -1977,22 +1959,22 @@
 ;; Rules for PosLt, PosLe
 
 (add-computation-rules
- "pos<One" "False"
- "One<SZero pos" "True"
- "One<SOne pos" "True"
- "SZero pos1<SZero pos2" "pos1<pos2"
- "SZero pos1<SOne pos2" "pos1<=pos2"
- "SOne pos1<SZero pos2" "pos1<pos2"
- "SOne pos1<SOne pos2" "pos1<pos2")
+ "p<One" "False"
+ "One<SZero p" "True"
+ "One<SOne p" "True"
+ "SZero p<SZero q" "p<q"
+ "SZero p<SOne q" "p<=q"
+ "SOne p<SZero q" "p<q"
+ "SOne p<SOne q" "p<q")
 
 (add-computation-rules
- "One<=pos" "True"
- "SZero pos<=One" "False"
- "SOne pos<=One" "False"
- "SZero pos1<=SZero pos2" "pos1<=pos2"
- "SZero pos1<=SOne pos2" "pos1<=pos2"
- "SOne pos1<=SZero pos2" "pos1<pos2"
- "SOne pos1<=SOne pos2" "pos1<=pos2")
+ "One<=p" "True"
+ "SZero p<=One" "False"
+ "SOne p<=One" "False"
+ "SZero p<=SZero q" "p<=q"
+ "SZero p<=SOne q" "p<=q"
+ "SOne p<=SZero q" "p<q"
+ "SOne p<=SOne q" "p<=q")
 
 ;; PosLtPosLeTotalLemma
 (set-goal "allnc p^(TotalPos p^ -> allnc q^(TotalPos q^ ->
@@ -2015,15 +1997,11 @@
 
 (ng #t)
 (use "TotalBooleTrue")
-
-;; ?_4:allnc pos^(
-;;      TotalPos pos^ ->
+;; ?_4:allnc p^(
+;;      TotalPos p^ -> 
+;;      allnc q^(TotalPos q^ -> TotalBoole(p^ <q^) andd TotalBoole(p^ <=q^)) -> 
 ;;      allnc q^(
-;;       TotalPos q^ -> TotalBoole(pos^ <q^) andd TotalBoole(pos^ <=q^)) ->
-;;      allnc q^(
-;;       TotalPos q^ ->
-;;       TotalBoole(SZero pos^ <q^) andd TotalBoole(SZero pos^ <=q^)))
-
+;;      TotalPos q^ -> TotalBoole(SZero p^ <q^) andd TotalBoole(SZero p^ <=q^)))
 (assume "p^1" "Tp1" "IHp1" "q^" "Tq")
 (elim "Tq")
 
@@ -2058,15 +2036,11 @@
 (elim "AndHyp")
 (assume "Hyp1" "Hyp2")
 (use "Hyp2")
-
-;; ?_5:allnc pos^(
-;;      TotalPos pos^ ->
+;; ?_5:allnc p^(
+;;      TotalPos p^ -> 
+;;      allnc q^(TotalPos q^ -> TotalBoole(p^ <q^) andd TotalBoole(p^ <=q^)) -> 
 ;;      allnc q^(
-;;       TotalPos q^ -> TotalBoole(pos^ <q^) andd TotalBoole(pos^ <=q^)) ->
-;;      allnc q^(
-;;       TotalPos q^ ->
-;;       TotalBoole(SOne pos^ <q^) andd TotalBoole(SOne pos^ <=q^)))
-
+;;       TotalPos q^ -> TotalBoole(SOne p^ <q^) andd TotalBoole(SOne p^ <=q^)))
 (assume "p^1" "Tp1" "IHp1" "q^" "Tq")
 (elim "Tq")
 
@@ -2222,46 +2196,46 @@
 ;; (save "PosLeTotalReal")
 
 ;; PosLtToLe
-(set-goal "all pos1,pos2(pos1<pos2 -> pos1<=pos2)")
+(set-goal "all p,q(p<q -> p<=q)")
 (ind)
 (ng #t)
 (strip)
 (use "Truth")
-(assume "pos1" "IH1")
+(assume "p" "IH")
 (cases)
 (ng #t)
 (assume "Absurd")
 (use "Absurd")
-(assume "pos2")
+(assume "q")
 (ng #t)
-(use "IH1")
-(assume "pos2")
+(use "IH")
+(assume "q")
 (ng #t)
-(assume "pos1<=pos1")
-(use "pos1<=pos1")
+(assume "p<=p")
+(use "p<=p")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH")
 (cases)
 (ng #t)
 (assume "Absurd")
 (use "Absurd")
-(assume "pos2")
+(assume "q")
 (ng #t)
-(assume "pos1<pos1")
-(use "pos1<pos1")
-(assume "pos2")
+(assume "p<p")
+(use "p<p")
+(assume "q")
 (ng #t)
-(use "IH1")
+(use "IH")
 ;; Proof finished.
 (save "PosLtToLe")
 
 ;; PosLTrans
-(set-goal "all pos1,pos2,pos3((pos1<pos2 -> pos2<=pos3 -> pos1<pos3)
-                             &(pos1<=pos2 -> pos2<pos3 -> pos1<pos3)
-                             &(pos1<=pos2 -> pos2<=pos3 -> pos1<=pos3))")
+(set-goal "all p,q,r((p<q -> q<=r -> p<r)
+                    &(p<=q -> q<r -> p<r)
+                    &(p<=q -> q<=r -> p<=r))")
 (ind) ;2-4
 (cases) ;5-7
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (use "Efq")
@@ -2271,7 +2245,7 @@
 (strip)
 (use "Truth")
 ;; 6
-(assume "pos2")
+(assume "q")
 (ng #t)
 (cases)
 (ng #t)
@@ -2283,7 +2257,7 @@
 (use "Absurd")
 (strip)
 (use "Truth")
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (strip)
@@ -2293,7 +2267,7 @@
 (use "Truth")
 (strip)
 (use "Truth")
-(assume "pos3")
+(assume "r")
 (split)
 (ng #t)
 (strip)
@@ -2305,7 +2279,7 @@
 (strip)
 (use "Truth")
 ;; 7
-(assume "pos2")
+(assume "q")
 (cases)
 (ng #t)
 (split)
@@ -2316,7 +2290,7 @@
 (use "Absurd")
 (strip)
 (use "Truth")
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (strip)
@@ -2326,7 +2300,7 @@
 (use "Truth")
 (strip)
 (use "Truth")
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (strip)
@@ -2337,9 +2311,9 @@
 (strip)
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases) ;79-81
-(assume "pos2")
+(assume "q")
 (ng #t)
 (split)
 (use "Efq")
@@ -2347,7 +2321,7 @@
 (use "Efq")
 (use "Efq")
 ;; 80
-(assume "pos2")
+(assume "q")
 (cases) ;89-91
 (ng #t)
 (split)
@@ -2359,7 +2333,7 @@
 (assume "Useless" "Absurd")
 (use "Absurd")
 ;; 90
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (use "IH1")
@@ -2367,17 +2341,17 @@
 (use "IH1")
 (use "IH1")
 ;; 91
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (assume "p1<p2" "p2<=p3")
 (use "PosLtToLe")
-(use-with "IH1" (pt "pos2") (pt "pos3") 'left "p1<p2" "p2<=p3")
+(use-with "IH1" (pt "q") (pt "r") 'left "p1<p2" "p2<=p3")
 (split)
 (use "IH1")
 (use "IH1")
 ;; 81
-(assume "pos2")
+(assume "q")
 (cases) ;115-117
 (ng #t)
 (split)
@@ -2389,7 +2363,7 @@
 (assume "Useless" "Absurd")
 (use "Absurd")
 ;; 116
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (use "IH1")
@@ -2397,21 +2371,21 @@
 (use "IH1")
 (assume "p1<=p2" "p2<p3")
 (use "PosLtToLe")
-(use-with "IH1" (pt "pos2") (pt "pos3") 'right 'left "p1<=p2" "p2<p3")
+(use-with "IH1" (pt "q") (pt "r") 'right 'left "p1<=p2" "p2<p3")
 ;; 117
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (use "IH1")
 (split)
 (assume "p1<=p2" "p2<p3")
 (use "PosLtToLe")
-(use-with "IH1" (pt "pos2") (pt "pos3") 'right 'left "p1<=p2" "p2<p3")
+(use-with "IH1" (pt "q") (pt "r") 'right 'left "p1<=p2" "p2<p3")
 (use "IH1")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases) ;143-145
-(assume "pos2")
+(assume "q")
 (ng #t)
 (split)
 (use "Efq")
@@ -2419,7 +2393,7 @@
 (use "Efq")
 (use "Efq")
 ;; 144
-(assume "pos2")
+(assume "q")
 (cases) ;153-155
 (ng #t)
 (split)
@@ -2431,18 +2405,18 @@
 (assume "Useless" "Absurd")
 (use "Absurd")
 ;; 154
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (use "IH1")
 (split)
 (assume "p1<p2" "p2<p3")
-(use-with "IH1" (pt "pos2") (pt "pos3") 'left "p1<p2" "?")
+(use-with "IH1" (pt "q") (pt "r") 'left "p1<p2" "?")
 (use "PosLtToLe")
 (use "p2<p3")
 (use "IH1")
 ;; 155
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (use "IH1")
@@ -2450,9 +2424,9 @@
 (use "IH1")
 (assume "p1<p2" "p2<=p3")
 (use "PosLtToLe")
-(use-with "IH1" (pt "pos2") (pt "pos3") 'left "p1<p2" "p2<=p3")
+(use-with "IH1" (pt "q") (pt "r") 'left "p1<p2" "p2<=p3")
 ;; 145
-(assume "pos2")
+(assume "q")
 (cases) ;182-184
 (ng #t)
 (split)
@@ -2464,18 +2438,18 @@
 (assume "Useless" "Absurd")
 (use "Absurd")
 ;; 183
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (assume "p1<p2" "p2<p3")
-(use-with "IH1" (pt "pos2") (pt "pos3") 'left "p1<p2" "?")
+(use-with "IH1" (pt "q") (pt "r") 'left "p1<p2" "?")
 (use "PosLtToLe")
 (use "p2<p3")
 (split)
 (use "IH1")
 (use "IH1")
 ;; 184
-(assume "pos3")
+(assume "r")
 (ng #t)
 (split)
 (use "IH1")
@@ -2489,29 +2463,29 @@
 ;; PosLtLeTrans PosLeTrans PosLtTrans.
 
 ;; PosLtLeTrans
-(set-goal "all pos1,pos2,pos3(pos1<pos2 -> pos2<=pos3 -> pos1<pos3)")
-(assume "pos1" "pos2" "pos3")
+(set-goal "all p,q,r(p<q -> q<=r -> p<r)")
+(assume "p" "q" "r")
 (use "PosLTrans")
 ;; Proof finished.
 (save "PosLtLeTrans")
 
 ;; PosLeLtTrans
-(set-goal "all pos1,pos2,pos3(pos1<=pos2 -> pos2<pos3 -> pos1<pos3)")
-(assume "pos1" "pos2" "pos3")
+(set-goal "all p,q,r(p<=q -> q<r -> p<r)")
+(assume "p" "q" "r")
 (use "PosLTrans")
 ;; Proof finished.
 (save "PosLeLtTrans")
 
 ;; PosLeTrans
-(set-goal "all pos1,pos2,pos3(pos1<=pos2 -> pos2<=pos3 -> pos1<=pos3)")
-(assume "pos1" "pos2" "pos3")
+(set-goal "all p,q,r(p<=q -> q<=r -> p<=r)")
+(assume "p" "q" "r")
 (use "PosLTrans")
 ;; Proof finished.
 (save "PosLeTrans")
 
 ;; PosLtTrans
-(set-goal "all pos1,pos2,pos3(pos1<pos2 -> pos2<pos3 -> pos1<pos3)")
-(assume "pos1" "pos2" "pos3" "p1<p2")
+(set-goal "all p,q,r(p<q -> q<r -> p<r)")
+(assume "p" "q" "r" "p1<p2")
 (use "PosLeLtTrans")
 (use "PosLtToLe")
 (use "p1<p2")
@@ -2521,176 +2495,176 @@
 ;; We add some useful rewrite rules.
 
 ;; PosLeToEq
-(set-goal "all pos (pos<=1)=(pos=1)")
+(set-goal "all p (p<=1)=(p=1)")
 (cases)
 (use "Truth")
-(assume "pos")
+(assume "p")
 (use "Truth")
-(assume "pos")
+(assume "p")
 (use "Truth")
 ;; Proof finished.
 (save "PosLeToEq")
-(add-rewrite-rule "pos<=1" "pos=1")
+(add-rewrite-rule "p<=1" "p=1")
 
-(set-goal "all pos (pos<pos)=False")
+(set-goal "all p (p<p)=False")
 (ind)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (use "IH")
-(assume "pos" "IH")
+(assume "p" "IH")
 (use "IH")
 ;; Proof finished.
-(add-rewrite-rule "pos<pos" "False")
+(add-rewrite-rule "p<p" "False")
 
-(set-goal "all pos pos<=pos")
+(set-goal "all p p<=p")
 (ind)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (use "IH")
-(assume "pos" "IH")
+(assume "p" "IH")
 (use "IH")
 ;; Proof finished.
-(add-rewrite-rule "pos<=pos" "True")
+(add-rewrite-rule "p<=p" "True")
 
-(set-goal "all pos pos<PosS pos")
+(set-goal "all p p<PosS p")
 (ind)
 (use "Truth")
 (ng #t)
 (strip)
 (use "Truth")
 ;; 4
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "IH")
 ;; Proof finished.
-(add-rewrite-rule "pos<PosS pos" "True")
+(add-rewrite-rule "p<PosS p" "True")
 
-(set-goal "all pos pos<=PosS pos")
+(set-goal "all p p<=PosS p")
 (cases)
 (use "Truth")
 (ng #t)
 (strip)
 (use "Truth")
 ;; 4
-(assume "pos")
+(assume "p")
 (ng #t)
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos<=PosS pos" "True")
+(add-rewrite-rule "p<=PosS p" "True")
 
-(set-goal "all pos (PosS pos<=pos)=False")
+(set-goal "all p (PosS p<=p)=False")
 (ind)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "IH")
 ;; Proof finished.
-(add-rewrite-rule "PosS pos<=pos" "False")
+(add-rewrite-rule "PosS p<=p" "False")
 
-(set-goal "all pos (PosS pos<pos)=False")
+(set-goal "all p (PosS p<p)=False")
 (cases)
 (use "Truth")
-(assume "pos")
+(assume "p")
 (ng)
 (use "Truth")
-(assume "pos")
+(assume "p")
 (ng)
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "PosS pos<pos" "False")
+(add-rewrite-rule "PosS p<p" "False")
 
-(set-goal "all pos1,pos2 pos1<=pos1+pos2")
+(set-goal "all p,q p<=p+q")
 (ind)
 (cases)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng)
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
-(assume "pos2")
+(assume "q")
 (ng #t)
-(use "PosLeLtTrans" (pt "pos1+pos2"))
+(use "PosLeLtTrans" (pt "p+q"))
 (use "IH1")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos1<=pos1+pos2" "True")
+(add-rewrite-rule "p<=p+q" "True")
 
-(set-goal "all pos1,pos2 pos1<pos1+pos2")
+(set-goal "all p,q p<p+q")
 (ind)
 (cases)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng)
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
-(assume "pos2")
+(assume "q")
 (ng #t)
-(use "PosLtTrans" (pt "pos1+pos2"))
+(use "PosLtTrans" (pt "p+q"))
 (use "IH1")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos1<pos1+pos2" "True")
+(add-rewrite-rule "p<p+q" "True")
 
-(set-goal "all pos1,pos2 pos1<=pos2+pos1")
-(assume "pos1" "pos2")
+(set-goal "all p,q p<=q+p")
+(assume "p" "q")
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos1<=pos2+pos1" "True")
+(add-rewrite-rule "p<=q+p" "True")
 
-(set-goal "all pos1,pos2 pos1<pos2+pos1")
-(assume "pos1" "pos2")
+(set-goal "all p,q p<q+p")
+(assume "p" "q")
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos1<pos2+pos1" "True")
+(add-rewrite-rule "p<q+p" "True")
 
-(set-goal "all pos (PosS pos<=1)=False")
+(set-goal "all p (PosS p<=1)=False")
 (cases)
 (use "Truth")
 (strip)
@@ -2698,305 +2672,305 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "PosS pos<=1" "False")
+(add-rewrite-rule "PosS p<=1" "False")
 
-(set-goal "all pos1,pos2 (pos1+pos2<=pos1)=False")
-(assert "all pos1,pos2(pos1+pos2<=pos1 -> F)")
+(set-goal "all p,q (p+q<=p)=False")
+(assert "all p,q(p+q<=p -> F)")
  (ind) ;4-6
  (ng)
  (cases)
  (assume "Absurd")
  (use "Absurd")
- (assume "pos" "Absurd")
+ (assume "p" "Absurd")
  (use "Absurd")
- (assume "pos" "Absurd")
+ (assume "p" "Absurd")
  (use "Absurd")
 ;; 5
- (assume "pos1" "IH1")
+ (assume "p" "IH1")
  (ind)
  (ng #t)
  (assume "Absurd")
  (use "Absurd")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
  (use "IH1")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
- (assume "p1+p2<p1")
- (use "IH1" (pt "pos2"))
+ (assume "p+q<p")
+ (use "IH1" (pt "q"))
  (use "PosLtToLe")
- (use "p1+p2<p1")
+ (use "p+q<p")
 ;; 6
- (assume "pos1" "IH1")
+ (assume "p" "IH1")
  (ind)
  (ng #t)
  (assume "Absurd")
  (use "Absurd")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
  (use "IH1")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
- (assume "S(p1+p2)<=p1")
- (use "IH1" (pt "pos2"))
- (use "PosLeTrans" (pt "PosS(pos1+pos2)"))
+ (assume "S(p+q)<=p")
+ (use "IH1" (pt "q"))
+ (use "PosLeTrans" (pt "PosS(p+q)"))
  (use "Truth")
- (use "S(p1+p2)<=p1")
+ (use "S(p+q)<=p")
 ;; Assertion proved.
-(assume "Assertion" "pos1" "pos2")
+(assume "Assertion" "p" "q")
 (use "AtomFalse")
 (use "Assertion")
 ;; Proof finished.
-(add-rewrite-rule "pos1+pos2<=pos1" "False")
+(add-rewrite-rule "p+q<=p" "False")
 
-(set-goal "all pos1,pos2 (pos1+pos2<=pos2)=False")
-(assume "pos1" "pos2")
+(set-goal "all p,q (p+q<=q)=False")
+(assume "p" "q")
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos1+pos2<=pos2" "False")
+(add-rewrite-rule "p+q<=q" "False")
 
-(set-goal "all pos1,pos2 (pos1+pos2<pos1)=False")
-(assert "all pos1,pos2(pos1+pos2<pos1 -> F)")
+(set-goal "all p,q (p+q<p)=False")
+(assert "all p,q(p+q<p -> F)")
  (ind) ;4-6
  (ng #t)
- (assume "pos1" "Absurd")
+ (assume "p" "Absurd")
  (use "Absurd")
 ;; 5
- (assume "pos1" "IH1")
+ (assume "p" "IH1")
  (ind)
  (ng #t)
  (assume "Absurd")
  (use "Absurd")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
  (use "IH1")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
- (assume "p1+p2<p1")
- (use "IH1" (pt "pos2"))
- (use "p1+p2<p1")
+ (assume "p+q<p")
+ (use "IH1" (pt "q"))
+ (use "p+q<p")
 ;; 6
- (assume "pos1" "IH1")
+ (assume "p" "IH1")
  (ind)
  (ng #t)
  (assume "Absurd")
  (use "Absurd")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
  (use "IH1")
- (assume "pos2" "IH2")
+ (assume "q" "IH2")
  (ng #t)
- (assume "S(p1+p2)<=p1")
- (use "IH1" (pt "pos2"))
- (use "PosLtLeTrans" (pt "PosS(pos1+pos2)"))
+ (assume "S(p+q)<=p")
+ (use "IH1" (pt "q"))
+ (use "PosLtLeTrans" (pt "PosS(p+q)"))
  (use "Truth")
- (use "S(p1+p2)<=p1")
+ (use "S(p+q)<=p")
 ;; Assertion proved.
-(assume "Assertion" "pos1" "pos2")
+(assume "Assertion" "p" "q")
 (use "AtomFalse")
 (use "Assertion")
 ;; Proof finished.
-(add-rewrite-rule "pos1+pos2<pos1" "False")
+(add-rewrite-rule "p+q<p" "False")
 
-(set-goal "all pos1,pos2 (pos1+pos2<pos2)=False")
-(assume "pos1" "pos2")
+(set-goal "all p,q (p+q<q)=False")
+(assume "p" "q")
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos1+pos2<pos2" "False")
+(add-rewrite-rule "p+q<q" "False")
 
-(set-goal "all pos One<PosS pos")
+(set-goal "all p One<PosS p")
 (ind)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "One<PosS pos" "True")
+(add-rewrite-rule "One<PosS p" "True")
 
 ;; PosLtPosS
-(set-goal "all pos1,pos2 (pos1<PosS pos2)=(pos1<=pos2)")
+(set-goal "all p,q (p<PosS q)=(p<=q)")
 (ind)
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
 ;; Proof finished
 (save "PosLtPosS")
 
 ;; PosLePosS
-(set-goal "all pos1,pos2 (PosS pos1<=pos2)=(pos1<pos2)")
+(set-goal "all p,q (PosS p<=q)=(p<q)")
 (ind)
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
 ;; Proof finished.
 (save "PosLePosS")
 
-(set-goal "all pos1,pos2 (PosS pos1<PosS pos2)=(pos1<pos2)")
+(set-goal "all p,q (PosS p<PosS q)=(p<q)")
 (ind)
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "PosLtPosS")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng #t)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "PosLePosS")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
 ;; Proof finished.
-(add-rewrite-rule "PosS pos1<PosS pos2" "pos1<pos2")
+(add-rewrite-rule "PosS p<PosS q" "p<q")
 
-(set-goal "all pos1,pos2 (PosS pos1<=PosS pos2)=(pos1<=pos2)")
+(set-goal "all p,q (PosS p<=PosS q)=(p<=q)")
 (ind)
 (ng)
 (cases)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (use "PosLtPosS")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases)
 (ng)
-(cases (pt "pos1"))
+(cases (pt "p"))
 (strip)
 (use "Truth")
 (strip)
 (use "Truth")
 (strip)
 (use "Truth")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "PosLePosS")
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "IH1")
 ;; Proof finished.
-(add-rewrite-rule "PosS pos1<=PosS pos2" "pos1<=pos2")
+(add-rewrite-rule "PosS p<=PosS q" "p<=q")
 
 ;; PosSPosPredId
-(set-goal "all pos(One<pos -> PosS(PosPred pos)=pos)")
+(set-goal "all p(One<p -> PosS(PosPred p)=p)")
 (cases)
 ;; 2-4
 (assume "Absurd")
 (use "Absurd")
 ;; 3
-(assume "pos" "Useless")
+(assume "p" "Useless")
 (ng)
 (use "Truth")
 ;; 4
-(assume "pos" "Useless")
+(assume "p" "Useless")
 (ng)
 (use "Truth")
 ;; Proof finished.
 (save "PosSPosPredId")
 
 ;; PosLtMonPred
-(set-goal "all pos1,pos2(One<pos1 -> pos1<pos2 -> PosPred pos1<PosPred pos2)")
-(assume "pos1" "pos2" "1<p1" "p1<p2")
-(assert "One<pos2")
- (use "PosLtTrans" (pt "pos1"))
- (use "1<p1")
- (use "p1<p2")
-(assume "1<p2")
+(set-goal "all p,q(One<p -> p<q -> PosPred p<PosPred q)")
+(assume "p" "q" "1<p" "p<q")
+(assert "One<q")
+ (use "PosLtTrans" (pt "p"))
+ (use "1<p")
+ (use "p<q")
+(assume "1<q")
 (simp "<-" "PosLt8RewRule")
 (simp "PosSPosPredId")
 (simp "PosSPosPredId")
-(use "p1<p2")
-(use "1<p2")
-(use "1<p1")
+(use "p<q")
+(use "1<q")
+(use "1<p")
 ;; Proof finished.
 (save "PosLtMonPred")
 
@@ -3009,8 +2983,8 @@
 ;; and Succ(NatDouble nat) for SOne pos.
 
 ;; PosToNatLeLt
-(set-goal "all pos1,pos2((PosToNat pos1<=PosToNat pos2)=(pos1<=pos2) &
-                         (PosToNat pos1<PosToNat pos2)=(pos1<pos2))")
+(set-goal "all p,q((PosToNat p<=PosToNat q)=(p<=q) &
+                   (PosToNat p<PosToNat q)=(p<q))")
 (ind) ;2-4
 (cases) ;5-7
 (ng #t)
@@ -3018,52 +2992,52 @@
 (use "Truth")
 (use "Truth")
 ;; 6
-(assume "pos")
+(assume "p")
 (ng #t)
 (split)
-(assert "Succ Zero<=NatDouble(PosToNat pos)")
+(assert "Succ Zero<=NatDouble(PosToNat p)")
  (use "NatLtToLe")
  (use "NatLtOneDouble")
  (use "NatLt0Pos")
-(assume "Succ Zero<=NatDouble(PosToNat pos)")
-(simp "Succ Zero<=NatDouble(PosToNat pos)")
+(assume "Succ Zero<=NatDouble(PosToNat p)")
+(simp "Succ Zero<=NatDouble(PosToNat p)")
 (use "Truth")
-(assert "Succ Zero<NatDouble(PosToNat pos)")
+(assert "Succ Zero<NatDouble(PosToNat p)")
  (use "NatLtOneDouble")
  (use "NatLt0Pos")
-(assume "Succ Zero<NatDouble(PosToNat pos)")
-(simp "Succ Zero<NatDouble(PosToNat pos)")
+(assume "Succ Zero<NatDouble(PosToNat p)")
+(simp "Succ Zero<NatDouble(PosToNat p)")
 (use "Truth")
 ;; 7
-(assume "pos")
+(assume "p")
 (ng #t)
 (split)
 (use "Truth")
-(assert "Zero<NatDouble(PosToNat pos)")
+(assert "Zero<NatDouble(PosToNat p)")
  (use "NatLtOneSuccDouble")
  (use "NatLt0Pos")
-(assume "Zero<NatDouble(PosToNat pos)")
-(simp "Zero<NatDouble(PosToNat pos)")
+(assume "Zero<NatDouble(PosToNat p)")
+(simp "Zero<NatDouble(PosToNat p)")
 (use "Truth")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases) ;36-38
 (ng #t)
 (split)
-(assert "NatDouble(PosToNat pos1)<=Succ Zero -> F")
+(assert "NatDouble(PosToNat p)<=Succ Zero -> F")
  (use "NatLeDoubleOne")
  (use "NatLt0Pos")
-(assume "NatDouble(PosToNat pos1)<=Succ Zero -> F")
-(simp "NatDouble(PosToNat pos1)<=Succ Zero -> F")
+(assume "NatDouble(PosToNat p)<=Succ Zero -> F")
+(simp "NatDouble(PosToNat p)<=Succ Zero -> F")
 (use "Truth")
-(assert "NatDouble(PosToNat pos1)<Succ Zero -> F")
+(assert "NatDouble(PosToNat p)<Succ Zero -> F")
  (use "NatLtDoubleOne")
  (use "NatLt0Pos")
-(assume "NatDouble(PosToNat pos1)<Succ Zero -> F")
-(simp "NatDouble(PosToNat pos1)<Succ Zero -> F")
+(assume "NatDouble(PosToNat p)<Succ Zero -> F")
+(simp "NatDouble(PosToNat p)<Succ Zero -> F")
 (use "Truth")
 ;; 37
-(assume "pos2")
+(assume "q")
 (ng #t)
 (split)
 (simp "NatDoubleLe")
@@ -3071,7 +3045,7 @@
 (simp "NatDoubleLt")
 (use "IH1")
 ;; 38
-(assume "pos2")
+(assume "q")
 (ng #t)
 (split)
 (simp "NatLeDoubleSuccDouble")
@@ -3079,24 +3053,24 @@
 (simp "NatLtDoubleSuccDouble")
 (use "IH1")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (cases) ;65-67
 (ng #t)
 (split)
-(assert "NatDouble(PosToNat pos1)=Zero -> F")
- (assume "NatDouble(PosToNat pos1)=Zero")
- (assert "Zero<PosToNat pos1")
+(assert "NatDouble(PosToNat p)=Zero -> F")
+ (assume "NatDouble(PosToNat p)=Zero")
+ (assert "Zero<PosToNat p")
   (use "NatLt0Pos")
- (assume "0<pos1")
- (inst-with-to "NatLt0Double" (pt "PosToNat pos1") "0<pos1" "NatLt0DoubleInst")
- (simphyp-with-to "NatLt0DoubleInst" "NatDouble(PosToNat pos1)=Zero" "Absurd")
+ (assume "0<p")
+ (inst-with-to "NatLt0Double" (pt "PosToNat p") "0<p" "NatLt0DoubleInst")
+ (simphyp-with-to "NatLt0DoubleInst" "NatDouble(PosToNat p)=Zero" "Absurd")
  (use "Absurd")
-(assume "NatDouble(PosToNat pos1)=Zero -> F")
-(simp "NatDouble(PosToNat pos1)=Zero -> F")
+(assume "NatDouble(PosToNat p)=Zero -> F")
+(simp "NatDouble(PosToNat p)=Zero -> F")
 (use "Truth")
 (use "Truth")
 ;; 66
-(assume "pos2")
+(assume "q")
 (ng #t)
 (split)
 (simp "NatLeSuccDoubleDouble")
@@ -3104,7 +3078,7 @@
 (simp "NatLtSuccDoubleDouble")
 (use "IH1")
 ;; 67
-(assume "pos2")
+(assume "q")
 (ng #t)
 (split)
 (simp "NatLeSuccDoubleSuccDouble")
@@ -3117,53 +3091,51 @@
 ;; Easy consequences
 
 ;; PosToNatLe
-(set-goal "all pos1,pos2 (PosToNat pos1<=PosToNat pos2)=(pos1<=pos2)")
-(assume "pos1" "pos2")
+(set-goal "all p,q (PosToNat p<=PosToNat q)=(p<=q)")
+(assume "p" "q")
 (use "PosToNatLeLt")
 ;; Proof finished.
 (save "PosToNatLe")
 
 ;; NatToPosLe
-(set-goal "all nat1,nat2(Zero<nat1 -> Zero<nat2 ->
-  (NatToPos nat1<=NatToPos nat2)=(nat1<=nat2))")
-(assume "nat1" "nat2" "0<n1" "0<n2")
+(set-goal "all n,m(Zero<n -> Zero<m -> (NatToPos n<=NatToPos m)=(n<=m))")
+(assume "n" "m" "0<n" "0<m")
 (simp "<-" "PosToNatLe")
 (simp "PosToNatToPosId")
 (simp "PosToNatToPosId")
 (use "Truth")
-(use "0<n2")
-(use "0<n1")
+(use "0<m")
+(use "0<n")
 ;; Proof finished.
 (save "NatToPosLe")
 
 ;; PosToNatLt
-(set-goal "all pos1,pos2 (PosToNat pos1<PosToNat pos2)=(pos1<pos2)")
-(assume "pos1" "pos2")
+(set-goal "all p,q (PosToNat p<PosToNat q)=(p<q)")
+(assume "p" "q")
 (use "PosToNatLeLt")
 ;; Proof finished.
 (save "PosToNatLt")
 
 ;; NatToPosLt
-(set-goal "all nat1,nat2(Zero<nat1 -> Zero<nat2 ->
-  (NatToPos nat1<NatToPos nat2)=(nat1<nat2))")
-(assume "nat1" "nat2" "0<n1" "0<n2")
+(set-goal "all n,m(Zero<n -> Zero<m -> (NatToPos n<NatToPos m)=(n<m))")
+(assume "n" "m" "0<n" "0<m")
 (simp "<-" "PosToNatLt")
 (simp "PosToNatToPosId")
 (simp "PosToNatToPosId")
 (use "Truth")
-(use "0<n2")
-(use "0<n1")
+(use "0<m")
+(use "0<n")
 ;; Proof finished.
 (save "NatToPosLt")
 
 ;; PosNotLeToLt
-(set-goal "all pos1,pos2((pos1<=pos2 -> F) -> pos2<pos1)")
-(assume "pos1" "pos2")
+(set-goal "all p,q((p<=q -> F) -> q<p)")
+(assume "p" "q")
 (simp "<-" "NatToPosToNatId")
-(assert "NatToPos(PosToNat pos2)=pos2")
+(assert "NatToPos(PosToNat q)=q")
  (use "NatToPosToNatId")
-(assume "NatToPos(PosToNat pos2)=pos2")
-(simp "<-" "NatToPos(PosToNat pos2)=pos2")
+(assume "NatToPos(PosToNat q)=q")
+(simp "<-" "NatToPos(PosToNat q)=q")
 (simp "NatToPosLe")
 (simp "NatToPosLt")
 (simp "PosToNatToPosId")
@@ -3177,13 +3149,13 @@
 (save "PosNotLeToLt")
 
 ;; PosNotLtToLe
-(set-goal "all pos1,pos2((pos1<pos2 -> F) -> pos2<=pos1)")
-(assume "pos1" "pos2")
+(set-goal "all p,q((p<q -> F) -> q<=p)")
+(assume "p" "q")
 (simp "<-" "NatToPosToNatId")
-(assert "NatToPos(PosToNat pos2)=pos2")
+(assert "NatToPos(PosToNat q)=q")
  (use "NatToPosToNatId")
-(assume "NatToPos(PosToNat pos2)=pos2")
-(simp "<-" "NatToPos(PosToNat pos2)=pos2")
+(assume "NatToPos(PosToNat q)=q")
+(simp "<-" "NatToPos(PosToNat q)=q")
 (simp "NatToPosLe")
 (simp "NatToPosLt")
 (simp "PosToNatToPosId")
@@ -3197,12 +3169,12 @@
 (save "PosNotLtToLe")
 
 ;; PosLeAntiSym
-(set-goal "all pos1,pos2(pos1<=pos2 -> pos2<=pos1 -> pos1=pos2)")
-(assume "pos1" "pos2")
+(set-goal "all p,q(p<=q -> q<=p -> p=q)")
+(assume "p" "q")
 (simp "<-" "PosToNatLe")
 (simp "<-" "PosToNatLe")
 (assume "NatLeHyp1" "NatLeHyp2")
-(assert "PosToNat pos1=PosToNat pos2")
+(assert "PosToNat p=PosToNat q")
 (use "NatLeAntiSym")
 (use "NatLeHyp1")
 (use "NatLeHyp2")
@@ -3211,42 +3183,41 @@
 (save "PosLeAntiSym")
 
 ;; PosLeMonPlus
-(set-goal
- "all pos1,pos2,pos3,pos4(pos1<=pos2 -> pos3<=pos4 -> pos1+pos3<=pos2+pos4)")
-(assume "pos1" "pos2" "pos3" "pos4" "p1<=p2" "p3<=p4")
-(assert "pos1=NatToPos(PosToNat pos1)")
+(set-goal "all p,q,r,r0(p<=q -> r<=r0 -> p+r<=q+r0)")
+(assume "p" "q" "r" "r0" "p<=q" "r<=r0")
+(assert "p=NatToPos(PosToNat p)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos1=NatToPos(PosToNat pos1)")
-(simp "pos1=NatToPos(PosToNat pos1)")
-(drop "pos1=NatToPos(PosToNat pos1)")
-(assert "pos2=NatToPos(PosToNat pos2)")
+(assume "p=NatToPos(PosToNat p)")
+(simp "p=NatToPos(PosToNat p)")
+(drop "p=NatToPos(PosToNat p)")
+(assert "q=NatToPos(PosToNat q)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos2=NatToPos(PosToNat pos2)")
-(simp "pos2=NatToPos(PosToNat pos2)")
-(drop "pos2=NatToPos(PosToNat pos2)")
-(assert "pos3=NatToPos(PosToNat pos3)")
+(assume "q=NatToPos(PosToNat q)")
+(simp "q=NatToPos(PosToNat q)")
+(drop "q=NatToPos(PosToNat q)")
+(assert "r=NatToPos(PosToNat r)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos3=NatToPos(PosToNat pos3)")
-(simp "pos3=NatToPos(PosToNat pos3)")
-(drop "pos3=NatToPos(PosToNat pos3)")
-(assert "pos4=NatToPos(PosToNat pos4)")
+(assume "r=NatToPos(PosToNat r)")
+(simp "r=NatToPos(PosToNat r)")
+(drop "r=NatToPos(PosToNat r)")
+(assert "r0=NatToPos(PosToNat r0)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos4=NatToPos(PosToNat pos4)")
-(simp "pos4=NatToPos(PosToNat pos4)")
-(drop "pos4=NatToPos(PosToNat pos4)")
+(assume "r0=NatToPos(PosToNat r0)")
+(simp "r0=NatToPos(PosToNat r0)")
+(drop "r0=NatToPos(PosToNat r0)")
 (simp "<-" "NatToPosPlus")
 (simp "<-" "NatToPosPlus")
 (simp "NatToPosLe")
 (use "NatLeMonPlus")
 (simp "PosToNatLe")
-(use "p1<=p2")
+(use "p<=q")
 (simp "PosToNatLe")
-(use "p3<=p4")
-;; ?_35:Zero<NatPlus(PosToNat pos2)(PosToNat pos4)
+(use "r<=r0")
+;; ?_35:Zero<NatPlus(PosToNat q)(PosToNat r0)
 (simp "<-" "PosToNatPlus")
 (use "NatLt0Pos")
 (simp "<-" "PosToNatPlus")
@@ -3260,41 +3231,41 @@
 
 ;; PosLeMonTimes
 (set-goal
- "all pos1,pos2,pos3,pos4(pos1<=pos2 -> pos3<=pos4 -> pos1*pos3<=pos2*pos4)")
-(assume "pos1" "pos2" "pos3" "pos4" "p1<=p2" "p3<=p4")
-(assert "pos1=NatToPos(PosToNat pos1)")
+ "all p,q,r,r0(p<=q -> r<=r0 -> p*r<=q*r0)")
+(assume "p" "q" "r" "r0" "p<=q" "r<=r0")
+(assert "p=NatToPos(PosToNat p)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos1=NatToPos(PosToNat pos1)")
-(simp "pos1=NatToPos(PosToNat pos1)")
-(drop "pos1=NatToPos(PosToNat pos1)")
-(assert "pos2=NatToPos(PosToNat pos2)")
+(assume "p=NatToPos(PosToNat p)")
+(simp "p=NatToPos(PosToNat p)")
+(drop "p=NatToPos(PosToNat p)")
+(assert "q=NatToPos(PosToNat q)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos2=NatToPos(PosToNat pos2)")
-(simp "pos2=NatToPos(PosToNat pos2)")
-(drop "pos2=NatToPos(PosToNat pos2)")
-(assert "pos3=NatToPos(PosToNat pos3)")
+(assume "q=NatToPos(PosToNat q)")
+(simp "q=NatToPos(PosToNat q)")
+(drop "q=NatToPos(PosToNat q)")
+(assert "r=NatToPos(PosToNat r)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos3=NatToPos(PosToNat pos3)")
-(simp "pos3=NatToPos(PosToNat pos3)")
-(drop "pos3=NatToPos(PosToNat pos3)")
-(assert "pos4=NatToPos(PosToNat pos4)")
+(assume "r=NatToPos(PosToNat r)")
+(simp "r=NatToPos(PosToNat r)")
+(drop "r=NatToPos(PosToNat r)")
+(assert "r0=NatToPos(PosToNat r0)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos4=NatToPos(PosToNat pos4)")
-(simp "pos4=NatToPos(PosToNat pos4)")
-(drop "pos4=NatToPos(PosToNat pos4)")
+(assume "r0=NatToPos(PosToNat r0)")
+(simp "r0=NatToPos(PosToNat r0)")
+(drop "r0=NatToPos(PosToNat r0)")
 (simp "<-" "NatToPosTimes")
 (simp "<-" "NatToPosTimes")
 (simp "NatToPosLe")
 (use "NatLeMonTimes")
 (simp "PosToNatLe")
-(use "p1<=p2")
+(use "p<=q")
 (simp "PosToNatLe")
-(use "p3<=p4")
-;; ?_35:Zero<NatTimes(PosToNat pos2)(PosToNat pos4)
+(use "r<=r0")
+;; ?_35:Zero<NatTimes(PosToNat q)(PosToNat r0)
 (simp "<-" "PosToNatTimes")
 (use "NatLt0Pos")
 (simp "<-" "PosToNatTimes")
@@ -3310,131 +3281,131 @@
 ;; we provide PosLtLeMonTimes and PosLeLtMonTimes
 
 ;; PosLtLeMonTimes
-(set-goal "all pos1,pos2,pos3,pos4(
- pos1<pos2 -> pos3<=pos4 -> pos1*pos3<pos2*pos4)")
-(assume "pos1" "pos2" "pos3" "pos4")
+(set-goal "all p,q,r,r0(
+ p<q -> r<=r0 -> p*r<q*r0)")
+(assume "p" "q" "r" "r0")
 (simp "<-" "PosLePosS")
 (simp "<-" "PosPlus0CompRule")
-(assume "Sp1<=p2" "p3<=p4")
-(assert "(pos1+1)*pos3<=pos2*pos4")
+(assume "Sp<=q" "r<=r0")
+(assert "(p+1)*r<=q*r0")
  (use "PosLeMonTimes")
- (use "Sp1<=p2")
- (use "p3<=p4")
-(assume "(p1+1)p3<=p2p3")
-(use "PosLtLeTrans" (pt "(pos1+1)*pos3"))
+ (use "Sp<=q")
+ (use "r<=r0")
+(assume "(p+1)r<=qr")
+(use "PosLtLeTrans" (pt "(p+1)*r"))
 (simp "PosTimesPlusDistrLeft")
 (ng)
 (use "Truth")
-(use "(p1+1)p3<=p2p3")
+(use "(p+1)r<=qr")
 ;; Proof finished.
 (save "PosLtLeMonTimes")
 
 ;; PosLeLtMonTimes
-(set-goal "all pos1,pos2,pos3,pos4(
- pos1<=pos2 -> pos3<pos4 -> pos1*pos3<pos2*pos4)")
-(assume "pos1" "pos2" "pos3" "pos4" "p1<=p2")
+(set-goal "all p,q,r,r0(
+ p<=q -> r<r0 -> p*r<q*r0)")
+(assume "p" "q" "r" "r0" "p<=q")
 (simp "<-" "PosLePosS")
 (simp "<-" "PosPlus0CompRule")
-(assume "Sp3<=p4")
-(assert "pos1*(pos3+1)<=pos2*pos4")
+(assume "Sr<=r0")
+(assert "p*(r+1)<=q*r0")
  (use "PosLeMonTimes")
- (use "p1<=p2")
- (use "Sp3<=p4")
-(assume "p1*(p3+1)<=p2p4")
-(use "PosLtLeTrans" (pt "pos1*(pos3+1)"))
+ (use "p<=q")
+ (use "Sr<=r0")
+(assume "p*(r+1)<=qr0")
+(use "PosLtLeTrans" (pt "p*(r+1)"))
 (simp "PosTimesPlusDistr")
 (ng)
 (use "Truth")
-(use "p1*(p3+1)<=p2p4")
+(use "p*(r+1)<=qr0")
 ;; Proof finished.
 (save "PosLeLtMonTimes")
 
-(set-goal "all pos1,pos2,pos3 (pos1*pos3<=pos2*pos3)=(pos1<=pos2)")
-(assume "pos1" "pos2" "pos3")
+(set-goal "all p,q,r (p*r<=q*r)=(p<=q)")
+(assume "p" "q" "r")
 (use "BooleAeqToEq")
 ;; 3,4
-(assume "p1p3<=p2p3")
+(assume "pr<=qr")
 (use "PosNotLtToLe")
-(assume "p2<p1")
-(assert "pos2*pos3<pos1*pos3")
+(assume "q<p")
+(assert "q*r<p*r")
  (use "PosLtLeMonTimes")
- (use "p2<p1")
+ (use "q<p")
  (use "Truth")
-(assume "p2p3<p1p3")
-(assert "pos1*pos3<pos1*pos3")
- (use "PosLeLtTrans" (pt "pos2*pos3"))
- (use "p1p3<=p2p3")
- (use "p2p3<p1p3")
+(assume "qr<pr")
+(assert "p*r<p*r")
+ (use "PosLeLtTrans" (pt "q*r"))
+ (use "pr<=qr")
+ (use "qr<pr")
 (assume "Absurd")
 (use "Absurd")
 ;; 4
-(assume "p1<=p2")
+(assume "p<=q")
 (use "PosLeMonTimes")
-(use "p1<=p2")
+(use "p<=q")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos1*pos3<=pos2*pos3" "pos1<=pos2")
+(add-rewrite-rule "p*r<=q*r" "p<=q")
 
 ;; PosTimesInj
-(set-goal "all pos1,pos2,pos3(pos1*pos2=pos1*pos3 -> pos2=pos3)")
-(assume "pos1" "pos2" "pos3" "p1p2=p1p3")
+(set-goal "all p,q,r(p*q=p*r -> q=r)")
+(assume "p" "q" "r" "pq=pr")
 (use "PosLeAntiSym")
 ;; 3,4
 (use "PosNotLtToLe")
-(assume "p3<p2")
-(assert "pos1*pos3<pos1*pos2")
+(assume "r<q")
+(assert "p*r<p*q")
  (use "PosLeLtMonTimes")
  (use "Truth")
- (use "p3<p2")
-(simp "p1p2=p1p3")
+ (use "r<q")
+(simp "pq=pr")
 (assume "Absurd")
 (use "Absurd")
 ;; 4 
 (use "PosNotLtToLe")
-(assume "p2<p3")
-(assert "pos1*pos2<pos1*pos3")
+(assume "q<r")
+(assert "p*q<p*r")
  (use "PosLeLtMonTimes")
  (use "Truth")
- (use "p2<p3")
-(simp "p1p2=p1p3")
+ (use "q<r")
+(simp "pq=pr")
 (assume "Absurd")
 (use "Absurd")
 ;; Proof finished.
 (save "PosTimesInj")
 
 ;; PosTimesInjLeft
-(set-goal "all pos1,pos2,pos3(pos1*pos3=pos2*pos3 -> pos1=pos2)")
-(assume "pos1" "pos2" "pos3" "p1p3=p2p3")
-(use "PosTimesInj" (pt "pos3"))
+(set-goal "all p,q,r(p*r=q*r -> p=q)")
+(assume "p" "q" "r" "pr=qr")
+(use "PosTimesInj" (pt "r"))
 (simp "PosTimesComm")
-(simp "p1p3=p2p3")
+(simp "pr=qr")
 (use "PosTimesComm")
 ;; Proof finished.
 (save "PosTimesInjLeft")
 
 ;; PosLtMonTimesInv
-(set-goal  "all pos1,pos2,pos3(pos1*pos2<pos1*pos3 -> pos2<pos3)")
-(assume "pos1" "pos2" "pos3" "p1p2<p1p3")
+(set-goal  "all p,q,r(p*q<p*r -> q<r)")
+(assume "p" "q" "r" "pq<pr")
 (use "PosNotLeToLt")
-(assume "p3<=p2")
-(assert "pos1*pos3<=pos1*pos2")
+(assume "r<=q")
+(assert "p*r<=p*q")
  (use "PosLeMonTimes")
  (use "Truth")
- (use "p3<=p2")
-(assume "p1p3<=p1p2")
-(assert "pos1*pos2<pos1*pos2")
- (use "PosLtLeTrans" (pt "pos1*pos3"))
- (use "p1p2<p1p3")
- (use "p1p3<=p1p2")
+ (use "r<=q")
+(assume "pr<=pq")
+(assert "p*q<p*q")
+ (use "PosLtLeTrans" (pt "p*r"))
+ (use "pq<pr")
+ (use "pr<=pq")
 (assume "Absurd")
 (use "Absurd")
 ;; Proof finished.
 (save "PosLtMonTimesInv")
 
 ;; PosLeLtCases
-(set-goal "all pos1,pos2((pos1<=pos2 -> Pvar) -> (pos2<pos1 -> Pvar) -> Pvar)")
-(assume "pos1" "pos2" "LeHyp" "LtHyp")
-(use "NatLeLtCases" (pt "PosToNat pos1") (pt "PosToNat pos2") "?" "?")
+(set-goal "all p,q((p<=q -> Pvar) -> (q<p -> Pvar) -> Pvar)")
+(assume "p" "q" "LeHyp" "LtHyp")
+(use "NatLeLtCases" (pt "PosToNat p") (pt "PosToNat q") "?" "?")
 ;; 3,4
 (assume "NatLeHyp")
 (use "LeHyp")
@@ -3449,13 +3420,12 @@
 (save "PosLeLtCases")
 
 ;; PosLeCases
-(set-goal "all pos1,pos2(
- pos1<=pos2 -> (pos1<pos2 -> Pvar) -> (pos1=pos2 -> Pvar) -> Pvar)")
-(assume "pos1" "pos2" "pos1<=pos2" "LtHyp" "EqHyp")
-(use "NatLeCases" (pt "PosToNat pos1") (pt "PosToNat pos2") "?" "?" "?")
+(set-goal "all p,q(p<=q -> (p<q -> Pvar) -> (p=q -> Pvar) -> Pvar)")
+(assume "p" "q" "p<=q" "LtHyp" "EqHyp")
+(use "NatLeCases" (pt "PosToNat p") (pt "PosToNat q") "?" "?" "?")
 ;; 3-5
 (simp "PosToNatLe")
-(use "pos1<=pos2")
+(use "p<=q")
 ;; 4
 (simp "PosToNatLt")
 (use "LtHyp")
@@ -3471,13 +3441,13 @@
 ;; Rules for PosMinus:  They give correct results for p--q (only) if q<p.
 
 (add-computation-rules
- "One--pos" "One"
- "SZero pos--One" "PosPred(SZero pos)"
- "SZero pos1--SZero pos2" "SZero(pos1--pos2)"
- "SZero pos1--SOne pos2" "PosPred(SZero(pos1--pos2))"
- "SOne pos--One" "SZero pos"
- "SOne pos1--SZero pos2" "[if (pos1=pos2) One (SOne(pos1--pos2))]"
- "SOne pos1--SOne pos2" "SZero(pos1--pos2)")
+ "One--p" "One"
+ "SZero p--One" "PosPred(SZero p)"
+ "SZero p--SZero q" "SZero(p--q)"
+ "SZero p--SOne q" "PosPred(SZero(p--q))"
+ "SOne p--One" "SZero p"
+ "SOne p--SZero q" "[if (p=q) One (SOne(p--q))]"
+ "SOne p--SOne q" "SZero(p--q)")
 
 ;; (display-pconst "PosMinus")
 
@@ -3503,12 +3473,10 @@
 (assume "q^1" "Tq1" "Useless")
 (ng #t)
 (use "TotalPosOne")
-
-;; ?_4:allnc pos^(
-;;      TotalPos pos^ ->
-;;      allnc p^(TotalPos p^ -> TotalPos(pos^ --p^)) ->
-;;      allnc p^(TotalPos p^ -> TotalPos(SZero pos^ --p^)))
-
+;; ?_4:allnc p^(
+;;      TotalPos p^ -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(p^ --p^0)) -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(SZero p^ --p^0)))
 (assume "q^" "Tq" "IHq" "q^1" "Tq1")
 (elim "Tq1")
 (ng #t)
@@ -3528,12 +3496,10 @@
 (use "TotalPosSZero")
 (use "IHq")
 (use "Tq2")
-
-;; ?_5:allnc pos^(
-;;      TotalPos pos^ ->
-;;      allnc p^(TotalPos p^ -> TotalPos(pos^ --p^)) ->
-;;      allnc p^(TotalPos p^ -> TotalPos(SOne pos^ --p^)))
-
+;; ?_5:allnc p^(
+;;      TotalPos p^ -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(p^ --p^0)) -> 
+;;      allnc p^0(TotalPos p^0 -> TotalPos(SOne p^ --p^0)))
 (assume "q^" "Tq" "IHq" "q^1" "Tq1")
 (elim "Tq1")
 (ng #t)
@@ -3559,62 +3525,62 @@
 ;; Proof finished.
 (save-totality)
 
-(set-goal "all pos PosS pos--1=pos")
+(set-goal "all p PosS p--1=p")
 (cases)
 (use "Truth")
-(assume "pos")
+(assume "p")
 (ng)
 (use "Truth")
-(assume "pos")
-;; PosS(SOne pos)--1=SOne pos
+(assume "p")
+;; PosS(SOne p)--1=SOne p
 (ng)
-;; ?_8:PosPred(SZero(PosS pos))=SOne pos
+;; ?_8:PosPred(SZero(PosS p))=SOne p
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "PosS pos--1" "pos")
+(add-rewrite-rule "PosS p--1" "p")
 
 ;; We consider the rules for NatMinus.  Do they hold for PosMinus?
 
 ;; PosMinusOneEqPosPred
-(set-goal "all pos pos--1=PosPred pos")
+(set-goal "all p p--1=PosPred p")
 (cases)
 ;; 2-4
 (use "Truth")
 ;; 3
-(assume "pos")
+(assume "p")
 (use "Truth")
 ;; 4
-(assume "pos")
+(assume "p")
 (use "Truth")
 ;; Proof finished.
 (save "PosMinusOneEqPosPred")
 
 ;; The remaining rewrite rules for NatMinus are
 
-;; (set-goal "all nat1,nat2 Pred(Succ nat1--nat2)=nat1--nat2")
+;; (set-goal "all n,m Pred(Succ n--m)=n--m")
 ;; (set-goal "all nat nat--nat=0")
 ;; (set-goal "all nat Succ nat--nat=1")
 ;; (set-goal "all nat 0--nat=0")
-;; (set-goal "all nat1,nat2 nat1--nat2<=nat1")
-;; (set-goal "all nat1,nat2 nat1+nat2--nat2=nat1")
-;; (set-goal "all nat1,nat2 nat2+nat1--nat2=nat1")
+;; (set-goal "all n,m n--m<=n")
+;; (set-goal "all n,m n+m--m=n")
+;; (set-goal "all n,m m+n--m=n")
 
-;; The second computation rule pos1--PosS pos2=PosPred(pos1--pos2) is
-;; wrong for pos1=2 and pos2=1.
+;; The second computation rule p--PosS q=PosPred(p--q) is
+;; wrong for p=2 and q=1.
 
 ;; (pp (nt (pt "2--PosS 1"))) ;2
 ;; (pp (nt (pt "PosPred(2--1)"))) ;1
 
-;; We need a premise PosS pos2<pos1.  Since the proof is easiest with
+;; We need a premise PosS q<p.  Since the proof is easiest with
 ;; an ordinary successor induction, we postpone the proof until we
-;; have seen the NatToPos and PosToNat are isomorphisms w.r.t. -
+;; have seen that NatToPos and PosToNat are isomorphisms w.r.t. -
 
 ;; We prove that PosToNat is an isomorphism w.r.t. -
 
 ;; Need that PosToNat is an isomorphism w.r.t. NatDouble and Pred.
 
 ;; SuccPosPred
-(set-goal "all pos(1<pos -> PosToNat pos=Succ(PosToNat(PosPred pos)))")
+(set-goal "all p(1<p -> PosToNat p=Succ(PosToNat(PosPred p)))")
 (ind)
 (assume "Absurd")
 (use "Absurd")
@@ -3625,14 +3591,14 @@
 (strip)
 (use "Truth")
 ;; 7
-(assume "pos" "IH" "Useless")
+(assume "p" "IH" "Useless")
 (ng)
 (simp "IH")
 (ng)
 (use "Truth")
 (use "Truth")
 ; 8
-(assume "pos" "IH" "Useless")
+(assume "p" "IH" "Useless")
 (ng)
 (use "Truth")
 ;; 4
@@ -3643,39 +3609,39 @@
 (save "SuccPosPred")
 
 ;; PredPosPred
-(set-goal "all pos(1<pos -> Pred(PosToNat pos)=PosToNat(PosPred pos))")
-(assume "pos" "1<pos")
+(set-goal "all p(1<p -> Pred(PosToNat p)=PosToNat(PosPred p))")
+(assume "p" "1<p")
 (simp "SuccPosPred")
 (use "Truth")
-(use "1<pos")
+(use "1<p")
 ;; Proof finished.
 (save "PredPosPred")
 
-(set-goal "all pos PosPred pos<=pos")
-(assume "pos")
-(use "PosLeCases" (pt "1") (pt "pos"))
+(set-goal "all p PosPred p<=p")
+(assume "p")
+(use "PosLeCases" (pt "1") (pt "p"))
 (use "Truth")
-(assume "1<pos")
+(assume "1<p")
 (simp "<-" "PosToNatLe")
 (simp "<-" "PredPosPred")
 (ng)
 (use "Truth")
-(use "1<pos")
-(assume "1=pos")
-(simp "<-" "1=pos")
+(use "1<p")
+(assume "1=p")
+(simp "<-" "1=p")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "PosPred pos<=pos" "True")
+(add-rewrite-rule "PosPred p<=p" "True")
 
 ;; NatDoubleSZero
-(set-goal "NatDouble(PosToNat pos)=PosToNat(SZero pos)")
+(set-goal "NatDouble(PosToNat p)=PosToNat(SZero p)")
 (ind)
 (ng)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng)
 (use "Truth")
 ;; Proof finished.
@@ -3684,19 +3650,18 @@
 ;; Now we can prove that PosToNat is an isomorphism w.r.t. -
 
 ;; PosToNatMinus
-(set-goal "all pos1,pos2(
- pos2<pos1 -> PosToNat(pos1--pos2)=PosToNat pos1--PosToNat pos2)")
+(set-goal "all p,q(q<p -> PosToNat(p--q)=PosToNat p--PosToNat q)")
 (ind)
 ;; 2-4
-(assume "pos2")
+(assume "q")
 (ng #t)
 (use "Efq")
 ;; 3
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (ind)
 ;; 8-10
 (ng)
-;; ?_11:T -> PosToNat(PosPred(SZero pos1))=Pred(NatDouble(PosToNat pos1))
+;; ?_11:T -> PosToNat(PosPred(SZero p))=Pred(NatDouble(PosToNat p))
 (simp "NatDoubleSZero")
 (simp "PredPosPred")
 (assume "Useless")
@@ -3704,44 +3669,44 @@
 (ng)
 (use "Truth")
 ;; 9
-(assume "pos2" "IH2" "pos2<pos1")
+(assume "q" "IH2" "q<p")
 (ng)
 (simp "IH1")
 (simp "NatDoubleMinus")
 (use "Truth")
-(use "pos2<pos1")
+(use "q<p")
 ;; 10
 (ng)
-(assume "pos2" "IH2")
-(assume "pos2<pos1")
+(assume "q" "IH2")
+(assume "q<p")
 (simp "<-" "NatDoubleMinus")
 (simp "<-" "PredPosPred")
 (simp "<-" "NatDoubleSZero")
 (simp "IH1")
 (use "Truth")
-(use "pos2<pos1")
+(use "q<p")
 (ng)
 (use "Truth")
 ;; 4
-(assume "pos1" "IH1")
+(assume "p" "IH1")
 (ind)
 ;; 33-35
 (ng)
 (strip)
 (use "Truth")
 ;; 34
-(assume "pos2" "IH2")
+(assume "q" "IH2")
 (ng)
-(assume "pos2<=pos1")
-(use "PosLeCases" (pt "pos2") (pt "pos1"))
-(use "pos2<=pos1")
-(assume "pos2<pos1")
-(assert "pos1=pos2 -> pos2<pos2")
- (assume "pos1=pos2")
- (simphyp-with-to "pos2<pos1" "pos1=pos2" "Absurd")
+(assume "q<=p")
+(use "PosLeCases" (pt "q") (pt "p"))
+(use "q<=p")
+(assume "q<p")
+(assert "p=q -> q<q")
+ (assume "p=q")
+ (simphyp-with-to "q<p" "p=q" "Absurd")
  (use "Absurd")
-(assume "pos1=pos2 -> F")
-(simp "pos1=pos2 -> F")
+(assume "p=q -> F")
+(simp "p=q -> F")
 (ng #t)
 (simp "<-" "SuccNatMinus")
 (simp "<-" "NatDoubleMinus")
@@ -3749,69 +3714,67 @@
 (simp "IH1")
 (ng)
 (use "Truth")
-(use "pos2<pos1")
+(use "q<p")
 (simp "NatDoubleLt")
 (simp "PosToNatLt")
-(use "pos2<pos1")
+(use "q<p")
 ;; 43
-(assume "pos2=pos1")
-(simp "pos2=pos1")
+(assume "q=p")
+(simp "q=p")
 (ng)
 (use "Truth")
 ;; 35
-(assume "pos2" "IH2" "pos2<pos1")
+(assume "q" "IH2" "q<p")
 (ng #t)
 (simp "IH1")
 (simp "NatDoubleMinus")
 (use "Truth")
-(use "pos2<pos1")
+(use "q<p")
 ;; Proof finished.
 (save "PosToNatMinus")
 
 ;; NatToPosMinus
-(set-goal "all nat1,nat2(
- Zero<nat2 -> nat2<nat1 -> NatToPos(nat1--nat2)=NatToPos nat1--NatToPos nat2)")
-(assume "nat1" "nat2" "0<nat2" "nat2<nat1")
-(assert "Zero<nat1")
- (use "NatLtTrans" (pt "nat2"))
- (use "0<nat2")
- (use "nat2<nat1")
-(assume "0<nat1") 
-(assert "nat1--nat2=PosToNat(NatToPos nat1)--PosToNat(NatToPos nat2)")
+(set-goal "all n,m(Zero<m -> m<n -> NatToPos(n--m)=NatToPos n--NatToPos m)")
+(assume "n" "m" "0<m" "m<n")
+(assert "Zero<n")
+ (use "NatLtTrans" (pt "m"))
+ (use "0<m")
+ (use "m<n")
+(assume "0<n") 
+(assert "n--m=PosToNat(NatToPos n)--PosToNat(NatToPos m)")
  (simp "PosToNatToPosId")
  (simp "PosToNatToPosId")
  (use "Truth")
- (use "0<nat2")
- (use "0<nat1")
+ (use "0<m")
+ (use "0<n")
 (assume "EqHyp")
 (simp "EqHyp")
 (simp "<-" "PosToNatMinus")
 (simp "NatToPosToNatId")
 (use "Truth")
 (simp "NatToPosLt")
-(use "nat2<nat1")
-(use "0<nat1")
-(use "0<nat2")
-;; Proof finished.
+(use "m<n")
+(use "0<n")
+(use "0<m")
 ;; Proof finished.
 (save "NatToPosMinus")
 
 ;; Now we can continue proving the nat rewrite rules for pos
 
-(set-goal "all pos1,pos2 pos1+pos2--pos2=pos1")
-(assume "pos1" "pos2")
-(assert "pos1=NatToPos(PosToNat pos1)")
+(set-goal "all p,q p+q--q=p")
+(assume "p" "q")
+(assert "p=NatToPos(PosToNat p)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos1=NatToPos(PosToNat pos1)")
-(simp "pos1=NatToPos(PosToNat pos1)")
-(drop "pos1=NatToPos(PosToNat pos1)")
-(assert "pos2=NatToPos(PosToNat pos2)")
+(assume "p=NatToPos(PosToNat p)")
+(simp "p=NatToPos(PosToNat p)")
+(drop "p=NatToPos(PosToNat p)")
+(assert "q=NatToPos(PosToNat q)")
  (simp "NatToPosToNatId")
  (use "Truth")
-(assume "pos2=NatToPos(PosToNat pos2)")
-(simp "pos2=NatToPos(PosToNat pos2)")
-(drop "pos2=NatToPos(PosToNat pos2)")
+(assume "q=NatToPos(PosToNat q)")
+(simp "q=NatToPos(PosToNat q)")
+(drop "q=NatToPos(PosToNat q)")
 (simp "<-" "NatToPosPlus")
 (simp "<-" "NatToPosMinus")
 (ng #t)
@@ -3824,23 +3787,22 @@
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
-(add-rewrite-rule "pos1+pos2--pos2" "pos1")
+(add-rewrite-rule "p+q--q" "p")
 
-(set-goal "all pos1,pos2 pos2+pos1--pos2=pos1")
-(assume "pos1" "pos2")
+(set-goal "all p,q q+p--q=p")
+(assume "p" "q")
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos2+pos1--pos2" "pos1")
+(add-rewrite-rule "q+p--q" "p")
 
 ;; PosLtMonMinusLeft
-(set-goal "all pos1,pos2,pos3(
- pos2<pos3 -> pos1<pos2 -> pos2--pos1<pos3--pos1)")
-(assume "pos1" "pos2" "pos3" "p2<p3" "p1<p2")
-(inst-with-to "NatToPosToNatId" (pt "pos2--pos1") "IdInstLeft")
+(set-goal "all p,q,r(q<r -> p<q -> q--p<r--p)")
+(assume "p" "q" "r" "q<r" "p<q")
+(inst-with-to "NatToPosToNatId" (pt "q--p") "IdInstLeft")
 (simp "<-" "IdInstLeft")
 (drop "IdInstLeft")
-(inst-with-to "NatToPosToNatId" (pt "pos3--pos1") "IdInstRight")
+(inst-with-to "NatToPosToNatId" (pt "r--p") "IdInstRight")
 (simp "<-" "IdInstRight")
 (drop "IdInstRight")
 (simp "NatToPosLt")
@@ -3848,14 +3810,14 @@
 (simp "PosToNatMinus")
 (use "NatLtMonMinusLeft")
 (simp "PosToNatLt")
-(use "p2<p3")
+(use "q<r")
 (use "NatLtToLe")
 (simp "PosToNatLt")
-(use "p1<p2")
-(use "PosLtTrans" (pt "pos2"))
-(use "p1<p2")
-(use "p2<p3")
-(use "p1<p2")
+(use "p<q")
+(use "PosLtTrans" (pt "q"))
+(use "p<q")
+(use "q<r")
+(use "p<q")
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
@@ -3865,10 +3827,10 @@
 ;; PosToNat and NatToPos.
 
 ;; PosPlusMinus
-(set-goal "all pos1,pos2,pos3(pos3<pos2 -> pos1+(pos2--pos3)=pos1+pos2--pos3)")
-(assume "pos1" "pos2" "pos3" "p3<p2")
+(set-goal "all p,q,r(r<q -> p+(q--r)=p+q--r)")
+(assume "p" "q" "r" "r<q")
 (assert
- "NatToPos(PosToNat(pos1+(pos2--pos3)))=NatToPos(PosToNat(pos1+pos2--pos3))")
+ "NatToPos(PosToNat(p+(q--r)))=NatToPos(PosToNat(p+q--r))")
  (simp "PosToNatPlus")
  (simp "PosToNatMinus")
  (simp "PosToNatMinus")
@@ -3877,11 +3839,11 @@
  (use "Truth")
  (use "NatLtToLe")
  (simp "PosToNatLt")
- (use "p3<p2")
- (use "PosLtTrans" (pt "pos2"))
- (use "p3<p2")
+ (use "r<q")
+ (use "PosLtTrans" (pt "q"))
+ (use "r<q")
  (use "Truth")
- (use "p3<p2")
+ (use "r<q")
  (simp "NatToPosToNatId")
  (simp "NatToPosToNatId")
 (assume "Assertion")
@@ -3890,9 +3852,9 @@
 (save "PosPlusMinus")
 
 ;; PosMinusPlus
-(set-goal "all pos1,pos2,pos3(pos3<pos1 -> pos1--pos3+pos2=pos1+pos2--pos3)")
-(assume "pos1" "pos2" "pos3" "p3<p1")
-(inst-with-to "PosPlusMinus" (pt "pos2") (pt "pos1") (pt "pos3") "p3<p1"
+(set-goal "all p,q,r(r<p -> p--r+q=p+q--r)")
+(assume "p" "q" "r" "r<p")
+(inst-with-to "PosPlusMinus" (pt "q") (pt "p") (pt "r") "r<p"
 	      "PosPlusMinusInst")
 (simp "PosPlusComm")
 (simp "PosPlusMinusInst")
@@ -3902,11 +3864,11 @@
 (save "PosMinusPlus")
 
 ;; PosMinusPlusEq
-(set-goal "all pos1,pos2(pos2<pos1 -> pos1--pos2+pos2=pos1)")
-(assume "pos1" "pos2" "p2<p1")
+(set-goal "all p,q(q<p -> p--q+q=p)")
+(assume "p" "q" "q<p")
 (simp "PosMinusPlus")
 (use "Truth")
-(use "p2<p1")
+(use "q<p")
 ;; Proof finished.
 (save "PosMinusPlusEq")
 
@@ -3914,21 +3876,19 @@
 ;; PosToNat and NatToPos.
 
 ;; PosMinusMinus
-(set-goal "all pos1,pos2,pos3(
- pos3<pos2 -> pos2<pos1+pos3 -> pos1--(pos2--pos3)=pos1+pos3--pos2)")
-(assume "pos1" "pos2" "pos3" "p3<p2" "p2<p1+p3")
-(assert "pos2--pos3<pos1")
- (assert "pos1=pos1+pos3--pos3")
+(set-goal "all p,q,r(r<q -> q<p+r -> p--(q--r)=p+r--q)")
+(assume "p" "q" "r" "r<q" "q<p+r")
+(assert "q--r<p")
+ (assert "p=p+r--r")
   (use "Truth")
- (assume "p1=p1+p3-p3")
- (simp "p1=p1+p3-p3")
- (drop "p1=p1+p3-p3")
+ (assume "p=p+r-r")
+ (simp "p=p+r-r")
+ (drop "p=p+r-r")
  (use "PosLtMonMinusLeft")
- (use "p2<p1+p3")
- (use "p3<p2")
-(assume "p2-p3<p1")
-(assert
- "NatToPos(PosToNat(pos1--(pos2--pos3)))=NatToPos(PosToNat(pos1+pos3--pos2))")
+ (use "q<p+r")
+ (use "r<q")
+(assume "q-r<p")
+(assert "NatToPos(PosToNat(p--(q--r)))=NatToPos(PosToNat(p+r--q))")
  (simp "PosToNatMinus")
  (simp "PosToNatMinus")
  (simp "PosToNatMinus")
@@ -3938,13 +3898,13 @@
  (use "NatLtToLe")
  (simp "<-" "PosToNatPlus")
  (simp "PosToNatLt")
- (use "p2<p1+p3")
+ (use "q<p+r")
  (use "NatLtToLe")
  (simp "PosToNatLt")
- (use "p3<p2")
- (use "p2<p1+p3")
- (use "p3<p2")
- (use "p2-p3<p1")
+ (use "r<q")
+ (use "q<p+r")
+ (use "r<q")
+ (use "q-r<p")
  (simp "NatToPosToNatId")
  (simp "NatToPosToNatId")
 (assume "Hyp")
@@ -3953,27 +3913,27 @@
 (save "PosMinusMinus")
 
 ;; Similarly to NatMinus5RewRule we have
-;; pos2+pos3<pos1 -> pos1--pos2--pos3=pos1--(pos2+pos3)
-;; The assumption pos2+pos3<pos1 is necessary since PosMinus does not
+;; q+r<p -> p--q--r=p--(q+r)
+;; The assumption q+r<p is necessary since PosMinus does not
 ;; behave well for equal arguments.
 
 ;; Idea of the proof: Apply PosToNat o NatToPos outside.  Move
-;; PosToNat inside (this needs pos2+pos3<pos1), use NatMinus5RewRule
-;; Notice that the display is not helpful for this level of detail.
+;; PosToNat inside (this needs q+r<p), use NatMinus5RewRule.  Notice
+;; that the display by pp is not helpful for this level of detail.
+;; Use ppn instead.
 
 ;; PosMinusMinusLeft
-(set-goal "all pos1,pos2,pos3(
- pos2+pos3<pos1 -> pos1--pos2--pos3=pos1--(pos2+pos3))")
-(assume "pos1" "pos2" "pos3" "p2+p3<p1")
-(assert "pos2<pos1")
- (use "PosLtTrans" (pt "pos2+pos3"))
+(set-goal "all p,q,r(q+r<p -> p--q--r=p--(q+r))")
+(assume "p" "q" "r" "q+r<p")
+(assert "q<p")
+ (use "PosLtTrans" (pt "q+r"))
  (use "Truth")
- (use "p2+p3<p1")
-(assume "p2<p1")
-(inst-with-to "NatToPosToNatId" (pt "pos1--pos2--pos3") "IdInstLeft")
+ (use "q+r<p")
+(assume "q<p")
+(inst-with-to "NatToPosToNatId" (pt "p--q--r") "IdInstLeft")
 (simp "<-" "IdInstLeft")
 (drop "IdInstLeft")
-(inst-with-to "NatToPosToNatId" (pt "pos1--(pos2+pos3)") "IdInstRight")
+(inst-with-to "NatToPosToNatId" (pt "p--(q+r)") "IdInstRight")
 (simp "<-" "IdInstRight")
 (drop "IdInstRight")
 (simp "PosToNatMinus")
@@ -3982,28 +3942,27 @@
 (simp "PosToNatPlus")
 (simp "<-" "NatMinus5RewRule")
 (use "Truth")
-(use "p2+p3<p1")
-(use "p2<p1")
-;; ?_17:pos3<pos1--pos2
-(assert "pos3=pos2+pos3--pos2")
+(use "q+r<p")
+(use "q<p")
+;; ?_17:r<p--q
+(assert "r=q+r--q")
  (use "Truth")
-(assume "pos3=pos2+pos3--pos2")
-(simp "pos3=pos2+pos3--pos2")
-(drop "pos3=pos2+pos3--pos2")
+(assume "r=q+r--q")
+(simp "r=q+r--q")
+(drop "r=q+r--q")
 (use "PosLtMonMinusLeft")
-(use "p2+p3<p1")
+(use "q+r<p")
 (use "Truth")
 ;; Proof finished.
 (save "PosMinusMinusLeft")
 
 ;; PosTimesMinusDistr
-(set-goal "all pos1,pos2,pos3(
- pos3<pos2 ->  pos1*(pos2--pos3)=pos1*pos2--pos1*pos3)")
-(assume "pos1" "pos2" "pos3" "p3<p2")
-(inst-with-to "NatToPosToNatId" (pt "pos1*(pos2--pos3)") "IdInstLeft")
+(set-goal "all p,q,r(r<q ->  p*(q--r)=p*q--p*r)")
+(assume "p" "q" "r" "r<q")
+(inst-with-to "NatToPosToNatId" (pt "p*(q--r)") "IdInstLeft")
 (simp "<-" "IdInstLeft")
 (drop "IdInstLeft")
-(inst-with-to "NatToPosToNatId" (pt "pos1*pos2--pos1*pos3") "IdInstRight")
+(inst-with-to "NatToPosToNatId" (pt "p*q--p*r") "IdInstRight")
 (simp "<-" "IdInstRight")
 (drop "IdInstRight")
 (simp "PosToNatTimes")
@@ -4015,19 +3974,18 @@
 (use "Truth")
 (use "PosLeLtMonTimes")
 (use "Truth")
-(use "p3<p2")
-(use "p3<p2")
+(use "r<q")
+(use "r<q")
 ;; Proof finished.
 (save "PosTimesMinusDistr")
 
 ;; PosTimesMinusDistrLeft
-(set-goal "all pos1,pos2,pos3(
- pos2<pos1 ->  (pos1--pos2)*pos3=pos1*pos3--pos2*pos3)")
-(assume "pos1" "pos2" "pos3" "p2<p1")
-(inst-with-to "NatToPosToNatId" (pt "(pos1--pos2)*pos3") "IdInstLeft")
+(set-goal "all p,q,r(q<p ->  (p--q)*r=p*r--q*r)")
+(assume "p" "q" "r" "q<p")
+(inst-with-to "NatToPosToNatId" (pt "(p--q)*r") "IdInstLeft")
 (simp "<-" "IdInstLeft")
 (drop "IdInstLeft")
-(inst-with-to "NatToPosToNatId" (pt "pos1*pos3--pos2*pos3") "IdInstRight")
+(inst-with-to "NatToPosToNatId" (pt "p*r--q*r") "IdInstRight")
 (simp "<-" "IdInstRight")
 (drop "IdInstRight")
 (simp "PosToNatTimes")
@@ -4038,9 +3996,9 @@
 (ng)
 (use "Truth")
 (use "PosLtLeMonTimes")
-(use "p2<p1")
+(use "q<p")
 (use "Truth")
-(use "p2<p1")
+(use "q<p")
 ;; Proof finished.
 (save "PosTimesMinusDistrLeft")
 
@@ -4138,13 +4096,13 @@
 ;; Rules for PosMax
 
 (add-computation-rules
- "One max pos" "pos"
- "SZero pos max One" "SZero pos"
- "SZero pos1 max SZero pos2" "SZero(pos1 max pos2)"
- "SZero pos1 max SOne pos2" "[if (pos1<=pos2) (SOne pos2) (SZero pos1)]"
- "SOne pos max One" "SOne pos"
- "SOne pos1 max SZero pos2" "[if (pos2<=pos1) (SOne pos1) (SZero pos2)]"
- "SOne pos1 max SOne pos2" "SOne(pos1 max pos2)")
+ "One max p" "p"
+ "SZero p max One" "SZero p"
+ "SZero p max SZero q" "SZero(p max q)"
+ "SZero p max SOne q" "[if (p<=q) (SOne q) (SZero p)]"
+ "SOne p max One" "SOne p"
+ "SOne p max SZero q" "[if (q<=p) (SOne p) (SZero q)]"
+ "SOne p max SOne q" "SOne(p max q)")
 
 ;; PosMaxTotal
 (set-totality-goal "PosMax")
@@ -4198,40 +4156,294 @@
 ;; Proof finished.
 (save-totality)
 
-(set-goal "all pos pos max One=pos")
+(set-goal "all p p max One=p")
 (cases)
 (use "Truth")
-(assume "pos")
+(assume "p")
 (ng #t)
 (use "Truth")
-(assume "pos")
+(assume "p")
 (ng #t)
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "pos max One" "pos")
+(add-rewrite-rule "p max One" "p")
 
-(set-goal "all pos pos max pos=pos")
+(set-goal "all p p max p=p")
 (ind)
 (use "Truth")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "IH")
-(assume "pos" "IH")
+(assume "p" "IH")
 (ng #t)
 (use "IH")
 ;; Proof finished.
-(add-rewrite-rule "pos max pos" "pos")
+(add-rewrite-rule "p max p" "p")
+
+(set-goal "all p p max Succ Zero=p")
+(assume "p")
+(use "PosLeLtCases" (pt "p") (pt "1"))
+(ng)
+(assume "p=1")
+(simp "p=1")
+(use "Truth")
+(assume "1<p")
+(simp "SuccPosPred")
+(use "Truth")
+(use "1<p")
+;; Proof finished.
+(save "NatMaxPosOne")
+
+(set-goal "all p Succ Zero max p=p")
+(assume "p")
+(use "PosLeLtCases" (pt "p") (pt "1"))
+(ng)
+(assume "p=1")
+(simp "p=1")
+(use "Truth")
+(assume "1<p")
+(simp "SuccPosPred")
+(use "Truth")
+(use "1<p")
+;; Proof finished.
+(save "NatMaxOnePos")
+
+;; PosMaxComm
+(set-goal "all p,q p max q = q max p")
+(ind)
+;; 2-4
+(strip)
+(use "Truth")
+;; 3
+(assume "p" "IH")
+(cases)
+;; 7-9
+(use "Truth")
+;; 8
+(use "IH")
+;; 9
+(ng)
+(strip)
+(use "Truth")
+;; 4
+(assume "p" "IH")
+(cases)
+;; 13-15
+(use "Truth")
+;; 14
+(ng)
+(strip)
+(use "Truth")
+;; 15
+(use "IH")
+;; Proof finished.
+(save "PosMaxComm")
+
+;; PosMaxEq1
+(set-goal "all p,q(q<=p -> p max q=p)")
+(ind)
+(ng)
+(assume "q" "q=1")
+(use "q=1")
+;; 3
+(assume "p" "IH")
+(cases)
+;; 8-10
+(strip)
+(use "Truth")
+;; 9
+(ng)
+(use "IH")
+;; 10
+(ng)
+(assume "q" "q<p")
+(assert "p<=q -> F")
+ (assume "p<=q")
+ (assert "p<p")
+  (use "PosLeLtTrans" (pt "q"))
+  (use "p<=q")
+  (use "q<p")
+ (assume "p<p")
+ (use "p<p")
+(assume "p<=q -> F")
+(simp "p<=q -> F")
+(use "Truth")
+;; 4
+(assume "p" "IH")
+(cases)
+;; 26-28
+(ng)
+(strip)
+(use "Truth")
+;; 27
+(ng)
+(assume "q" "q<=p")
+(simp "q<=p")
+(use "Truth")
+;; 28
+(use "IH")
+;; Proof finished.
+(save "PosMaxEq1")
+
+;; PosMaxEq2
+(set-goal "all p,q(p<=q -> p max q=q)")
+(assume "p" "q")
+(simp "PosMaxComm")
+(use "PosMaxEq1")
+;; Proof finished.
+(save "PosMaxEq2")
+
+;; We prove that PosToNat is an isomorphism w.r.t. max
+
+;; PosToNatMax
+(set-goal "all p,q PosToNat(p max q)=PosToNat p max PosToNat q")
+(ind)
+;; 2-4
+(assume "q")
+(ng)
+(simp "NatMaxOnePos")
+(use "Truth")
+;; 3
+(assume "p" "IH")
+(cases)
+;; 9-11
+(ng)
+(simp "NatDoubleSZero")
+(simp "NatMaxPosOne")
+(use "Truth")
+;; 10
+(assume "q")
+(ng)
+(simp "IH")
+(simp "NatMaxDouble")
+(use "Truth")
+;; 11
+(assume "q")
+(ng)
+(cases (pt "p<=q"))
+(assume "p<=q")
+(ng)
+(simp "NatMaxEq2")
+(use "Truth")
+(use "NatLeTrans" (pt "NatDouble(PosToNat q)"))
+(simp "NatDoubleLe")
+(simp "PosToNatLe")
+(use "p<=q")
+(use "Truth")
+;; 22
+(assume "p<=q -> F")
+(ng)
+(simp "NatMaxEq1")
+(use "Truth")
+(simp "NatLeSuccDoubleDouble")
+(assert "q<p")
+ (use "PosNotLeToLt")
+ (use "p<=q -> F")
+(assume "q<p")
+(simp "PosToNatLt")
+(use "q<p")
+;; 4
+(assume "p" "IH")
+(cases)
+;; 42-44
+(ng)
+(use "Truth")
+;; 43
+(assume "q")
+(ng)
+(cases (pt "q<=p"))
+(assume "q<=p")
+(ng)
+(simp "NatMaxEq1")
+(use "Truth")
+(use "NatLeTrans" (pt "NatDouble(PosToNat p)"))
+(simp "NatDoubleLe")
+(simp "PosToNatLe")
+(use "q<=p")
+(use "Truth")
+;; 49
+(assume "q<=p -> F")
+(ng)
+(simp "NatMaxEq2")
+(use "Truth")
+(simp "NatLeSuccDoubleDouble")
+(assert "p<q")
+ (use "PosNotLeToLt")
+ (use "q<=p -> F")
+(assume "p<q")
+(simp "PosToNatLt")
+(use "p<q")
+;; 44
+(ng)
+(assume "q")
+(simp "NatMaxDouble")
+(simp "IH")
+(use "Truth")
+;; Proof finished.
+(save "PosToNatMax")
+
+;; PosMaxUB1
+(set-goal "all p,q p<=p max q")
+(assume "p" "q")
+(assert "NatToPos(PosToNat p)<=NatToPos(PosToNat(p max q))")
+ (simp "NatToPosLe")
+ (simp "PosToNatMax")
+ (use "NatMaxUB1")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+;; Assertion proved.
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(assume "p<=p max q")
+(use "p<=p max q")
+;; Proof finished.
+(save "PosMaxUB1")
+
+;; PosMaxUB2
+(set-goal "all p,q q<=p max q")
+(assume "p" "q")
+(simp "PosMaxComm")
+(use "PosMaxUB1")
+;; Proof finished.
+(save "PosMaxUB2")
+
+;; PosMaxLUB
+(set-goal "all p,q,r(p<=r -> q<=r -> p max q<=r)")
+(assume "p" "q" "r")
+(assert "NatToPos(PosToNat p)<=NatToPos(PosToNat r) ->
+         NatToPos(PosToNat q)<=NatToPos(PosToNat r) ->
+         NatToPos(PosToNat(p max q))<=NatToPos(PosToNat r)")
+ (simp "NatToPosLe")
+ (simp "NatToPosLe")
+ (simp "NatToPosLe")
+ (simp "PosToNatMax")
+ (use "NatMaxLUB")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+;; Assertion proved.
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(assume "p<=r -> q<=r -> p max q<=r")
+(use "p<=r -> q<=r -> p max q<=r")
+;; Proof finished.
+(save "PosMaxLUB")
 
 ;; Rules for PosMin
 
 (add-computation-rules
- "One min pos" "One"
- "SZero pos min One" "One"
- "SZero pos1 min SZero pos2" "SZero(pos1 min pos2)"
- "SZero pos1 min SOne pos2" "[if (pos1<=pos2) (SZero pos1) (SOne pos2)]"
- "SOne pos min One" "One"
- "SOne pos1 min SZero pos2" "[if (pos1<=pos2) (SZero pos2) (SOne pos1)]"
- "SOne pos1 min SOne pos2" "SOne(pos1 min pos2)")
+ "One min p" "One"
+ "SZero p min One" "One"
+ "SZero p min SZero q" "SZero(p min q)"
+ "SZero p min SOne q" "[if (p<=q) (SZero p) (SOne q)]"
+ "SOne p min One" "One"
+ "SOne p min SZero q" "[if (p<=q) (SZero q) (SOne p)]"
+ "SOne p min SOne q" "SOne(p min q)")
 
 ;; PosMinTotal
 (set-totality-goal "PosMin")
@@ -4286,8 +4498,8 @@
 ;; Rules for NatExp : nat=>nat=>nat
 
 (add-computation-rules
- "nat**Zero" "Succ Zero"
- "nat1**Succ nat2" "nat1**nat2*nat1")
+ "n**Zero" "Succ Zero"
+ "n**Succ m" "n**m*n")
 
 ;; NatExpTotal
 (set-totality-goal "NatExp")
@@ -4319,4 +4531,144 @@
 (add-rewrite-rules
  "(PosToNat pos)**nat" "PosToNat(pos**nat)")
 
+;; Rules for PosLog
 
+(add-computation-rules
+ "PosLog 1" "Zero"
+ "PosLog(SZero p)" "Succ(PosLog p)"
+ "PosLog(SOne p)" "Succ(PosLog p)")
+
+(set-totality-goal "PosLog")
+(use "AllTotalElim")
+(ind)
+(use "TotalNatZero")
+(assume "p" "IH")
+(ng)
+(use "TotalNatSucc")
+(use "IH")
+(assume "p" "IH")
+(ng)
+(use "TotalNatSucc")
+(use "IH")
+;; Proof finished.
+(save-totality)
+
+;; (pp (nt (pt "PosLog 8")))
+;; Succ(Succ(Succ Zero))
+
+;; PosLogZero
+(set-goal "all p (PosLog p=Zero)=(p=1)")
+(cases)
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "PosLogZero")
+
+;; PosLeExpTwoLog
+(set-goal "all p 2**PosLog p<=p")
+(ind)
+(use "Truth")
+(assume "p" "IH")
+(ng #t)
+(use "IH")
+(assume "p" "IH")
+(ng #t)
+(use "IH")
+;; Proof finished.
+(save "PosLeExpTwoLog")
+
+;; PosLtExpTwoSuccLog
+(set-goal "all p p<2**Succ(PosLog p)")
+(ind)
+(use "Truth")
+(assume "p")
+(ng #t)
+(assume "IH")
+(use "IH")
+(assume "p")
+(ng #t)
+(assume "IH")
+(use "IH")
+;; Proof finished.
+(save "PosLtExpTwoSuccLog")
+
+;; PosExpTwoNatPlus
+(set-goal "2**n*2**m=2**(n+m)")
+(assume "n")
+(ind)
+(ng)
+(use "Truth")
+;; Step
+(assume "m" "IH")
+(ng)
+(use "IH")
+;; Proof finished.
+(save "PosExpTwoNatPlus")
+
+;; PosExpTwoPosPlus
+(set-goal "all p,q 2**p*2**q=2**(p+q)")
+(assume "p" "q")
+(simp "PosToNatPlus")
+(use "PosExpTwoNatPlus")
+;; Proof finished.
+(save "PosExpTwoPosPlus")
+
+(set-goal "all p,q p--q<=p")
+(assert "all p,q(p<=q -> p--q<=p)")
+(ind)
+;; 4-6
+(strip)
+(use "Truth")
+;; 5
+(assume "p" "IH")
+(cases)
+;; 9-11
+(strip)
+(use "Truth")
+;; 10
+(use "IH")
+;; 11
+(assume "q" "p<=q")
+(ng)
+(use "PosLeTrans" (pt "SZero(p--q)"))
+(use "Truth")
+(use "IH")
+(use "p<=q")
+;; 6
+(assume "p" "IH")
+(cases)
+;; 19-21
+(strip)
+(use "Truth")
+;; 20
+(assume "q" "p<q")
+(ng)
+(cases (pt "p=q"))
+(strip)
+(use "Truth")
+(assume "p=q -> F")
+(use "IH")
+(use "PosLtToLe")
+(use "p<q")
+;; 21
+(use "IH")
+;; Assertion proved
+(assume "Assertion" "p" "q")
+(use "PosLeLtCases" (pt "p") (pt "q"))
+(use "Assertion")
+(drop "Assertion")
+;; ?_34:q<p -> p--q<=p
+(assume "q<p")
+(simp "<-" "PosToNatLe")
+(simp "PosToNatMinus")
+(ng)
+(use "Truth")
+(use "q<p")
+;; Proof finished.
+(add-rewrite-rule "p--q<=p" "True")
+
+;; (search-about "Pos" "Max")
