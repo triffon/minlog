@@ -47,8 +47,6 @@
     ((and tensor ex exca excl) #f)
     (else (myerror "atr-goal?" "formula expected" formula))))
 
-(define falsity-log-pvar (predicate-form-to-predicate falsity-log))
-
 ;; and-to-atom-proof: boole1 & boole2 -> AndConst boole1 boole2
 ;; atom-to-and-proof: AndConst boole1 boole2 -> boole1 & boole2
 
