@@ -1,6 +1,138 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
-Done dev branch 2016-04-09
+Done locally on dev branch 2016-06-09
+
+In ets.scm
+
+In real-and-formula-to-mr-formula-aux no extra treatment of ExL ExLT
+add-mr-ids for ExD ExL ExR ExDT ExLT ExRT AndD AndL AndR OrD OrL OrR OrU
+added.
+
+In atr.scm
+
+Definition of falsity-log-pvar moved to boole.scm
+
+In typ.scm
+
+tvar-names beta gamma added
+
+In boole.scm
+
+add-token for beta gamma added.  Definition of falsity-log-pvar moved
+here from atr.scm
+
+In todo.scm
+
+Extended
+
+In examples/test/names.scm
+
+Addition of tvar-names beta gamma removes (already done in typ.scm)
+
+In examples/test/psym.scm
+
+TotalNatNC replaced by TotalNatNc
+
+In psym.txt
+
+real-and-formula-to-mr-formula-for-mr-clauses corrected in cases imp impnc.
+In real-and-formula-to-mr-formula-aux no extra treatment for ExL ExLT
+
+In examples/classical/fuerst.scm
+
+Incorporated some simplifications from Dominique Larchey-Wendling in
+his Coq-proof in archive/larchey/fuerst.v
+
+In pconst.scm
+
+display-pconst rewritten.  It now follows the order of its arguments.
+
+In term.scm
+
+term-to-name-tree added, which only uses names.  huet-unifiers-match
+corrected, to guaratee a variable as expr1 huet-unifiers-rigid-rigid
+corrected if-terms must have the same number of arguments.
+In huet-imitate-formula (arity-to-new-general-pvar arity) replaced by
+(arity-to-new-pvar arity pvar), to keep the h-deg of pvar.
+
+In formula.scm
+
+formula-to-name-tree added, which only uses names.  ppn (pretty print
+with names) helps to see the implicit coercions for nat sub pos sub
+int sub rat sub rea.  predicate-to-token-tree corrected for
+idpredconsts with non-inferable param-tvars (like ExRMR)
+
+In proof.scm
+
+PVAR-TO-TVAR-ALIST initially has
+(Pvar alpha) -> gamma
+Pvar2 -> beta2
+Pvar1 -> beta1
+Pvar  -> beta
+
+In pproof.scm
+
+Comments to simp and simp-with corrected.  In use2-closed-proof-intern
+(map arity-to-new-general-pvar new-critical-arities) replaced by
+(map arity-to-new-pvar new-critical-arities critical-pvars)
+PVAR-TO-MR-PVAR-ALIST initially has
+(Pvar alpha) -> (Pvar gamma alpha)^
+Pvar2 -> (Pvar beta2)^2
+Pvar1 -> (Pvar beta1)^1
+Pvar  -> (Pvar beta)^
+
+In lib/nat.scm
+
+Variable names n,m,l.  NatLeDouble NatLtDouble BooleEqToAeqLeft
+BooleEqToAeqRight NatMaxDouble added.
+
+In lib/pos.scm
+
+Variable names p,q,r.  Theorems PosLogZero PosLeExpTwoLog
+PosLtExpTwoSuccLog added (were in numbers.scm).  Rewrite rule p--q<=p
+mapsto True added.  Theorems PosMaxLUB PosMaxUB2 PosMaxUB1 PosToNatMax
+PosMaxEq2 PosMaxComm PosMaxEq1 NatMaxOnePos NatMaxPosOne added.
+
+In lib/int.scm
+
+Variable names k,j,i.  IntPlusTotalReal etc discarded.  Type of IntAbs
+changed from int=>nat to int=>int.  IntLeAbs (as rewrite rule) and
+IntLeMonMinus added.  IntUMinus used to define IntMinus by the
+computation rule k-j := k+ ~j (we want to push ~ inside over +).
+Since we want to push ~ outside over *, for IntTimes additional
+rewrite rules ~k*j -> ~(k*j) and k* ~j -> ~(k*j) added.  IntUMinusInj
+written as equality (~k= ~j)=(k=j).  Rules abs~k -> abs k and
+abs(k*j) -> abs k*abs j added.
+
+In lib/rat.scm
+
+Variable names a,b,c,d.  PosQuot ListBooleToPos PosGcd moved to new
+file examples/arith/posgcd.scm.  RatLeCompat replaced by the stronger
+all a,b,c,d(a==b -> c==d -> (a<=c)=(b<=d)).  RatEqvCompat added
+all a,b,c,d(a==b -> c==d -> (a==c)=(b==d)).  RatUMinusMinus removed.
+RatUMinus used to define RatMinus by the computation rule a-b := a+ ~b
+(we want to push ~ inside over +).  Since we want to push ~ outside
+over *, for RatTimes additional rewrite rules ~a*b -> ~(a*b) and a* ~b
+-> ~(a*b) added.  RatUMinusInj written as equality (~a= ~b)=(a=b).
+Rule abs~a -> abs a and abs(k#p) -> (abs k#p) added.
+
+In lib/rea.scm
+
+Variable names x,y for reals M,N of type nat=>nat as be cs ds of type
+nat=>rat
+
+In examples/arith/posgcd.scm
+
+New file.  lib/list.scm required, to represent positive numbers as
+lists of booleans.  PosLog added.  PosQuot PosGcd added.  PosQuotTotal
+and PosGcdTotal proved.
+
+In doc/ref.tex
+
+Explanation of simp-with corrected.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-04-09
 
 In examples/classical
 
