@@ -1,7 +1,6 @@
 ;; (load "~/git/minlog/init.scm")
 (load "names.scm")
 
-
 ;; 11. Partial proofs
 ;; ==================
 ;; (pproof.scm)
@@ -23,7 +22,7 @@
 
 (pp "NatEqTrans")
 
-;; all nat,nat0,nat1(nat=nat0 -> nat0=nat1 -> nat=nat1)
+;; all n,m,l(n=m -> m=l -> n=l)
 
 (set-goal (pf "all n n=n"))
 (assume "n")
@@ -31,7 +30,7 @@
 
 ;; use
 ;; more terms expected, to be substituted for
-;; nat2
+;; m
 
 (use "NatEqTrans" (pt "n1"))
 
@@ -58,11 +57,11 @@
 (assume "n^" "Tn")
 (elim "Tn")
 
-;; ok, ?_2 can be obtained from
+;; > ok, ?_2 can be obtained from
 
 ;;   n^  Tn:TotalNat n^
 ;; -----------------------------------------------------------------------------
-;; ?_4:allnc nat^(TotalNat nat^ -> P nat^ -> P(Succ nat^))
+;; ?_4:allnc n^(TotalNat n^ -> P n^ -> P(Succ n^))
 
 
 
@@ -590,8 +589,6 @@
 ;; Hancock/Joachimski style, with a trailing number.  Inductive
 ;; definition of "WN", simultaneously with "WNs".
 
-(add-var-name "l" (py "nat"))
-
 (add-algs "type"
 	 '("type" "Iota")
 	 '("type=>type=>type" "Arrow"))
@@ -686,6 +683,8 @@
  "Cor rhos(Abs rho r)" "Cor(rho::rhos)r")
 
 (add-program-constant "Lift" (py "term=>nat=>nat=>term") 1)
+
+(add-var-name "k" (py "nat"))
 
 (add-computation-rules
  "Lift(Var n)l k" "[if (n<l) (Var n) (Var(n+k))]"
@@ -936,7 +935,7 @@
 (remove-idpc-name "H")
 (remove-idpc-name "WN")
 
-(remove-var-name "l" "rho" "sig" "tau"
+(remove-var-name "k" "rho" "sig" "tau"
 		 "r" "s" "t"
 		 "rs" "ss" "ts"
 		 "rhos" "sigs" "taus"
@@ -979,7 +978,7 @@
 
 ;; Tests for simultaneous coinduction.
 
-(add-var-name "l" (py "tlist"))
+(add-var-name "ts" (py "tlist"))
 (add-var-name "t" (py "tree"))
 
 (add-totality "tlist")
@@ -988,23 +987,24 @@
 (display-idpc "CoTotalTlist" "CoTotalTree")
 
 ;; CoTotalTlist
-;; 	CoTotalTlistClause:	allnc l^(
-;;  CoTotalTlist l^ ->
-;;  l^ eqd Empty orr
-;;  exr t^(CoTotalTree t^ & exr l^0(CoTotalTlist l^0 andl l^ eqd Tcons t^ l^0)))
+;; 	CoTotalTlistClause:	allnc ts^(
+;;  CoTotalTlist ts^ -> 
+;;  ts^ eqd Empty orr 
+;;  exr t^(
+;;   CoTotalTree t^ & exr ts^0(CoTotalTlist ts^0 andl ts^ eqd Tcons t^ ts^0)))
 ;; CoTotalTree
 ;; 	CoTotalTreeClause:	allnc t^(
-;;  CoTotalTree t^ ->
-;;  t^ eqd Leaf orr exr l^(CoTotalTlist l^ andl t^ eqd Branch l^))
+;;  CoTotalTree t^ -> 
+;;  t^ eqd Leaf orr exr ts^(CoTotalTlist ts^ andl t^ eqd Branch ts^))
 
 ;; We prove inversion properties for the constructors Branch and Tcons.
 
 ;; CoTotalTlistInvBranch
-(pp (pf "allnc l^(CoTotalTlist l^ -> CoTotalTree(Branch l^))"))
+(pp (pf "allnc ts^(CoTotalTlist ts^ -> CoTotalTree(Branch ts^))"))
 
 ;; CoTotalTreeInvTcons
-(pp (pf "allnc t^,l^(
-         CoTotalTree t^ -> CoTotalTlist l^ -> CoTotalTlist(Tcons t^ l^))"))
+(pp (pf "allnc t^,ts^(
+         CoTotalTree t^ -> CoTotalTlist ts^ -> CoTotalTlist(Tcons t^ ts^))"))
 
 ;; This uses the greatest-fixed-point axiom.  For TotalTlistInvBranch
 ;; we take as the first implication formula one with CoTotalTree in the
@@ -1013,78 +1013,78 @@
 (pp (rename-variables
      (aconst-to-formula
       (imp-formulas-to-gfp-aconst
-       (pf "exr l^(t^ eqd Branch l^ & CoTotalTlist l^) -> CoTotalTree t^")
-       (pf "exr t^,l^1(
-             l^ eqd Tcons t^ l^1 & CoTotalTree t^ & CoTotalTlist l^1) ->
-            CoTotalTlist l^")))))
+       (pf "exr ts^(t^ eqd Branch ts^ & CoTotalTlist ts^) -> CoTotalTree t^")
+       (pf "exr t^,ts^1(
+             ts^ eqd Tcons t^ ts^1 & CoTotalTree t^ & CoTotalTlist ts^1) ->
+            CoTotalTlist ts^")))))
 
 ;; allnc t^(
-;;  exr l^(t^ eqd Branch l^ & CoTotalTlist l^) ->
-;;  allnc l^(
-;;   exr t^0,l^0(l^ eqd Tcons t^0 l^0 & CoTotalTree t^0 & CoTotalTlist l^0) ->
-;;   l^ eqd Empty orr
+;;  exr ts^(t^ eqd Branch ts^ & CoTotalTlist ts^) ->
+;;  allnc ts^(
+;;   exr t^0,ts^0(ts^ eqd Tcons t^0 ts^0 & CoTotalTree t^0 & CoTotalTlist ts^0) ->
+;;   ts^ eqd Empty orr
 ;;   exr t^0(
-;;    (CoTotalTree t^0 ord exr l^0(t^0 eqd Branch l^0 & CoTotalTlist l^0)) &
-;;    exr l^0(
-;;     (CoTotalTlist l^0 ord
-;;      exr t^1,l^1(l^0 eqd Tcons t^1 l^1 & CoTotalTree t^1 & CoTotalTlist l^1)) andl
-;;     l^ eqd Tcons t^0 l^0))) ->
+;;    (CoTotalTree t^0 ord exr ts^0(t^0 eqd Branch ts^0 & CoTotalTlist ts^0)) &
+;;    exr ts^0(
+;;     (CoTotalTlist ts^0 ord
+;;      exr t^1,ts^1(ts^0 eqd Tcons t^1 ts^1 & CoTotalTree t^1 & CoTotalTlist ts^1)) andl
+;;     ts^ eqd Tcons t^0 ts^0))) ->
 ;;  allnc t^0(
-;;   exr l^(t^0 eqd Branch l^ & CoTotalTlist l^) ->
+;;   exr ts^(t^0 eqd Branch ts^ & CoTotalTlist ts^) ->
 ;;   t^0 eqd Leaf orr
-;;   exr l^(
-;;    (CoTotalTlist l^ ord
-;;     exr t^1,l^0(l^ eqd Tcons t^1 l^0 & CoTotalTree t^1 & CoTotalTlist l^0)) andl
-;;    t^0 eqd Branch l^)) ->
+;;   exr ts^(
+;;    (CoTotalTlist ts^ ord
+;;     exr t^1,ts^0(ts^ eqd Tcons t^1 ts^0 & CoTotalTree t^1 & CoTotalTlist ts^0)) andl
+;;    t^0 eqd Branch ts^)) ->
 ;;  CoTotalTree t^)
 
 ;; CoTotalTlistInvBranchAux
 (set-goal
- "allnc t^(exr l^(t^ eqd Branch l^ & CoTotalTlist l^) -> CoTotalTree t^)")
+ "allnc t^(exr ts^(t^ eqd Branch ts^ & CoTotalTlist ts^) -> CoTotalTree t^)")
 (assume "t^" "Exl")
-(coind "Exl" (pf "exr t^,l^1(
-                   l^ eqd Tcons t^ l^1 & CoTotalTree t^ & CoTotalTlist l^1) ->
-                  CoTotalTlist l^"))
-;; ?_3:allnc l^(
-;;      exr t^,l^0(l^ eqd Tcons t^ l^0 & CoTotalTree t^ & CoTotalTlist l^0) ->
-;;      l^ eqd Empty orr
+(coind "Exl" (pf "exr t^,ts^1(
+                  ts^ eqd Tcons t^ ts^1 & CoTotalTree t^ & CoTotalTlist ts^1) ->
+                  CoTotalTlist ts^"))
+;; ?_3:allnc ts^(
+;;      exr t^,ts^0(ts^ eqd Tcons t^ ts^0 & CoTotalTree t^ & CoTotalTlist ts^0) ->
+;;      ts^ eqd Empty orr
 ;;      exr t^(
-;;       (CoTotalTree t^ ord exr l^0(t^ eqd Branch l^0 & CoTotalTlist l^0)) &
-;;       exr l^0(
-;;        (CoTotalTlist l^0 ord
-;;         exr t^0,l^1(
-;;          l^0 eqd Tcons t^0 l^1 & CoTotalTree t^0 & CoTotalTlist l^1)) andl
-;;        l^ eqd Tcons t^ l^0)))
+;;       (CoTotalTree t^ ord exr ts^0(t^ eqd Branch ts^0 & CoTotalTlist ts^0)) &
+;;       exr ts^0(
+;;        (CoTotalTlist ts^0 ord
+;;         exr t^0,ts^1(
+;;          ts^0 eqd Tcons t^0 ts^1 & CoTotalTree t^0 & CoTotalTlist ts^1)) andl
+;;        ts^ eqd Tcons t^ ts^0)))
 
 (drop "Exl")
-(assume "l^" "Ext1l1")
+(assume "ts^" "Ext1l1")
 (intro 1)
 (by-assume "Ext1l1" "t^1" "t1Prop")
-(by-assume "t1Prop" "l^1" "t1l1Prop")
+(by-assume "t1Prop" "ts^1" "t1l1Prop")
 (intro 0 (pt "t^1"))
 (split)
 (intro 0)
 (use "t1l1Prop")
-(intro 0 (pt "l^1"))
+(intro 0 (pt "ts^1"))
 (split)
 (intro 0)
 (use "t1l1Prop")
 (use "t1l1Prop")
 
 ;; ?_4:allnc t^(
-;;      exr l^(t^ eqd Branch l^ & CoTotalTlist l^) ->
+;;      exr ts^(t^ eqd Branch ts^ & CoTotalTlist ts^) ->
 ;;      t^ eqd Leaf orr
-;;      exr l^(
-;;       (CoTotalTlist l^ ord
-;;        exr t^0,l^0(
-;;         l^ eqd Tcons t^0 l^0 & CoTotalTree t^0 & CoTotalTlist l^0)) andl
-;;       t^ eqd Branch l^))
+;;      exr ts^(
+;;       (CoTotalTlist ts^ ord
+;;        exr t^0,ts^0(
+;;         ts^ eqd Tcons t^0 ts^0 & CoTotalTree t^0 & CoTotalTlist ts^0)) andl
+;;       t^ eqd Branch ts^))
 
 (drop "Exl")
 (assume "t^1" "Exl1")
 (intro 1)
-(by-assume "Exl1" "l^1" "l1Prop")
-(intro 0 (pt "l^1"))
+(by-assume "Exl1" "ts^1" "l1Prop")
+(intro 0 (pt "ts^1"))
 (split)
 (intro 0)
 (use "l1Prop")
@@ -1093,10 +1093,10 @@
 (save "CoTotalTlistInvBranchAux")
 
 ;; CoTotalTlistInvBranch
-(set-goal "allnc l^(CoTotalTlist l^ -> CoTotalTree(Branch l^))")
-(assume "l^" "CoTl")
+(set-goal "allnc ts^(CoTotalTlist ts^ -> CoTotalTree(Branch ts^))")
+(assume "ts^" "CoTl")
 (use "CoTotalTlistInvBranchAux")
-(intro 0 (pt "l^"))
+(intro 0 (pt "ts^"))
 (split)
 (use "InitEqD")
 (use "CoTl")
@@ -1111,93 +1111,94 @@
 
 (pp neterm)
 
-;; [l]
-;;  (CoRec tlist=>tree tree@@tlist=>tlist)l
+;; [ts]
+;;  (CoRec tlist=>tree tree@@tlist=>tlist)ts
 ;;  ([(tree@@tlist)]
 ;;    Inr((InL tree tlist)left(tree@@tlist)@
 ;;        (InL tlist tree@@tlist)right(tree@@tlist)))
-;;  ([l0]Inr((InL tlist tree@@tlist)l0))
+;;  ([ts0]Inr((InL tlist tree@@tlist)ts0))
 
 ;; For CoTotalTreeInvTcons we take as the first implication formula one
 ;; with CoTotalTlist in the conclusion.
 
-(pp (rename-variables
-     (aconst-to-formula
-      (imp-formulas-to-gfp-aconst
-       (pf "exr t^,l^1(
-             l^ eqd Tcons t^ l^1 & CoTotalTree t^ & CoTotalTlist l^1) ->
-            CoTotalTlist l^")
-       (pf "exr l^(t^ eqd Branch l^ & CoTotalTlist l^) -> CoTotalTree t^")))))
+(pp 
+ (rename-variables
+  (aconst-to-formula
+   (imp-formulas-to-gfp-aconst
+    (pf "exr t^,ts^1(
+             ts^ eqd Tcons t^ ts^1 & CoTotalTree t^ & CoTotalTlist ts^1) ->
+            CoTotalTlist ts^")
+    (pf "exr ts^(t^ eqd Branch ts^ & CoTotalTlist ts^) -> CoTotalTree t^")))))
 
-;; allnc l^(
-;;  exr t^,l^0(l^ eqd Tcons t^ l^0 & CoTotalTree t^ & CoTotalTlist l^0) ->
-;;  allnc l^0(
-;;   exr t^,l^1(l^0 eqd Tcons t^ l^1 & CoTotalTree t^ & CoTotalTlist l^1) ->
-;;   l^0 eqd Empty orr
+;; allnc ts^(
+;;  exr t^,ts^0(ts^ eqd Tcons t^ ts^0 & CoTotalTree t^ & CoTotalTlist ts^0) ->
+;;  allnc ts^0(
+;;   exr t^,ts^1(ts^0 eqd Tcons t^ ts^1 & CoTotalTree t^ & CoTotalTlist ts^1) ->
+;;   ts^0 eqd Empty orr
 ;;   exr t^(
-;;    (CoTotalTree t^ ord exr l^1(t^ eqd Branch l^1 & CoTotalTlist l^1)) &
-;;    exr l^1(
-;;     (CoTotalTlist l^1 ord
-;;      exr t^0,l^2(l^1 eqd Tcons t^0 l^2 & CoTotalTree t^0 & CoTotalTlist l^2)) andl
-;;     l^0 eqd Tcons t^ l^1))) ->
+;;    (CoTotalTree t^ ord exr ts^1(t^ eqd Branch ts^1 & CoTotalTlist ts^1)) &
+;;    exr ts^1(
+;;     (CoTotalTlist ts^1 ord
+;;      exr t^0,ts^2(ts^1 eqd Tcons t^0 ts^2 & CoTotalTree t^0 & CoTotalTlist ts^2)) andl
+;;     ts^0 eqd Tcons t^ ts^1))) ->
 ;;  allnc t^(
-;;   exr l^0(t^ eqd Branch l^0 & CoTotalTlist l^0) ->
+;;   exr ts^0(t^ eqd Branch ts^0 & CoTotalTlist ts^0) ->
 ;;   t^ eqd Leaf orr
-;;   exr l^0(
-;;    (CoTotalTlist l^0 ord
-;;     exr t^0,l^1(l^0 eqd Tcons t^0 l^1 & CoTotalTree t^0 & CoTotalTlist l^1)) andl
-;;    t^ eqd Branch l^0)) ->
-;;  CoTotalTlist l^)
+;;   exr ts^0(
+;;    (CoTotalTlist ts^0 ord
+;;     exr t^0,ts^1(ts^0 eqd Tcons t^0 ts^1 & CoTotalTree t^0 & CoTotalTlist ts^1)) andl
+;;    t^ eqd Branch ts^0)) ->
+;;  CoTotalTlist ts^)
 
 ;; CoTotalTreeInvTconsAux
 (set-goal
- "allnc l^(exr t^,l^1(
-            l^ eqd Tcons t^ l^1 & CoTotalTree t^ & CoTotalTlist l^1) ->
-            CoTotalTlist l^)")
-(assume "l^" "Extl")
+ "allnc ts^(exr t^,ts^1(
+            ts^ eqd Tcons t^ ts^1 & CoTotalTree t^ & CoTotalTlist ts^1) ->
+            CoTotalTlist ts^)")
+(assume "ts^" "Extl")
 (coind "Extl"
-       (pf "exr l^(t^ eqd Branch l^ & CoTotalTlist l^) -> CoTotalTree t^"))
+       (pf "exr ts^(t^ eqd Branch ts^ & CoTotalTlist ts^) -> CoTotalTree t^"))
 
-;; ?_3:allnc l^(
-;;      exr t^,l^0(l^ eqd Tcons t^ l^0 & CoTotalTree t^ & CoTotalTlist l^0) ->
-;;      l^ eqd Empty orr
+;; ?_3:allnc ts^(
+;;      exr t^,ts^0(ts^ eqd Tcons t^ ts^0 & CoTotalTree t^ & CoTotalTlist ts^0) ->
+;;      ts^ eqd Empty orr
 ;;      exr t^(
-;;       (CoTotalTree t^ ord exr l^0(t^ eqd Branch l^0 & CoTotalTlist l^0)) &
-;;       exr l^0(
-;;        (CoTotalTlist l^0 ord
-;;         exr t^0,l^1(
-;;          l^0 eqd Tcons t^0 l^1 & CoTotalTree t^0 & CoTotalTlist l^1)) andl
-;;        l^ eqd Tcons t^ l^0)))
+;;       (CoTotalTree t^ ord exr ts^0(t^ eqd Branch ts^0 & CoTotalTlist ts^0)) &
+;;       exr ts^0(
+;;        (CoTotalTlist ts^0 ord
+;;         exr t^0,ts^1(
+;;          ts^0 eqd Tcons t^0 ts^1 & CoTotalTree t^0 & CoTotalTlist ts^1)) andl
+;;        ts^ eqd Tcons t^ ts^0)))
 
 (drop "Extl")
-(assume "l^1" "Ext2l2")
+(assume "ts^1" "Ext2l2")
 (intro 1)
 (by-assume "Ext2l2" "t^2" "t2Prop")
-(by-assume "t2Prop" "l^2" "t2l2Prop")
+(by-assume "t2Prop" "ts^2" "t2l2Prop")
 (intro 0 (pt "t^2"))
 (split)
 (intro 0)
 (use "t2l2Prop")
-(intro 0 (pt "l^2"))
+(intro 0 (pt "ts^2"))
 (split)
 (intro 0)
 (use "t2l2Prop")
 (use "t2l2Prop")
 
 ;; ?_4:allnc t^(
-;;      exr l^(t^ eqd Branch l^ & CoTotalTlist l^) ->
+;;      exr ts^(t^ eqd Branch ts^ & CoTotalTlist ts^) ->
 ;;      t^ eqd Leaf orr
-;;      exr l^(
-;;       (CoTotalTlist l^ ord
-;;        exr t^0,l^0(
-;;         l^ eqd Tcons t^0 l^0 & CoTotalTree t^0 & CoTotalTlist l^0)) andl
-;;       t^ eqd Branch l^))
+;;      exr ts^(
+;;       (CoTotalTlist ts^ ord
+;;        exr t^0,ts^0(
+;;         ts^ eqd Tcons t^0 ts^0 & CoTotalTree t^0 & CoTotalTlist ts^0)) andl
+;;       t^ eqd Branch ts^))
 
 (drop "Extl")
 (assume "t^1" "Exl1")
 (intro 1)
-(by-assume "Exl1" "l^1" "l1Prop")
-(intro 0 (pt "l^1"))
+(by-assume "Exl1" "ts^1" "l1Prop")
+(intro 0 (pt "ts^1"))
 (split)
 (intro 0)
 (use "l1Prop")
@@ -1206,12 +1207,12 @@
 (save "CoTotalTreeInvTconsAux")
 
 ;; CoTotalTreeInvTcons
-(set-goal "allnc t^,l^(
-         CoTotalTree t^ -> CoTotalTlist l^ -> CoTotalTlist(Tcons t^ l^))")
-(assume "t^" "l^" "CoTt" "CoTl")
+(set-goal "allnc t^,ts^(
+         CoTotalTree t^ -> CoTotalTlist ts^ -> CoTotalTlist(Tcons t^ ts^))")
+(assume "t^" "ts^" "CoTt" "CoTl")
 (use "CoTotalTreeInvTconsAux")
 (intro 0 (pt "t^"))
-(intro 0 (pt "l^"))
+(intro 0 (pt "ts^"))
 (split)
 (use "InitEqD")
 (split)
@@ -1228,14 +1229,14 @@
 
 (pp neterm)
 
-;; [t,l]
-;;  (CoRec tree@@tlist=>tlist tlist=>tree)(t@l)
+;; [t,ts]
+;;  (CoRec tree@@tlist=>tlist tlist=>tree)(t@ts)
 ;;  ([(tree@@tlist)]
 ;;    Inr((InL tree tlist)left(tree@@tlist)@
 ;;        (InL tlist tree@@tlist)right(tree@@tlist)))
-;;  ([l0]Inr((InL tlist tree@@tlist)l0))
+;;  ([ts0]Inr((InL tlist tree@@tlist)ts0))
 
-(remove-var-name "l" "t")
+(remove-var-name "ts" "t")
 
 ;; Tests for search.
 
@@ -1271,25 +1272,24 @@
 
 (proof-to-expr-with-formulas (current-proof))
 
-;; StabQ2573: all y(((Q y -> F) -> F) -> Q y)
-;; FHyp2574: all x((Q x -> all y Q y) -> F)
-;; QInhab2576: Q(Inhab alpha)
-;; NotQy2578: Q y -> F
-;; Qy2580: Q y
-;; NotQz2582: Q z -> F
+;; StabQ: all y(((Q y -> F) -> F) -> Q y)
+;; FHyp: all x((Q x -> all y Q y) -> F)
+;; QInhab: Q(Inhab alpha)
+;; NotQy: Q y -> F
+;; Qy: Q y
+;; NotQz: Q z -> F
 
-;; (lambda (StabQ2573)
-;;   (lambda (FHyp2574)
-;;     ((FHyp2574 inhab)
-;;       (lambda (QInhab2576)
+;; (lambda (StabQ)
+;;   (lambda (FHyp)
+;;     ((FHyp inhab)
+;;       (lambda (QInhab)
 ;;         (lambda (y)
-;;           ((StabQ2573 y)
-;;             (lambda (NotQy2578)
-;;               ((FHyp2574 y)
-;;                 (lambda (Qy2580)
+;;           ((StabQ y)
+;;             (lambda (NotQy)
+;;               ((FHyp y)
+;;                 (lambda (Qy)
 ;;                   (lambda (z)
-;;                     ((StabQ2573 z)
-;;                       (lambda (NotQz2582) (NotQy2578 Qy2580)))))))))))))
+;;                     ((StabQ z) (lambda (NotQz) (NotQy Qy)))))))))))))
 
 (set-goal "all y(((Q y -> F) -> F) -> Q y) -> exca x(Q x -> all y Q y)")
 (search)
@@ -1297,25 +1297,24 @@
 
 (proof-to-expr-with-formulas (current-proof))
 
-;; u2585: all y(((Q y -> F) -> F) -> Q y)
-;; u2586: all x((Q x -> all y Q y) -> F)
-;; u2587: Q x
-;; u2588: Q y -> F
-;; u2591: Q y
-;; u2592: Q y5493 -> F
+;; u: all y(((Q y -> F) -> F) -> Q y)
+;; u0: all x((Q x -> all y Q y) -> F)
+;; u1: Q x
+;; u2: Q y -> F
+;; u3: Q y
+;; u4: Q y9416 -> F
 
-;; (lambda (u2585)
-;;   (lambda (u2586)
-;;     ((u2586 x)
-;;       (lambda (u2587)
+;; (lambda (u)
+;;   (lambda (u0)
+;;     ((u0 x)
+;;       (lambda (u1)
 ;;         (lambda (y)
-;;           ((u2585 y)
-;;             (lambda (u2588)
-;;               ((u2586 y)
-;;                 (lambda (u2591)
-;;                   (lambda (y5493)
-;;                     ((u2585 y5493)
-;;                       (lambda (u2592) (u2588 u2591)))))))))))))
+;;           ((u y)
+;;             (lambda (u2)
+;;               ((u0 y)
+;;                 (lambda (u3)
+;;                   (lambda (y9416)
+;;                     ((u y9416) (lambda (u4) (u2 u3)))))))))))))
 
 ;; Contains x free.
 

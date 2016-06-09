@@ -306,9 +306,9 @@
 (pp (term-to-type eterm0))
 ;; nat=>nat
 
-(define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> k=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
-;; allnc m,k(exd n n=m -> all n(n=m -> k=0) -> k=0)
+;; allnc m,l(exd n n=m -> all n(n=m -> l=0) -> l=0)
 
 (define idpc (predicate-form-to-predicate (pf "exd n^ n^ =m")))
 (idpredconst-to-string idpc)
@@ -318,9 +318,9 @@
 (pp (rename-variables (aconst-to-formula aconst0)))
 ;; allnc m all n^(n^ =m -> exd n^0 n^0=m)
 
-(define aconst (imp-formulas-to-elim-aconst (pf "exd n^ n^ =m -> k=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "exd n^ n^ =m -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
-;; allnc m,k(exd n^ n^ =m -> all n^(n^ =m -> k=0) -> k=0)
+;; allnc m,l(exd n^ n^ =m -> all n^(n^ =m -> l=0) -> l=0)
 
 (define idpc
   (predicate-form-to-predicate
@@ -351,11 +351,11 @@
 
 (define aconst
   (imp-formulas-to-elim-aconst
-   (pf "(PiOne (cterm (x^1544,x^1543) R x^1544 x^1543))x^ -> k=0")))
+   (pf "(PiOne (cterm (x^1544,x^1543) R x^1544 x^1543))x^ -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
 
-;; allnc x^,k(
-;;  (PiOne (cterm (x^0,x^1) R x^0 x^1))x^ -> all x^0,y^(R x^0 y^ -> k=0) -> k=0)
+;; allnc x^,l(
+;;  (PiOne (cterm (x^0,x^1) R x^0 x^1))x^ -> all x^0,y^(R x^0 y^ -> l=0) -> l=0)
 
 (define idpc
   (predicate-form-to-predicate
@@ -373,15 +373,15 @@
 
 (define aconst
   (imp-formulas-to-elim-aconst
-   (pf "(TrCl (cterm (x^1535,x^1534) R x^1535 x^1534))x^ y^ -> k=0")))
+   (pf "(TrCl (cterm (x^1535,x^1534) R x^1535 x^1534))x^ y^ -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
 
-;; allnc x^,x^0,k(
+;; allnc x^,x^0,l(
 ;;  (TrCl (cterm (x^1,x^2) R x^1 x^2))x^ x^0 ->
-;;  allnc x^1,y^(R x^1 y^ -> k=0) ->
+;;  allnc x^1,y^(R x^1 y^ -> l=0) ->
 ;;  allnc x^1,y^,z^(
-;;   R x^1 y^ -> (TrCl (cterm (x^2,x^3) R x^2 x^3))y^ z^ -> k=0 -> k=0) ->
-;;  k=0)
+;;   R x^1 y^ -> (TrCl (cterm (x^2,x^3) R x^2 x^3))y^ z^ -> l=0 -> l=0) ->
+;;  l=0)
 
 (define idpc
   (idpredconst-name-and-types-and-cterms-to-idpredconst
@@ -404,15 +404,15 @@
 (pp (term-to-type eterm1))
 ;; (alpha=>itree alpha)=>itree alpha
 
-(define aconst (imp-formulas-to-elim-aconst (pf "Acc rel^ x^ -> k=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "Acc rel^ x^ -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
 
-;; allnc rel^,x^,k(
+;; allnc rel^,x^,l(
 ;;  Acc rel^ x^ ->
-;;  allnc rel^0,x^0(F -> k=0) ->
+;;  allnc rel^0,x^0(F -> l=0) ->
 ;;  allnc rel^0,x^0(
-;;   all y^(rel^0 y^ x^0 -> Acc rel^0 y^) -> all y^(rel^0 y^ x^0 -> k=0) -> k=0) ->
-;;  k=0)
+;;   all y^(rel^0 y^ x^0 -> Acc rel^0 y^) -> all y^(rel^0 y^ x^0 -> l=0) -> l=0) ->
+;;  l=0)
 
 (define idpc (predicate-form-to-predicate (pf "(ExDT nat (cterm (n) n=m))")))
 (idpredconst-to-string idpc)
@@ -426,9 +426,9 @@
 (pp (term-to-type eterm0))
 ;; nat=>nat
 
-(define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> k=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
-;; allnc m,k(exd n n=m -> all n(n=m -> k=0) -> k=0)
+;; allnc m,l(exd n n=m -> all n(n=m -> l=0) -> l=0)
 
 (define idpc
   (idpredconst-name-and-types-and-cterms-to-idpredconst

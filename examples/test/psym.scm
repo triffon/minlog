@@ -229,10 +229,10 @@
       0 (idpredconst-name-and-types-and-cterms-to-idpredconst
 	 "TrCl"
 	 (list (py "nat"))
-	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "ex k n^1+k=n^2"))))))))
+	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "ex l n^1+l=n^2"))))))))
 
 ;; allnc n^,n^0(
-;;  ex k n^ +k=n^0 -> (TrCl (cterm (n^1,n^2) ex k n^1+k=n^2))n^ n^0)
+;;  ex l n^ +l=n^0 -> (TrCl (cterm (n^1,n^2) ex l n^1+l=n^2))n^ n^0)
 
 (pp (rename-variables
      (aconst-to-formula
@@ -240,19 +240,19 @@
       1 (idpredconst-name-and-types-and-cterms-to-idpredconst
 	 "TrCl"
 	 (list (py "nat"))
-	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "ex k n^1+k=n^2"))))))))
+	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "ex l n^1+l=n^2"))))))))
 
 ;; allnc n^,n^0,n^1(
-;;  ex k n^ +k=n^0 ->
-;;  (TrCl (cterm (n^2,n^3) ex k n^2+k=n^3))n^0 n^1 ->
-;;  (TrCl (cterm (n^2,n^3) ex k n^2+k=n^3))n^ n^1)
+;;  ex l n^ +l=n^0 ->
+;;  (TrCl (cterm (n^2,n^3) ex l n^2+l=n^3))n^0 n^1 ->
+;;  (TrCl (cterm (n^2,n^3) ex l n^2+l=n^3))n^ n^1)
 
 ;; The et-type of the idpredconst depends on the et-type of the
 ;; parameter cterm.
 
 (pp (idpredconst-to-et-type
      (predicate-form-to-predicate
-      (pf "(TrCl (cterm (n^2,n^3) ex k n^2+k=n^3))n^ n^1"))))
+      (pf "(TrCl (cterm (n^2,n^3) ex l n^2+l=n^3))n^ n^1"))))
 ;; lnat nat
 
 ;; In case the parameter cterm is n.c. we can avoid the unit type in
@@ -347,29 +347,29 @@
 ;; (cdp)
 
 ;; Therefore add-mr-ids is an overkill for totality predicates.  It
-;; suffices to use the n.c. predicate TotalNatNC
+;; suffices to use the n.c. predicate TotalNatNc
 
-(add-ids (list (list "TotalNatNC" (make-arity (py "nat"))))
-	 '("TotalNatNC Zero" "TotalNatZeroNC")
-	 '("all nat^(TotalNatNC nat^ -> TotalNatNC(Succ nat^))"
-	   "TotalNatSuccNC"))
+(add-ids (list (list "TotalNatNc" (make-arity (py "nat"))))
+	 '("TotalNatNc Zero" "TotalNatZeroNc")
+	 '("all nat^(TotalNatNc nat^ -> TotalNatNc(Succ nat^))"
+	   "TotalNatSuccNc"))
 
 ;; Then we can prove
 
-(set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> TotalNatNC nat^)")
+(set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> TotalNatNc nat^)")
 (assume "nat^1" "nat^" "TMRn1n")
 (elim "TMRn1n")
-(use "TotalNatZeroNC")
+(use "TotalNatZeroNc")
 (assume "nat^2" "nat^3" "Useless")
-(use "TotalNatSuccNC")
+(use "TotalNatSuccNc")
 ;; Proof finished.
 ;; (cdp)
 
 ;; and the converse
 
-(set-goal "all nat^(TotalNatNC nat^ -> TotalNatMR nat^ nat^)")
-(assume "nat^" "TNCn")
-(elim "TNCn")
+(set-goal "all nat^(TotalNatNc nat^ -> TotalNatMR nat^ nat^)")
+(assume "nat^" "TNcn")
+(elim "TNcn")
 (use "TotalNatZeroMR")
 (assume "nat^1" "Useless")
 (use "TotalNatSuccMR")
@@ -378,7 +378,7 @@
 
 ;; Tests for add-totality
 
-(add-var-name "l" (py "(infltlist alpha)"))
+(add-var-name "ts" (py "(infltlist alpha)"))
 (add-var-name "t" (py "(infltree alpha)"))
 
 (add-totality "infltlist")
@@ -391,16 +391,16 @@
 ;; TotalInfltlist
 ;; 	TotalInfltlistInfLEmpty:	TotalInfltlist(InfLEmpty alpha)
 ;; 	TotalInfltlistInfLTcons:	allnc t^(
-;;  TotalInfltree t^ ->
-;;  allnc l^(TotalInfltlist l^ -> TotalInfltlist((InfLTcons alpha)t^ l^)))
+;;  TotalInfltree t^ -> 
+;;  allnc ts^(TotalInfltlist ts^ -> TotalInfltlist((InfLTcons alpha)t^ ts^)))
 ;; TotalInfltree
 ;; 	TotalInfltreeInfLLeaf:	allnc x^(Total x^ -> TotalInfltree((InfLLeaf alpha)x^))
-;; 	TotalInfltreeInfLBranch:	allnc l^(TotalInfltlist l^ -> TotalInfltree((InfLBranch alpha)l^))
+;; 	TotalInfltreeInfLBranch:	allnc ts^(TotalInfltlist ts^ -> TotalInfltree((InfLBranch alpha)ts^))
 ;; 	TotalInfltreeInfLLim:	allnc (nat=>infltree alpha)^(
-;;  allnc n^(TotalNat n^ -> TotalInfltree((nat=>infltree alpha)^ n^)) ->
+;;  allnc n^(TotalNat n^ -> TotalInfltree((nat=>infltree alpha)^ n^)) -> 
 ;;  TotalInfltree((InfLLim alpha)(nat=>infltree alpha)^))
 
-(remove-var-name "l" "t")
+(remove-var-name "ts" "t")
 
 ;; Tests for term-to-totality-formula
 

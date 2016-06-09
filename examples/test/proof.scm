@@ -68,7 +68,7 @@
 		(make-avar (pf "all n0(S^ p n0 -> S^ p(Succ n0))") -1 "v"))))
 ;; (proof-to-expr-with-formulas proof)
 
-;; Ind: allnc p all n(S^ p 0 -> all n0(S^ p n0 -> S^ p(Succ n0)) -> S^ p n)
+;; Ind: all p,n(S^ p 0 -> all n0(S^ p n0 -> S^ p(Succ n0)) -> S^ p n)
 ;; u: S^ p 0
 ;; v: all n(S^ p n -> S^ p(Succ n))
 
@@ -77,7 +77,8 @@
 (define nproof (np proof))
 ;; (cdp nproof)
 ;; (proof-to-expr-with-formulas nproof)
-;; Ind: allnc p all n(S^ p 0 -> all n0(S^ p n0 -> S^ p(Succ n0)) -> S^ p n)
+
+;; Ind: all p,n(S^ p 0 -> all n0(S^ p n0 -> S^ p(Succ n0)) -> S^ p n)
 ;; v: all n(S^ p n -> S^ p(Succ n))
 ;; u: S^ p 0
 
@@ -88,8 +89,9 @@
 (pp (rename-variables
      (aconst-to-formula
       (imp-formulas-to-elim-aconst (pf "Even n^ -> S^ p n^")))))
-;; allnc n^,p(
-;;  Even n^ ->
+
+;; all n^,p(
+;;  Even n^ -> 
 ;;  S^ p 0 -> allnc n^0(Even n^0 -> S^ p n^0 -> S^ p(n^0+2)) -> S^ p n^)
 
 ;; Note that the parameter p is bound after n^, not before (as with Ind)
@@ -115,8 +117,9 @@
 
 ;; (cdp proof)
 ;; (proof-to-expr-with-formulas proof)
-;; Elim: allnc n^,p(
-;;  Even n^ ->
+
+;; Elim: all n^,p(
+;;  Even n^ -> 
 ;;  S^ p 0 -> allnc n^0(Even n^0 -> S^ p n^0 -> S^ p(n^0+2)) -> S^ p n^)
 ;; Intro: allnc n^(Even n^ -> Even(n^ +2))
 ;; w: Even n^
@@ -132,8 +135,9 @@
 
 ;; (cdp nproof)
 ;; (proof-to-expr-with-formulas nproof)
-;; Elim: allnc n^,p(
-;;  Even n^ ->
+
+;; Elim: all n^,p(
+;;  Even n^ -> 
 ;;  S^ p 0 -> allnc n^0(Even n^0 -> S^ p n^0 -> S^ p(n^0+2)) -> S^ p n^)
 ;; v: allnc n^(Even n^ -> S^(negb p)n^ -> S^(negb p)(n^ +2))
 ;; w: Even n^
@@ -221,22 +225,22 @@
 
 (define elim-aconst
   (imp-formulas-to-elim-aconst
-   (pf "(RTotalBbin (cterm (n^) S m^ n^))a^ -> P k^ a^")))
+   (pf "(RTotalBbin (cterm (n^) S m^ n^))a^ -> P l^ a^")))
 
 (pp (rename-variables (aconst-to-formula elim-aconst)))
 
-;; allnc a^,m^,k^(
-;;  (RTotalBbin (cterm (n^) S m^ n^))a^ ->
-;;  P k^(BbinNil nat) ->
+;; allnc a^,m^,l^(
+;;  (RTotalBbin (cterm (n^) S m^ n^))a^ -> 
+;;  P l^(BbinNil nat) -> 
 ;;  allnc n^(
-;;   S m^ n^ ->
+;;   S m^ n^ -> 
 ;;   allnc a^0(
-;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 ->
+;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 -> 
+;;    P l^ a^0 -> 
 ;;    allnc a^1(
-;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 ->
-;;     P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1)))) ->
-;;  P k^ a^)
+;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 -> 
+;;     P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1)))) -> 
+;;  P l^ a^)
 
 (define idpredconst
   (make-idpredconst
@@ -262,19 +266,19 @@
   (let ((u1 (make-avar (pf "S m^ n^") 1 "u"))
 	(u2 (make-avar (pf "(RTotalBbin (cterm (n^) S m^ n^))a^") 2 "u"))
 	(u3 (make-avar (pf "(RTotalBbin (cterm (n^) S m^ n^))b^") 3 "u"))
-	(v0 (make-avar (pf "P k^(BbinNil nat)") 0 "v"))
+	(v0 (make-avar (pf "P l^(BbinNil nat)") 0 "v"))
 	(v1 (make-avar (pf
 "allnc n^(
   S m^ n^ ->
   allnc a^0(
    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-   P k^ a^0 ->
+   P l^ a^0 ->
    allnc a^1(
     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 ->
-    P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1))))") 1 "v")))
+    P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1))))") 1 "v")))
     (mk-proof-in-elim-form
      (make-proof-in-aconst-form elim-aconst)
-     (pt "(BbinBranch nat)n^ a^ b^") (pt "m^") (pt "k^")
+     (pt "(BbinBranch nat)n^ a^ b^") (pt "m^") (pt "l^")
      (mk-proof-in-elim-form
       (make-proof-in-aconst-form intro-aconst)
       (pt "m^") (pt "n^") (make-proof-in-avar-form u1)
@@ -285,18 +289,18 @@
 
 ;; (cdp proof)
 ;; (proof-to-expr-with-formulas proof)
-;; Elim: allnc a^,m^,k^(
+;; Elim: allnc a^,m^,l^(
 ;;  (RTotalBbin (cterm (n^) S m^ n^))a^ ->
-;;  P k^(BbinNil nat) ->
+;;  P l^(BbinNil nat) ->
 ;;  allnc n^(
 ;;   S m^ n^ ->
 ;;   allnc a^0(
 ;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 ->
+;;    P l^ a^0 ->
 ;;    allnc a^1(
 ;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 ->
-;;     P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1)))) ->
-;;  P k^ a^)
+;;     P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1)))) ->
+;;  P l^ a^)
 ;; Intro: allnc m^,n^(
 ;;  S m^ n^ ->
 ;;  allnc a^(
@@ -307,17 +311,17 @@
 ;; u1: S m^ n^
 ;; u2: (RTotalBbin (cterm (n^) S m^ n^))a^
 ;; u3: (RTotalBbin (cterm (n^) S m^ n^))b^
-;; v0: P k^(BbinNil nat)
+;; v0: P l^(BbinNil nat)
 ;; v1: allnc n^(
 ;;  S m^ n^ ->
 ;;  allnc a^(
 ;;   (RTotalBbin (cterm (n^0) S m^ n^0))a^ ->
-;;   P k^ a^ ->
+;;   P l^ a^ ->
 ;;   allnc a^0(
 ;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 -> P k^((BbinBranch nat)n^ a^ a^0))))
+;;    P l^ a^0 -> P l^((BbinBranch nat)n^ a^ a^0))))
 
-;; ((((((Elim (((BbinBranch n^) a^) b^)) m^) k^)
+;; ((((((Elim (((BbinBranch n^) a^) b^)) m^) l^)
 ;;     (((((((Intro m^) n^) u1) a^) u2) b^) u3))
 ;;    v0)
 ;;   v1)
@@ -327,36 +331,36 @@
 ;; (cdp nproof)
 (proof-to-expr-with-formulas nproof)
 
-;; Elim: allnc a^,m^,k^(
+;; Elim: allnc a^,m^,l^(
 ;;  (RTotalBbin (cterm (n^) S m^ n^))a^ -> 
-;;  P k^(BbinNil nat) -> 
+;;  P l^(BbinNil nat) -> 
 ;;  allnc n^(
 ;;   S m^ n^ -> 
 ;;   allnc a^0(
 ;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 -> 
-;;    P k^ a^0 -> 
+;;    P l^ a^0 -> 
 ;;    allnc a^1(
 ;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 -> 
-;;     P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1)))) -> 
-;;  P k^ a^)
+;;     P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1)))) -> 
+;;  P l^ a^)
 ;; v1: allnc n^(
 ;;  S m^ n^ -> 
 ;;  allnc a^(
 ;;   (RTotalBbin (cterm (n^0) S m^ n^0))a^ -> 
-;;   P k^ a^ -> 
+;;   P l^ a^ -> 
 ;;   allnc a^0(
 ;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 -> 
-;;    P k^ a^0 -> P k^((BbinBranch nat)n^ a^ a^0))))
+;;    P l^ a^0 -> P l^((BbinBranch nat)n^ a^ a^0))))
 ;; u1: S m^ n^
 ;; u2: (RTotalBbin (cterm (n^) S m^ n^))a^
-;; v0: P k^(BbinNil nat)
+;; v0: P l^(BbinNil nat)
 ;; u3: (RTotalBbin (cterm (n^) S m^ n^))b^
 
 ;; ((((((((v1 n^) u1) a^) u2)
-;;      ((((((Elim a^) m^) k^) u2) v0) v1))
+;;      ((((((Elim a^) m^) l^) u2) v0) v1))
 ;;     b^)
 ;;    u3)
-;;   ((((((Elim b^) m^) k^) u3) v0) v1))
+;;   ((((((Elim b^) m^) l^) u3) v0) v1))
 
 ;; Note that in the elim-aconst variables are generalized in the order
 ;; idpc-arg-vars idpc-cterm-vars competitor-extra-vars
@@ -512,7 +516,7 @@
 (add-var-name "i" "j" (py "nat"))
 
 ;; TestThm
-(set-goal "all i,j ex k(i<=k & j<=k)")
+(set-goal "all i,j ex l(i<=l & j<=l)")
 (assume "i" "j")
 (use "If" (pt "i<=j"))
 (assume "PosHyp1")
@@ -539,15 +543,15 @@
 (define testproof (theorem-name-to-proof "TestThm"))
 (proof-to-expr-with-formulas testproof)
 (pp (rename-variables (nt (proof-to-extracted-term testproof))))
-;; [n,n0][if (n<=n0) n0 [if (n<=n0) 0 n]]
+;; [n,n0](cIf nat)(n<=n0)n0((cIf nat)(n<=n0)0 n)
 
 (define rem-testproof (remove-predecided-if-theorems testproof))
 (proof-to-expr rem-testproof)
 (pp (rename-variables (nt (proof-to-extracted-term rem-testproof))))
-;; [n,n0][if (n<=n0) n0 n]
+;; [n,n0](cIf nat)(n<=n0)n0 n
 
 ;; TestThm1
-(set-goal "all i,j ex k(i<=k & j<=k)")
+(set-goal "all i,j ex l(i<=l & j<=l)")
 (assume "i" "j")
 (use "If" (pt "i<=j"))
 (assume "PosHyp1")
@@ -585,7 +589,7 @@
 ;; [n0,n1](cIf nat)(n0<=n1)n1 n0
 
 ;; TestThm2
-(set-goal "all i,j ex k(i<=k & j<=k)")
+(set-goal "all i,j ex l(i<=l & j<=l)")
 (assume "i" "j")
 (use "If" (pt "i<=j--Pred i"))
 (assume "PosHyp1")

@@ -144,7 +144,7 @@
 
 (add-pvar-name "P" (make-arity (py "nat") (py "bin")))
 
-(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P k^ a^")))
+(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P l^ a^")))
 ;; (cdp proof)
 
 (remove-pvar-name "P")
@@ -158,7 +158,7 @@
 (add-pvar-name "P" (make-arity (py "nat") (py "list alpha")))
 
 (define proof (imp-formulas-to-mr-elim-proof
-	       (pf "(RTotalList (cterm (x^) S n^ x^))xs^ -> P k^ xs^")))
+	       (pf "(RTotalList (cterm (x^) S n^ x^))xs^ -> P l^ xs^")))
 ;; (cdp proof)
 
 (remove-pvar-name "S" "P")
@@ -216,15 +216,15 @@
 (add-pvar-name "S" (make-arity (py "tlist")))
 (add-pvar-name "P" (make-arity (py "tree")))
 
-(add-var-name "l" (py "tlist"))
+(add-var-name "ts" (py "tlist"))
 (add-var-name "t" (py "tree"))
 
 (define proof (imp-formulas-to-mr-elim-proof
-	       (pf "TotalTree t^ -> P t^") (pf "TotalTlist l^ -> S l^")))
+	       (pf "TotalTree t^ -> P t^") (pf "TotalTlist ts^ -> S ts^")))
 ;; (cdp proof)
 
 (remove-pvar-name "S" "P")
-(remove-var-name "t" "l")
+(remove-var-name "t" "ts")
 
 ;; Test for imp-formulas-to-mr-elim-proof with a binary idpc
 
@@ -270,7 +270,6 @@
 ;;    ((CGenI alpha793)alpha793^(algI alpha793)^0(algI alpha793)^1)
 ;;    ((BbinBranch boole)q a b))))
 
-(remove-pvar-name "Z")
 (add-pvar-name "Z" (make-arity))
 
 (define imp-formula (pf "(I (cterm (q^) Y q^))a^ -> Z"))
@@ -283,60 +282,57 @@
 ;; Test of ex-formula-to-ex-intro-mr-proof
 
 (define proof (ex-formula-to-ex-intro-mr-proof (pf "ex x^ (Pvar alpha)^ x^")))
-(cdp proof)
+;; (cdp proof)
 (pp (proof-to-formula proof))
 ;; all x^((Pvar alpha)^ x^ -> (Pvar alpha)^ x^)
 
 (define proof (ex-formula-to-ex-intro-mr-proof (pf "ex x^ (Pvar alpha) x^")))
-(cdp proof)
+;; (cdp proof)
 (pp (rename-variables (proof-to-formula proof)))
 
-;; all x^,alpha165^(
-;;  (Pvar alpha165 alpha)^99 alpha165^ x^ -> 
-;;  (Pvar alpha165 alpha)^99 alpha165^ x^)
+;; all x^,gamma^(
+;;  (Pvar gamma alpha)^ gamma^ x^ -> (Pvar gamma alpha)^ gamma^ x^)
 
 ;; Test of ex-formula-and-concl-to-ex-elim-mr-proof
 (define proof (ex-formula-and-concl-to-ex-elim-mr-proof
 	       (pf "ex x^ (Pvar alpha)^ x^") (pf "Pvar")))
-(cdp proof)
+;; (cdp proof)
 (pp (rename-variables (proof-to-formula proof)))
 
 ;; all x^(
 ;;  (Pvar alpha)^ x^ -> 
-;;  all (alpha=>alpha164)^(
-;;   all x^0((Pvar alpha)^ x^0 -> (Pvar alpha164)^98((alpha=>alpha164)^ x^0)) -> 
-;;   (Pvar alpha164)^98((alpha=>alpha164)^ x^)))
+;;  all (alpha=>beta)^(
+;;   all x^0((Pvar alpha)^ x^0 -> (Pvar beta)^((alpha=>beta)^ x^0)) -> 
+;;   (Pvar beta)^((alpha=>beta)^ x^)))
 
 (define proof (ex-formula-and-concl-to-ex-elim-mr-proof
 	       (pf "ex x^ (Pvar alpha) x^") (pf "Pvar")))
-(cdp proof)
+;; (cdp proof)
 (pp (rename-variables (proof-to-formula proof)))
 
-;; all (alpha@@alpha38)^(
-;;  (Pvar alpha38 alpha)^50(right(alpha@@alpha38)^)(left(alpha@@alpha38)^) -> 
-;;  all (alpha=>alpha38=>alpha894)^0(
-;;   all x^,alpha38^1(
-;;    (Pvar alpha38 alpha)^50 alpha38^1 x^ -> 
-;;    (Pvar alpha894)^458((alpha=>alpha38=>alpha894)^0 x^ alpha38^1)) -> 
-;;   (Pvar alpha894)^458
-;;   ((alpha=>alpha38=>alpha894)^0 left(alpha@@alpha38)^ right(alpha@@alpha38)^)))
+;; all (alpha@@gamma)^(
+;;  (Pvar gamma alpha)^(right(alpha@@gamma)^)(left(alpha@@gamma)^) -> 
+;;  all (alpha=>gamma=>beta)^0(
+;;   all x^,gamma^1(
+;;    (Pvar gamma alpha)^ gamma^1 x^ -> 
+;;    (Pvar beta)^((alpha=>gamma=>beta)^0 x^ gamma^1)) -> 
+;;   (Pvar beta)^
+;;   ((alpha=>gamma=>beta)^0 left(alpha@@gamma)^ right(alpha@@gamma)^)))
 
 ;; Test of exd-formula-to-exd-intro-mr-proof
 
-(add-mr-ids "ExD")
 (define proof (exd-formula-to-exd-intro-mr-proof (pf "exd y^(Pvar alpha)y^")))
 ;; (cdp proof)
 
 (pp (rename-variables (proof-to-formula proof)))
 
-;; all alpha^,alpha38^0(
-;;  (Pvar alpha38 alpha)^50 alpha38^0 alpha^ -> 
-;;  (ExDMR (cterm (alpha38^1,x^) (Pvar alpha38 alpha)^50 alpha38^1 x^))
-;;  (alpha^ pair alpha38^0))
+;; all alpha^,gamma^0(
+;;  (Pvar gamma alpha)^ gamma^0 alpha^ -> 
+;;  (ExDMR (cterm (gamma^1,x^) (Pvar gamma alpha)^ gamma^1 x^))
+;;  (alpha^ pair gamma^0))
 
 ;; Test of exl-formula-to-exl-intro-mr-proof
 
-(add-mr-ids "ExL")
 (define proof (exl-formula-to-exl-intro-mr-proof (pf "exl y^(Pvar alpha)^y^")))
 ;; (cdp proof)
 
@@ -347,29 +343,27 @@
 
 ;; Test of exr-formula-to-exr-intro-mr-proof
 
-(add-mr-ids "ExR")
 (define proof (exr-formula-to-exr-intro-mr-proof (pf "exr y^(Pvar alpha)y^")))
 ;; (cdp proof)
 
 (pp (rename-variables (proof-to-formula proof)))
 
-;; all alpha^,alpha38^0(
-;;  (Pvar alpha38 alpha)^50 alpha38^0 alpha^ -> 
-;;  (ExRMR (cterm (alpha38^1,x^) (Pvar alpha38 alpha)^50 alpha38^1 x^))alpha38^0)
+;; all alpha^,gamma^0(
+;;  (Pvar gamma alpha)^ gamma^0 alpha^ -> 
+;;  (ExRMR gamma alpha (cterm (gamma^1,x^) (Pvar gamma alpha)^ gamma^1 x^))
+;;  gamma^0)
 
 ;; Test of andl-formula-to-andl-intro-mr-proof
 
-(add-mr-ids "AndL")
 (define proof (andl-formula-to-andl-intro-mr-proof (pf "Pvar1 andl Pvar^2")))
 ;; (cdp proof)
 
 (pp (rename-variables (proof-to-formula proof)))
 
-;; all alpha56^(
-;;  (Pvar alpha56)^449 alpha56^ -> 
-;;  Pvar^2 -> 
-;;  (AndLMR (cterm (alpha56^0) (Pvar alpha56)^449 alpha56^0) (cterm () Pvar^2))
-;;  alpha56^)
+;; all beta1^(
+;;  (Pvar beta1)^1 beta1^ -> 
+;;  Pvar^2 --> 
+;;  (AndLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar^2))beta1^)
 
 ;; Test of exr-formula-and-concl-to-exr-elim-mr-proof
 (define proof (exr-formula-and-concl-to-exr-elim-mr-proof
@@ -378,17 +372,19 @@
 
 (pp (rename-variables (proof-to-formula proof)))
 
-;; all alpha793^(
-;;  (ExRMR (cterm (alpha793^0,p^) (Pvar alpha793 boole)^443 alpha793^0 p^))
-;;  alpha793^ -> 
-;;  all (alpha793=>alpha34)^0(
-;;   all p^,alpha793^1(
-;;    (Pvar alpha793 boole)^443 alpha793^1 p^ -> 
-;;    (Pvar alpha34)^49((alpha793=>alpha34)^0 alpha793^1)) -> 
-;;   (Pvar alpha34)^49((alpha793=>alpha34)^0 alpha793^)))
+;; all alpha1063^(
+;;  (ExRMR alpha1063
+;;    boole
+;;    (cterm (alpha1063^0,p^) (Pvar alpha1063 boole)^495 alpha1063^0 p^))
+;;  alpha1063^ -> 
+;;  all (alpha1063=>beta)^0(
+;;   all p^,alpha1063^1(
+;;    (Pvar alpha1063 boole)^495 alpha1063^1 p^ -> 
+;;    (Pvar beta)^((alpha1063=>beta)^0 alpha1063^1)) -> 
+;;   (Pvar beta)^((alpha1063=>beta)^0 alpha1063^)))
 
 ;; Test of andl-formula-and-concl-to-andl-elim-mr-proof
-(add-mr-ids "AndR")
+
 (remove-pvar-name "Y")
 (add-pvar-name "Y" "Z" (make-arity))
 (define proof (andlr-formula-and-concl-to-andlr-elim-mr-proof
@@ -397,15 +393,16 @@
 
 (pp (rename-variables (proof-to-formula proof)))
 
-;; all alpha843^(
-;;  (AndRMR (cterm () Pvar^) (cterm (alpha843^0) (Pvar alpha843)^453 alpha843^0))
-;;  alpha843^ -> 
-;;  all (alpha843=>alpha811)^0(
-;;   (Pvar^ -> 
-;;    all alpha843^1(
-;;     (Pvar alpha843)^453 alpha843^1 -> 
-;;     (Pvar alpha811)^445((alpha843=>alpha811)^0 alpha843^1))) -> 
-;;   (Pvar alpha811)^445((alpha843=>alpha811)^0 alpha843^)))
+;; all alpha1103^(
+;;  (AndRMR (cterm () Pvar^)
+;;    (cterm (alpha1103^0) (Pvar alpha1103)^498 alpha1103^0))
+;;  alpha1103^ -> 
+;;  all (alpha1103=>alpha1081)^0(
+;;   (Pvar^ --> 
+;;    all alpha1103^1(
+;;     (Pvar alpha1103)^498 alpha1103^1 -> 
+;;     (Pvar alpha1081)^497((alpha1103=>alpha1081)^0 alpha1103^1))) -> 
+;;   (Pvar alpha1081)^497((alpha1103=>alpha1081)^0 alpha1103^)))
 
 ;; Test of exu-formula-and-concl-to-exu-elim-mr-proof
 
@@ -419,9 +416,8 @@
 (pp (rename-variables (proof-to-formula proof)))
 
 ;; exu x^ Y^ x^ -> 
-;; all alpha34^(
-;;  allnc alpha^0(Y^ alpha^0 --> (Pvar alpha34)^49 alpha34^) -> 
-;;  (Pvar alpha34)^49 alpha34^)
+;; all beta^(
+;;  allnc alpha^0(Y^ alpha^0 --> (Pvar beta)^ beta^) -> (Pvar beta)^ beta^)
 
 ;; allnc, --> appears since elim-aconst for exu has it, and uses a c.r. pvar
 
@@ -434,9 +430,9 @@
 (pp (rename-variables (proof-to-formula proof)))
 
 ;; X^ andu Y^ -> 
-;; all alpha811^(
-;;  (X^ --> Y^ --> (Pvar alpha811)^445 alpha811^) -> 
-;;  (Pvar alpha811)^445 alpha811^)
+;; all alpha1081^(
+;;  (X^ --> Y^ --> (Pvar alpha1081)^497 alpha1081^) -> 
+;;  (Pvar alpha1081)^497 alpha1081^)
 
 ;; Test of proof-to-soundness-proof
 
@@ -1042,11 +1038,6 @@
 (extraction-test-etd (current-proof))
 
 ;; proof-to-soundness-proof
-(add-mr-ids "OrU")
-(add-mr-ids "OrR")
-(add-mr-ids "OrD")
-;; (add-mr-ids "AndL") ;already above
-;; (add-mr-ids "ExR") ;already above
 
 (add-co "TotalBoole")
 ;; (add-mr-ids "TotalBoole") ;already in lib/nat.scm

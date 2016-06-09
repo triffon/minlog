@@ -42,7 +42,7 @@
 
 ;; Tests for rec-at when used for normalizing proofs with Elim/Intro.
 
-(add-var-name "l" "i" "j" (py "nat"))
+(add-var-name "k" "i" "j" (py "nat"))
 (add-var-name "ns" (py "list nat"))
 (add-pvar-name "P" (make-arity (py "nat")))
 
@@ -109,7 +109,7 @@
 ;;     k^ <=l & all i(i<Lh(n^ ::ns^0) -> ex j(j*(i thof n^ ::ns^0)eqd l -> F))))) ->
 ;;  ex l(k^ <=l & all i(i<Lh ns^ -> ex j(j*(i thof ns^)eqd l -> F))))
 
-(remove-var-name "l" "i" "j" "ns")
+(remove-var-name "k" "i" "j" "ns")
 (remove-pvar-name "P")
 
 ;; Tests of number-and-pconst-to-comp-aconst
