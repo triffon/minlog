@@ -2472,7 +2472,30 @@
 
 ;; For invariance axioms we need aconsts mr-intro-aconst mr-elim-aconst.
 
-(define PVAR-TO-MR-PVAR-ALIST '())
+;; PVAR-TO-MR-PVAR-ALIST initially has
+;; (Pvar alpha) -> (Pvar gamma alpha)^
+;; Pvar2 -> (Pvar beta2)^2
+;; Pvar1 -> (Pvar beta1)^1
+;; Pvar  -> (Pvar beta)^
+
+(define PVAR-TO-MR-PVAR-ALIST
+  (list
+   (list (make-pvar (make-arity (make-tvar -1 "alpha"))
+		    -1 h-deg-zero n-deg-zero "")
+	 (make-pvar (make-arity (make-tvar -1 "gamma") (make-tvar -1 "alpha"))
+		    -1 h-deg-one n-deg-zero ""))
+   (list (make-pvar (make-arity)
+		    2 h-deg-zero n-deg-zero "")
+	 (make-pvar (make-arity (make-tvar 2 "beta"))
+		    2 h-deg-one n-deg-zero ""))
+   (list (make-pvar (make-arity)
+		    1 h-deg-zero n-deg-zero "")
+	 (make-pvar (make-arity (make-tvar 1 "beta"))
+		    1 h-deg-one n-deg-zero ""))
+   (list (make-pvar (make-arity)
+		    -1 h-deg-zero n-deg-zero "")
+	 (make-pvar (make-arity (make-tvar -1 "beta"))
+		    -1 h-deg-one n-deg-zero ""))))
 
 (define (PVAR-TO-MR-PVAR pvar)
   (let ((info (assoc pvar PVAR-TO-MR-PVAR-ALIST)))
@@ -2486,6 +2509,21 @@
 	      (set! PVAR-TO-MR-PVAR-ALIST
 		    (cons (list pvar newpvar) PVAR-TO-MR-PVAR-ALIST))
 	      newpvar))))
+
+;; We will also need
+(add-mr-ids "ExD")
+(add-mr-ids "ExL")
+(add-mr-ids "ExR")
+(add-mr-ids "ExDT")
+(add-mr-ids "ExLT")
+(add-mr-ids "ExRT")
+(add-mr-ids "AndD")
+(add-mr-ids "AndL")
+(add-mr-ids "AndR")
+(add-mr-ids "OrD")
+(add-mr-ids "OrL")
+(add-mr-ids "OrR")
+(add-mr-ids "OrU")
 
 (define mr-intro-aconst
   (let* ((pvar (make-pvar (make-arity) -1 h-deg-zero n-deg-zero ""))
