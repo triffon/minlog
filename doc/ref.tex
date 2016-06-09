@@ -8887,12 +8887,14 @@ generates the a new goal with \texttt{m} replaced by \texttt{n}:
 
 \subsection{simp-with}
 This is a more verbose form of \texttt{simp}, where the terms are not
-inferred via matching, but have to be given explicitly.  Also, for
-the instantiated premises one can indicate how they are to come about.
-So in \texttt{(simp-with \textsl{opt-dir} \textsl{x} .\
-  \textsl{x-list})}\index{simp-with@\texttt{simp-with}},
-\textsl{opt-dir} and \textsl{x} are as in \texttt{simp}, and
-\textsl{x-list} is a list consisting of
+inferred via matching, but have to be given explicitly.  In fact,
+\texttt{simp} is defined via \texttt{simp-with}.  Also, for the
+instantiated premises one can indicate how they are to come about.  So
+in \texttt{(simp-with \textsl{opt-dir} \textsl{x}
+  .\ \textsl{x-list})}\index{simp-with@\texttt{simp-with}},
+\textsl{opt-dir} and \textsl{x} are as in \texttt{simp} (except that
+the formula of $x$ must be an atom, a negated atom or $t \approx s$),
+and \textsl{x-list} is a list consisting of
 \begin{enumeratei}
 \item a number or string identifying a hypothesis form the context,
 \item the name of a theorem or global assumption,
