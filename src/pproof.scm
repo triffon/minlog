@@ -1000,7 +1000,9 @@
 				      (arity-to-types arity))))
 			critical-arities))
 		  (new-critical-pvars
-		   (map arity-to-new-general-pvar new-critical-arities))
+		   (map arity-to-new-pvar new-critical-arities critical-pvars))
+		  ;; (new-critical-pvars
+		  ;;  (map arity-to-new-general-pvar new-critical-arities))
 		  (new-critical-pvar-cterms
 		   (map predicate-to-cterm new-critical-pvars))
 		  (renaming-psubst
@@ -1216,9 +1218,9 @@
 			     (arity-to-types arity))))
 	       critical-arities))
 	 (new-critical-pvars
-	  (map arity-to-new-general-pvar new-critical-arities))
-	 (new-clash-pvars (map arity-to-new-general-pvar
-			       (map pvar-to-arity clash-pvars)))
+	  (map arity-to-new-pvar new-critical-arities critical-pvars))
+	 (new-clash-pvars (map arity-to-new-pvar
+			       (map pvar-to-arity clash-pvars) clash-pvars))
 	 (new-critical-pvar-cterms
 	  (map predicate-to-cterm new-critical-pvars))
 	 (new-clash-pvar-cterms (map predicate-to-cterm new-clash-pvars))
@@ -4438,13 +4440,32 @@
 	(car tests)
 	(myerror "first-if-term-in" "no if-term found"))))
 
-;; In the following definition of simp-with x is one of the following.
+;; In the following definition of (simp opt-dir-or-x . x-and-xs-or-xs),
+;; opt-dir is either the string "<-" or missing.  x is one of the following.
 ;; - A number or string identifying a hypothesis form the context.
 ;; - The name of a theorem or global assumption, but not one whose final
 ;;   conclusion is a predicate variable.
 ;; - A closed proof.
 ;; - A formula with free variables from the context, generating a new goal.
-;; Moreover xs is a list consisting of
+;; xs is a list consisting of symbols left or right, giving
+;; directions in case the used formula contains conjunctions, and of
+;; terms.  The universal quantifiers of the used formula are
+;; instantiated with appropriate terms to match a part of the goal.
+;; The terms provided are substituted for those variables that
+;; cannot be inferred.  For the instantiated premises new goals are
+;; created.  This generates a used formula, which is to be an atom,
+;; a negated atom or (lhs eqd rhs).  If it as a (negated) atom,
+;; check whether the kernel or its normal form is present in the
+;; goal.  If so, replace it by True (False).  If it is (lhs = rhs)
+;; or (lhs eqd rhs) with lhs or its normal form present in the goal,
+;; replace lhs by rhs.  In case "<-" exchange lhs by rhs.
+
+;; simp-with is a more verbose form of simp, where the terms are not
+;; inferred via matching, but have to be given explicitly.  In fact,
+;; simp is defined via simp-with.  In (simp-with opt-dir-or-x
+;; . x-and-xs-or-xs), opt-dir and x are as in simp, except that the
+;; formula of x must be an atom, a negated atom or (lhs eqd rhs).
+;; xs is a list consisting of
 ;; - a number or string identifying a hypothesis form the context,
 ;; - the name of a theorem or global assumption,
 ;; - a closed proof,
@@ -4453,12 +4474,6 @@
 ;; - a term, whose free variables are added to the context,
 ;; - a type, which is substituted for the 1st tvar,
 ;; - a comprehension term, which is substituted for the 1st pvar.
-;; This generates a used formula, which is to be an atom, a negated
-;; atom or (lhs eqd rhs).  If it as a (negated)
-;; atom, check whether the kernel or its normal form is present in the
-;; goal.  If so, replace it by True (False).  If it is (lhs = rhs) or
-;;  (lhs eqd rhs) with lhs or its normal form present
-;; in the goal, replace lhs by rhs.  In case "<-" exchange lhs by rhs.
 
 (define (simp-with opt-dir-or-x . x-and-xs-or-xs)
   (let* ((num-goals (pproof-state-to-num-goals))
