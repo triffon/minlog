@@ -1128,21 +1128,15 @@
 ;; ALGEBRAS with nbe-alg, adds tokens for the idpc-names and adds the
 ;; clauses as theorems.
 
-;; We also allow non-computational (n.c.) (or computationally
-;; irrelevant (c.i.)) inductively defined predicates.  Then
-;; idpc-names-with-arities-and-opt-alg-names has no alg-name.
-;; Important special cases are: (i) For every I its witnessing
-;; predicate IMR.  It is special in the sense that (IMR t ss) just
-;; states the fact that we do have a realizer t for I ss.  IMR is
-;; created by calling add-mr-ids for a known idpc-name I.  (ii) By
-;; providing just one nullary clause with allnc, impnc only and no
-;; opt-alg-name one can introduce a uniform-one-clause-defined idpc
-;; which is n.c.  Examples are Leibniz equality EqD, and uniform
-;; variants ExU and AndU of the existential quantifier and conjunction.
-;; In all other cases the elimination scheme must be restricted to
-;; n.c. formulas.  Also, all (n.c.) clauses must be invariant.  This
-;; ensures that the soundness theorem holds: every intro and elim axiom
-;; is invariant, i.e., nullterm mr A is the same as A.
+;; We also allow non-computational (n.c.) inductively defined predicates.
+;; Then idpc-names-with-arities-and-opt-alg-names has no alg-name.  The
+;; elimination scheme for such inductive predicates must be restricted to
+;; n.c. formulas.  However, there is an important exception: in the
+;; special case of a one-clause-nc definition (i.e., with only one clause
+;; involving tonc, allnc only) there are no restrictions on the
+;; elimination scheme.  This is the case for Leibniz equality EqD, and
+;; n.c. variants ExU and AndU of the existential quantifier and of
+;; conjunction.
 
 (define (add-ids idpc-names-with-arities-and-opt-alg-names .
 		 clause-strings-with-opt-names)
@@ -1210,9 +1204,7 @@
        (clauses (map pf clause-strings))
        (special-nc-idpc?
 	(and (= 1 (length clauses))
-	     (predicate-form?
-	      (impnc-form-to-final-conclusion
-	       (allnc-form-to-final-kernel (car clauses))))))
+	     (impnc-allnc-pvar-formula? (car clauses))))
        (remove-temporal-pvar-names (apply remove-pvar-name idpc-names))
        (idpc-pvars
 	(map (if (or all-with-content? special-nc-idpc?)
@@ -1254,34 +1246,6 @@
 		(apply myerror "add-ids"
 		       "strict positivity of idpc pvars in premises expected"
 		       clauses-with-idpc-pvars)))))
-       (clause-test1 ;single n.c. clause uniform or non-computational-invariant
-	(if (and (= 1 (length clauses-with-idpc-pvars))
-		 all-without-content?
-		 (not (uniform-non-rec-idpc-clause?
-		       (car clauses-with-idpc-pvars) param-pvars idpc-pvars))
-		 (not (non-computational-invariant?
-		       (car clauses-with-idpc-pvars)
-		       (append param-pvars idpc-pvars))))
-	    (let ((clause (car clauses-with-idpc-pvars)))
-	      (set! COMMENT-FLAG OLD-COMMENT-FLAG)
-	      (apply remove-var-name idpc-names)
-	      (myerror "add-ids"
-		       "single n.c. clause neither uniform nor invariant"
-		       clause))))
-       (clause-test2 ;all n.c. clauses non-computational-invariant?
-	(or
-	 all-with-content?
-	 (for-each
-	  (lambda (clause)
-	    (if (not (non-computational-invariant?
-		      clause (append idpc-pvars param-pvars)))
-		(begin
-		  (set! COMMENT-FLAG OLD-COMMENT-FLAG)
-		  (apply remove-var-name idpc-names)
-		  (myerror
-		   "add-ids"
-		   "non-computational-invariant clause expected" clause))))
-	  clauses-with-idpc-pvars)))
        (clauses-with-idpc-pvars-and-opt-names
 	(map cons
 	     clauses-with-idpc-pvars
