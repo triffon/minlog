@@ -611,6 +611,16 @@
 	  (all-allnc-form-to-kernel formula)))
 	(else formula)))
 
+(define (impnc-allnc-pvar-formula? formula)
+  (cond
+   ((impnc-form? formula)
+    (impnc-allnc-pvar-formula? (impnc-form-to-conclusion formula)))
+   ((allnc-form? formula)
+    (impnc-allnc-pvar-formula? (allnc-form-to-kernel formula)))
+   ((predicate-form? formula)
+    (pvar-form? (predicate-form-to-predicate formula)))
+   (else #f)))
+
 (define (mk-and . x)
   (cond ((null? x) truth)
 	((null? (cdr x)) (car x))
