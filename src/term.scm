@@ -1518,7 +1518,7 @@
       (let* ((op (term-in-app-form-to-final-op term))
 	     (args (term-in-app-form-to-args term))
 	     (const (term-in-const-form-to-const op))
-	     (name (const-to-name const))
+	     (name (const-to-name const)) ;PairConstr
 	     (l (length args))
 	     (prevs (map (lambda (term)
 			   (apply term-to-external-expr term lang module-name
@@ -1730,7 +1730,7 @@
 	    ((haskell) "()")))
 	 ((string=? name "PairConstr")
 	  (case lang
-	    ((scheme) (if (= l 1) (cons 'cons prevs)))
+	    ((scheme) (if (= l 2) (cons 'cons prevs)))
 	    ((haskell)
 	     (if (= l 2)
 		 (string-append "(" (car prevs) " , " (cadr prevs) ")")
@@ -2203,6 +2203,14 @@
 		(list 'if (list 'eq? (list 'quote 'InL) (list 'car 'testsum))
 		      (list (car alt-exprs) (list 'cadr 'testsum))
 		      (list (cadr alt-exprs) (list 'cadr 'testsum)))))
+	 ((and (alg-form? type) (string=? (alg-form-to-name type) "yprod")
+	       (eq? lang 'scheme))
+	  (if (term-in-var-form? test)
+	      (list (list (car alt-exprs) (list 'car test-expr))
+		    (list 'cdr test-expr))
+	      (list 'let (list (list 'testprod test-expr))
+		    (list (list (car alt-exprs) (list 'car 'testprod))
+			  (list 'cdr 'testprod)))))
 	 ((alg-form? type)
 	  (case lang
 	    ((scheme) (myerror "term-to-external-expr" "unknown if (alg)" term))
