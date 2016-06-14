@@ -319,52 +319,6 @@
 ;;   (Pvar beta)^
 ;;   ((alpha=>gamma=>beta)^0 left(alpha@@gamma)^ right(alpha@@gamma)^)))
 
-;; Test of exd-formula-to-exd-intro-mr-proof
-
-(define proof (exd-formula-to-exd-intro-mr-proof (pf "exd y^(Pvar alpha)y^")))
-;; (cdp proof)
-
-(pp (rename-variables (proof-to-formula proof)))
-
-;; all alpha^,gamma^0(
-;;  (Pvar gamma alpha)^ gamma^0 alpha^ -> 
-;;  (ExDMR (cterm (gamma^1,x^) (Pvar gamma alpha)^ gamma^1 x^))
-;;  (alpha^ pair gamma^0))
-
-;; Test of exl-formula-to-exl-intro-mr-proof
-
-(define proof (exl-formula-to-exl-intro-mr-proof (pf "exl y^(Pvar alpha)^y^")))
-;; (cdp proof)
-
-(pp (rename-variables (proof-to-formula proof)))
-
-;; all alpha^(
-;;  (Pvar alpha)^ alpha^ -> (ExLMR (cterm (x^) (Pvar alpha)^ x^))alpha^)
-
-;; Test of exr-formula-to-exr-intro-mr-proof
-
-(define proof (exr-formula-to-exr-intro-mr-proof (pf "exr y^(Pvar alpha)y^")))
-;; (cdp proof)
-
-(pp (rename-variables (proof-to-formula proof)))
-
-;; all alpha^,gamma^0(
-;;  (Pvar gamma alpha)^ gamma^0 alpha^ -> 
-;;  (ExRMR gamma alpha (cterm (gamma^1,x^) (Pvar gamma alpha)^ gamma^1 x^))
-;;  gamma^0)
-
-;; Test of andl-formula-to-andl-intro-mr-proof
-
-(define proof (andl-formula-to-andl-intro-mr-proof (pf "Pvar1 andl Pvar^2")))
-;; (cdp proof)
-
-(pp (rename-variables (proof-to-formula proof)))
-
-;; all beta1^(
-;;  (Pvar beta1)^1 beta1^ -> 
-;;  Pvar^2 --> 
-;;  (AndLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar^2))beta1^)
-
 ;; Test of exr-formula-and-concl-to-exr-elim-mr-proof
 (define proof (exr-formula-and-concl-to-exr-elim-mr-proof
 	       (pf "exr p^ Y p^") (pf "Pvar")))
@@ -403,36 +357,6 @@
 ;;     (Pvar alpha1103)^498 alpha1103^1 -> 
 ;;     (Pvar alpha1081)^497((alpha1103=>alpha1081)^0 alpha1103^1))) -> 
 ;;   (Pvar alpha1081)^497((alpha1103=>alpha1081)^0 alpha1103^)))
-
-;; Test of exu-formula-and-concl-to-exu-elim-mr-proof
-
-(remove-pvar-name "Y")
-(add-pvar-name "Y" (make-arity (py "alpha")))
-(define exu-formula (pf "exu x^ Y^ x^"))
-(define concl (pf "Pvar"))
-(define proof (exu-formula-and-concl-to-exu-elim-mr-proof exu-formula concl))
-;; (cdp proof)
-
-(pp (rename-variables (proof-to-formula proof)))
-
-;; exu x^ Y^ x^ -> 
-;; all beta^(
-;;  allnc alpha^0(Y^ alpha^0 --> (Pvar beta)^ beta^) -> (Pvar beta)^ beta^)
-
-;; allnc, --> appears since elim-aconst for exu has it, and uses a c.r. pvar
-
-;; Test of andu-formula-and-concl-to-andu-elim-mr-proof
-(remove-pvar-name "Y")
-(add-pvar-name "X" "Y" "Z" (make-arity))
-(define proof (andu-formula-and-concl-to-andu-elim-mr-proof
-	       (pf "X^ andu Y^") (pf "Z")))
-;; (cdp proof)
-(pp (rename-variables (proof-to-formula proof)))
-
-;; X^ andu Y^ -> 
-;; all alpha1081^(
-;;  (X^ --> Y^ --> (Pvar alpha1081)^497 alpha1081^) -> 
-;;  (Pvar alpha1081)^497 alpha1081^)
 
 ;; Test of proof-to-soundness-proof
 
