@@ -4938,6 +4938,402 @@
 		  (append (list num-goals proof maxgoal "<-" x)
 			  (append types subst-xs))))))))
 
+;; In the following definition of simprat-with x is one of the following.
+;; - A number or string identifying a hypothesis form the context.
+;; - The name of a theorem or global assumption, but not one whose final
+;;   conclusion is a predicate variable.
+;; - A closed proof.
+;; - A formula with free variables from the context, generating a new goal.
+;; Moreover xs is a list consisting of
+;; - a number or string identifying a hypothesis form the context,
+;; - the name of a theorem or global assumption,
+;; - a closed proof,
+;; - the string "?" (value of DEFAULT-GOAL-NAME), generating a new goal,
+;; - a symbol left or right,
+;; - a term, whose free variables are added to the context,
+;; - a type, which is substituted for the 1st tvar,
+;; - a comprehension term, which is substituted for the 1st pvar.
+;; This generates a used formula lhs==rhs with lhs or its normal form present
+;; in the goal.  Replace lhs by rhs.  In case "<-" exchange lhs by rhs.
+
+(define (simprat-with opt-dir-or-x . x-and-xs-or-xs)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (number (num-goal-to-number (car num-goals))))
+    (set! PPROOF-STATE
+	  (apply simprat-with-intern
+		 num-goals proof maxgoal opt-dir-or-x x-and-xs-or-xs))
+    (pproof-state-history-push PPROOF-STATE)
+    (display-new-goals num-goals number)))
+
+(define (simprat-with-intern num-goals proof maxgoal . rest)
+  (let* ((opt-dir-or-x
+	  (if (null? rest)
+	      (myerror "simprat-with-intern" "more arguments expected")
+	      (car rest)))
+	 (left-to-right
+	  (not (and (string? opt-dir-or-x) (string=? "<-" opt-dir-or-x))))
+	 (x-and-x-list (if left-to-right
+			   rest
+			   (cdr rest)))
+	 (x (if (null? x-and-x-list)
+		(myerror "simprat-with-intern" "more arguments expected")
+		(car x-and-x-list)))
+	 (x-list (cdr x-and-x-list))
+	 (num-goal (car num-goals))
+	 (goal (num-goal-to-goal num-goal))
+	 (drop-info (num-goal-to-drop-info num-goal))
+	 (hypname-info (num-goal-to-hypname-info num-goal))
+	 (context (goal-to-context goal))
+	 (ncvars (goal-to-ncvars goal))
+	 (proof-and-new-num-goals-and-maxgoal
+	  (if (and (string? x)
+		   (let ((info (assoc x (append THEOREMS GLOBAL-ASSUMPTIONS))))
+		     (and info
+			  (let* ((aconst (cadr info))
+				 (aconst-formula (aconst-to-formula aconst))
+				 (final-concl
+				  (imp-impnc-all-allnc-form-to-final-conclusion
+				   aconst-formula)))
+			    (and (predicate-form? final-concl)
+				 (pvar? (predicate-form-to-predicate
+					 final-concl)))))))
+	      (myerror "simprat-with-intern" "unexpected aconst name" x)
+	      (apply x-and-x-list-to-proof-and-new-num-goals-and-maxgoal
+		     num-goal (+ 1 maxgoal) x x-list)))
+	 (eqv-proof (car proof-and-new-num-goals-and-maxgoal))
+	 (new-num-goals (cadr proof-and-new-num-goals-and-maxgoal))
+	 (new-maxgoal (caddr proof-and-new-num-goals-and-maxgoal))
+	 (goal-formula (goal-to-formula goal))
+	 (used-formula (proof-to-formula eqv-proof))
+	 (used-prime-formula
+	  (if (prime-form? used-formula) used-formula
+	      (myerror "simprat-with-intern" "prime formula expected"
+		       used-formula)))
+	 (used-nprime-formula (normalize-formula used-prime-formula))
+	 (used-kernel
+	  (if (atom-form? used-prime-formula)
+	      (atom-form-to-kernel used-prime-formula)
+	      (myerror "simprat-with-intern" "atom formula expected"
+		       used-prime-formula)))
+	 (used-nkernel (nt used-kernel))
+	 (op (term-in-app-form-to-final-op used-kernel))
+	 (nop (term-in-app-form-to-final-op used-nkernel))
+	 (ngoal-formula (nf goal-formula)))
+    (cond
+     ((and (term-in-const-form? op)
+	   (string=? "RatEqv" (const-to-name (term-in-const-form-to-const op)))
+	   (let* ((args (term-in-app-form-to-args used-kernel))
+		  (lhs (car args))
+		  (rhs (cadr args))
+		  (type (term-to-type lhs))
+		  (var (type-to-new-var type))
+		  (varterm (make-term-in-var-form var))
+		  (simprat-formula
+		   (if left-to-right
+		       (formula-gen-subst goal-formula lhs varterm)
+		       (formula-gen-subst goal-formula rhs varterm))))
+	     (not (formula=? simprat-formula goal-formula))))
+      (let* ((args (term-in-app-form-to-args used-kernel))
+	     (lhs (car args))
+	     (rhs (cadr args))
+	     (type (term-to-type lhs))
+	     (var (type-to-new-var type))
+	     (varterm (make-term-in-var-form var))
+	     (simprat-formula
+	      (if left-to-right
+		  (formula-gen-subst goal-formula lhs varterm)
+		  (formula-gen-subst goal-formula rhs varterm)))
+	     (new-goal ;A(rhs) or A(lhs)
+	      (context-and-ncvars-and-formula-to-new-goal
+	       context ncvars
+	       (formula-subst simprat-formula var
+			      (if left-to-right rhs lhs))))
+	     (new-num-goal
+	      (make-num-goal
+	       (+ 1 maxgoal) new-goal drop-info hypname-info))
+	     (new-proof ;of A(lhs) or A(rhs)
+	      (mk-proof-in-elim-form
+	       (rateqv-formula-compat
+		 simprat-formula var
+		 (if left-to-right lhs rhs)
+		 (if left-to-right rhs lhs)
+		 eqv-proof new-goal))))
+	(make-pproof-state
+	 (append (list new-num-goal) new-num-goals (cdr num-goals))
+	 (goal-subst proof goal new-proof)
+	 new-maxgoal)))
+     ((and (term-in-const-form? nop)
+	   (string=? "RatEqv" (const-to-name (term-in-const-form-to-const nop)))
+	   (let* ((args (term-in-app-form-to-args used-nkernel))
+		  (lhs (car args))
+		  (rhs (cadr args))
+		  (type (term-to-type lhs))
+		  (var (type-to-new-var type))
+		  (varterm (make-term-in-var-form var))
+		  (simprat-formula
+		   (if left-to-right
+		       (formula-gen-subst goal-formula lhs varterm)
+		       (formula-gen-subst goal-formula rhs varterm))))
+	     (not (formula=? simprat-formula goal-formula))))
+      (let* ((args (term-in-app-form-to-args used-nkernel))
+	     (lhs (car args))
+	     (rhs (cadr args))
+	     (type (term-to-type lhs))
+	     (var (type-to-new-var type))
+	     (varterm (make-term-in-var-form var))
+	     (simprat-formula
+	      (if left-to-right
+		  (formula-gen-subst goal-formula lhs varterm)
+		  (formula-gen-subst goal-formula rhs varterm)))
+	     ;; (all-formula (mk-all var simprat-formula))
+	     (new-goal ;A(rhs) or A(lhs)
+	      (context-and-ncvars-and-formula-to-new-goal
+	       context ncvars
+	       (formula-subst simprat-formula var
+			      (if left-to-right rhs lhs))))
+	     (new-num-goal
+	      (make-num-goal
+	       (+ 1 maxgoal) new-goal drop-info hypname-info))
+	     (new-proof ;of A(lhs) or A(rhs)
+	      (mk-proof-in-elim-form
+	       (rateqv-formula-compat
+		 simprat-formula var
+		 (if left-to-right lhs rhs)
+		 (if left-to-right rhs lhs)
+		 eqv-proof new-goal))))
+	(make-pproof-state
+	 (append (list new-num-goal) new-num-goals (cdr num-goals))
+	 (goal-subst proof goal new-proof)
+	 new-maxgoal)))
+     (else (myerror "simprat-with-intern" "goal cannot be simplified with"
+		    used-formula)))))
+
+;; Auxiliary functions
+
+;; Given t(x), x, lhs, rhs and a proof of lhs==rhs, rateqv-term-compat
+;; returns a proof of t(lhs)==t(rhs).  Here t(x), x, lhs, rhs are of
+;; type rat.
+
+(define (rateqv-term-compat term var term1 term2 eqv-proof)
+  (cond
+   ((not (member var (term-to-free term)))
+    (make-proof-in-aconst-form truth-aconst)) ;a==a -> True is a rewrite rule
+   ((term-in-var-form? term) eqv-proof) ;of term1==term2, i.e., lhs==rhs
+   ((term-in-app-form? term)
+    (let* ((op (term-in-app-form-to-final-op term))
+	   (args (term-in-app-form-to-args term))
+	   (name (if (not (term-in-const-form? op))
+		     (myerror "rateqv-term-compat"
+			      "term in constant form expected" op)
+		     (string-append
+		      (const-to-name (term-in-const-form-to-const op))
+		      "Compat")))
+	   (unary-compat-names
+	    (list "RatUMinusCompat" "RatAbsCompat"))
+	   (binary-compat-names
+	    (list "RatPlusCompat" "RatTimesCompat" "RatMinusCompat")))
+      (cond
+       ((member name unary-compat-names)
+	(mk-proof-in-elim-form ;of ~t(lhs)== ~t(rhs)
+	 (make-proof-in-aconst-form ;of all a,b(a==b -> ~a== ~b))
+	  (theorem-name-to-aconst name))
+	 (term-subst (car args) var term1) ;t(lhs)
+	 (term-subst (car args) var term2) ;t(rhs)
+	 ;; (term-subst term var term1) ;t(lhs)
+	 ;; (term-subst term var term2) ;t(rhs)
+	 (rateqv-term-compat (car args) var term1 term2 eqv-proof)))
+       ((member name binary-compat-names)
+	(mk-proof-in-elim-form ;of t(lhs)+s(lhs)==t(rhs)+s(rhs)
+	 (make-proof-in-aconst-form ;of all a,b,c,d(a==b -> c==d -> a+c==b+d))
+	  (theorem-name-to-aconst name))
+	 (term-subst (car args) var term1) ;t(lhs)
+	 (term-subst (car args) var term2) ;t(rhs)
+	 (term-subst (cadr args) var term1) ;s(lhs)
+	 (term-subst (cadr args) var term2) ;s(rhs)
+	 ;; (term-subst term var term1) ;t(lhs)+s(lhs)
+	 ;; (term-subst term var term2) ;t(rhs)+s(rhs)
+	 (rateqv-term-compat ;proves t(lhs)==t(rhs) from lhs==rhs by IH
+	  (car args) var term1 term2 eqv-proof)
+	 (rateqv-term-compat ;proves s(lhs)==s(rhs) from lhs==rhs by IH
+	  (cadr args) var term1 term2 eqv-proof)))
+       (else (apply myerror "rateqv-term-compat" name
+		    "expected to be among" (append unary-compat-names
+						   binary-compat-names))))))
+   (else (myerror "rateqv-term-compat" "unexpected term" term))))
+
+;; Given A(x), x, lhs, rhs and proofs eqv-proof of lhs==rhs and new-goal
+;; of A(rhs) returns a proof of A(lhs).  Here x, lhs, rhs are of type
+;; rat.
+
+(define (rateqv-formula-compat fla var term1 term2 eqv-proof new-goal)
+  (cond
+   ((not (member var (formula-to-free fla))) new-goal)
+   ((atom-form? fla)
+    (let* ((kernel (atom-form-to-kernel fla)) ;t(x)<=s(x)
+	   (op (if (not (term-in-app-form? kernel))
+		   (myerror "rateqv-formula-compat"
+			    "term in application form expected" kernel)
+		   (term-in-app-form-to-final-op kernel)))
+	   (args (term-in-app-form-to-args kernel)) ;(t(x) s(x))
+	   (name (if (not (term-in-const-form? op))
+		     (myerror "rateqv-formula-compat"
+			      "term in constant form expected" op)
+		     (string-append
+		      (const-to-name (term-in-const-form-to-const op))
+		      "Compat")))
+	   (compat-names (list "RatLeCompat" "RatEqvCompat")))
+      (if
+       (member name compat-names)
+       (let* ((elim-proof1 ;of t(lhs)==t(rhs)
+	       (rateqv-term-compat (car args) var term1 term2 eqv-proof))
+	      (elim-proof2 ;of s(lhs)==s(rhs)
+	       (rateqv-term-compat (cadr args) var term1 term2 eqv-proof))
+	      (elim-proof3 ;of (t(lhs)<=s(lhs))=(t(rhs)<=s(rhs))
+	       (mk-proof-in-elim-form
+		(make-proof-in-aconst-form (theorem-name-to-aconst name))
+		;; (theorem-name-to-proof name) ;all a,b,c,d(a==b -> c==d ->
+		;; 			;                 (a<=c)=(b<=d))
+		(term-subst (car args) var term1) ;t(lhs)
+		(term-subst (car args) var term2) ;t(rhs)
+		(term-subst (cadr args) var term1) ;s(lhs)
+		(term-subst (cadr args) var term2) ;s(rhs)
+		elim-proof1 elim-proof2))
+	      (eq-fla (proof-to-formula elim-proof3)) 
+	      (booleterms (term-in-app-form-to-args
+			   (atom-form-to-kernel eq-fla)))
+	      (booleterm1 (car booleterms)) ;t(lhs)<=s(lhs)
+	      (booleterm2 (cadr booleterms))) ;t(rhs)<=s(rhs)
+	 (mk-proof-in-elim-form
+	  (make-proof-in-aconst-form
+	   (theorem-name-to-aconst "BooleEqToAeqRight"))
+	  ;; (theorem-name-to-proof "BooleEqToAeqRight")
+					;of all boole1,boole2(boole1=boole2 ->
+					;                     boole2 -> boole1)
+	  booleterm1 booleterm2 elim-proof3 new-goal))
+       (myerror "rateqv-formula-compat" "RatLeCompat or RatEqvCompat expected"
+		name))))
+   (else (myerror "rateqv-formula-compat" "not implemented for formula" fla))))
+
+(define (simprat opt-dir-or-x . x-and-xs-or-xs)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (number (num-goal-to-number (car num-goals)))
+	 (simprat-result
+	  (apply simprat-intern
+		 num-goals proof maxgoal opt-dir-or-x x-and-xs-or-xs)))
+    (if (not simprat-result)
+	(begin (display-comment "no simplification possible")
+	       (if COMMENT-FLAG (newline)))
+	(begin
+	  (set! PPROOF-STATE simprat-result)
+	  (pproof-state-history-push PPROOF-STATE)
+	  (display-new-goals num-goals number)))))
+
+(define (simprat-intern num-goals proof
+		     maxgoal . opt-dir-and-x-and-elab-path-and-terms)
+  (let* ((opt-dir (if (null? opt-dir-and-x-and-elab-path-and-terms)
+		      (myerror "simprat-intern" "more arguments expected")
+		      (car opt-dir-and-x-and-elab-path-and-terms)))
+	 (left-to-right (not (and (string? opt-dir) (string=? "<-" opt-dir))))
+	 (x-and-elab-path-and-terms
+	  (if left-to-right
+	      opt-dir-and-x-and-elab-path-and-terms
+	      (cdr opt-dir-and-x-and-elab-path-and-terms)))
+	 (x (if (null? x-and-elab-path-and-terms)
+		(myerror "simprat-intern" "more arguments expected")
+		(car x-and-elab-path-and-terms)))
+	 (elab-path-and-terms (cdr x-and-elab-path-and-terms))
+	 (num-goal (car num-goals))
+	 (goal (num-goal-to-goal num-goal))
+	 (hypname-info (num-goal-to-hypname-info num-goal))
+	 (context (goal-to-context goal))
+	 (ncvars (goal-to-ncvars goal))
+	 (avars (context-to-avars context))
+	 (maxhyp (length avars))
+	 (goal-formula (goal-to-formula goal))
+	 (leaf (if (formula-form? x)
+		   (context-and-ncvars-and-formula-to-new-goal
+		    context ncvars x)
+		   (hyp-info-to-leaf num-goal x)))
+	 (used-formula
+	  (unfold-formula (if (formula-form? x) x (proof-to-formula leaf))))
+	 (sig-vars (context-to-vars context))
+	 (sig-tvars-and-sig-vars
+	  (if (assoc x (append THEOREMS GLOBAL-ASSUMPTIONS))
+	      sig-vars
+	      (append (formula-to-tvars used-formula) sig-vars)))
+	 (elab-path (do ((l elab-path-and-terms (cdr l))
+			 (res '() (if (memq (car l) '(left right))
+				      (cons (car l) res)
+				      res)))
+			((null? l) (reverse res))))
+	 (xs-and-vars-and-toinst1
+	  (apply
+	   fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
+	   used-formula sig-tvars-and-sig-vars
+	   goal-formula left-to-right
+	   elab-path))
+	 (xs-and-vars-and-toinst
+	  (if xs-and-vars-and-toinst1
+	      xs-and-vars-and-toinst1
+	      (apply
+	       fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
+	       (normalize-formula used-formula)
+	       sig-tvars-and-sig-vars
+	       (normalize-formula goal-formula)
+	       left-to-right
+	       elab-path))))
+    (if
+     (not xs-and-vars-and-toinst)
+     #f
+     (let* ((xs (car xs-and-vars-and-toinst))
+	    (vars (cadr xs-and-vars-and-toinst))
+	    (toinst (caddr xs-and-vars-and-toinst))
+	    (terms (do ((l elab-path-and-terms (cdr l))
+			(res '() (if (memq (car l) '(left right))
+				     res
+				     (cons (car l) res))))
+		       ((null? l) (reverse res))))
+	    (subst (if (<= (length vars) (length terms))
+		       (map list vars (list-head terms (length vars)))
+		       empty-subst))
+	    (subst-xs (map (lambda (x) (if (term-form? x)
+					   (term-substitute x subst)
+					   x))
+			   xs))
+	    (types (let ((info1 (assoc x THEOREMS))
+			 (info2 (assoc x GLOBAL-ASSUMPTIONS))
+			 (tsubst (list-transform-positive toinst
+				   (lambda (x) (tvar-form? (car x))))))
+		     (if
+		      (and (or info1 info2) (pair? tsubst)) ;else '()
+		      (let* ((aconst (if info1
+					 (theorem-name-to-aconst x)
+					 (global-assumption-name-to-aconst x)))
+			     (fla (aconst-to-formula aconst))
+			     (tvars (formula-to-tvars fla)))
+			(map (lambda (tvar) (type-substitute tvar tsubst))
+			     tvars))
+		      '()))))
+       (if (> (length vars) (length terms))
+	   (apply myerror
+		  "simprat-intern" "more terms expected, to be substituted for"
+		  (list-tail vars (length terms))))
+       (if (and COMMENT-FLAG (< (length vars) (length terms)))
+	   (begin
+	     (comment "warning: superfluous terms")
+	     (for-each comment
+		       (map term-to-string (list-tail terms (length vars))))))
+       (apply simprat-with-intern
+	      (if left-to-right
+		  (append (list num-goals proof maxgoal x)
+			  (append types subst-xs))
+		  (append (list num-goals proof maxgoal "<-" x)
+			  (append types subst-xs))))))))
+
 ;; fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data is #f if
 ;; (a) no atomic or negated atomic head of formula and also (b) no lhs
 ;; (resp. rhs) of an equality head of formula is a pattern in the goal
@@ -4950,46 +5346,46 @@
 	 used-formula sig-tvars-and-sig-vars goal-formula
 	 left-to-right . elab-path)
   (let ((match-res
-	 (or (and (imp-form? used-formula)
-		  (let ((prem (imp-form-to-premise used-formula))
-			(concl (imp-form-to-conclusion used-formula)))
-		    (and (atom-form? prem)
-			 (classical-formula=? falsity concl)
-			 (let ((kernel (atom-form-to-kernel prem)))
-			   (first-match sig-tvars-and-sig-vars
-					kernel goal-formula)))))
-	     (and (impnc-form? used-formula)
-		  (let ((prem (impnc-form-to-premise used-formula))
-			(concl (impnc-form-to-conclusion used-formula)))
-		    (and (atom-form? prem)
-			 (classical-formula=? falsity concl)
-			 (let ((kernel (atom-form-to-kernel prem)))
-			   (first-match sig-tvars-and-sig-vars
-					kernel goal-formula)))))
-	     (and (atom-form? used-formula)
-		  (let ((kernel (atom-form-to-kernel used-formula)))
+	 (cond
+	  ((imp-form? used-formula)
+	   (let ((prem (imp-form-to-premise used-formula))
+		 (concl (imp-form-to-conclusion used-formula)))
+	     (and (atom-form? prem)
+		  (classical-formula=? falsity concl)
+		  (let ((kernel (atom-form-to-kernel prem)))
 		    (first-match sig-tvars-and-sig-vars
-				 kernel goal-formula)))
-	     (and (atom-form? used-formula)
-		  (let* ((kernel (atom-form-to-kernel used-formula))
-			 (op (term-in-app-form-to-final-op kernel)))
-		    (and (term-in-const-form? op)
-			 (string=? "=" (const-to-name
-					(term-in-const-form-to-const op)))
-			 (let* ((args (term-in-app-form-to-args kernel))
-				(lhs (car args))
-				(rhs (cadr args)))
-			   (if left-to-right
-			       (first-match sig-tvars-and-sig-vars
-					    lhs goal-formula)
-			       (first-match sig-tvars-and-sig-vars
-					    rhs goal-formula))))))
-	     (and (predicate-form? used-formula)
-		  (let ((predicate (predicate-form-to-predicate
-				    used-formula)))
-		    (and
-		     (idpredconst-form? predicate)
-		     (string=? "EqD" (idpredconst-to-name predicate))
+				 kernel goal-formula)))))
+	  ((impnc-form? used-formula)
+	   (let ((prem (impnc-form-to-premise used-formula))
+		 (concl (impnc-form-to-conclusion used-formula)))
+	     (and (atom-form? prem)
+		  (classical-formula=? falsity concl)
+		  (let ((kernel (atom-form-to-kernel prem)))
+		    (first-match sig-tvars-and-sig-vars
+				 kernel goal-formula)))))
+	  ((atom-form? used-formula)
+	   (let* ((kernel (atom-form-to-kernel used-formula))
+		  (op (term-in-app-form-to-final-op kernel))
+		  (res (first-match sig-tvars-and-sig-vars
+				    kernel goal-formula)))
+	     (if res res
+		 (if (and (term-in-const-form? op)
+		      (member (const-to-name
+			       (term-in-const-form-to-const op))
+			      (list "=" "RatEqv")))
+		     (let* ((args (term-in-app-form-to-args kernel))
+			    (lhs (car args))
+			    (rhs (cadr args)))
+		       (if left-to-right
+			   (first-match sig-tvars-and-sig-vars
+					lhs goal-formula)
+			   (first-match sig-tvars-and-sig-vars
+					rhs goal-formula)))
+		     #f))))
+	  ((predicate-form? used-formula)
+	   (let ((predicate (predicate-form-to-predicate used-formula)))
+	     (if (idpredconst-form? predicate)
+		 (if (string=? "EqD" (idpredconst-to-name predicate))
 		     (let* ((args (predicate-form-to-args used-formula))
 			    (lhs (car args))
 			    (rhs (cadr args)))
@@ -4997,7 +5393,10 @@
 			   (first-match sig-tvars-and-sig-vars
 					lhs goal-formula)
 			   (first-match sig-tvars-and-sig-vars
-					rhs goal-formula)))))))))
+					rhs goal-formula)))
+		     #f)
+		 #f)))
+	  (else #f))))
     (if
      match-res
      (list '() '() match-res)
