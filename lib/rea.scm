@@ -1,4 +1,4 @@
-;; 2016-05-01.  rea.scm.  Based on numbers.scm.
+;; 2016-06-14.  rea.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -28,12 +28,12 @@
 ;; properties), and within this data type inductively define the
 ;; predicate Real x, meaning that x is a (proper) real.
 
-(add-alg "rea" (list "RealConstr" "(nat=>rat)=>(nat=>nat)=>rea"))
+(add-alg "rea" (list "RealConstr" "(nat=>rat)=>(pos=>nat)=>rea"))
 (add-totality "rea")
 (add-mr-ids "TotalRea")
 
 (add-var-name "as" "bs" "cs" "ds" (py "nat=>rat"))
-(add-var-name "M" "N" (py "nat=>nat"))
+(add-var-name "M" "N" (py "pos=>nat"))
 (add-var-name "x" "y" (py "rea"))
 
 ;; ReaTotalVar
@@ -93,7 +93,7 @@
 ;; Proof finished.
 (save-totality)
 
-(add-program-constant "RealMod" (py "rea=>nat=>nat") t-deg-zero 'const 1)
+(add-program-constant "RealMod" (py "rea=>pos=>nat") t-deg-zero 'const 1)
 
 (add-token
  "mod"
@@ -134,7 +134,7 @@
 (save-totality)
 
 ;; (pp (pt "x seq n"))
-;; (pp (pt "x mod l"))
+;; (pp (pt "x mod p"))
 
 ;; 2. Parsing and display for arithmetical operations
 ;; ==================================================
@@ -204,46 +204,16 @@
 			      (term-in-abst-form-to-kernel (car args))))
 	 #f))))
 
-;; (pp (pt "(IntN p#q)+RealConstr([n]1)([k]7)"))
+;; (pp (pt "(IntN p#q)+RealConstr([n]1)([p]7)"))
+;; (IntN p#q)+1
 
 ;; We introduce an inductively defined predicate RealEq x y by the
 ;; following clause.
 
-;; (pp (pt "abs(x seq(x mod(IntS k))-y seq(y mod(IntS k)))"))
-
-;; ;; (pp (pt "1#2**k"))
-;; ;; (ppn (pt "(1#2)**k"))
-;; ;; (pp (pt "1/2**k"))
-;; ;; (ppn (pt "1/2**k"))
-;; (pp (pt "eps k"))
-
-;; 2016-04-28.  Experiments with eps.  Goal: convenient estimates
-
-;; (set-goal "all k eps(IntS k)+eps(IntS k)==eps k")
-;; (assume "k")
-;; (ng) ;no change
-
-;; (set-goal "all k (1#2)**IntS k+(1#2)**IntS k==(1#2)**k")
-;; (assume "k")
-;; (ng) ;no change
-
-;; (display-pconst "RatExp" "IntExp" "PosExp")
-;; ;; no rewrite rules for RatExp
-
-;; (ppn (pt "p**n"))
-;; (ppn (pt "k**n"))
-;; (ppn (pt "a**n"))
-
-;; > (p PosExp n)
-;; > (k IntExp n)
-;; > (a RatExp (NatToInt n))
-
-;; (pp (pf "abs(x seq(x mod(IntS k))-y seq(y mod(IntS k))) <= 1/2**k"))
-
 (add-ids
  (list (list "RealEq" (make-arity (py "rea") (py "rea"))))
  '("all x^,y^(
-    all k abs(x^ seq(x^ mod(IntS k))-y^ seq(y^ mod(IntS k)))<=1/2**k ->
+    all p abs(x^ seq(x^ mod(PosS p))-y^ seq(y^ mod(PosS p)))<=(1#2**p) ->
     RealEq x^ y^)" "RealEqIntro"))
 
 ;; (pp "RealEqIntro")
@@ -271,7 +241,7 @@
 ;; RealEqElim
 (set-goal
  "all x^,y^(x^ ===y^ ->
-          all k abs(x^ seq(x^ mod(IntS k))-y^ seq(y^ mod(IntS k)))<=1/2**k)")
+          all p abs(x^ seq(x^ mod(PosS p))-y^ seq(y^ mod(PosS p)))<=(1#2**p))")
 (assume "x^" "y^" "x=y")
 (elim "x=y")
 (search)
@@ -284,17 +254,17 @@
 ;; RealEqElimVariant
 (set-goal
  "all as^,M^,bs^,N^(RealConstr as^ M^ ===RealConstr bs^ N^ ->
-                    all k abs(as^(M^(IntS k))-bs^(N^(IntS k)))<=1/2**k)")
+                    all p abs(as^(M^(PosS p))-bs^(N^(PosS p)))<=(1#2**p))")
 (strip)
 (use-with "RealEqElim"
-	  (pt "RealConstr as^ M^") (pt "RealConstr bs^ N^") 1 (pt "k"))
+	  (pt "RealConstr as^ M^") (pt "RealConstr bs^ N^") 1 (pt "p"))
 ;; Proof finished.
 (save "RealEqElimVariant")
 
 ;; RealPos is a decidable property and hence can be considered as a
 ;; program constant.
 
-(add-program-constant "RealPos" (py "rea=>int=>boole"))
+(add-program-constant "RealPos" (py "rea=>pos=>boole"))
 
 (add-display
  (make-alg "boole")
@@ -316,7 +286,7 @@
 	    (term-to-token-tree (term-to-original arg2))))
 	 #f))))
 
-(add-computation-rules "RealPos(RealConstr as M)k" "1/2**k<=as(M(k+1))")
+(add-computation-rules "RealPos(RealConstr as M)p" "(1#2**p)<=as(M(p+1))")
 
 ;; RealPosTotal
 (set-totality-goal "RealPos")
@@ -324,7 +294,7 @@
 (cases)
 (assume "as" "M")
 (use "AllTotalElim")
-(assume "k")
+(assume "p")
 (ng)
 (use "BooleTotalVar")
 ;; Proof finished.
@@ -333,7 +303,7 @@
 ;; RealLt is a decidable property and hence can be considered as a
 ;; program constant.
 
-(add-program-constant "RealLt" (py "rea=>rea=>int=>boole"))
+(add-program-constant "RealLt" (py "rea=>rea=>pos=>boole"))
 
 (add-display
  (make-alg "boole")
@@ -360,14 +330,14 @@
 	 #f))))
 
 (add-computation-rules
- "RealLt(RealConstr as M)(RealConstr bs N)k"
- "RealPos(RealConstr bs N-RealConstr as M)k")
+ "RealLt(RealConstr as M)(RealConstr bs N)p"
+ "RealPos(RealConstr bs N-RealConstr as M)p")
 
 ;; Rules for RealMinus
 
 (add-computation-rules
  "RealConstr as M-RealConstr bs N"
- "RealConstr([n]as n-bs n)([k]M(k+1)max N(k+1))")
+ "RealConstr([n]as n-bs n)([p]M(PosS p)max N(PosS p))")
 
 ;; RealMinusTotal
 (set-totality-goal "RealMinus")
@@ -391,7 +361,7 @@
 (cases)
 (assume "bs" "N")
 (use "AllTotalElim")
-(assume "k")
+(assume "p")
 (ng)
 (use "BooleTotalVar")
 ;; Proof finished.
@@ -401,11 +371,11 @@
 
 (add-ids
  (list (list "RealNNeg" (make-arity (py "rea"))))
- '("all x^(all k 0<=x^ seq(x^ mod k)+1/2**k -> RealNNeg x^)"
+ '("all x^(all p 0<=x^ seq(x^ mod p)+(1#2**p) -> RealNNeg x^)"
  "RealNNegIntro"))
 
 ;; RealNNegElim
-(set-goal "all x^(RealNNeg x^ -> all k 0<=x^ seq(x^ mod k)+1/2**k)")
+(set-goal "all x^(RealNNeg x^ -> all p 0<=x^ seq(x^ mod p)+(1#2**p))")
 (assume "x^" "NNegx")
 (elim "NNegx")
 (search)
@@ -417,9 +387,9 @@
 
 ;; RealNNegElimVariant
 (set-goal
- "all as^,M^(RealNNeg(RealConstr as^ M^) -> all k 0<=as^(M^ k)+1/2**k)")
+ "all as^,M^(RealNNeg(RealConstr as^ M^) -> all p 0<=as^(M^ p)+(1#2**p))")
 (strip)
-(use-with "RealNNegElim" (pt "RealConstr as^ M^") 1 (pt "k"))
+(use-with "RealNNegElim" (pt "RealConstr as^ M^") 1 (pt "p"))
 ;; Proof finished.
 (save "RealNNegElimVariant")
 
@@ -454,7 +424,7 @@
 
 (set-goal "all as^,M^,bs^,N^(
  RealConstr as^ M^ <<=RealConstr bs^ N^ ->
- RealNNeg(RealConstr([n]bs^ n-as^ n)([k]N^(k+1)max M^(k+1))))")
+ RealNNeg(RealConstr([n]bs^ n-as^ n)([p]N^(PosS p)max M^(PosS p))))")
 (strip)
 (use-with "RealLeElim" (pt "RealConstr as^ M^") (pt "RealConstr bs^ N^") 1)
 ;; Proof finished.
@@ -467,7 +437,7 @@
 
 (add-computation-rules
  "RealConstr as M+RealConstr bs N"
- "RealConstr([n]as n+bs n)([k]M(k+1)max N(k+1))")
+ "RealConstr([n]as n+bs n)([p]M(PosS p)max N(PosS p))")
 
 ;; RealPlusTotal
 (set-totality-goal "RealPlus")
@@ -497,11 +467,11 @@
 ;; Proof finished.
 (save-totality)
 
-(add-program-constant "RealInv" (py "rea=>int=>rea"))
+(add-program-constant "RealInv" (py "rea=>pos=>rea"))
 
 (add-computation-rules
- "RealInv(RealConstr as M)j"
- "RealConstr([n]1/as n)([k]M(2*IntS j+k)max M(IntS j))")
+ "RealInv(RealConstr as M)q"
+ "RealConstr([n]1/as n)([p]M(2*PosS q+p)max M(PosS q))")
 
 ;; RealInvTotal
 (set-totality-goal "RealInv")
@@ -509,7 +479,7 @@
 (cases)
 (assume "as" "M")
 (use "AllTotalElim")
-(assume "k")
+(assume "p")
 (ng)
 (use "ReaTotalVar")
 ;; Proof finished.
@@ -521,7 +491,7 @@
  "x**(IntP One)" "x"
  "x**(IntP(SZero p))" "(x**(IntP p))*(x**(IntP p))"
  "x**(IntP(SOne p))" "(x**(IntP(SZero p)))*x"
- "x**IntZero" "RealConstr([n](RatConstr(IntPos One)One))([k]Zero)")
+ "x**IntZero" "RealConstr([n](RatConstr(IntPos One)One))([p]Zero)")
 
 ;; 4.  Constructive Reals
 ;; ======================
@@ -533,21 +503,21 @@
 ;; in this case also be called a record).
 
 (add-ids
- (list (list "Cauchy" (make-arity (py "nat=>rat") (py "int=>nat"))))
+ (list (list "Cauchy" (make-arity (py "nat=>rat") (py "pos=>nat"))))
  '("all as^,M(
-    all k,n,m(M k<=n -> M k<=m -> abs(as^ n-as^ m)<=1/2**k) -> Cauchy as^ M)"
+    all p,n,m(M p<=n -> M p<=m -> abs(as^ n-as^ m)<=(1#2**p)) -> Cauchy as^ M)"
    "CauchyIntro"))
 
 ;; Similarly, we introduce a predicate constant Mon, taking a sequence
 ;; of positive numbers as argument, to express monotonicity.
 
-(add-ids (list (list "Mon" (make-arity (py "int=>nat"))))
-	 '("all M(all k,j(k<=j -> M k<=M j) -> Mon M)" "MonIntro"))
+(add-ids (list (list "Mon" (make-arity (py "pos=>nat"))))
+	 '("all M(all p,q(p<=q -> M p<=M q) -> Mon M)" "MonIntro"))
 
 ;; "CauchyElim"
 (set-goal
  "all as^,M(Cauchy as^ M ->
-            all k,n,m(M k<=n -> M k<=m -> abs(as^ n-as^ m)<=1/2**k))")
+            all p,n,m(M p<=n -> M p<=m -> abs(as^ n-as^ m)<=(1#2**p)))")
 (assume "as^" "M")
 (elim)
 (search)
@@ -555,7 +525,7 @@
 (save "CauchyElim")
 
 ;; "MonElim"
-(set-goal "all M(Mon M -> all k,j(k<=j -> M k<=M j))")
+(set-goal "all M(Mon M -> all p,q(p<=q -> M p<=M q))")
 (assume "M")
 (elim)
 (search)
@@ -617,28 +587,83 @@
 ;; RealEqChar1
 (set-goal "all as,M,bs,N(Cauchy as M -> Cauchy bs N ->
       RealConstr as M===RealConstr bs N -> 
-      all k ex n1 all n(n1<=n -> abs(as n-bs n)<=1/2**k))")
-(assume "as" "M" "bs" "N" "CasM" "CbsN" "x=y" "k")
-(ex-intro "M(IntS(IntS k))max N(IntS(IntS k))")
+      all p ex n1 all n(n1<=n -> abs(as n-bs n)<=(1#2**p)))")
+(assume "as" "M" "bs" "N" "CasM" "CbsN" "x=y" "p")
+(ex-intro "M(PosS(PosS p))max N(PosS(PosS p))")
 (assume "n" "BdHyp")
-(use "RatLeTrans" (pt "1/2**(IntS(IntS k))+1/2**(IntS k)+1/2**(IntS(IntS k))"))
-(use "RatLeTrans" (pt "abs(as n-as(M(IntS(IntS k))))+
-                       abs(as(M(IntS(IntS k)))-bs(N(IntS(IntS k))))+
-                       abs(bs(N(IntS(IntS k)))-bs n)"))
 
-(search-about "Rat" "Abs")
-(display-pconst "RatAbs")
-(display-pconst "RatMinus" "RatPlus")
-(display-pconst "PosPlus")
-(search-about "Pos" "Plus")
-(search-about "Int" "Abs")
-;; RatLeAbsPlus
-;; all a,b abs(a+b)<=abs a+abs b
-(display-pconst "IntAbs")
+;; 2016-06-14.  Done up to this point.
 
-(ppn (pt "M(k+2)max N(k+2)"))
+;; (use "RatLeTrans"
+;;      (pt "(1#2**(PosS(PosS p)))+(1#2**(PosS p))+(1#2**(PosS(PosS p)))"))
 
-;; (set-goal "all r 0**r=0")
+;; x-and-x-list-to-proof-and-new-num-goals-and-maxgoal
+;; attempt to apply all-elim to non-total term
+;; (1#2**PosS(PosS p))+(1#2**PosS p)+(1#2**PosS(PosS p))
+
+;; (use "RatLeTrans" (pt "abs(as n-as(M(PosS(PosS p))))+
+;;                        abs(as(M(PosS(PosS p)))-bs(N(PosS(PosS p))))+
+;;                        abs(bs(N(PosS(PosS p)))-bs n)"))
+
+;; (search-about "Rat" "Abs")
+;; (display-pconst "RatAbs")
+;; (display-pconst "RatMinus" "RatPlus")
+;; (display-pconst "PosPlus")
+;; (search-about "Pos" "Plus")
+;; (search-about "Int" "Abs")
+;; ;; RatLeAbsPlus
+;; ;; all a,b abs(a+b)<=abs a+abs b
+;; (display-pconst "IntAbs")
+
+;; (ppn (pt "M(l+2)max N(l+2)"))
+
+;; ;; (set-goal "all r 0**r=0")
+;; ;; (assume "r")
+;; ;; (use "PosLeLtCases" (pt "r") (pt "1"))
+;; ;; (ng)
+;; ;; (assume "r=1")
+;; ;; (simp "r=1")
+;; ;; (use "Truth")
+;; ;; (assume "1<r")
+;; ;; (simp "SuccPosPred")
+
+;; (search-about "Pos" "Le" "Not")
+;; (search-about "Pos" "Log")
+
+;; ;; Better: prove and use this for positive k only
+;; (set-goal "all k (1#2)**(k+1)+(1#2)**(k+1)==(1#2)**k")
+;; ;; Using all a,r a**PosS r==a**r*a and all a,r a**IntN r==(a**IntN 1)**r
+;; ;; we prove a**(k+1)+a**(k+1)==a**k for a := (1#2).
+;; (cases)
+;; (assume "r")
+;; (assert "IntP r+1=PosS r")
+;;  (use "Truth")
+;; (assume "IntP r+1=PosS r")
+;; (simp "IntP r+1=PosS r")
+;; (drop "IntP r+1=PosS r")
+;; (simprat "RatExpPosS")
+;; (simprat "<-" "RatTimesPlusDistr")
+;; (ng)
+;; (use "Truth")
+;; ;; 3
+;; (use "Truth")
+;; ;; 4
+;; (assume "r")
+;; (use "PosLeLtCases" (pt "r") (pt "1"))
+;; (ng)
+;; (assume "r=1")
+;; (simp "r=1")
+;; (ng)
+;; (simp "r=1")
+;; (use "Truth")
+;; (assume "1<r")
+
+;; ;; Need
+;; (set-goal "all r (2#1)**PosPred r+(2#1)**PosPred r==2**r")
+;; (ng)
+
+;; (set-goal "all r (2#1)**r+(2#1)**r==2**PosS r")
+;; (ng)
 ;; (assume "r")
 ;; (use "PosLeLtCases" (pt "r") (pt "1"))
 ;; (ng)
@@ -647,206 +672,160 @@
 ;; (use "Truth")
 ;; (assume "1<r")
 ;; (simp "SuccPosPred")
+;; (ng)(undo)
 
-(search-about "Pos" "Le" "Not")
-(search-about "Pos" "Log")
+;; (ppn "SuccPosPred")
 
-;; Better: prove and use this for positive k only
-(set-goal "all k (1#2)**(k+1)+(1#2)**(k+1)==(1#2)**k")
-;; Using all a,r a**PosS r==a**r*a and all a,r a**IntN r==(a**IntN 1)**r
-;; we prove a**(k+1)+a**(k+1)==a**k for a := (1#2).
-(cases)
-(assume "r")
-(assert "IntP r+1=PosS r")
- (use "Truth")
-(assume "IntP r+1=PosS r")
-(simp "IntP r+1=PosS r")
-(drop "IntP r+1=PosS r")
-(simprat "RatExpPosS")
-(simprat "<-" "RatTimesPlusDistr")
-(ng)
-(use "Truth")
-;; 3
-(use "Truth")
-;; 4
-(assume "r")
-(use "PosLeLtCases" (pt "r") (pt "1"))
-(ng)
-(assume "r=1")
-(simp "r=1")
-(ng)
-(simp "r=1")
-(use "Truth")
-(assume "1<r")
+;; (ppn (goal-to-formula (current-goal)))
+;; (ppn (pt "a**PosS r"))
+;; (display-pconst "RatExp")
+;; (display-pconst "IntExp")
+;; (display-pconst "PosExp")
+;; (ppn (pt "(1#2)**(k+1)"))
+;; (ppn (pt "(1#2)**Succ k"))
+;; (display-pconst "IntPlus" "Succ" "IntPred")
+;; (search-about "Nat" "Int")
+;; (ppn "PosToNatToIntId")
+;; (display-pconst "NatToInt")
+;; (search-about "Nat" "Pos" "Id")
+;; (display-pconst "PosPred")
+;; (search-about "PosPred")
+;; (display-pconst "IntUMinus")
+;; (ppn "RatExp4CompRule")
 
-;; Need
-(set-goal "all r (2#1)**PosPred r+(2#1)**PosPred r==2**r")
-(ng)
+;; ;; Transferred to rat.scm
+;; ;; RatExpPosS
+;; ;; (set-goal "all a,r a**PosS r==a**r*a")
+;; ;; (assert "all a,r a**PosToNat(PosS r)==a**PosToNat r*a")
+;; ;; (cases)
+;; ;; (cases)
+;; ;; ;; 3-5
+;; ;; (assume "p" "q" "r")
+;; ;; (simp "SuccPosPred")
+;; ;; (simp "<-" "IntPNatToPosEqNatToInt")
+;; ;; (simp "RatExp0CompRule")
+;; ;; (simp "<-" "IntPNatToPosEqNatToInt")
+;; ;; (simp "PosToNatToPosId")
+;; ;; (simp "PosPred0RewRule")
+;; ;; (simp "NatToPosToNatId")
+;; ;; (use "Truth")
+;; ;; (use "Truth")
+;; ;; (use "NatLt0Pos")
+;; ;; (use "Truth")
+;; ;; (use "Truth")
+;; ;; ;; 4
+;; ;; (assume "p" "r")
+;; ;; (simp "<-" "IntPNatToPosEqNatToInt")
+;; ;; (simp "RatExp0CompRule")
+;; ;; (simp "PosToNatToPosId")
+;; ;; (simp "<-" "IntPNatToPosEqNatToInt")
+;; ;; (simp "NatToPosToNatId")
+;; ;; (ng)
+;; ;; (simp "SuccPosPred")
+;; ;; (ng)
+;; ;; (use "Truth")
+;; ;; (use "Truth")
+;; ;; (use "NatLt0Pos")
+;; ;; (simp "SuccPosPred")
+;; ;; (use "Truth")
+;; ;; (use "Truth")
+;; ;; (use "NatLt0Pos")
+;; ;; ;; 5
+;; ;; (assume "p" "q" "r")
+;; ;; (simp "SuccPosPred")
+;; ;; (simp "<-" "IntPNatToPosEqNatToInt")
+;; ;; (simp "RatExp0CompRule")
+;; ;; (simp "<-" "IntPNatToPosEqNatToInt")
+;; ;; (simp "PosToNatToPosId")
+;; ;; (simp "PosPred0RewRule")
+;; ;; (simp "NatToPosToNatId")
+;; ;; (use "Truth")
+;; ;; (use "Truth")
+;; ;; (use "NatLt0Pos")
+;; ;; (use "Truth")
+;; ;; (use "Truth")
+;; ;; ;; Assertion proved
+;; ;; (assume "Assertion" "a" "r")
+;; ;; (simp "<-" "PosToNatToIntId")
+;; ;; (simp "<-" "PosToNatToIntId")
+;; ;; (use "Assertion")
+;; ;; ;; Proof finished
+;; ;; (save "RatExpPosS")
 
-(set-goal "all r (2#1)**r+(2#1)**r==2**PosS r")
-(ng)
-(assume "r")
-(use "PosLeLtCases" (pt "r") (pt "1"))
-(ng)
-(assume "r=1")
-(simp "r=1")
-(use "Truth")
-(assume "1<r")
-(simp "SuccPosPred")
-(ng)(undo)
-
-(ppn "SuccPosPred")
-
-(ppn (goal-to-formula (current-goal)))
-(ppn (pt "a**PosS r"))
-(display-pconst "RatExp")
-(display-pconst "IntExp")
-(display-pconst "PosExp")
-(ppn (pt "(1#2)**(k+1)"))
-(ppn (pt "(1#2)**IntS k"))
-(display-pconst "IntPlus" "IntS" "IntPred")
-(search-about "Nat" "Int")
-(ppn "PosToNatToIntId")
-(display-pconst "NatToInt")
-(search-about "Nat" "Pos" "Id")
-(display-pconst "PosPred")
-(search-about "PosPred")
-(display-pconst "IntUMinus")
-(ppn "RatExp4CompRule")
-
-;; First
-;; RatExpPosS
-(set-goal "all a,r a**PosS r==a**r*a")
-(assert "all a,r a**PosToNat(PosS r)==a**PosToNat r*a")
-(cases)
-(cases)
-;; 3-5
-(assume "p" "q" "r")
-(simp "SuccPosPred")
-(simp "<-" "IntPNatToPosEqNatToInt")
-(simp "RatExp0CompRule")
-(simp "<-" "IntPNatToPosEqNatToInt")
-(simp "PosToNatToPosId")
-(simp "PosPred0RewRule")
-(simp "NatToPosToNatId")
-(use "Truth")
-(use "Truth")
-(use "NatLt0Pos")
-(use "Truth")
-(use "Truth")
-;; 4
-(assume "p" "r")
-(simp "<-" "IntPNatToPosEqNatToInt")
-(simp "RatExp0CompRule")
-(simp "PosToNatToPosId")
-(simp "<-" "IntPNatToPosEqNatToInt")
-(simp "NatToPosToNatId")
-(ng)
-(simp "SuccPosPred")
-(ng)
-(use "Truth")
-(use "Truth")
-(use "NatLt0Pos")
-(simp "SuccPosPred")
-(use "Truth")
-(use "Truth")
-(use "NatLt0Pos")
-;; 5
-(assume "p" "q" "r")
-(simp "SuccPosPred")
-(simp "<-" "IntPNatToPosEqNatToInt")
-(simp "RatExp0CompRule")
-(simp "<-" "IntPNatToPosEqNatToInt")
-(simp "PosToNatToPosId")
-(simp "PosPred0RewRule")
-(simp "NatToPosToNatId")
-(use "Truth")
-(use "Truth")
-(use "NatLt0Pos")
-(use "Truth")
-(use "Truth")
-;; Assertion proved
-(assume "Assertion" "a" "r")
-(simp "<-" "PosToNatToIntId")
-(simp "<-" "PosToNatToIntId")
-(use "Assertion")
-;; Proof finished
-(save "RatExpPosS")
-
-;; To extend this to negative exponents use
-(set-goal "all a,r a**IntN r==(a**IntN 1)**r")
-(cases)
-(cases)
-;; 3-5
-(assume "p" "q" "r")
-(ng)
-(use "Truth")
-;; 4
-(assume "q" "r")
-(ng)
-(use "Truth")
-;; 5
-(assume "p" "q" "r")
-(ng)
-(use "Truth")
-;; Proof finished.
-
-(display-pconst "RatExp" "IntExp")
-(ppn (goal-to-formula (current-goal)))
-(ppn "IntExp0RewRule")
-
-;; Transferred to int.scm
-;; (set-goal "all r 0**r=0")
-;; (assume "r")
-;; (use "PosLeLtCases" (pt "r") (pt "1"))
-;; (ng)
-;; (assume "r=1")
-;; (simp "r=1")
-;; (use "Truth")
-;; (assume "1<r")
-;; (simp "SuccPosPred")
+;; ;; To extend this to negative exponents use
+;; (set-goal "all a,r a**IntN r==(a**IntN 1)**r")
+;; (cases)
+;; (cases)
+;; ;; 3-5
+;; (assume "p" "q" "r")
 ;; (ng)
 ;; (use "Truth")
-;; (use "1<r")
+;; ;; 4
+;; (assume "q" "r")
+;; (ng)
+;; (use "Truth")
+;; ;; 5
+;; (assume "p" "q" "r")
+;; (ng)
+;; (use "Truth")
 ;; ;; Proof finished.
 
-(ppn (pf "all r 0**r=0"))
+;; (display-pconst "RatExp" "IntExp")
+;; (ppn (goal-to-formula (current-goal)))
+;; (ppn "IntExp0RewRule")
 
-(search-about "Pos" "Cases")
-(search-about "Pos" "Succ")
-(search-about "Pos" "Pred")
-(display-pconst "PosToNat")
+;; ;; Transferred to int.scm
+;; ;; (set-goal "all r 0**r=0")
+;; ;; (assume "r")
+;; ;; (use "PosLeLtCases" (pt "r") (pt "1"))
+;; ;; (ng)
+;; ;; (assume "r=1")
+;; ;; (simp "r=1")
+;; ;; (use "Truth")
+;; ;; (assume "1<r")
+;; ;; (simp "SuccPosPred")
+;; ;; (ng)
+;; ;; (use "Truth")
+;; ;; (use "1<r")
+;; ;; ;; Proof finished.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 2016-04-17.  Attempt to include the essential parts of the former
-;; lib/real.scm but avoiding global assumptions and simpreal.  The
-;; order follows semws15/constr15.pdf
+;; (ppn (pf "all r 0**r=0"))
 
-(set-goal "all x,y(Real x -> Real y -> x+y===y+x)")
-(strip)
-(ord-field-simp-bwd)
-(use 1)
-(use 2)
+;; (search-about "Pos" "Cases")
+;; (search-about "Pos" "Succ")
+;; (search-about "Pos" "Pred")
+;; (display-pconst "PosToNat")
 
-;; Attempt to avoid ord-field-simp-bwd
-(set-goal "all x,y(Real x -> Real y -> x+y===y+x)")
-(assume "x" "y" "Rx" "Ry")
-(use "RealEqIntro")
-(assume "k")
-(elim "Rx")
-(assume "x1" "Cx1" "Mx1")
-(elim "Ry")
-(assume "y1" "Cy1" "My1")
-(elim "Cx1")
-(assume "as^" "M" "MProp")
-(elim "My1")
-(assume "M1" "M1Prop")
-;; etc
+;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; ;; 2016-04-17.  Attempt to include the essential parts of the former
+;; ;; lib/real.scm but avoiding global assumptions and simpreal.  The
+;; ;; order follows semws15/constr15.pdf
 
-;; as^ should be avoided, take as instead
+;; (set-goal "all x,y(Real x -> Real y -> x+y===y+x)")
+;; (strip)
+;; (ord-field-simp-bwd)
+;; (use 1)
+;; (use 2)
 
-;; Maybe better to have a new file real.scm, where simpreal is
-;; available.
+;; ;; Attempt to avoid ord-field-simp-bwd
+;; (set-goal "all x,y(Real x -> Real y -> x+y===y+x)")
+;; (assume "x" "y" "Rx" "Ry")
+;; (use "RealEqIntro")
+;; (assume "k")
+;; (elim "Rx")
+;; (assume "x1" "Cx1" "Mx1")
+;; (elim "Ry")
+;; (assume "y1" "Cy1" "My1")
+;; (elim "Cx1")
+;; (assume "as^" "M" "MProp")
+;; (elim "My1")
+;; (assume "M1" "M1Prop")
+;; ;; etc
 
-;; 2016-04-17.  Prove axioms of an ordered field for rea, with RealEq
-;; === as equality.  Define RealUDiv.
+;; ;; as^ should be avoided, take as instead
+
+;; ;; Maybe better to have a new file real.scm, where simpreal is
+;; ;; available.
+
+;; ;; 2016-04-17.  Prove axioms of an ordered field for rea, with RealEq
+;; ;; === as equality.  Define RealUDiv.
