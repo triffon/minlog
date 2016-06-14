@@ -1,6 +1,65 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
-Done locally on dev branch 2016-06-09
+Done on dev branch 2016-06-14
+
+In term.scm
+
+In term-to-external-expr case PairConstr corrected.
+
+In formula.scm
+
+impnc-allnc-pvar-formula? added
+
+In psym.scm
+
+In add-ids tests cleaned up: clause-test1 and clause-test2 removed
+
+In axiom.scm
+
+Obsolete functions clause-to-simplified-clause
+replace-final-conclusion idpc-clause-to-rec-premises
+uniform-non-rec-idpc-clause?  non-computational-invariant?
+mr-nc-idpc-name?  uniform-one-clause-nc-idpc-name?
+restricted-elim-nc-idpc-name? removed.
+
+In pproof.scm
+
+simprat-with simprat-with-intern rateqv-term-compat
+rateqv-formula-compat simprat simprat-intern added.  simprat is
+similar to simp but works for RatEqv.
+fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data extended to
+also cover RatEqv, as needed for simprat.
+
+In ets.scm
+
+number-and-idpredconst-to-intro-mr-proof adapted to new general form
+of clauses.  axiom-to-soundness-proof simplified: no extra treatment
+necessary for ExL, ExR, ExLT, ExRT, AndL and AndR.  Accordingly
+exd-formula-to-exd-intro-mr-proof exl-formula-to-exl-intro-mr-proof
+exr-formula-to-exr-intro-mr-proof andl-formula-to-andl-intro-mr-proof
+andr-formula-to-andr-intro-mr-proof
+andl-formula-to-andl-intro-mr-proof removed
+one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof added
+Accordingly eqd-elim-aconst-to-eqd-mr-elim-proof
+exu-formula-and-concl-to-exu-elim-mr-proof
+andu-formula-and-concl-to-andu-elim-mr-proof removed.
+axiom-to-soundness-proof adapted.
+
+In lib/rat.scm
+
+Proof of RatExpPosS corrected.
+
+In lib/rea.scm
+
+Type of Cauchy modulus changed to pos=>nat.  Estimates by (1#2**p),
+since RatPlusHalfExpPosS: (1#2**PosS p)+(1#2**PosS p)==(1#2**p)
+
+In test/ets.scm
+
+Tests for discarded functions removed.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-06-09
 
 In ets.scm
 
