@@ -3223,76 +3223,14 @@
     (make-proof-in-aconst-form new-aconst)))
 
 (define (number-and-idpredconst-to-intro-mr-proof i idpc)
-  (let* ((intro-aconst (number-and-idpredconst-to-intro-aconst i idpc))
-	 (constr (proof-to-extracted-term
-		  (make-proof-in-aconst-form intro-aconst)))
-	 (mr-type (arrow-form-to-final-val-type (term-to-type constr)))
-	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
+  (let* ((mr-idpc (idpredconst-to-mr-idpredconst idpc))
 	 (intro-mr-aconst (number-and-idpredconst-to-intro-aconst i mr-idpc))
+	 (intro-aconst (number-and-idpredconst-to-intro-aconst i idpc))
 	 (inst-clause (aconst-to-inst-formula intro-aconst))
-	 (inst-clause-vars (all-allnc-form-to-vars inst-clause))
-	 (inst-clause-kernel (all-allnc-form-to-final-kernel inst-clause))
-	 (inst-mr-clause (aconst-to-inst-formula intro-mr-aconst))
-	 (inst-mr-clause-vars (all-allnc-form-to-vars inst-mr-clause))
-	 (inst-mr-clause-kernel
-	  (all-allnc-form-to-final-kernel inst-mr-clause))
-	 (prems (imp-impnc-form-to-premises inst-clause-kernel))
-	 (concl (imp-impnc-form-to-final-conclusion inst-clause-kernel))
-	 (idpc-name (idpredconst-to-name idpc))
-	 (idpc-pvars (idpredconst-name-to-pvars idpc-name))
-	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
-	 (idpc-names (idpredconst-name-to-simidpc-names idpc-name))
-	 (clauses-with-idpc-pvars
-	  (apply append (map idpredconst-name-to-clauses idpc-names)))
-	 (et-tvars (set-minus (apply union (map (lambda (x)
-						  (type-to-tvars
-						   (formula-to-et-type x)))
-						clauses-with-idpc-pvars))
-			      idpc-tvars))
-	 (param-pvars (idpredconst-name-to-param-pvars idpc-name))
-	 (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
-	 (mr-et-tvars (list-transform-positive et-tvars
-			(lambda (tvar)
-			  (member tvar et-tvars-of-param-pvars))))
-	 (et-types ;some may be nulltype
-	  (map (lambda (fla)
-		 (formula-to-et-type-for-mr-clauses
-		  fla mr-et-tvars idpc-pvars PVAR-TO-MR-PVAR))
-	       prems))
-	 (orig-mr-clause-vars
-	  (list-head inst-mr-clause-vars (length inst-clause-vars)))
-	 (new-mr-clause-vars
-	  (list-tail inst-mr-clause-vars (length inst-clause-vars)))
-	 (vars-and-eps (do ((l1 et-types (cdr l1))
-			    (l2 new-mr-clause-vars (if (nulltype? (car l1))
-						       l2
-						       (cdr l2)))
-			    (res '() (if (nulltype? (car l1))
-					 (cons 'eps res)
-					 (cons (car l2) res))))
-			   ((null? l1) (reverse res))))
-	 (mr-prems (imp-impnc-form-to-premises inst-mr-clause-kernel))
-	 (avars (map formula-to-new-avar mr-prems))
-	 (vars-with-avars (do ((l1 vars-and-eps (cdr l1))
-			       (l2 avars (cdr l2))
-			       (res '() (let ((var-or-eps (car l1))
-					      (avar (car l2)))
-					  (if (eq? var-or-eps 'eps)
-					      (cons avar res)
-					      (cons avar
-						    (cons var-or-eps res))))))
-			      ((null? l1) (reverse res))))
-	 (free (formula-to-free inst-clause))
-	 (mr-free (formula-to-free inst-mr-clause))
-	 (elim-proof
-	  (apply mk-proof-in-elim-form
-		 (make-proof-in-aconst-form intro-mr-aconst)
-		 (append (map make-term-in-var-form mr-free)
-			 (map make-term-in-var-form inst-mr-clause-vars)
-			 (map make-proof-in-avar-form avars)))))
+	 (free (formula-to-free inst-clause)))
     (apply
-     mk-proof-in-nc-intro-form
-     (append free orig-mr-clause-vars vars-with-avars (list elim-proof)))))
+     mk-proof-in-intro-form
+     (append free (list (make-proof-in-aconst-form intro-mr-aconst))))))
 
 (define (imp-formulas-to-mr-elim-proof . imp-formulas)
   (let* ((prems (map imp-form-to-premise imp-formulas))
@@ -3514,36 +3452,6 @@
 			  (cons (make-proof-in-avar-form mr-prem-avar)
 				mr-clause-proofs)))))))))
 
-(define (exd-formula-to-exd-intro-mr-proof exd-formula)
-  (let* ((idpc (predicate-form-to-predicate exd-formula))
-	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
-	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
-    (make-proof-in-aconst-form mr-aconst)))
-
-(define (exl-formula-to-exl-intro-mr-proof exl-formula)
-  (let* ((idpc (predicate-form-to-predicate exl-formula))
-	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
-	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
-    (make-proof-in-aconst-form mr-aconst)))
-
-(define (exr-formula-to-exr-intro-mr-proof exr-formula)
-  (let* ((idpc (predicate-form-to-predicate exr-formula))
-	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
-	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
-    (make-proof-in-aconst-form mr-aconst)))
-
-(define (andr-formula-to-andr-intro-mr-proof andr-formula)
-  (let* ((idpc (predicate-form-to-predicate andr-formula))
-	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
-	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
-    (make-proof-in-aconst-form mr-aconst)))
-
-(define (andl-formula-to-andl-intro-mr-proof andl-formula)
-  (let* ((idpc (predicate-form-to-predicate andl-formula))
-	 (mr-idpc (idpredconst-to-mr-idpredconst idpc))
-	 (mr-aconst (number-and-idpredconst-to-intro-aconst 0 mr-idpc)))
-    (make-proof-in-aconst-form mr-aconst)))
-
 (define (exl-formula-and-concl-to-exl-elim-mr-proof exl-formula concl)
   (let* ((free (union (formula-to-free exl-formula) (formula-to-free concl)))
 	 (var (exl-form-to-var exl-formula))
@@ -3632,86 +3540,15 @@
 	   (append andlr-vars concl-vars
 		   (list real-var mr-andlr-fla-avar f elim-proof)))))
 
-(define (eqd-elim-aconst-to-eqd-mr-elim-proof aconst)
-  (let* ((imp-formulas (aconst-to-repro-data aconst))
-	 (imp-formula (car imp-formulas))
-	 (eqd-prem (imp-form-to-premise imp-formula))
-	 (eqd-terms (predicate-form-to-args eqd-prem))
-	 (uninst-formula (aconst-to-uninst-formula aconst))
-	 (tvar (car (formula-to-tvars uninst-formula)))
-	 (pvar (car (formula-to-pvars uninst-formula)))
-	 (tpsubst (aconst-to-tpsubst aconst))
-	 (type (let ((info (assoc tvar tpsubst)))
-		 (if info (cadr info) tvar)))
-	 (cterm (let ((info (assoc pvar tpsubst)))
-		  (if info (cadr info) (predicate-to-cterm pvar))))
-	 (vars (cterm-to-vars cterm))
-	 (formula (formula-substitute
-		   (cterm-to-formula cterm)
-		   (make-substitution-wrt var-term-equal? vars eqd-terms)))
-	 (et-type (formula-to-et-type formula))
-	 (real (if (nulltype? et-type) ;this cannot happen
-		   'eps
-		   (make-term-in-var-form (type-to-new-partial-var et-type))))
-	 (mr-formula (real-and-formula-to-mr-formula-aux real formula))
-	 (mr-imp-formula (make-imp eqd-prem mr-formula))
-	 (eqd-elim-aconst-with-mr-formula
-	  (imp-formulas-to-elim-aconst mr-imp-formula))
-	 (free (formula-to-free mr-imp-formula))
-	 (u (formula-to-new-avar eqd-prem))
-	 (elim-proof (apply mk-proof-in-elim-form
-			    (make-proof-in-aconst-form
-			     eqd-elim-aconst-with-mr-formula)
-			    (append (map make-term-in-var-form free)
-				    (list (make-proof-in-avar-form u))))))
-    (if (nulltype? et-type) ;this cannot happen
-	(apply mk-proof-in-intro-form
-	       (append free (list u elim-proof)))
-	(let ((z (term-in-var-form-to-var real)))
-	  (apply mk-proof-in-intro-form
-		 (append (remove z free) (list u z elim-proof)))))))
-
-(define (exu-formula-and-concl-to-exu-elim-mr-proof exu-formula concl)
-  (let* ((free-exu (formula-to-free exu-formula))
-	 (free-concl (formula-to-free concl))
-	 (free (union free-exu free-concl))
-	 (concl-type (formula-to-et-type concl))
+(define (one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof
+	 one-clause-nc-idpc-formula concl)
+  (let* ((concl-type (formula-to-et-type concl))
 	 (real-var (type-to-new-partial-var concl-type))
 	 (real (make-term-in-var-form real-var))
 	 (mr-concl (real-and-formula-to-mr-formula-aux real concl))
-	 (imp-formula (make-imp exu-formula mr-concl))
-	 (aconst (imp-formulas-to-elim-aconst imp-formula))
-	 (avar (formula-to-new-avar exu-formula))
-	 (elim-proof
-	  (apply mk-proof-in-elim-form
-		 (make-proof-in-aconst-form aconst)
-		 (append (map make-term-in-var-form free-exu)
-			 (list real)
-			 (map make-term-in-var-form free-concl)
-			 (list (make-proof-in-avar-form avar))))))
-    (apply mk-proof-in-intro-form
-	   (append free-exu free-concl (list avar real-var elim-proof)))))
-
-(define (andu-formula-and-concl-to-andu-elim-mr-proof andu-formula concl)
-  (let* ((free-andu (formula-to-free andu-formula))
-	 (free-concl (formula-to-free concl))
-	 (free (union free-andu free-concl))
-	 (concl-type (formula-to-et-type concl))
-	 (real-var (type-to-new-partial-var concl-type))
-	 (real (make-term-in-var-form real-var))
-	 (mr-concl (real-and-formula-to-mr-formula-aux real concl))
-	 (imp-formula (make-imp andu-formula mr-concl))
-	 (aconst (imp-formulas-to-elim-aconst imp-formula))
-	 (avar (formula-to-new-avar andu-formula))
-	 (elim-proof
-	  (apply mk-proof-in-elim-form
-		 (make-proof-in-aconst-form aconst)
-		 (append (map make-term-in-var-form free-andu)
-			 (list real)
-			 (map make-term-in-var-form free-concl)
-			 (list (make-proof-in-avar-form avar))))))
-    (apply mk-proof-in-intro-form
-	   (append free-andu free-concl (list avar real-var elim-proof)))))
+	 (imp-mr-formula (make-imp one-clause-nc-idpc-formula mr-concl))
+	 (mr-aconst (imp-formulas-to-elim-aconst imp-mr-formula)))
+    (make-proof-in-aconst-form mr-aconst)))
 
 (define (coidpredconst-to-closure-mr-proof coidpc)
   (let* ((closure-aconst (coidpredconst-to-closure-aconst coidpc))
@@ -5104,38 +4941,8 @@
      ((string=? "Intro" name)
       (let* ((repro-data (aconst-to-repro-data aconst))
 	     (number (car repro-data))
-	     (idpc (cadr repro-data))
-	     (idpc-name (idpredconst-to-name idpc)))
-	(cond ;extra treatment for ;ExL, ExR, ExLT, ExRT, AndL and AndR
-	 ((member idpc-name '("ExL" "ExLT"))
-	  (let* ((cterms (idpredconst-to-cterms idpc))
-		 (cterm (car cterms))
-		 (exl-formula (make-exl (car (cterm-to-vars cterm))
-					(cterm-to-formula cterm))))
-	    (exl-formula-to-exl-intro-mr-proof exl-formula)))
-	 ((member idpc-name '("ExR" "ExRT"))
-	  (let* ((cterms (idpredconst-to-cterms idpc))
-		 (cterm (car cterms))
-		 (exr-formula (make-exr (car (cterm-to-vars cterm))
-					(cterm-to-formula cterm))))
-	    (exr-formula-to-exr-intro-mr-proof exr-formula)))
-	 ((string=? "AndL" idpc-name)
-	  (let* ((cterms (idpredconst-to-cterms idpc))
-		 (left-cterm (car cterms))
-		 (right-cterm (cadr cterms))
-		 (left (cterm-to-formula left-cterm))
-		 (right (cterm-to-formula right-cterm))
-		 (andl-formula (make-andl left right)))
-	    (andl-formula-to-andl-intro-mr-proof andl-formula)))
-	 ((string=? "AndR" idpc-name)
-	  (let* ((cterms (idpredconst-to-cterms idpc))
-		 (left-cterm (car cterms))
-		 (right-cterm (cadr cterms))
-		 (left (cterm-to-formula left-cterm))
-		 (right (cterm-to-formula right-cterm))
-		 (andr-formula (make-andr left right)))
-	    (andr-formula-to-andr-intro-mr-proof andr-formula)))
-	 (else (number-and-idpredconst-to-intro-mr-proof number idpc)))))
+	     (idpc (cadr repro-data)))
+	(number-and-idpredconst-to-intro-mr-proof number idpc)))
      ((string=? "Elim" name)
       (let* ((imp-formulas (aconst-to-repro-data aconst))
 	     (imp-formula (car imp-formulas))
@@ -5144,7 +4951,7 @@
 	     (idpc (predicate-form-to-predicate prem))
 	     (idpc-name (idpredconst-to-name idpc)))
 	(cond ;extra treatment for ExL, ExR, ExLT, ExRT, AndL, AndR
-					;EqD, ExU, ExUT, AndU, to aviod Rec
+					;EqD, ExU, ExUT, AndU, to avoid Rec
 	 ((member idpc-name '("ExL" "ExLT"))
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (cterm (car cterms))
@@ -5169,13 +4976,17 @@
 	    (andlr-formula-and-concl-to-andlr-elim-mr-proof
 	     andlr-formula concl)))
 	 ((string=? "EqD" idpc-name)
-	  (eqd-elim-aconst-to-eqd-mr-elim-proof aconst))
+	  (one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof
+	   prem concl))
+	 ;; ((string=? "EqD" idpc-name)
+	 ;;  (eqd-elim-aconst-to-eqd-mr-elim-proof aconst))
 	 ((member idpc-name '("ExU" "ExUT"))
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (cterm (car cterms))
 		 (exu-formula (make-exu (car (cterm-to-vars cterm))
 					(cterm-to-formula cterm))))
-	    (exu-formula-and-concl-to-exu-elim-mr-proof exu-formula concl)))
+	    (one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof
+	     exu-formula concl)))
 	 ((string=? "AndU" idpc-name)
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (cterm1 (car cterms))
@@ -5183,7 +4994,8 @@
 		 (andu-formula
 		  (make-andu (cterm-to-formula cterm1)
 			     (cterm-to-formula cterm2))))
-	    (andu-formula-and-concl-to-andu-elim-mr-proof andu-formula concl)))
+	    (one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof
+	     andu-formula concl)))
 	 (else (apply imp-formulas-to-mr-elim-proof imp-formulas)))))
      ((string=? "Closure" name)
       (let ((coidpc (predicate-form-to-predicate
