@@ -1,5 +1,13 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done on dev branch 2016-06-15
+
+In examples/analysis/gray.scm
+
+Adapted to the split of numbers.scm into nat, pos, int, rat, rea.
+Error corrected in CoGToBAux: exr replaced by exu.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-06-14
 
 In term.scm
