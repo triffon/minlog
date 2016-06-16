@@ -1,4 +1,4 @@
-;; 2016-06-14.  rat.scm.  Based on numbers.scm.
+;; 2016-06-16.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -969,6 +969,20 @@
 ;; (save "RatEqvRefl")
 (add-rewrite-rule "a==a" "True")
 
+(set-goal "all a ~a+a==0")
+(cases)
+(assume "k" "p")
+(use "Truth")
+;; Proof finished
+(add-rewrite-rule "~a+a==0" "True")
+
+(set-goal "all a a+ ~a==0")
+(cases)
+(assume "k" "p")
+(use "Truth")
+;; Proof finished
+(add-rewrite-rule "a+ ~a==0" "True")
+
 ;; RatTimesIdZero
 (set-goal "all a,p a*(0#p)==0")
 (cases)
@@ -1343,6 +1357,16 @@
 (use "c=d")
 ;; Proof finished.
 (save "RatPlusCompat")
+
+;; RatEqvPlusMinus
+(set-goal "all a,b a+ ~b+b==a")
+(assume "a" "b")
+(simp "<-" "RatPlusAssoc")
+(simprat (pf "~b+b==0")) ;needs RatPlusCompat
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatEqvPlusMinus")
 
 (set-goal "all p,q,r,r0((IntN p#q)<=(IntN r#r0))=((r#r0)<=(p#q))")
 (assume "p" "q" "r" "r0")
@@ -2080,7 +2104,7 @@
 ;; Proof finished.
 (add-rewrite-rule "a<=abs a" "True")
 
-;; ;; RatLeAbsPlus
+;; RatLeAbsPlus
 (set-goal "all a,b abs(a+b)<=abs a+abs b")
 (cases)
 (assume "k" "p")
@@ -2098,6 +2122,18 @@
 ;; Proof finished.
 (save "RatLeAbsPlus")
 (add-rewrite-rule "abs(a+b)<=abs a+abs b" "True")
+
+;; RatLeAbsMinus
+(set-goal "all a,b,c abs(a+ ~b)<=abs(a+ ~c)+abs(c+ ~b)")
+(assume "a" "b" "c")
+(simp "RatLeCompat" (pt "abs(a+ ~c+c+ ~b)") (pt "abs(a+ ~c)+abs(c+ ~b)"))
+(simp "<-" "RatPlusAssoc")
+(use "RatLeAbsPlus")
+(use "Truth")
+(simprat "RatEqvPlusMinus")
+(use "Truth")
+;; Proof finished.
+(save "RatLeAbsMinus")
 
 ;; (search-about "Int" "Times" "Mon")
 ;; (display-pconst "IntAbs")
