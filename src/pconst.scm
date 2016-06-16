@@ -1018,110 +1018,111 @@
 	      (comment "ok, rewrite rule " (term-to-string lhs) " -> "
 		       (term-to-string embedded-rhs) " added")))))))
 
-(define (change-t-deg-to-one name)
-  (let ((info (assoc name PROGRAM-CONSTANTS)))
-    (if
-     (not info)
-     (myerror "change-t-deg-to-one" "name of program constant expected" name))
-    (let* ((pconst (pconst-name-to-pconst name))
-	   (comprules (pconst-name-to-comprules name))
-	   (rewrules (pconst-name-to-rewrules name))
-	   (code (pconst-name-to-external-code name)) ;may be #f
-	   (pconsts-except-name
-	    (do ((l PROGRAM-CONSTANTS (cdr l))
-		 (res '() (if (string=? (caar l) name)
-			      res
-			      (cons (car l) res))))
-		((null? l) (reverse res))))
-	   (arity (const-to-object-or-arity pconst))
-	   (uninst-type (const-to-uninst-type pconst))
-	   (token-type (const-to-token-type pconst))
-	   (new-pconst (make-const arity name 'pconst uninst-type empty-subst
-				   t-deg-one token-type))
-	   (obj
-	    (if (zero? arity)
-		(nbe-reflect
-		 (nbe-make-termfam
-		  uninst-type
-		  (lambda (k) (make-term-in-const-form new-pconst))))
-		(nbe-make-object
-		 uninst-type
-		 (nbe-curry
-		  (lambda objs ;arity many
-		    (let* ((obj1 (nbe-reflect
-				  (nbe-make-termfam
-				   uninst-type
-				   (lambda (k)
-				     (make-term-in-const-form new-pconst)))))
-			   (val (nbe-object-to-value obj1)))
-		      (apply (nbe-uncurry val arity) objs)))
-		  uninst-type
-		  arity))))
-	   (inst-objs (list (list empty-subst obj))))
-      (set! PROGRAM-CONSTANTS
-	    (cons (if code
-		      (list name new-pconst '() '() inst-objs code)
-		      (list name new-pconst '() '() inst-objs))
-		  pconsts-except-name))
-      (remove-token name)
-      (set! THEOREMS ;remove all with names like NatPlus1...
-	    (list-transform-positive THEOREMS
-	      (lambda (x)
-		(let* ((thm-name (car x))
-		       (first-name (string-to-first-name thm-name))
-		       (l (string-length first-name)))
-		  (not (and (string=? name first-name)
-			    (< l (string-length thm-name))
-			    (char-numeric? (string-ref thm-name l))))))))
-      (if (null? (type-to-tvars uninst-type))
-	  (add-token name
-		     (const-to-token-type pconst)
-		     (const-to-token-value new-pconst))
-	  (add-token name
-		     'constscheme
-		     new-pconst))
-      (do ;add again the previous comprules, now using the new-pconst
-	  ((lc comprules (cdr lc)))
-	  ((null? lc))
-	(let* ((new-lhs (term-gen-subst
-			 (rule-to-lhs (car lc))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (new-rhs (term-gen-subst
-			 (rule-to-rhs (car lc))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (type1 (term-to-type new-lhs))
-	       (type2 (term-to-type new-rhs)))
-	  (if (type-le? type2 type1)
-	      (add-computation-rule
-	       new-lhs
-	       ((types-to-embedding type2 type1) new-rhs))
-	      (myerror
-	       "change-t-deg-to-one" "unexpected computation rule.  Lhs:"
-	       new-lhs "with type" type1
-	       "Rhs:" new-rhs "of type" type2))))
-      (do ;add again the previous rewrules, now using the new-pconst
-	  ((lr rewrules (cdr lr)))
-	  ((null? lr))
-	(let* ((new-lhs (term-gen-subst
-			 (rule-to-lhs (car lr))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (new-rhs (term-gen-subst
-			 (rule-to-rhs (car lr))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (type1 (term-to-type new-lhs))
-	       (type2 (term-to-type new-rhs)))
-	  (if (type-le? type2 type1)
-	      (add-rewrite-rule
-	       new-lhs
-	       ((types-to-embedding type2 type1) new-rhs))
-	      (myerror
-	       "change-t-deg-to-one" "unexpected rewrite rule.  Lhs:"
-	       new-lhs "with type" type1
-	       "Rhs:" new-rhs "of type" type2)))))))
+;; Code discarded 2016-06-16
+;; (define (change-t-deg-to-one name)
+;;   (let ((info (assoc name PROGRAM-CONSTANTS)))
+;;     (if
+;;      (not info)
+;;      (myerror "change-t-deg-to-one" "name of program constant expected" name))
+;;     (let* ((pconst (pconst-name-to-pconst name))
+;; 	   (comprules (pconst-name-to-comprules name))
+;; 	   (rewrules (pconst-name-to-rewrules name))
+;; 	   (code (pconst-name-to-external-code name)) ;may be #f
+;; 	   (pconsts-except-name
+;; 	    (do ((l PROGRAM-CONSTANTS (cdr l))
+;; 		 (res '() (if (string=? (caar l) name)
+;; 			      res
+;; 			      (cons (car l) res))))
+;; 		((null? l) (reverse res))))
+;; 	   (arity (const-to-object-or-arity pconst))
+;; 	   (uninst-type (const-to-uninst-type pconst))
+;; 	   (token-type (const-to-token-type pconst))
+;; 	   (new-pconst (make-const arity name 'pconst uninst-type empty-subst
+;; 				   t-deg-one token-type))
+;; 	   (obj
+;; 	    (if (zero? arity)
+;; 		(nbe-reflect
+;; 		 (nbe-make-termfam
+;; 		  uninst-type
+;; 		  (lambda (k) (make-term-in-const-form new-pconst))))
+;; 		(nbe-make-object
+;; 		 uninst-type
+;; 		 (nbe-curry
+;; 		  (lambda objs ;arity many
+;; 		    (let* ((obj1 (nbe-reflect
+;; 				  (nbe-make-termfam
+;; 				   uninst-type
+;; 				   (lambda (k)
+;; 				     (make-term-in-const-form new-pconst)))))
+;; 			   (val (nbe-object-to-value obj1)))
+;; 		      (apply (nbe-uncurry val arity) objs)))
+;; 		  uninst-type
+;; 		  arity))))
+;; 	   (inst-objs (list (list empty-subst obj))))
+;;       (set! PROGRAM-CONSTANTS
+;; 	    (cons (if code
+;; 		      (list name new-pconst '() '() inst-objs code)
+;; 		      (list name new-pconst '() '() inst-objs))
+;; 		  pconsts-except-name))
+;;       (remove-token name)
+;;       (set! THEOREMS ;remove all with names like NatPlus1...
+;; 	    (list-transform-positive THEOREMS
+;; 	      (lambda (x)
+;; 		(let* ((thm-name (car x))
+;; 		       (first-name (string-to-first-name thm-name))
+;; 		       (l (string-length first-name)))
+;; 		  (not (and (string=? name first-name)
+;; 			    (< l (string-length thm-name))
+;; 			    (char-numeric? (string-ref thm-name l))))))))
+;;       (if (null? (type-to-tvars uninst-type))
+;; 	  (add-token name
+;; 		     (const-to-token-type pconst)
+;; 		     (const-to-token-value new-pconst))
+;; 	  (add-token name
+;; 		     'constscheme
+;; 		     new-pconst))
+;;       (do ;add again the previous comprules, now using the new-pconst
+;; 	  ((lc comprules (cdr lc)))
+;; 	  ((null? lc))
+;; 	(let* ((new-lhs (term-gen-subst
+;; 			 (rule-to-lhs (car lc))
+;; 			 (make-term-in-const-form pconst)
+;; 			 (make-term-in-const-form new-pconst)))
+;; 	       (new-rhs (term-gen-subst
+;; 			 (rule-to-rhs (car lc))
+;; 			 (make-term-in-const-form pconst)
+;; 			 (make-term-in-const-form new-pconst)))
+;; 	       (type1 (term-to-type new-lhs))
+;; 	       (type2 (term-to-type new-rhs)))
+;; 	  (if (type-le? type2 type1)
+;; 	      (add-computation-rule
+;; 	       new-lhs
+;; 	       ((types-to-embedding type2 type1) new-rhs))
+;; 	      (myerror
+;; 	       "change-t-deg-to-one" "unexpected computation rule.  Lhs:"
+;; 	       new-lhs "with type" type1
+;; 	       "Rhs:" new-rhs "of type" type2))))
+;;       (do ;add again the previous rewrules, now using the new-pconst
+;; 	  ((lr rewrules (cdr lr)))
+;; 	  ((null? lr))
+;; 	(let* ((new-lhs (term-gen-subst
+;; 			 (rule-to-lhs (car lr))
+;; 			 (make-term-in-const-form pconst)
+;; 			 (make-term-in-const-form new-pconst)))
+;; 	       (new-rhs (term-gen-subst
+;; 			 (rule-to-rhs (car lr))
+;; 			 (make-term-in-const-form pconst)
+;; 			 (make-term-in-const-form new-pconst)))
+;; 	       (type1 (term-to-type new-lhs))
+;; 	       (type2 (term-to-type new-rhs)))
+;; 	  (if (type-le? type2 type1)
+;; 	      (add-rewrite-rule
+;; 	       new-lhs
+;; 	       ((types-to-embedding type2 type1) new-rhs))
+;; 	      (myerror
+;; 	       "change-t-deg-to-one" "unexpected rewrite rule.  Lhs:"
+;; 	       new-lhs "with type" type1
+;; 	       "Rhs:" new-rhs "of type" type2)))))))
 
 ;; change-t-deg-to-one takes a list of pconst-names as arguments.
 ;; This is necessary to have all these pconsts in the stored totality
