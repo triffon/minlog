@@ -1,4 +1,4 @@
-;; 2016-04-12.  pos.scm.  Based on the former numbers.scm.
+;; 2016-06-16.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -315,15 +315,6 @@
 			       item))
 			 ALGEBRA-EDGE-TO-EMBED-TERM-ALIST)))
     (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST new-alist)))
-
-(replace-item-in-algebra-edge-to-embed-term-alist
- "pos" "nat"
- (let ((var (make-var (make-alg "pos") -1 t-deg-one "")))
-   (make-term-in-abst-form
-    var (make-term-in-app-form
-	 (make-term-in-const-form
-	  (pconst-name-to-pconst "PosToNat"))
-	 (make-term-in-var-form var)))))
 
 (add-program-constant "PosS" (py "pos=>pos"))
 (add-program-constant "PosPred" (py "pos=>pos"))
@@ -811,6 +802,15 @@
 (use "IH")
 ;; Proof finished.
 (save-totality)
+
+(replace-item-in-algebra-edge-to-embed-term-alist
+ "pos" "nat"
+ (let ((var (make-var (make-alg "pos") -1 t-deg-one "")))
+   (make-term-in-abst-form
+    var (make-term-in-app-form
+	 (make-term-in-const-form
+	  (pconst-name-to-pconst "PosToNat"))
+	 (make-term-in-var-form var)))))
 
 ;; PosToNatDefSZero is obsolete.  Use PosToNat1CompRule instead.
 ;; (set-goal "all p PosToNat(SZero p)=NatDouble(PosToNat p)")
