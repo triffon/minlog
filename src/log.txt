@@ -1,5 +1,33 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done on dev branch 2016-06-16
+
+In lib/pos.scm
+
+replace-item-in-algebra-edge-to-embed-term-alist for pos and nat
+moved after proving totality of PosToNat.
+
+In lib/int.scm
+
+Definition of replace-item-in-algebra-edge-to-embed-term-alist removed.
+It appeared in pos.scm already.
+
+In lib/rat.scm
+
+Rewrite rules ~a+a==0 -> True and a+ ~a==0 -> True for RatEqv added.
+RatEqvPlusMinus : a+ ~b+b==a added.
+RatLeAbsMinus : all a,b,c abs(a+ ~b)<=abs(a+ ~c)+abs(c+ ~b) added
+
+In lib/rea.scm
+
+Proof of RealEqChar1 completed.
+
+In pconst.scm
+
+First definition of change-t-deg-to-one removed.  It is superseded by
+the following one.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-06-15
 
 In examples/analysis/gray.scm
