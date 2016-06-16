@@ -1,4 +1,4 @@
-;; 2016-04-21.  int.scm.  Based on the former numbers.scm.
+;; 2016-06-16.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -315,17 +315,6 @@
 
 ;; When later we have proved totality of PosToNat and NatToInt we need
 ;; to replace their item accordingly.
-
-(define (replace-item-in-algebra-edge-to-embed-term-alist
-         alg1-name alg2-name new-embed-term)
-  (let* ((alg1 (make-alg alg1-name))
-	 (alg2 (make-alg alg2-name))
-	 (new-alist (map (lambda (item)
-			   (if (equal? (car item) (list alg1 alg2))
-			       (list (car item) new-embed-term)
-			       item))
-			 ALGEBRA-EDGE-TO-EMBED-TERM-ALIST)))
-    (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST new-alist)))
 
 ;; We want the path from "pos" to "int" going through "nat" to be in
 ;; the association list AFTER the edge from "pos" to "int" because in
