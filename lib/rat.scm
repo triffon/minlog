@@ -1,4 +1,4 @@
-;; 2016-06-16.  rat.scm.  Based on numbers.scm.
+;; 2016-06-23.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1014,24 +1014,6 @@
 
 ;; Other properties of RatEqv are postponed after RatLe
 
-;; Rules for RatLt
-
-(add-computation-rules
- "(k#p)<(j#q)" "k*q<j*p")
-
-;; RatLtTotal
-(set-totality-goal "RatLt")
-(use "AllTotalElim")
-(cases)
-(assume "k" "p")
-(use "AllTotalElim")
-(cases)
-(assume "j" "q")
-(ng)
-(use "BooleTotalVar")
-;; Proof finished.
-(save-totality)
-
 ;; Rules for RatLe
 
 (add-computation-rules
@@ -1050,8 +1032,189 @@
 ;; Proof finished.
 (save-totality)
 
+;; Rules for RatLt
+
+(add-computation-rules
+ "(k#p)<(j#q)" "k*q<j*p")
+
+;; RatLtTotal
+(set-totality-goal "RatLt")
+(use "AllTotalElim")
+(cases)
+(assume "k" "p")
+(use "AllTotalElim")
+(cases)
+(assume "j" "q")
+(ng)
+(use "BooleTotalVar")
+;; Proof finished.
+(save-totality)
+
+;; RatLtToLe
+(set-goal "all a,b(a<b -> a<=b)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(use "IntLtToLe")
+;; Proof finished.
+(save "RatLtToLe")
+
+;; At this point we should add all rewrite rules for RatLe and RatLt
+
+(set-goal "all a (a<a)=False")
+(cases)
+(assume "k" "p")
+(ng)
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "a<a" "False")
+
 ;; (display-pconst "RatLe")
 ;; (display-pconst "IntLe")
+
+(set-goal "all a,p a<a+p")
+(cases)
+(assume "k" "p" "q")
+(ng)
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "a<a+p" "True")
+
+(set-goal "all p,q,r,r0 ((IntN p#q)<(IntN r#r0))=((r#r0)<(p#q))")
+(assume "p" "q" "r" "r0")
+(ng)
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "(IntN p#q)<(IntN r#r0)" "(r#r0)<(p#q)")
+
+(set-goal "all a,b (~b< ~a)=(a<b)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RatLtUMinus")
+(add-rewrite-rule "~b< ~a" "a<b")
+
+;; RatLeLtTrans
+(set-goal "all a,b,c(a<=b -> b<c -> a<c)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(cases)
+(assume "i" "r")
+(ng)
+(assume "kq<=jp" "jr<iq")
+(simp "<-" "IntLt7RewRule" (pt "q"))
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(use "IntLeLtTrans" (pt "j*IntTimes p r"))
+;; 13,14
+(assert "IntTimes r q=IntTimes q r")
+ (use "IntTimesComm")
+(assume "IntTimes r q=IntTimes q r")
+(simp "IntTimes r q=IntTimes q r")
+(drop "IntTimes r q=IntTimes q r")
+(simp "IntTimesAssoc")
+(simp "IntTimesAssoc")
+(simp "IntLe7RewRule")
+(use "kq<=jp")
+;; 14
+(assert "IntTimes p r=IntTimes r p")
+ (use "IntTimesComm")
+(assume "IntTimes p r=IntTimes r p")
+(simp "IntTimes p r=IntTimes r p")
+(drop "IntTimes p r=IntTimes r p")
+(assert "IntTimes p q=IntTimes q p")
+ (use "IntTimesComm")
+(assume "IntTimes p q=IntTimes q p")
+(simp "IntTimes p q=IntTimes q p")
+(drop "IntTimes p q=IntTimes q p")
+(simp "IntTimesAssoc")
+(simp "IntTimesAssoc")
+(simp "IntLt7RewRule")
+(use "jr<iq")
+;; Proof finished.
+(save "RatLeLtTrans")
+
+;; RatLtLeTrans
+(set-goal "all a,b,c(a<b -> b<=c -> a<c)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(cases)
+(assume "i" "r")
+(ng)
+(assume "kq<jp" "jr<=iq")
+(simp "<-" "IntLt7RewRule" (pt "q"))
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(use "IntLtLeTrans" (pt "j*IntTimes p r"))
+;; 13,14
+(assert "IntTimes r q=IntTimes q r")
+ (use "IntTimesComm")
+(assume "IntTimes r q=IntTimes q r")
+(simp "IntTimes r q=IntTimes q r")
+(drop "IntTimes r q=IntTimes q r")
+(simp "IntTimesAssoc")
+(simp "IntTimesAssoc")
+(simp "IntLt7RewRule")
+(use "kq<jp")
+;; 14
+(assert "IntTimes p r=IntTimes r p")
+ (use "IntTimesComm")
+(assume "IntTimes p r=IntTimes r p")
+(simp "IntTimes p r=IntTimes r p")
+(drop "IntTimes p r=IntTimes r p")
+(assert "IntTimes p q=IntTimes q p")
+ (use "IntTimesComm")
+(assume "IntTimes p q=IntTimes q p")
+(simp "IntTimes p q=IntTimes q p")
+(drop "IntTimes p q=IntTimes q p")
+(simp "IntTimesAssoc")
+(simp "IntTimesAssoc")
+(simp "IntLe7RewRule")
+(use "jr<=iq")
+;; Proof finished.
+(save "RatLtLeTrans")
+
+;; RatLtTrans
+(set-goal "all a,b,c(a<b -> b<c -> a<c)")
+(assume "a" "b" "c" "a<b" "b<c")
+(use "RatLeLtTrans" (pt "b"))
+(use "RatLtToLe")
+(use "a<b")
+(use "b<c")
+;; Proof finished.
+(save "RatLtTrans")
+
+;; RatNotLeToLt
+(set-goal "all a,b((a<=b -> F) -> b<a)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(use "IntNotLeToLt")
+;; Proof finished.
+(save "RatNotLeToLt")
+
+;; RatNotLtToLe
+(set-goal "all a,b((a<b -> F) -> b<=a)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(use "IntNotLtToLe")
+;; Proof finished.
+(save "RatNotLtToLe")
 
 (set-goal "all a a<=a")
 (cases)
@@ -1067,6 +1230,16 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "a<=a+p" "True")
+
+;; Code discarded 2016-06-23.  Can only be a theorem, since overridden
+;; be the computation rules of RatLe.  But too simple as theorem.
+
+;; (set-goal "all k,j,p ((k#p)<=(j#p))=(k<=j)")
+;; (assume "k" "j" "p")
+;; (ng)
+;; (use "Truth")
+;; ;; Proof finished.
+;; (add-rewrite-rule "(k#p)<=(j#p)" "k<=j")
 
 ;; RatLeTrans
 (set-goal "all a,b,c(a<=b -> b<=c -> a<=c)")
@@ -2135,6 +2308,52 @@
 ;; Proof finished.
 (save "RatLeAbsMinus")
 
+;; Added 2016-06-23
+;; RatTimesInj
+(set-goal "all a,b,c(0<abs a -> a*b==a*c -> b==c)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(cases)
+(assume "i" "r")
+(ng)
+(assume "0<abs k" "EqHyp")
+;; (inst-with-to "IntTimesInj" 
+(assert "j*(p*r)=i*(p*q)")
+(use "IntTimesInj" (pt "k"))
+(use "0<abs k")
+(use "EqHyp")
+;; (ppn (goal-to-formula (current-goal)))
+(simp (pf "IntPos(p*r)=IntTimes(IntPos p)(IntPos r)"))
+(simp (pf "IntPos(p*q)=IntTimes(IntPos p)(IntPos q)"))
+(simp "IntTimesAssoc")
+(simp "IntTimesAssoc")
+(simp (pf "j*p=p*j"))
+(simp (pf "i*p=p*i"))
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(use "IntTimesInj")
+(use "Truth")
+(use "IntTimesComm")
+(use "IntTimesComm")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatTimesInj")
+
+;; RatTimesInjLeft
+(set-goal "all a,b,c(0<abs c -> a*c==b*c -> a==b)")
+(assume "a" "b" "c" "PosHyp" "ac=bc")
+(use "RatTimesInj" (pt "c"))
+(use "PosHyp")
+(simp "RatTimesComm")
+(simp (pf "c*b=b*c"))
+(use "ac=bc")
+(use "RatTimesComm")
+;; Proof finished.
+(save "RatTimesInjLeft")
+
 ;; (search-about "Int" "Times" "Mon")
 ;; (display-pconst "IntAbs")
 ;; (display-pconst "RatAbs")
@@ -3120,6 +3339,96 @@
 (use "Assertion")
 ;; Proof finished.
 (save "RatPlusHalfExpPosS")
+
+;; RatLePlusToRatLePlusMinus
+(set-goal "all a,b,c(a<=b+c -> ~b+a<=c)")
+(assume "a" "b" "c" "a<=b+c")
+(simprat (pf "c== ~b+b+c"))
+(simp "<-" "RatPlusAssoc")
+(use "RatLeMonPlus")
+(use "Truth")
+(use "a<=b+c")
+(simprat (pf "~b+b==0"))
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatLePlusToRatLePlusMinus")
+
+;; RatLePlusMinusToRatLePlus
+(set-goal "all a,b,c(~b+a<=c -> a<=b+c)")
+(assume "a" "b" "c" "~b+a<=c")
+(simprat (pf "a== b+ ~b+a"))
+(simp "<-" "RatPlusAssoc")
+(use "RatLeMonPlus")
+(use "Truth")
+(use "~b+a<=c")
+(simprat (pf "b+ ~b==0"))
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatLePlusMinusToRatLePlus")
+
+;; Using RatLePlusToRatLePlusMinus and RatLePlusMinusToRatLePlus we prove
+
+;; RatLeAllPlusToLe
+(set-goal "all a,b(all p a<=b+(1#2**p) -> a<=b)")
+;; RatLeToLeZeroAux
+(assert "all a(all n a<=(1#2**Succ n) -> a<=0)")
+(cases)
+(cases)
+;; 3-5
+(assume "p" "q" "BdHyp")
+(use "RatNotLtToLe")
+(assume "Useless")
+(assert "(p#q)<(p#q)")
+(use "RatLtLeTrans" (pt "(1#q)"))
+(use "RatLeLtTrans" (pt "(1#2**Succ(PosLog q))"))
+(use "BdHyp")
+(ng #t)
+(use "PosLtExpTwoSuccLog")
+(assert "all k,j ((k#q)<=(j#q))=(k<=j)")
+ (assume "k" "j")
+ (simp "RatLe0CompRule")
+ (use "Truth")
+(assume "Assertion")
+(simp "Assertion")
+(use "Truth")
+(assume "Absurd")
+(use "Absurd")
+;; 4
+(strip)
+(use "Truth")
+;; 5
+(strip)
+(use "Truth")
+;; RatLeToLeZeroAux proved
+(assume "RatLeToLeZeroAux")
+;; RatLeToLeZero
+(assert "all a(all p a<=(1#2**p) -> a<=0)")
+(assume "a" "BdHyp")
+(use "RatLeToLeZeroAux")
+(drop "RatLeToLeZeroAux")
+(assume "n")
+(inst-with-to "BdHyp" (pt "NatToPos(Succ n)") "BdHypInst")
+(inst-with-to "PosToNatToPosId" (pt "Succ n") "PosToNatToPosIdInst")
+(simp "<-" "PosToNatToPosIdInst")
+(use "BdHypInst")
+(use "Truth")
+;; RatLeToLeZero proved
+(assume "RatLeToLeZero" "a" "b" "AllHyp")
+(inst-with-to "RatLePlusMinusToRatLePlus" (pt "a") (pt "b") (pt "0#1")
+	      "Inst")
+(use "Inst")
+(drop "Inst")
+(use "RatLeToLeZero")
+(assume "p")
+(use "RatLePlusToRatLePlusMinus")
+(use "AllHyp")
+;; Proof finished.
+(save "RatLeAllPlusToLe")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (set-goal "all p (1#2)**PosS p+(1#2)**PosS p==(1#2)**p")
 (assume "p")
