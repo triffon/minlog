@@ -3224,13 +3224,8 @@
 
 (define (number-and-idpredconst-to-intro-mr-proof i idpc)
   (let* ((mr-idpc (idpredconst-to-mr-idpredconst idpc))
-	 (intro-mr-aconst (number-and-idpredconst-to-intro-aconst i mr-idpc))
-	 (intro-aconst (number-and-idpredconst-to-intro-aconst i idpc))
-	 (inst-clause (aconst-to-inst-formula intro-aconst))
-	 (free (formula-to-free inst-clause)))
-    (apply
-     mk-proof-in-intro-form
-     (append free (list (make-proof-in-aconst-form intro-mr-aconst))))))
+	 (intro-mr-aconst (number-and-idpredconst-to-intro-aconst i mr-idpc)))
+    (make-proof-in-aconst-form intro-mr-aconst)))
 
 (define (imp-formulas-to-mr-elim-proof . imp-formulas)
   (let* ((prems (map imp-form-to-premise imp-formulas))
@@ -3302,24 +3297,30 @@
 	 (mr-idpc-names (map (lambda (idpc-name)
 			       (string-append idpc-name "MR"))
 			     idpc-names))
+	 (idpc-alg-names (map idpredconst-name-to-alg-name idpc-names))
 	 (rec-const-or-eps-alist
-	  (map (lambda (name type)
-		 (list name 
-		       (if (arrow-form? type)
-			   (apply arrow-types-to-rec-const
-				  (cons type (remove type arrow-types)))
-			   'eps)))
-	       mr-idpc-names arrow-type-or-nulltype-list))
+	  (map (lambda (name type idpc-alg-name)
+		 (list
+		  name
+		  (cond ((string=? idpc-alg-name "identity") 'identity)
+			((arrow-form? type)
+			 (apply arrow-types-to-rec-const
+				(cons type (remove type arrow-types))))
+			(else 'eps))))
+	       mr-idpc-names arrow-type-or-nulltype-list idpc-alg-names))
 	 (fully-applied-rec-const-or-eps-alist
 	  (map (lambda (alist-pair var)
-	 	 (if (eq? 'eps (cadr alist-pair))
-	 	     alist-pair
-	 	     (list
-	 	      (car alist-pair)
-	 	      (apply mk-term-in-app-form
-	 		     (make-term-in-const-form (cadr alist-pair))
-	 		     (make-term-in-var-form var)
-	 		     real-terms))))
+		 (cond ((eq? 'eps (cadr alist-pair)) alist-pair)
+		       ((eq? 'identity (cadr alist-pair))
+			(list
+			 (car alist-pair)
+			 (apply mk-term-in-app-form
+				(append real-terms
+					(list (make-term-in-var-form var))))))
+		       (else (apply mk-term-in-app-form
+				    (make-term-in-const-form (cadr alist-pair))
+				    (make-term-in-var-form var)
+				    real-terms))))
 	       rec-const-or-eps-alist vars))
 	 (mr-imp-formulas
 	  (map (lambda (mr-prem x concl)
@@ -4957,7 +4958,9 @@
 		 (cterm (car cterms))
 		 (exl-formula (make-exl (car (cterm-to-vars cterm))
 					(cterm-to-formula cterm))))
-	    (exl-formula-and-concl-to-exl-elim-mr-proof exl-formula concl)))
+	    (imp-formulas-to-mr-elim-proof (make-imp exl-formula concl))))
+	 ;; Code discarded 2016-06-27
+	 ;; (exl-formula-and-concl-to-exl-elim-mr-proof exl-formula concl)))
 	 ((member idpc-name '("ExR" "ExRT"))
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (cterm (car cterms))
