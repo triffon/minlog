@@ -2952,14 +2952,25 @@
 ;; optional algebra names and pvars are the same as for the
 ;; corresponding idpcs.
 
-;; add-co takes an optional argument opt-prim-prod-flag.  If this is
-;; not present or true, the clause is formed with mk-ex, mk-and
-;; (generating extracted terms with the primitive product make-star).
-;; If this is present and #f, the clause is formed with the inductively
-;; defined existential quantifiers and conjunctions (generating
-;; extracted terms with the defined product yprod).
+;; add-co takes an optional argument opt-prim-prod-eq-info where
+;; ()              means ('prim EqD)
+;; ('prim)         means ('prim EqD)
+;; ('idpc)         means ('idpc EqD)
+;; ('prim RealEq)  means ('prim RealEq)
+;; ('idpc RealEq)  means ('idpc RealEq)
+;; In case prim the clauses are formed with mk-ex, mk-and
+;; (generating extracted terms with the primitive product make-star).  In
+;; case idpc the clauses are formed with the inductively defined
+;; existential quantifiers and conjunctions (generating extracted terms
+;; with the defined product yprod).  In case Eqd equations are formed
+;; with Leibniz equality, otherwise with the equality given by RealEq.
 
-(define (add-co idpc-name . opt-prim-prod-flag)
+(define (make-realeq arg1 arg2)
+  (make-predicate-formula
+   (idpredconst-name-and-types-and-cterms-to-idpredconst "RealEq" '() '())
+   arg1 arg2))
+
+(define (add-co idpc-name . opt-prim-prod-eq-info)
   (let*
       ((info (assoc idpc-name IDS))
        (idpredconst-names-with-pvars-and-opt-alg-names
@@ -2978,9 +2989,6 @@
        (opt-alg-names
 	(map cddr idpredconst-names-with-pvars-and-opt-alg-names))
        (arities (map pvar-to-arity pvars))
-       (var-lists (map (lambda (arity)
-			 (map type-to-new-partial-var (arity-to-types arity)))
-		       arities))
        (idpc-clauses-with-names-list
 	(map (lambda (name)
 	       (cddr (assoc name IDS)))
@@ -2988,7 +2996,22 @@
        (idpc-clauses-list (map (lambda (idpc-clauses-with-names)
 				 (map car idpc-clauses-with-names))
 			       idpc-clauses-with-names-list))
-       (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag)))
+       (prim-prod-flag-and-eq-name
+	(cond ((null? opt-prim-prod-eq-info)
+	       (list #t "EqD"))
+	      ((= 1 (length opt-prim-prod-eq-info))
+	       (list (eq? 'prim (car opt-prim-prod-eq-info)) "EqD"))
+	      (else
+	       (list (eq? 'prim (car opt-prim-prod-eq-info))
+		     (cadr opt-prim-prod-eq-info)))))
+       (prim-prod? (car prim-prod-flag-and-eq-name))
+       (eq-name (cadr prim-prod-flag-and-eq-name))
+       (var-lists (map (lambda (arity)
+			 (map (if (string=? eq-name "RealEq")
+				  type-to-new-var
+				  type-to-new-partial-var)
+			      (arity-to-types arity)))
+		       arities))
        (mr-idpc? (mr-idpredconst-name? idpc-name))
        (nc-idpc? (nc-idpredconst-name? idpc-name))
        (clauses-with-fvars ;one for each of idpc-names
@@ -2999,6 +3022,10 @@
 		(make-cr-or-nc-andr (if mr-idpc? make-andu make-andr))
 		(make-cr-or-nc-andd
 		 (if prim-prod? make-and (if mr-idpc? make-andu make-andd)))
+		(m-eq (lambda (x y)
+			(if (string=? eq-name "EqD")
+			    (make-eqd x y)
+			    (make-realeq x y))))
 		(m-andu (if prim-prod? mk-and mk-andu))
 		(make-cr-or-nc-exl (if mr-idpc? make-exu make-exl))
 		(make-cr-or-nc-exr (if mr-idpc? make-exu make-exr))
@@ -3009,15 +3036,15 @@
 		   (cond
 		    ((and (predicate-form? fla)
 			  (equal? pvar (predicate-form-to-predicate fla)))
-		     (let ((eqd-list (map make-eqd
-					  (map make-term-in-var-form vars)
-					  (predicate-form-to-args fla))))
+		     (let ((eq-list (map m-eq
+					 (map make-term-in-var-form vars)
+					 (predicate-form-to-args fla))))
 		       (list
 			(apply
 			 m-andu
 			 (if mr-idpc? ; change the order of eqd formulas
-			     (append (cdr eqd-list) (list (car eqd-list)))
-			     eqd-list))
+			     (append (cdr eq-list) (list (car eq-list)))
+			     eq-list))
 			#f)))
 		    ((imp-impnc-form? fla)
 		     (let* ((prem (imp-impnc-form-to-premise fla))
@@ -3032,7 +3059,8 @@
 			    (list (m-andu prem (car prev)) #f))
 			(if (and (imp-form? fla)
 				 (or (not (formula-of-nulltype? prem))
-				     (intersection (formula-to-pvars prem) pvars)))
+				     (intersection
+				      (formula-to-pvars prem) pvars)))
 			    (if (cadr prev)
 				(list (make-cr-or-nc-andd prem (car prev)) #t)
 				(list (make-cr-or-nc-andl prem (car prev)) #t))
@@ -3143,4 +3171,197 @@
 			  (not (formula-of-nulltype?
 				(proof-to-formula
 				 (theorem-name-to-proof clause-name)))))))))
+
+;; Code discarded 2016-07-28
+;; ;; add-co takes an optional argument opt-prim-prod-flag.  If this is
+;; ;; not present or true, the clause is formed with mk-ex, mk-and
+;; ;; (generating extracted terms with the primitive product make-star).
+;; ;; If this is present and #f, the clause is formed with the inductively
+;; ;; defined existential quantifiers and conjunctions (generating
+;; ;; extracted terms with the defined product yprod).
+
+;; (define (add-co idpc-name . opt-prim-prod-flag)
+;;   (let*
+;;       ((info (assoc idpc-name IDS))
+;;        (idpredconst-names-with-pvars-and-opt-alg-names
+;; 	(if info (cadr info)
+;; 	    (myerror "add-co" "idpredconst name expected" idpc-name)))
+;;        (coidpc-names-with-pvars-and-opt-alg-names
+;; 	(map (lambda (x)
+;; 	       (cons (string-append "Co" (car x)) (cdr x)))
+;; 	     idpredconst-names-with-pvars-and-opt-alg-names))
+;;        (coidpc-names (map car coidpc-names-with-pvars-and-opt-alg-names))
+;;        (clause-names (map (lambda (coidpc-name)
+;; 			    (string-append coidpc-name "Clause"))
+;; 			  coidpc-names))
+;;        (idpc-names (map car idpredconst-names-with-pvars-and-opt-alg-names))
+;;        (pvars (map cadr idpredconst-names-with-pvars-and-opt-alg-names))
+;;        (opt-alg-names
+;; 	(map cddr idpredconst-names-with-pvars-and-opt-alg-names))
+;;        (arities (map pvar-to-arity pvars))
+;;        (var-lists (map (lambda (arity)
+;; 			 (map type-to-new-partial-var (arity-to-types arity)))
+;; 		       arities))
+;;        (idpc-clauses-with-names-list
+;; 	(map (lambda (name)
+;; 	       (cddr (assoc name IDS)))
+;; 	     idpc-names))
+;;        (idpc-clauses-list (map (lambda (idpc-clauses-with-names)
+;; 				 (map car idpc-clauses-with-names))
+;; 			       idpc-clauses-with-names-list))
+;;        (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag)))
+;;        (mr-idpc? (mr-idpredconst-name? idpc-name))
+;;        (nc-idpc? (nc-idpredconst-name? idpc-name))
+;;        (clauses-with-fvars ;one for each of idpc-names
+;; 	(map
+;; 	 (lambda (vars pvar idpc-clauses)
+;; 	   (letrec
+;; 	       ((make-cr-or-nc-andl (if mr-idpc? make-andu make-andl))
+;; 		(make-cr-or-nc-andr (if mr-idpc? make-andu make-andr))
+;; 		(make-cr-or-nc-andd
+;; 		 (if prim-prod? make-and (if mr-idpc? make-andu make-andd)))
+;; 		(m-andu (if prim-prod? mk-and mk-andu))
+;; 		(make-cr-or-nc-exl (if mr-idpc? make-exu make-exl))
+;; 		(make-cr-or-nc-exr (if mr-idpc? make-exu make-exr))
+;; 		(make-cr-or-nc-exd
+;; 		 (if prim-prod? make-ex (if mr-idpc? make-exu make-exd)))
+;; 		(clause-to-exand-fla-and-c-flag
+;; 		 (lambda (fla)
+;; 		   (cond
+;; 		    ((and (predicate-form? fla)
+;; 			  (equal? pvar (predicate-form-to-predicate fla)))
+;; 		     (let ((eqd-list (map make-eqd
+;; 					  (map make-term-in-var-form vars)
+;; 					  (predicate-form-to-args fla))))
+;; 		       (list
+;; 			(apply
+;; 			 m-andu
+;; 			 (if mr-idpc? ; change the order of eqd formulas
+;; 			     (append (cdr eqd-list) (list (car eqd-list)))
+;; 			     eqd-list))
+;; 			#f)))
+;; 		    ((imp-impnc-form? fla)
+;; 		     (let* ((prem (imp-impnc-form-to-premise fla))
+;; 			    (concl (imp-impnc-form-to-conclusion fla))
+;; 			    (prev (clause-to-exand-fla-and-c-flag concl)))
+;; 		       (if
+;; 			(and (predicate-form? concl)
+;; 			     (equal? pvar (predicate-form-to-predicate concl)))
+;; 			(if (or (not (formula-of-nulltype? prem))
+;; 				(intersection (formula-to-pvars prem) pvars))
+;; 			    (list (make-cr-or-nc-andl prem (car prev)) #t)
+;; 			    (list (m-andu prem (car prev)) #f))
+;; 			(if (and (imp-form? fla)
+;; 				 (or (not (formula-of-nulltype? prem))
+;; 				     (intersection (formula-to-pvars prem) pvars)))
+;; 			    (if (cadr prev)
+;; 				(list (make-cr-or-nc-andd prem (car prev)) #t)
+;; 				(list (make-cr-or-nc-andl prem (car prev)) #t))
+;; 			    (if (cadr prev)
+;; 				(list (make-cr-or-nc-andr prem (car prev)) #t)
+;; 				(list (m-andu prem (car prev)) #f))))))
+;; 		    ((all-allnc-form? fla)
+;; 		     (let* ((var (all-allnc-form-to-var fla))
+;; 			    (kernel (all-allnc-form-to-kernel fla))
+;; 			    (prev (clause-to-exand-fla-and-c-flag kernel)))
+;; 		       (if
+;; 			(and (predicate-form? kernel)
+;; 			     (equal? pvar (predicate-form-to-predicate kernel)))
+;; 			(if (all-form? fla)
+;; 			    (list (make-cr-or-nc-exl var (car prev)) #t)
+;; 			    (list (make-exu var (car prev)) #f))
+;; 			(if (all-form? fla)
+;; 			    (if (cadr prev)
+;; 				(list (make-cr-or-nc-exd var (car prev)) #t)
+;; 				(list (make-cr-or-nc-exl var (car prev)) #t))
+;; 			    (if (cadr prev)
+;; 				(list (make-cr-or-nc-exr var (car prev)) #t)
+;; 				(list (make-exu var (car prev)) #f))))))
+;; 		    (else (myerror "clause-to-exand-fla-and-c-flag"
+;; 				   "unexpected formula" fla))))))
+;; 	     (let* ((exand-fla-and-c-flag-list
+;; 		     (map clause-to-exand-fla-and-c-flag idpc-clauses))
+;; 		    (exand-fla-list (map car exand-fla-and-c-flag-list)))
+;; 	       (make-imp
+;; 		(apply make-predicate-formula
+;; 		       pvar (map make-term-in-var-form vars))
+;; 		(apply (if nc-idpc? mk-ornc mk-ori)
+;; 		       exand-fla-list)))))
+;; 	 var-lists pvars idpc-clauses-list))
+;;        (param-tvars (apply union (map formula-to-tvars clauses-with-fvars)))
+;;        (clauses
+;; 	(map (lambda (vars clause-with-fvars)
+;; 	       (apply
+;; 		mk-allnc
+;; 		(append
+;; 		 (if mr-idpc?
+;; 		     (append (cdr vars) (list (car vars)))
+;; 		     vars)
+;; 		 (list clause-with-fvars))))
+;; 	     var-lists clauses-with-fvars))
+;;        (param-pvars
+;; 	(set-minus
+;; 	 (apply union (map formula-to-pvars clauses))
+;; 	 pvars)))
+;;     (for-each
+;;      (lambda (coidpc-name clause-name clause arity)
+;;        (let ((non-inferable-param-tvars
+;; 	      (set-minus
+;; 	       param-tvars
+;; 	       (apply union (map type-to-tvars (arity-to-types arity))))))
+;; 	 (comment "ok, coinductively defined predicate constant "
+;; 		  coidpc-name " added")
+;; 	 (set! COIDS (cons (list coidpc-name
+;; 				 coidpc-names-with-pvars-and-opt-alg-names
+;; 				 (list clause clause-name))
+;; 			   COIDS))
+;; 	 (set! IDS (cons (list coidpc-name
+;; 			       coidpc-names-with-pvars-and-opt-alg-names
+;; 			       (list clause clause-name))
+;; 			 IDS))
+;; 					;add tokens for idpc-names
+;; 	 (cond
+;; 	  ((and (null? param-pvars)
+;; 		(null? non-inferable-param-tvars))
+;; 	   (add-token
+;; 	    coidpc-name
+;; 	    'idpredconst-name
+;; 	    (string-and-arity-and-cterms-to-idpc-parse-function
+;; 	     coidpc-name arity '())))
+;; 	  ((and (pair? param-pvars)
+;; 		(pair? non-inferable-param-tvars))
+;; 	   (add-token
+;; 	    coidpc-name
+;; 	    'idpredconstscheme-name
+;; 	    coidpc-name))
+;; 	  ((and (pair? param-pvars)
+;; 		(null? non-inferable-param-tvars))
+;; 	   (add-token
+;; 	    coidpc-name
+;; 	    'idpredconstscheme-name-wit ;wit=with-inferable-types
+;; 	    (lambda (cterms)
+;; 	      (string-and-arity-and-cterms-to-idpc-parse-function
+;; 	       coidpc-name arity cterms))))
+;; 	  (else
+;; 	   (myerror
+;; 	    "add-co"
+;; 	    "unexpected coidpredconst without cterms whose param-tvars"
+;; 	    "cannot be inferred from the arguments" coidpc-name)))))
+;;      coidpc-names clause-names clauses arities)
+;; 					;add clauses as theorems
+;;     (for-each
+;;      (lambda (coidpc-name clause-name)
+;;        (let* ((cterms (map predicate-to-cterm param-pvars))
+;; 	      (aconst (coidpredconst-to-closure-aconst
+;; 		       (make-idpredconst coidpc-name param-tvars cterms)))
+;; 	      (proof (make-proof-in-aconst-form aconst)))
+;; 	 (add-theorem clause-name proof)))
+;;      coidpc-names clause-names)
+;; 					;and animate the c.r. ones
+;;     (for-each animate (list-transform-positive
+;; 			  clause-names
+;; 			(lambda (clause-name)
+;; 			  (not (formula-of-nulltype?
+;; 				(proof-to-formula
+;; 				 (theorem-name-to-proof clause-name)))))))))
 
