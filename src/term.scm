@@ -5351,7 +5351,9 @@ intDestr n | n > 0  = Left n
 		 term)))))
     (do ((t init (normalize-term-pi-with-rec-to-if
 		  (nbe-normalize-term-without-eta t))))
-	((term-in-if-normal-form? t)
+	((term-in-beta-normal-form? t)
+	 ;; Code discarded 2016-06-27
+	 ;; ((term-in-if-normal-form? t)
 	 (term-to-eta-nf-with-simplified-simrec-appterms t)))))
 
 (define nt nbe-normalize-term)
