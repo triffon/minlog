@@ -344,12 +344,16 @@
 	 (cterms (map (lambda (pvar)
 			(let ((info (assoc pvar tpsubst)))
 			  (if info (cadr info)
-			      (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"))
+			      (if (member
+				   name
+				   '("ExDT" "ExLT" "ExRT" "ExUT"
+				     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"z))
 				  (predicate-to-cterm-with-total-vars pvar)
 				  (predicate-to-cterm pvar)))))
 		      param-pvars))
 	 (param-pvar-cterms
-	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"))
+	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"
+			     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
 	      (map predicate-to-cterm-with-total-vars param-pvars)
 	      (map predicate-to-cterm param-pvars)))
 	 (idpc-names-with-pvars-and-opt-alg-names
@@ -1705,7 +1709,8 @@
 	 (tpsubst (idpredconst-to-tpsubst idpc))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
 	 (param-pvar-cterms
-	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"))
+	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"
+			     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
 	      (map predicate-to-cterm-with-total-vars param-pvars)
 	      (map predicate-to-cterm param-pvars)))
 	 (idpc-names-with-pvars-and-opt-alg-names
@@ -1785,7 +1790,8 @@
 	 (tvars (idpredconst-name-to-tvars name))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
 	 (param-pvar-cterms
-	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"))
+	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"
+			     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
 	      (map predicate-to-cterm-with-total-vars param-pvars)
 	      (map predicate-to-cterm param-pvars)))
 	 (params (idpredconst-name-to-params name))
@@ -2228,7 +2234,8 @@
 		 imp-formulas))
 	 (uninst-gfp-formula (car uninst-gfp-formula-etc))
 	 (tpsubst (apply append (cdr uninst-gfp-formula-etc))))
-    (make-aconst "Gfp" 'axiom uninst-gfp-formula tpsubst)))
+    (apply make-aconst
+	   "Gfp" 'axiom uninst-gfp-formula tpsubst imp-formulas)))
 
 ;; Theorems
 
