@@ -1,4 +1,4 @@
-;; 2016-06-16.  int.scm.  Based on the former numbers.scm.
+;; 2016-06-23.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -2794,11 +2794,11 @@
 
 ;; IntTimesInjLeft
 (set-goal "all k,j,i(0<abs i -> k*i=j*i -> k=j)")
-(assume "k" "j" "i" "PosHyp" "i1i3=i2i3")
+(assume "k" "j" "i" "PosHyp" "ki=ji")
 (use "IntTimesInj" (pt "i"))
 (use "PosHyp")
 (simp "IntTimesComm")
-(simp "i1i3=i2i3")
+(simp "ki=ji")
 (use "IntTimesComm")
 ;; Proof finished.
 (save "IntTimesInjLeft")
@@ -2955,7 +2955,7 @@
 (ng)
 (use "Truth")
 ;; Proof finished.
-(add-rewrite-rule "k<k+pos" "True")
+(add-rewrite-rule "k<k+p" "True")
 
 (set-goal "all k k<IntS k")
 (assume "k")
@@ -3841,6 +3841,27 @@
 ;; Proof finished
 (add-rewrite-rule "k*p<=j*p" "k<=j")
 
+;; Same for IntLt, using IntNotLeToLt
+(set-goal "all k,j,p (k*p<j*p)=(k<j)")
+(assume "k" "j" "p")
+(use "BooleAeqToEq")
+;; 3,4
+(assume "kp<jp")
+(use "IntNotLeToLt")
+(assume "j<=k")
+(assert "j*p<=k*p")
+ (use "j<=k")
+(use-with "IntLtLeTrans" (pt "k*p") (pt "j*p") (pt "k*p") "kp<jp")
+;; 4
+(assume "k<j")
+(use "IntNotLeToLt")
+(assume "jp<=kp")
+(assert "j<=k")
+ (use "jp<=kp")
+(use-with "IntLtLeTrans" (pt "k") (pt "j") (pt "k") "k<j")
+;; Proof finished.
+(add-rewrite-rule "k*p<j*p" "k<j")
+
 ;; IntLeMonTimes
 (set-goal "all k,j,i(0<=k -> j<=i -> j*k<=i*k)")
 (cases)
@@ -4541,7 +4562,7 @@
 ;; Proof finished.
 (add-rewrite-rule "~k+k" "0")
 
-;; ;; IntMinusPlusEq
+;; IntMinusPlusEq
 (set-goal "all k,j k-j+j=k")
 (assume "k" "j")
 (ng)
@@ -4555,18 +4576,10 @@
 ;; (display-pconst "IntAbs")
 ;; (display-pconst "IntLe")
 
-;; IntLeTriang
-(set-goal "all k,i,j abs(k-i)<=abs(k-j)+abs(j-i)")
+;; IntLeAbsMinus
+(set-goal "all k,i,j abs(k+ ~i)<=abs(k+ ~j)+abs(j+ ~i)")
 (assume "k" "i" "j")
-(assert "k-i=(k-j)+(j-i)")
- (assert "k-j=k+ ~j")
-  (use "Truth")
- (assume "k-j=k+ ~j")
- (simp "k-j=k+ ~j")
- (assert "j-i=j+ ~i")
-  (use "Truth")
- (assume "j-i=j+ ~i")
- (simp "j-i=j+ ~i")
+(assert "k+ ~i=(k+ ~j)+(j+ ~i)")
  (simp "<-" "IntPlusAssoc")
  (ng)
  (use "Truth")
@@ -4574,6 +4587,28 @@
 (simp "Assertion")
 (use "IntLeAbsPlus")
 ;; Proof finished.
-(save "IntLeTriang")
-(add-rewrite-rule "abs(k-i)<=abs(k-j)+abs(j-i)" "True")
+(save "IntLeAbsMinus")
+(add-rewrite-rule "abs(k+ ~i)<=abs(k+ ~j)+abs(j+ ~i)" "True")
+
+;; Code discarded 2016-06-23
+;; (set-goal "all k,i,j abs(k-i)<=abs(k-j)+abs(j-i)")
+;; (assume "k" "i" "j")
+;; (assert "k-i=(k-j)+(j-i)")
+;;  (assert "k-j=k+ ~j")
+;;   (use "Truth")
+;;  (assume "k-j=k+ ~j")
+;;  (simp "k-j=k+ ~j")
+;;  (assert "j-i=j+ ~i")
+;;   (use "Truth")
+;;  (assume "j-i=j+ ~i")
+;;  (simp "j-i=j+ ~i")
+;;  (simp "<-" "IntPlusAssoc")
+;;  (ng)
+;;  (use "Truth")
+;; (assume "Assertion")
+;; (simp "Assertion")
+;; (use "IntLeAbsPlus")
+;; ;; Proof finished.
+;; (save "IntLeAbsMinus")
+;; (add-rewrite-rule "abs(k-i)<=abs(k-j)+abs(j-i)" "True")
 
