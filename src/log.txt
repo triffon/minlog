@@ -1,5 +1,73 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done on dev branch 2016-06-28
+
+In term.scm
+
+In nbe-normalize-term term-in-if-normal-form? replaced by
+term-in-beta-normal-form?
+
+In psym.scm
+
+add-co takes an optional argument opt-prim-prod-eq-info where
+()              means ('prim EqD)
+('prim)         means ('prim EqD)
+('idpc)         means ('idpc EqD)
+('prim RealEq)  means ('prim RealEq)
+('idpc RealEq)  means ('idpc RealEq)
+In case prim the clauses are formed with mk-ex, mk-and
+(generating extracted terms with the primitive product make-star).  In
+case idpc the clauses are formed with the inductively defined
+existential quantifiers and conjunctions (generating extracted terms
+with the defined product yprod).  In case Eqd equations are formed
+with Leibniz equality, otherwise with the equality given by RealEq.
+
+In axiom.scm
+
+ExDT ExLT ExRT ExUT extended with ExDTMR ExLTMR ExRTMR ExUTMR (four
+times).  In imp-formulas-to-gfp-aconst imp-formulas added (as
+repro-data).
+
+In ets.scm
+
+In number-and-idpredconst-to-intro-mr-proof superfluous all
+introduction removed.  In imp-formulas-to-mr-elim-proof further case
+distinction introduced for idpredconst with alg-name identity.  In
+axiom-to-soundness-proof exl-formula-and-concl-to-exl-elim-mr-proof
+replaced by imp-formulas-to-mr-elim-proof
+
+In lib/rea.scm
+
+RealUMinus added.  Renamings: RealElim1 -> RealToCauchySeq
+RealElim2 -> RealToMonMod
+RealElimVariant1 -> RealConstrToCauchy
+RealElimVariant2 -> RealConstrToMon
+Definitions of RealEq RealNNeg RealLe Cauchy changed to total variables.
+RealEqElimVariant renamed to RealConstrEqElim
+RealNNegElimVariant renamed to RealConstrNNegElim
+RealLeElimVariant renamed to RealConstrLeElim
+Theorems RealEqRefl RealEqSym RealEqChar1 RealEqChar2 RealEqTrans RealEqCompat
+added.  Formulated (and proved with admit) theorems RealNNegChar1
+RealNNegChar2 RealNNegCompat RealPosChar1 RealPosChar2 RealPosCompat
+RealUMinusCompat RealPlusCompat RealLeCompat
+
+In lib/rat.scm
+
+Rewrite rule a<a -> False added.  RatTimesInj 0<abs a -> a*b==a*c ->
+b==c and RatTimesInjLeft added.  RatLtToLe RatLeLtTrans RatLtLeTrans
+RatLtTrans RatNotLeToLt RatNotLtToLe added.  Rewrite rules a<a+p ->
+True and (k#p)<=(j#p) -> k<=j and ~b< ~a -> a<b added.  Theorems
+RatLePlusToRatLePlusMinus a<=b+c -> ~b+a<=c and its converse
+RatLePlusMinusToRatLePlus ~b+a<=c -> a<=b+c added.  Finally theorem
+RatLeAllPlusToLe all p a<=b+(1#2**p) -> a<=b added.
+
+In lib/int.scm
+
+IntLeTriang all k,i,j abs(k-i)<=abs(k-j)+abs(j-i) renamed into
+into IntLeAbsMinus all k,i,j abs(k+ ~i)<=abs(k+ ~j)+abs(j+ ~i).
+Rewrite rule k*p<j*p -> k<j added
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-06-16
 
 In lib/pos.scm
