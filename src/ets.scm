@@ -3317,10 +3317,13 @@
 			 (apply mk-term-in-app-form
 				(append real-terms
 					(list (make-term-in-var-form var))))))
-		       (else (apply mk-term-in-app-form
-				    (make-term-in-const-form (cadr alist-pair))
-				    (make-term-in-var-form var)
-				    real-terms))))
+		       (else
+			(list
+			 (car alist-pair)
+			 (apply mk-term-in-app-form
+				(make-term-in-const-form (cadr alist-pair))
+				(make-term-in-var-form var)
+				real-terms)))))
 	       rec-const-or-eps-alist vars))
 	 (mr-imp-formulas
 	  (map (lambda (mr-prem x concl)
@@ -3452,58 +3455,6 @@
 		    (cons (make-term-in-var-form (car vars)) ;w
 			  (cons (make-proof-in-avar-form mr-prem-avar)
 				mr-clause-proofs)))))))))
-
-(define (exl-formula-and-concl-to-exl-elim-mr-proof exl-formula concl)
-  (let* ((free (union (formula-to-free exl-formula) (formula-to-free concl)))
-	 (var (exl-form-to-var exl-formula))
-	 (var-term (make-term-in-var-form var))
-	 (type (var-to-type var))
-	 (kernel (exl-form-to-kernel exl-formula)) ;n.c.
-	 (concl-type (formula-to-et-type concl)) ;c.r.
-	 (f (type-to-new-partial-var (make-arrow type concl-type)))
-	 (f-term (make-term-in-var-form f))
-	 (v-formula ;f mr all x(A --> P)
-	  (real-and-formula-to-mr-formula-aux
-	   f-term (make-all var (make-impnc kernel concl))))
-	 (v (formula-to-new-avar v-formula "v"))
-	 (u (formula-to-new-avar kernel "u"))
-	 (elim-proof (mk-proof-in-elim-form
-		      (make-proof-in-avar-form v)
-		      var-term (make-proof-in-avar-form u))))
-    (apply mk-proof-in-intro-form
-	   (append free (list var u f v elim-proof)))))
-
-(define (exr-formula-and-concl-to-exr-elim-mr-proof exr-formula concl)
-  (let* ((exr-vars (formula-to-free exr-formula))
-	 (concl-vars (formula-to-free concl))
-	 (exr-type (formula-to-et-type exr-formula))
-	 (real-var (type-to-new-partial-var exr-type)) ;a
-	 (real-term (make-term-in-var-form real-var))
-	 (mr-exr-fla ;a mr exr x Y x
-	  (real-and-formula-to-mr-formula-aux real-term exr-formula))
-	 (mr-exr-fla-avar (formula-to-new-avar mr-exr-fla)) ;w
-	 (concl-type (formula-to-et-type concl))
-	 (f (type-to-new-partial-var (make-arrow exr-type concl-type)))
-	 (f-term (make-term-in-var-form f)) ;f
-	 (app-term (make-term-in-app-form f-term real-term)) ;fa
-	 (mr-concl ;fa mr concl
-	  (real-and-formula-to-mr-formula-aux app-term concl))
-	 (imp-fla (make-imp mr-exr-fla mr-concl))
-	 (elim-aconst (imp-formulas-to-elim-aconst imp-fla))
-	 (free (append exr-vars concl-vars))
-	 (intro-proof
-	  (apply mk-proof-in-intro-form
-		 (append free (list (make-proof-in-aconst-form elim-aconst)))))
-	 (elim-proof
-	  (apply mk-proof-in-elim-form
-		 intro-proof
-		 (append (map make-term-in-var-form
-			      (append exr-vars (cons f concl-vars)))
-			 (list real-term
-			       (make-proof-in-avar-form mr-exr-fla-avar))))))
-    (apply mk-proof-in-intro-form
-	   (append exr-vars concl-vars
-		   (list real-var mr-exr-fla-avar f elim-proof)))))
 
 ;; For andr-formula-and-concl-to-andr-elim-mr-proof the definition is
 ;; the same as for andl-formula-and-concl-to-andl-elim-mr-proof .
@@ -4966,7 +4917,7 @@
 		 (cterm (car cterms))
 		 (exr-formula (make-exr (car (cterm-to-vars cterm))
 					(cterm-to-formula cterm))))
-	    (exr-formula-and-concl-to-exr-elim-mr-proof exr-formula concl)))
+	    (imp-formulas-to-mr-elim-proof (make-imp exr-formula concl))))
 	 ((member idpc-name '("AndL" "AndR"))
 	  (let* ((cterms (idpredconst-to-cterms idpc))
 		 (left-cterm (car cterms))

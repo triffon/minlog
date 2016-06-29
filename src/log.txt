@@ -1,5 +1,22 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-06-29
+
+In axiom.scm
+
+In elim-aconst-to-computed-repro-formulas uninst-idpc-formula and
+inst-idpc-formula computed by imp-impnc-all-allnc-form-to-premises.
+A new branch for "ExRTMR" and "ExDTMR" added to compute param-pvar-cterms.
+
+In ets.scm
+
+exl-formula-and-concl-to-exl-elim-mr-proof and
+exr-formula-and-concl-to-exr-elim-mr-proof removed.
+In axiom-to-soundness-proof exr-formula-and-concl-to-exr-elim-mr-proof
+replaced by imp-formulas-to-mr-elim-proof.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-06-28
 
 In term.scm

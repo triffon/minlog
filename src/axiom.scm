@@ -347,7 +347,7 @@
 			      (if (member
 				   name
 				   '("ExDT" "ExLT" "ExRT" "ExUT"
-				     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"z))
+				     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
 				  (predicate-to-cterm-with-total-vars pvar)
 				  (predicate-to-cterm pvar)))))
 		      param-pvars))
@@ -391,7 +391,8 @@
 		   (lambda (x) (tvar-form? (car x)))))
 	 (psubst (list-transform-positive tpsubst
 		  (lambda (x) (pvar-form? (car x)))))
-	 (uninst-idpc-formula (imp-form-to-premise uninst-formula))
+	 (uninst-idpc-formula (car (imp-impnc-all-allnc-form-to-premises
+				    uninst-formula)))
 	 (uninst-idpc (predicate-form-to-predicate uninst-idpc-formula))
 	 (idpc-name (if (idpredconst-form? uninst-idpc)
 			(idpredconst-to-name uninst-idpc)
@@ -423,7 +424,8 @@
 	  (map cadr (list-transform-positive psubst
 		      (lambda (x) (member (car x) relevant-pvars)))))
 	 (inst-formula (aconst-to-inst-formula aconst))
-	 (inst-idpc-formula (imp-form-to-premise inst-formula))
+	 (inst-idpc-formula (car (imp-impnc-all-allnc-form-to-premises
+				  inst-formula)))
 	 (inst-idpc (predicate-form-to-predicate inst-idpc-formula))
 	 (inst-types (idpredconst-to-types inst-idpc))
 	 (inst-param-cterms (idpredconst-to-cterms inst-idpc))
@@ -1790,10 +1792,25 @@
 	 (tvars (idpredconst-name-to-tvars name))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
 	 (param-pvar-cterms
-	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"
-			     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
-	      (map predicate-to-cterm-with-total-vars param-pvars)
-	      (map predicate-to-cterm param-pvars)))
+	  (cond ((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+		 (map predicate-to-cterm-with-total-vars param-pvars))
+		((member name '("ExRTMR" "ExDTMR"))
+		 (let*
+		     ((arities (map predicate-to-arity param-pvars))
+		      (types-list (map arity-to-types arities))
+		      (us (map (lambda (x) (type-to-new-partial-var (car x)))
+			       types-list))
+		      (xs-list (map (lambda (x) (map type-to-new-var (cdr x)))
+				    types-list)))
+		   (map (lambda (u xs pvar)
+			  (apply make-cterm
+				 (append (cons u xs)
+					 (list (apply make-predicate-formula
+						      pvar
+						      (map make-term-in-var-form
+							   (cons u xs)))))))
+			us xs-list param-pvars)))
+		(else (map predicate-to-cterm param-pvars))))
 	 (params (idpredconst-name-to-params name))
 	 (new-var-lists
 	  (map (lambda (pvar)
