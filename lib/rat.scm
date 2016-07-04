@@ -356,6 +356,7 @@
 (add-program-constant "RatTimes" (py "rat=>rat=>rat"))
 (add-program-constant "RatDiv" (py "rat=>rat=>rat"))
 (add-program-constant "RatAbs" (py "rat=>rat"))
+(add-program-constant "RatHalf" (py "rat=>rat"))
 (add-program-constant "RatExp" (py "rat=>int=>rat"))
 (add-program-constant "RatMax" (py "rat=>rat=>rat"))
 (add-program-constant "RatMin" (py "rat=>rat=>rat"))
@@ -863,6 +864,30 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "abs(k#p)" "(abs k#p)")
+
+;; Rules for RatHalf
+
+(add-computation-rules
+ "RatHalf(k#p)" "k#SZero p")
+
+;; RatHalfTotal
+(set-totality-goal "RatHalf")
+(use "AllTotalElim")
+(cases)
+(assume "k" "p")
+(ng)
+(use "RatTotalVar")
+;; Proof finished.
+(save-totality)
+
+;; RatHalfUMinus
+(set-goal "all a RatHalf~a= ~(RatHalf a)")
+(cases)
+(assume "k" "p")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RatHalfUMinus")
 
 ;; Rules for RatExp : rat=>int=>rat
 
@@ -1541,6 +1566,16 @@
 ;; Proof finished.
 (save "RatEqvPlusMinus")
 
+;; RatEqvPlusMinusRev
+(set-goal "all a,b a+b+ ~b==a")
+(assume "a" "b")
+(simp "<-" "RatPlusAssoc")
+(simprat (pf "b+ ~b==0")) ;needs RatPlusCompat
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatEqvPlusMinusRev")
+
 (set-goal "all p,q,r,r0((IntN p#q)<=(IntN r#r0))=((r#r0)<=(p#q))")
 (assume "p" "q" "r" "r0")
 (ng)
@@ -1964,6 +1999,58 @@
 (use "EqHyp")
 ;; Proof finished.
 (save "RatAbsCompat")
+
+;; RatHalfCompat
+(set-goal "all a,b(a==b -> RatHalf a==RatHalf b)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(assume "kq=jp")
+(assert "all k,p k*SZero p=2*(k*p)")
+ (cases)
+ (strip)
+ (use "Truth")
+ (strip)
+ (use "Truth")
+ (strip)
+ (use "Truth")
+(assume "Assertion")
+(simp "Assertion")
+(simp "Assertion")
+(simp "kq=jp")
+(use "Truth")
+;; Proof finished.
+(save "RatHalfCompat")
+
+;; RatLeMonHalf
+(set-goal "all a,b(a<=b -> RatHalf a<=RatHalf b)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(assert "all k,p k*SZero p=k*p*2")
+ (cases)
+ (strip)
+ (use "Truth")
+ (strip)
+ (use "Truth")
+ (strip)
+ (use "Truth")
+(assume "Assertion")
+(simp "Assertion")
+(assert "j*SZero p=j*p*2")
+ (use "Assertion")
+(assume "EqHyp")
+(simp "EqHyp")
+(assume "LeHyp")
+(use "IntLeMonTimes")
+(use "Truth")
+(use "LeHyp")
+;; Proof finished.
+(save "RatLeMonHalf")
 
 ;; PosExpTwoMinus
 (set-goal "all n,m(m<=n -> 2**(n--m)*2**m=2**n)")
@@ -3426,6 +3513,37 @@
 (use "AllHyp")
 ;; Proof finished.
 (save "RatLeAllPlusToLe")
+
+;; RatHalfPlus
+(set-goal "all a,b RatHalf(a+b)==RatHalf a+RatHalf b")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(assert "SZero p=2*p")
+ (use "Truth")
+(assume "SZp=2p")
+(simp "SZp=2p")
+(drop "SZp=2p")
+(assert "SZero q=2*q")
+ (use "Truth")
+(assume "SZq=2q")
+(simp "SZq=2q")
+(drop "SZq=2q")
+(assert "SZero(SZero(p*q))=2*(SZero(p*q))")
+ (use "Truth")
+(assume "SZSZpq=2SZpq")
+(simp "SZSZpq=2SZpq")
+(drop "SZSZpq=2SZpq")
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RatHalfPlus")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
