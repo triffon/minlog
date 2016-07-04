@@ -1,5 +1,20 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done on dec branch 2016-07-03
+
+In lib/pos.scm
+
+Rewrite rule p<=SZero p -> True added.  PosLeMonPred added
+
+In lib/rat.scm
+
+RatHalf RatHalfCompat RatLeMonHalf RatHalfPlus RatHalfUMinus added
+RatEqvPlusMinusRev added
+
+In pproof.scm
+
+In rateqv-term-compat RatHalfCompat added
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-06-29
 
