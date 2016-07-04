@@ -3438,6 +3438,40 @@
 ;; Proof finished.
 (save "PosLeCases")
 
+;; PosLeMonPred
+(set-goal "all p,q(p<=q -> PosPred p<=PosPred q)")
+(assume "p" "q")
+(use "PosLeCases" (pt "1") (pt "p"))
+(use "Truth")
+;; 3-5
+(assume "1<p")
+(use "PosLeCases" (pt "1") (pt "q"))
+;; 7-9
+(use "Truth")
+(assume "1<q" "p<=q")
+(assert "PosS(PosPred p)<=PosS(PosPred q)")
+ (simp "PosSPosPredId")
+ (simp "PosSPosPredId")
+ (use "p<=q")
+ (use "1<q")
+ (use "1<p")
+(ng)
+(assume "Hyp")
+(use "Hyp")
+;; 9
+(assume "1=q")
+(simp "<-" "1=q")
+(ng)
+(assume "p=1")
+(simp "p=1")
+(use "Truth")
+;; 5
+(assume "1=p" "Useless")
+(simp "<-" "1=p")
+(use "Truth")
+;; Proof finished.
+(save "PosLeMonPred")
+
 ;; Rules for PosMinus:  They give correct results for p--q (only) if q<p.
 
 (add-computation-rules
@@ -4670,5 +4704,19 @@
 (use "q<p")
 ;; Proof finished.
 (add-rewrite-rule "p--q<=p" "True")
+
+(set-goal "all p p<=SZero p")
+(ind)
+(use "Truth")
+(assume "p" "IH")
+(ng)
+(use "IH")
+(assume "p" "IH")
+(ng)
+(use "PosLeLtTrans" (pt "SZero p"))
+(use "IH")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "p<=SZero p" "True")
 
 ;; (search-about "Pos" "Max")
