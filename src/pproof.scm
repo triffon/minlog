@@ -5131,7 +5131,7 @@
 		      (const-to-name (term-in-const-form-to-const op))
 		      "Compat")))
 	   (unary-compat-names
-	    (list "RatUMinusCompat" "RatAbsCompat"))
+	    (list "RatUMinusCompat" "RatAbsCompat" "RatHalfCompat"))
 	   (binary-compat-names
 	    (list "RatPlusCompat" "RatTimesCompat" "RatMinusCompat")))
       (cond
