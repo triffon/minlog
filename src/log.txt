@@ -1,6 +1,23 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
-Done on dec branch 2016-07-03
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-07-05
+
+In lib/rat.scm
+
+RatAbsTimes RatLeMonTimesTwo RatLeAbsBound added.
+Rewrite rule 0<=abs a -> True added.
+
+In lib/rea.scm
+
+RealEq RealNNeg RealLe now contain Real x for their arguments (needed
+for I and CoI in average).  RealPlusReal RealBound RatSeqFinBound
+CauchyTimes NatPos added.  cNatPos instead of the pconst NatToPos to
+block unwanted unfoldings.  Computation rules for RealTimes added and
+proof of RealTimesReal sketched.  RealRat added.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-07-03
 
 In lib/pos.scm
 
