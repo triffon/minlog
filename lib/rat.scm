@@ -865,6 +865,17 @@
 ;; Proof finished.
 (add-rewrite-rule "abs(k#p)" "(abs k#p)")
 
+;; RatAbsTimes
+(set-goal "all a,b abs(a*b)=abs a*abs b")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RatAbsTimes")
+
 ;; Rules for RatHalf
 
 (add-computation-rules
@@ -1735,6 +1746,28 @@
 (save "RatLeUMinus")
 (add-rewrite-rule "~b<= ~a" "a<=b")
 
+;; RatLeMonTimesTwo
+(set-goal "all a,b,c,rat(0<=a -> 0<=c -> a<=b -> c<=rat -> a*c<=b*rat)")
+(assume "a" "b" "c" "rat" "0<=a" "0<=c" "a<=b" "c<=rat")
+(use "RatLeTrans" (pt "a*rat"))
+;; 3,4
+;; ?_4:a*rat<=b*rat
+;; ?_3:a*c<=a*rat
+(simp "RatTimesComm")
+(simp (pf "a*rat=rat*a"))
+(use "RatLeMonTimes")
+(use "0<=a")
+(use "c<=rat")
+(use "RatTimesComm")
+;; 4
+(use "RatLeMonTimes")
+(use "RatLeTrans" (pt "c"))
+(use "0<=c")
+(use "c<=rat")
+(use "a<=b")
+;; Proof finished.
+(save "RatLeMonTimesTwo")
+
 ;; RatTimesCompat
 (set-goal "all a,b,c,d(a==b -> c==d -> a*c==b*d)")
 ;; We need an auxiliary lemma
@@ -2248,6 +2281,18 @@
 ;;   RatLe
 ;;   ((IntPos (2 PosExp n)) RatConstr 1))
 
+;; RatLeAbsBound
+(set-goal "all a ex n abs a<=2**n")
+(cases)
+(cases)
+(use "RatLeBound")
+(assume "p")
+(ex-intro "Succ Zero")
+(use "Truth")
+(use "RatLeBound")
+;; Proof finished.
+(save "RatLeAbsBound")
+
 ;; We show that (i) RatExp for (p#1) and positive exponents and (2)
 ;; PosExp (which has nat as exponent type) are isomorphic, using that
 ;; NatToPos and PosToNat are essentially inverse to each other.
@@ -2363,6 +2408,24 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "a<=abs a" "True")
+
+;; RatLeZeroAbs
+(set-goal "all a 0<=abs a")
+(cases)
+(cases)
+;; 3-5
+(assume "p" "q")
+(ng)
+(use "Truth")
+;; 4
+(assume "q")
+(use "Truth")
+;; 5
+(assume "p" "q")
+(ng)
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "0<=abs a" "True")
 
 ;; RatLeAbsPlus
 (set-goal "all a,b abs(a+b)<=abs a+abs b")
