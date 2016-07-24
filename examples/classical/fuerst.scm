@@ -193,3 +193,101 @@
 (pp neterm)
 ;; [p,n]Succ(Prod n p)
 
+;; Soundness proof
+
+(define proof (theorem-name-to-proof "ProdPerm"))
+(define sproof (proof-to-soundness-proof proof))
+;; (cdp sproof) ;ok
+
+;; ProdPermSound
+(set-goal(rename-variables (nf (proof-to-formula sproof))))
+(use-with sproof)
+;; Proof finished.
+(save "ProdPermSound")
+
+(pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all p,m,l(
+;;  l<m -> 
+;;  (ExLTMR (cterm (n) p l*n=Prod m p))
+;;  ((Rec nat=>nat=>nat)m([n]0)([n,p0,n0][if (n0<n) (p0 n0*p n) (Prod n p)])l))
+
+(define proof (theorem-name-to-proof "UnionNpsUnifClosed"))
+(animate "ProdPerm")
+(define sproof (proof-to-soundness-proof proof))
+;; (cdp sproof);ok
+
+(pp (rename-variables (nf (proof-to-formula sproof))))
+
+;; all p,m(
+;;  all l(l<m -> 1<=p l) -> 
+;;  (ExLTMR (cterm (n) 
+;;            all x(
+;;             all l,n0(l<m -> x=p l*n0 -> F) -> 
+;;             all n0,l,n1(l<m -> x+n*n0=p l*n1 -> F))))
+;;  (Prod m p))
+
+;; UnionNpsUnifClosedSound
+(set-goal(rename-variables (nf (proof-to-formula sproof))))
+(use-with sproof)
+;; Proof finished.
+(save "UnionNpsUnifClosedSound")
+
+(define proof (theorem-name-to-proof "mPrimesDontSuffice"))
+(animate "UnionNpsUnifClosed")
+(define sproof (proof-to-soundness-proof proof))
+;; (cdp sproof) ;ok
+(define nsproof (np sproof))
+(proof-to-expr-with-formulas nsproof)
+
+;; ElimMR: all m,p,n^(
+;;  (ExLTMR (cterm (n0) 
+;;            all x(
+;;             all l,n1(l<m -> x=p l*n1 -> F) -> 
+;;             all n1,l,n2(l<m -> x+n0*n1=p l*n2 -> F))))
+;;  n^ -> 
+;;  all n0(
+;;   all x(
+;;    all l,n1(l<m -> x=p l*n1 -> F) -> all n1,l,n2(l<m -> x+n0*n1=p l*n2 -> F)) --> 
+;;   (ExLTMR (cterm (x) all l,n1(l<m -> x=p l*n1 -> F)))(Succ n0)) -> 
+;;  (ExLTMR (cterm (x) all l,n0(l<m -> x=p l*n0 -> F)))(Succ n^))
+;; UnionNpsUnifClosedSound: all p,m(
+;;  all l(l<m -> 1<=p l) -> 
+;;  (ExLTMR (cterm (n) 
+;;            all x(
+;;             all l,n0(l<m -> x=p l*n0 -> F) -> 
+;;             all n0,l,n1(l<m -> x+n*n0=p l*n1 -> F))))
+;;  (Prod m p))
+;; NatLtToLe: all n,m(n<m -> n<=m)
+;; Intro: all m,p,n(
+;;  all l,n0(l<m -> n=p l*n0 -> F) --> 
+;;  (ExLTMR (cterm (n0) all l,n1(l<m -> n0=p l*n1 -> F)))n)
+;; PrimeProdNotOne: all x,n(1<x -> 1=x*n -> F)
+;; u: all l(l<m -> 1<p l)
+;; u0: l<m
+;; u1: l4470<m
+
+;; (lambda (p)
+;;   (lambda (m)
+;;     (lambda (u)
+;;       (((((ElimMR m) p) ((Prod m) p))
+;;          (((UnionNpsUnifClosedSound p) m)
+;;            (lambda (l)
+;;              (lambda (u0) (((NatLtToLe 1) (p l)) ((u l) u0))))))
+;;         (lambda (n4465)
+;;           (lambda (u0)
+;;             ((((Intro m) p) (+ n4465 1))
+;;               (((u0 1)
+;;                  (lambda (l4470)
+;;                    (lambda (n1)
+;;                      (lambda (u1)
+;;                        (((PrimeProdNotOne (p l4470)) n1)
+;;                          ((u l4470) u1))))))
+;;                 1))))))))
+
+
+
+
+
+
+
