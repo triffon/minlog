@@ -341,21 +341,25 @@
 	  (allnc-form-to-final-kernel uninst-formula (length params)))
 	 (orig-clauses (idpredconst-name-to-clauses name))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
-	 (cterms (map (lambda (pvar)
-			(let ((info (assoc pvar tpsubst)))
-			  (if info (cadr info)
-			      (if (member
-				   name
-				   '("ExDT" "ExLT" "ExRT" "ExUT"
-				     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
-				  (predicate-to-cterm-with-total-vars pvar)
-				  (predicate-to-cterm pvar)))))
-		      param-pvars))
+	 (cterms
+	  (map (lambda (pvar)
+		 (let ((info (assoc pvar tpsubst)))
+		   (if info (cadr info)
+		       (cond
+			((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+			 (predicate-to-cterm-with-total-vars pvar))
+			((member name '("ExDTMR" "ExRTMR"))
+			 (predicate-to-cterm-with-partial-total-vars pvar))
+			(else (predicate-to-cterm pvar))))))
+	       param-pvars))
 	 (param-pvar-cterms
-	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"
-			     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
-	      (map predicate-to-cterm-with-total-vars param-pvars)
-	      (map predicate-to-cterm param-pvars)))
+	  (cond
+	   ((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+	    (map predicate-to-cterm-with-total-vars param-pvars))
+	   ((member name '("ExDTMR" "ExRTMR"))
+	    (map predicate-to-cterm-with-partial-total-vars param-pvars))
+	   (else
+	    (map predicate-to-cterm param-pvars))))
 	 (idpc-names-with-pvars-and-opt-alg-names
 	  (idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names
 	   name))
@@ -589,8 +593,9 @@
 		  "AllTotalElim" "AllTotalElimSound"
 		  "AllncTotalIntro" "AllncTotalIntroSound"
 		  "AllncTotalElim" "AllncTotalElimSound"
-		  "MRIntro" "MRIntroSound"
-		  "MRElim" "MRElimSound"
+		  "InvarEx" "InvarAll"
+		  ;; "MRIntro" "MRIntroSound"
+		  ;; "MRElim" "MRElimSound"
 		  "AtomToEqDTrue" "EqDTrueToAtom"))
 	       (apply
 		or-op
@@ -1711,10 +1716,13 @@
 	 (tpsubst (idpredconst-to-tpsubst idpc))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
 	 (param-pvar-cterms
-	  (if (member name '("ExDT" "ExLT" "ExRT" "ExUT"
-			     "ExDTMR" "ExLTMR" "ExRTMR" "ExUTMR"))
-	      (map predicate-to-cterm-with-total-vars param-pvars)
-	      (map predicate-to-cterm param-pvars)))
+	  (cond
+	   ((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+	    (map predicate-to-cterm-with-total-vars param-pvars))
+	   ((member name '("ExDTMR" "ExRTMR"))
+	    (map predicate-to-cterm-with-partial-total-vars param-pvars))
+	   (else
+	    (map predicate-to-cterm param-pvars))))
 	 (idpc-names-with-pvars-and-opt-alg-names
 	  (idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names
 	   name))
