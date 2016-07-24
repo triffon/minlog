@@ -36,6 +36,17 @@
 	 (formula (apply make-predicate-formula predicate varterms)))
     (apply make-cterm (append vars (list formula)))))
 
+(define (predicate-to-cterm-with-partial-total-vars predicate)
+  (let* ((arity (predicate-to-arity predicate))
+	 (types (arity-to-types arity))
+	 (vars (if (pair? types)
+		   (cons (type-to-new-partial-var (car types))
+			 (map type-to-new-var (cdr types)))
+		   '()))
+	 (varterms (map make-term-in-var-form vars))
+	 (formula (apply make-predicate-formula predicate varterms)))
+    (apply make-cterm (append vars (list formula)))))
+
 (define (predicate-to-tvars pred)
   (cond ((pvar-form? pred)
 	 (let* ((arity (pvar-to-arity pred))
@@ -408,7 +419,7 @@
 ;; - We need predicates to be axiomatized
 
 ;; General properties of predconsts:
-;; - Only Total and TotalMR have computational content.
+;; - Only Total has computational content.
 ;; - They do not change their name when a tsubst is employed.  Hence from
 ;;   a name one can only read off the uninstantiated type.
 ;; - Their meaning can be fixed by axioms (e.g. for E and also for
