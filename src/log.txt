@@ -1,6 +1,49 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-07-24
+
+In psym.scm
+
+predicate-to-cterm-with-partial-total-vars added, to build cterms
+for ExDTMR ExRTMR.  Comment that TotalMR is c.r. removed.
+
+In axiom.scm
+
+check-aconst adapted.  intro-aconst-to-computed-repro-data and
+number-and-idpredconst-to-intro-aconst adapted to use of
+predicate-to-cterm-with-partial-total-vars for building cterms in case
+of ExDTMR ExRTMR.
+
+In ets.scm
+
+Modularization of proof-to-soundness-proof .  Let Thm (thought of as
+coming with its proof M) prove A.  Then proof-to-soundness-proof at M
+proves ThmSound: et(M) mr A.  In the special case of a theorem
+PconstTotal proving totality of Pconst the extracted term is Pconst
+rather than cPconstTotal (which when animated would unfold into a term
+with recursion operators).  axiom-to-extracted-term adapted.  Axioms
+invarex-aconst InvarEx (replaces mr-intro-aconst and MRIntro)
+invarall-aconst InvarAll (replaces mr-elim-aconst and MRElim)
+totalmrtoeq-aconst TotalMRToEq added.  Theorems TotalMRIntro
+TotalMRToTotal added.  axiom-to-soundness-proof adapted.  Theorems
+TotalVar TotalVarSound added.  Axioms exdtotal-elim-aconst
+exltotal-elim-aconst exltotal-elim-aconst exutotal-elim-aconst removed
+and theorems ExDTotalElim ExLTotalElim ExRTotalElim ExUTotalElim
+proved.  Theorems ExDTotalElimSound ExLTotalElimSound
+ExRTotalElimSound AllTotalIntroSound AllTotalElimSound
+AllncTotalIntroSound AllncTotalElimSound ExDMRElim ExLMRElim ExRMRElim
+ExDTMRElim ExLTMRElim ExRTMRElim AndDMRElim AndLMRElimLeft
+AndLMRElimRight OrDMRElim OrLMRElim OrRMRElim OrUMRElim added.
+proof-to-soundness-proof-aux corrected.  It now uses invariance
+axioms.  ExPT added, for the primitive existential quantifier with
+total variables.
+
+In examples/classical/fuerst.scm
+
+Soundness proof added.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-07-05
 
 In lib/rat.scm
