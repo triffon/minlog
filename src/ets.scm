@@ -429,8 +429,8 @@
 
 ;; obsolete: InhabTotal -> (Inhab rho)
 
-;; AllTotalIntro AllTotalElim AllncTotalIntro AllncTotalElim MRIntro
-;; MRElim ExTotalIntro ExTotalElim -> [x]x
+;; AllTotalIntro AllTotalElim AllncTotalIntro AllncTotalElim InvarEx
+;; InvarAll ExTotalIntro ExTotalElim -> [x]x
 
 ;; Pconst+Total -> Pconst
 
@@ -747,19 +747,18 @@
       (ex-formula-to-ex-intro-et (car (aconst-to-repro-data aconst))))
      ((string=? "Ex-Elim" name)
       (apply ex-formula-and-concl-to-ex-elim-et (aconst-to-repro-data aconst)))
-     ((string=? "MRIntro" name)
-      (let* ((imp-fla (aconst-to-uninst-formula mr-intro-aconst))
+     ((string=? "InvarEx" name)
+      (let* ((imp-fla (aconst-to-uninst-formula invarex-aconst))
 	     (exl-fla (imp-form-to-conclusion imp-fla))
 	     (var (exl-form-to-var exl-fla)))
 	(make-term-in-abst-form var (make-term-in-var-form var))))
-     ((string=? "MRElim" name)
-      (let* ((imp-fla (aconst-to-uninst-formula mr-elim-aconst))
-	     (exl-fla (imp-form-to-premise imp-fla))
-	     (var (exl-form-to-var exl-fla)))
+     ((string=? "InvarAll" name)
+      (let* ((all-fla (aconst-to-uninst-formula invarall-aconst))
+	     (var (all-form-to-var all-fla)))
 	(make-term-in-abst-form var (make-term-in-var-form var))))
      ((member name '("ExTotalIntro" "ExTotalElim"
 		     "ExDTotalIntro" "ExLTotalIntro" "ExRTotalIntro"
-		     "ExDTotalElim" "ExLTotalElim" "ExRTotalElim"
+		     ;; "ExDTotalElim" "ExLTotalElim" "ExRTotalElim"
 		     "AllTotalIntro" "AllTotalElim"
 		     "AllncTotalIntro" "AllncTotalElim"))
       (let* ((imp-fla (aconst-to-inst-formula aconst))
@@ -791,7 +790,7 @@
 	 (car (predicate-form-to-args formula))))
       ((member thm-name (list "AllTotalIntro" "AllTotalElim"
 			      "AllncTotalIntro" "AllncTotalElim"
-			      "MRIntro" "MRElim"
+			      ;; "MRIntro" "MRElim"
 			      "ExTotalIntro" "ExTotalElim"))
        (let* ((formula (unfold-formula (aconst-to-formula aconst)))
 	      (type (formula-to-et-type formula))
@@ -1343,6 +1342,9 @@
 (add-ids (list (list "OrNc" (make-arity)))
 	 '("Pvar1 -> OrNc" "InlOrNc")
 	 '("Pvar2 -> OrNc" "InrOrNc"))
+
+(add-ids (list (list "ExPT" (make-arity) "algExPT"))
+	 '("allnc alpha(Total alpha & (Pvar alpha)alpha -> ExPT)" "InitExPT"))
 
 ;; The computation rules for the constants introduced in boole.scm can
 ;; be added only here, since the construction of the proofs for their
@@ -2018,90 +2020,6 @@
 ;; (pp (aconst-to-formula exrtotal-intro-aconst))
 ;; (pp (aconst-to-formula exutotal-intro-aconst))
 
-;; ;; 2012-09-13.  These (and some of the later) axioms can and should be
-;; ;; proved.
-
-(define exdtotal-elim-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var (make-var tvar -1 1 name))
-	 (varpartial (make-var tvar -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exd-fla (mk-exd var (make-predicate-formula pvar varterm)))
-	 (expartial-fla
-	  (mk-exr varpartial
-		  (mk-andd (make-total varpartialterm)
-			   (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-exdtotal-elim-aconst (mk-imp exd-fla expartial-fla)))
-    (make-aconst "ExDTotalElim"
-		 'axiom formula-of-exdtotal-elim-aconst empty-subst)))
-
-(add-theorem "ExDTotalElim" (make-proof-in-aconst-form exdtotal-elim-aconst))
-
-(define exltotal-elim-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var (make-var tvar -1 1 name))
-	 (varpartial (make-var tvar -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-one n-deg-one ""))
-	 (exl-fla (mk-exl var (make-predicate-formula pvar varterm)))
-	 (expartial-fla
-	  (mk-exr varpartial
-		  (mk-andl (make-total varpartialterm)
-			   (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-exltotal-elim-aconst (mk-imp exl-fla expartial-fla)))
-    (make-aconst "ExLTotalElim"
-		 'axiom formula-of-exltotal-elim-aconst empty-subst)))
-
-(add-theorem "ExLTotalElim" (make-proof-in-aconst-form exltotal-elim-aconst))
-
-(define exrtotal-elim-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var (make-var tvar -1 1 name))
-	 (varpartial (make-var tvar -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exr-fla (mk-exr var (make-predicate-formula pvar varterm)))
-	 (expartial-fla
-	  (mk-exr varpartial
-		  (mk-andr (make-totalmr varpartialterm varpartialterm)
-			   (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-exrtotal-elim-aconst (mk-imp exr-fla expartial-fla)))
-    (make-aconst "ExRTotalElim"
-		 'axiom formula-of-exrtotal-elim-aconst empty-subst)))
-
-(add-theorem "ExRTotalElim" (make-proof-in-aconst-form exrtotal-elim-aconst))
-
-(define exutotal-elim-aconst
-  (let* ((tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-	 (name (default-var-name tvar))
-	 (var (make-var tvar -1 1 name))
-	 (varpartial (make-var tvar -1 t-deg-zero name))
-	 (varterm (make-term-in-var-form var))
-	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
-	 (exu-fla (mk-exu var (make-predicate-formula pvar varterm)))
-	 (expartial-fla
-	  (mk-exu varpartial
-		  (mk-andu (make-total varpartialterm)
-			   (make-predicate-formula pvar varpartialterm))))
-	 (formula-of-exutotal-elim-aconst (mk-imp exu-fla expartial-fla)))
-    (make-aconst "ExUTotalElim"
-		 'axiom formula-of-exutotal-elim-aconst empty-subst)))
-
-(add-theorem "ExUTotalElim" (make-proof-in-aconst-form exutotal-elim-aconst))
-
-;; (pp (aconst-to-formula exdtotal-elim-aconst))
-;; (pp (aconst-to-formula exltotal-elim-aconst))
-;; (pp (aconst-to-formula exrtotal-elim-aconst))
-;; (pp (aconst-to-formula exutotal-elim-aconst))
-
 (define inhabtotal-aconst ;obsolete
   (let ((formula-of-inhab-total-aconst
 	 (make-total (make-term-in-const-form
@@ -2470,7 +2388,7 @@
 
 (add-theorem "YsumTotalVar" ysum-total-var-proof)
 
-;; For invariance axioms we need aconsts mr-intro-aconst mr-elim-aconst.
+;; For invariance axioms we need aconsts invarex-aconst invarall-aconst.
 
 ;; PVAR-TO-MR-PVAR-ALIST initially has
 ;; (Pvar alpha) -> (Pvar gamma alpha)^
@@ -2524,8 +2442,9 @@
 (add-mr-ids "OrL")
 (add-mr-ids "OrR")
 (add-mr-ids "OrU")
+(add-mr-ids "ExPT")
 
-(define mr-intro-aconst
+(define invarex-aconst
   (let* ((pvar (make-pvar (make-arity) -1 h-deg-zero n-deg-zero ""))
 	 (mr-pvar (PVAR-TO-MR-PVAR pvar))
 	 (pvar-fla (make-predicate-formula pvar))
@@ -2534,22 +2453,124 @@
 	 (varterm (make-term-in-var-form var))
 	 (real-fla (real-and-formula-to-mr-formula varterm pvar-fla))
 	 (exl-fla (rename-variables (make-exl var real-fla))))
-    (make-aconst "MRIntro" 'axiom (make-imp pvar-fla exl-fla) empty-subst)))
+    (make-aconst "InvarEx" 'axiom (make-imp pvar-fla exl-fla) empty-subst)))
 
-(add-theorem "MRIntro" (make-proof-in-aconst-form mr-intro-aconst))
+(add-theorem "InvarEx" (make-proof-in-aconst-form invarex-aconst))
 
-(define mr-elim-aconst
+(define invarall-aconst
   (let* ((pvar (make-pvar (make-arity) -1 h-deg-zero n-deg-zero ""))
 	 (mr-pvar (PVAR-TO-MR-PVAR pvar))
 	 (pvar-fla (make-predicate-formula pvar))
 	 (tvar (PVAR-TO-TVAR pvar))
 	 (var (type-to-new-partial-var tvar))
 	 (varterm (make-term-in-var-form var))
-	 (real-fla (real-and-formula-to-mr-formula varterm pvar-fla))
-	 (exl-fla (rename-variables (make-exl var real-fla))))
-    (make-aconst "MRElim" 'axiom (make-imp exl-fla pvar-fla) empty-subst)))
+	 (real-fla (real-and-formula-to-mr-formula varterm pvar-fla)))
+    (make-aconst
+     "InvarAll" 'axiom
+     (make-all var (make-imp real-fla pvar-fla)) empty-subst)))
 
-(add-theorem "MRElim" (make-proof-in-aconst-form mr-elim-aconst))
+(add-theorem "InvarAll" (make-proof-in-aconst-form invarall-aconst))
+
+(define (formula-to-invarex-aconst formula)
+  (let* ((uninst-fla (aconst-to-uninst-formula invarex-aconst))
+	 (uninst-pvar-fla (imp-form-to-premise uninst-fla))
+	 (uninst-exl-fla (imp-form-to-conclusion uninst-fla))
+	 (uninst-pvar (predicate-form-to-predicate uninst-pvar-fla))
+	 (uninst-var (exl-form-to-var uninst-exl-fla))
+	 (tvar (var-to-type uninst-var))
+	 (uninst-mr-fla (exl-form-to-kernel uninst-exl-fla))
+	 (uninst-mr-pvar (predicate-form-to-predicate uninst-mr-fla))
+	 (uninst-varterm (make-term-in-var-form uninst-var))
+	 (type (if (not (formula-of-nulltype? formula))
+		   (formula-to-et-type formula)
+		   (myerror "formula-to-invarex-aconst"
+			    "c.r. formula expected" formula)))
+	 (tsubst (make-subst tvar type))
+	 (cterm (make-cterm formula))
+	 (var (type-to-new-partial-var type))
+	 (varterm (make-term-in-var-form var))
+	 (mr-fla (real-and-formula-to-mr-formula varterm formula))
+	 (mr-cterm (make-cterm var mr-fla))
+	 (psubst (make-substitution (list uninst-pvar uninst-mr-pvar)
+				    (list cterm mr-cterm)))
+	 (tpsubst (append tsubst psubst)))
+    (aconst-substitute invarex-aconst tpsubst)))
+
+(define (formula-to-invarall-aconst formula)
+  (let* ((uninst-fla (aconst-to-uninst-formula invarall-aconst))
+	 (uninst-var (all-form-to-var uninst-fla))
+	 (uninst-imp-fla (all-form-to-kernel uninst-fla))
+	 (uninst-mr-fla (imp-form-to-premise uninst-imp-fla))
+	 (uninst-mr-pvar (predicate-form-to-predicate uninst-mr-fla))
+	 (uninst-pvar-fla (imp-form-to-conclusion uninst-imp-fla))
+	 (uninst-pvar (predicate-form-to-predicate uninst-pvar-fla))
+	 (tvar (var-to-type uninst-var))
+	 (uninst-varterm (make-term-in-var-form uninst-var))
+	 (type (if (not (formula-of-nulltype? formula))
+		   (formula-to-et-type formula)
+		   (myerror "formula-to-invarall-aconst"
+			    "c.r. formula expected" formula)))
+	 (tsubst (make-subst tvar type))
+	 (cterm (make-cterm formula))
+	 (var (type-to-new-partial-var type))
+	 (varterm (make-term-in-var-form var))
+	 (mr-fla (real-and-formula-to-mr-formula varterm formula))
+	 (mr-cterm (make-cterm var mr-fla))
+	 (psubst (make-substitution (list uninst-pvar uninst-mr-pvar)
+				    (list cterm mr-cterm)))
+	 (tpsubst (append tsubst psubst)))
+    (aconst-substitute invarall-aconst tpsubst)))
+
+;; (define formula (pf "exl boole2 boole1 eqd boole2"))
+;; (pp (aconst-to-formula (formula-to-invarex-aconst formula)))
+;; (pp (aconst-to-formula (formula-to-invarall-aconst formula)))
+
+(define totalmrtoeq-aconst
+  (let* ((var1 (make-var (make-tvar -1 DEFAULT-TVAR-NAME) 1 t-deg-zero ""))
+	 (var (make-var (make-tvar -1 DEFAULT-TVAR-NAME) -1 t-deg-zero ""))
+	 (varterm1 (make-term-in-var-form var1))	 
+	 (varterm (make-term-in-var-form var))
+	 (tmr-predconst
+	  (make-predconst (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+				      (make-tvar -1 DEFAULT-TVAR-NAME))
+			  empty-subst -1 "TotalMR"))
+	 (tmr-fla (make-predicate-formula tmr-predconst varterm1 varterm))
+	 (eqd-fla (make-eqd varterm1 varterm)))
+    (make-aconst
+     "TotalMRToEq"
+     'axiom (mk-all var1 var (make-imp tmr-fla eqd-fla)) empty-subst)))
+
+(add-theorem "TotalMRToEq" (make-proof-in-aconst-form totalmrtoeq-aconst))
+
+;; TotalMRIntro
+(set-goal "all alpha TotalMR alpha alpha")
+(use "AllTotalIntro")
+(assume "alpha^" "Talpha")
+(assert "exl alpha^1 TotalMR alpha^1 alpha^")
+ (use "InvarEx" (make-cterm (pf "Total alpha^")))
+ (use "Talpha")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha^1" "alpha1Prop")
+(assert "alpha^1 eqd alpha^")
+ (use "TotalMRToEq")
+ (use "alpha1Prop")
+(assume "alpha^1 eqd alpha^")
+(simphyp-with-to "alpha1Prop" "alpha^1 eqd alpha^" "alpha1PropInst")
+(use "alpha1PropInst")
+;; Proof finished.
+(save "TotalMRIntro")
+
+;; TotalMRToTotal
+(set-goal "all alpha^ allnc alpha^1(TotalMR alpha^1 alpha^ -> Total alpha^)")
+(assume "alpha^" "alpha^1" "TMRHyp")
+(use-with "InvarAll"
+	  (py "alpha")
+	  (make-cterm (pv "alpha^") (pf "TotalMR alpha^1 alpha^"))
+	  (make-cterm (pf "Total alpha^"))
+	  (pt "alpha^")
+	  "TMRHyp")
+;; Proof finished.
+(save "TotalMRToTotal")
 
 (set! COMMENT-FLAG #t)
 
@@ -4715,172 +4736,205 @@
 
 (define (proof-to-soundness-proof-aux
 	 proof avar-or-ga-to-var avar-or-ga-to-mr-avar)
-  (case (tag proof)
-    ((proof-in-avar-form)
-     (let* ((avar (proof-in-avar-form-to-avar proof))
-	    (mr-avar (avar-or-ga-to-mr-avar avar)))
-       (make-proof-in-avar-form mr-avar)))
-    ((proof-in-aconst-form)
-     (let* ((aconst (proof-in-aconst-form-to-aconst proof))
-	    (name (aconst-to-name aconst)))
-       (case (aconst-to-kind aconst)
-	 ((axiom) (axiom-to-soundness-proof aconst))
-	 ((theorem) (theorem-to-soundness-proof aconst))
-	 ((global-assumption) (global-assumption-to-soundness-proof
-			       aconst avar-or-ga-to-mr-avar))
-	 (else (myerror
-		"proof-to-soundness-proof-aux" "unknown kind of aconst"
-		(aconst-to-kind aconst))))))
-    ((proof-in-imp-intro-form)
-     (let* ((avar (proof-in-imp-intro-form-to-avar proof))
-	    (kernel (proof-in-imp-intro-form-to-kernel proof))
-	    (avar-fla (avar-to-formula avar))
-	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (if (not (formula-of-nulltype? avar-fla))
-	   (let ((mr-avar (avar-or-ga-to-mr-avar avar)))
-	     (mk-proof-in-intro-form
-	      (avar-or-ga-to-var avar) mr-avar kernel-proof))
-	   (mk-proof-in-intro-form avar kernel-proof))))
-    ((proof-in-imp-elim-form)
-     (let* ((op (proof-in-imp-elim-form-to-op proof))
-	    (arg (proof-in-imp-elim-form-to-arg proof))
-	    (arg-fla (proof-to-formula arg))
-	    (op-proof (proof-to-soundness-proof-aux
-		       op avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (if (not (formula-of-nulltype? arg-fla))
-	   (mk-proof-in-elim-form
-	    op-proof
-	    (proof-to-extracted-term-aux
-	     arg avar-or-ga-to-var #t) ;unfold-let-flag is true here
-	    (proof-to-soundness-proof-aux
-	     arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	   (mk-proof-in-elim-form op-proof arg))))
-    ((proof-in-impnc-intro-form)
-     (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
-	    (kernel (proof-in-impnc-intro-form-to-kernel proof))
-	    (avar-fla (avar-to-formula avar))
-	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (if (not (formula-of-nulltype? avar-fla))
-	   (mk-proof-in-intro-form
-	    (avar-or-ga-to-var avar) (avar-or-ga-to-mr-avar avar) kernel-proof))
-	   (mk-proof-in-intro-form avar kernel-proof)))
-    ((proof-in-impnc-elim-form)
-     (let* ((op (proof-in-impnc-elim-form-to-op proof))
-	    (arg (proof-in-impnc-elim-form-to-arg proof))
-	    (op-proof (proof-to-soundness-proof-aux
-		       op avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (mk-proof-in-elim-form op-proof arg)))
-    ((proof-in-and-intro-form)
-     (let* ((left (proof-in-and-intro-form-to-left proof))
-	    (right (proof-in-and-intro-form-to-right proof))
-	    (left-proof (proof-to-soundness-proof-aux
-			 left avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	    (right-proof (proof-to-soundness-proof-aux
-			  right avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (make-proof-in-and-intro-form left-proof right-proof)))
-    ((proof-in-and-elim-left-form)
-     (let* ((kernel (proof-in-and-elim-left-form-to-kernel proof))
-	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (make-proof-in-and-elim-left-form kernel-proof)))
-    ((proof-in-and-elim-right-form)
-     (let* ((kernel (proof-in-and-elim-right-form-to-kernel proof))
-	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (make-proof-in-and-elim-right-form kernel-proof)))
-    ((proof-in-all-intro-form)
-     (let* ((var (proof-in-all-intro-form-to-var proof))
-	    (kernel (proof-in-all-intro-form-to-kernel proof))
-	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (mk-proof-in-intro-form var kernel-proof)))
-    ((proof-in-all-elim-form)
-     (let* ((op (proof-in-all-elim-form-to-op proof))
-	    (op-proof (proof-to-soundness-proof-aux
-		       op avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	    (arg (proof-in-all-elim-form-to-arg proof)))
-       (mk-proof-in-elim-form op-proof arg)))
-    ((proof-in-allnc-intro-form)
-     (let* ((var (proof-in-allnc-intro-form-to-var proof))
-	    (kernel (proof-in-allnc-intro-form-to-kernel proof))
-	    (kernel-proof (proof-to-soundness-proof-aux
-			   kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-       (mk-proof-in-intro-form var kernel-proof)))
-    ((proof-in-allnc-elim-form)
-     (let* ((op (proof-in-allnc-elim-form-to-op proof))
-	    (op-proof (proof-to-soundness-proof-aux
-		       op avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	    (arg (proof-in-allnc-elim-form-to-arg proof)))
-       (mk-proof-in-elim-form op-proof arg)))
-    (else (myerror "proof-to-soundness-proof-aux" "proof expected" proof))))
+  (cond
+   ((proof-in-avar-form? proof)
+    (let ((avar (proof-in-avar-form-to-avar proof)))
+      (if (not (formula-of-nulltype? (proof-to-formula proof)))
+	  (make-proof-in-avar-form (avar-or-ga-to-mr-avar avar))
+	  proof)))
+   ((proof-in-aconst-form? proof)
+    (let ((aconst (proof-in-aconst-form-to-aconst proof)))
+      (case (aconst-to-kind aconst)
+	((axiom) (if (not (formula-of-nulltype? (proof-to-formula proof)))
+		     (axiom-to-soundness-proof aconst)
+		     proof))
+	((theorem) (if (not (formula-of-nulltype? (proof-to-formula proof)))
+		       (theorem-to-soundness-proof aconst)
+		       proof))
+	((global-assumption) (global-assumption-to-soundness-proof
+			      aconst avar-or-ga-to-mr-avar))
+	(else (myerror
+	       "proof-to-soundness-proof-aux" "unknown kind of aconst"
+	       (aconst-to-kind aconst))))))
+   ((and (proof-in-imp-intro-form? proof)
+	 (not (formula-of-nulltype? (proof-to-formula proof))))
+    (let* ((avar (proof-in-imp-intro-form-to-avar proof))
+	   (kernel (proof-in-imp-intro-form-to-kernel proof))
+	   (avar-fla (avar-to-formula avar))
+	   (kernel-proof (proof-to-soundness-proof-aux
+			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (if (not (formula-of-nulltype? avar-fla))
+	  (let ((mr-avar (avar-or-ga-to-mr-avar avar)))
+	    (mk-proof-in-intro-form
+	     (avar-or-ga-to-var avar) mr-avar kernel-proof))
+	  (mk-proof-in-intro-form avar kernel-proof))))
+   ((or (proof-in-imp-intro-form? proof) ;then formula is n.c.
+	(proof-in-impnc-intro-form? proof))
+    (let* ((avar (if (proof-in-imp-intro-form? proof)
+		     (proof-in-imp-intro-form-to-avar proof)
+		     (proof-in-impnc-intro-form-to-avar proof)))
+	   (kernel (if (proof-in-imp-intro-form? proof)
+		       (proof-in-imp-intro-form-to-kernel proof)
+		       (proof-in-impnc-intro-form-to-kernel proof)))
+	   (avar-fla (avar-to-formula avar))
+	   (kernel-proof (proof-to-soundness-proof-aux
+			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (if (not (formula-of-nulltype? avar-fla))
+	  (let* ((var (avar-or-ga-to-var avar))
+		 (mr-avar (avar-or-ga-to-mr-avar avar))
+		 (mr-avar-fla (avar-to-formula mr-avar))
+		 (exl-fla (make-exl var mr-avar-fla))
+		 (kernel-fla (proof-to-formula kernel-proof))
+		 (imp-fla (make-imp exl-fla kernel-fla))
+		 (free (formula-to-free imp-fla))
+		 (elim-aconst (imp-formulas-to-elim-aconst imp-fla))
+		 (exl-proof
+		  (apply mk-proof-in-elim-form
+			 (make-proof-in-aconst-form
+			  (formula-to-invarex-aconst avar-fla))
+			 (append (map make-term-in-var-form
+				      (formula-to-free avar-fla))
+				 (list (make-proof-in-avar-form avar)))))
+		 (ih-proof
+		  (mk-proof-in-intro-form var mr-avar kernel-proof)))
+	    (mk-proof-in-intro-form
+	     avar (apply mk-proof-in-elim-form
+			 (make-proof-in-aconst-form elim-aconst)
+			 (append (map make-term-in-var-form free)
+				 (list exl-proof ih-proof)))))
+	  (mk-proof-in-intro-form avar kernel-proof))))
+   ((and (proof-in-imp-elim-form? proof)
+	 (not (formula-of-nulltype? (proof-to-formula proof))))
+    (let* ((op (proof-in-imp-elim-form-to-op proof))
+	   (arg (proof-in-imp-elim-form-to-arg proof))
+	   (arg-fla (proof-to-formula arg))
+	   (op-proof (proof-to-soundness-proof-aux
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar))
+	   (arg-proof (proof-to-soundness-proof-aux
+		       arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (if (not (formula-of-nulltype? arg-fla))
+	  (mk-proof-in-elim-form
+	   op-proof
+	   (proof-to-extracted-term-aux
+	    arg avar-or-ga-to-var #t) ;unfold-let-flag is true here
+	   arg-proof)
+	  (mk-proof-in-elim-form op-proof arg-proof))))
+   ((or (proof-in-imp-elim-form? proof) ;then formula is n.c.
+	(proof-in-impnc-elim-form? proof))
+    (let* ((op (if (proof-in-imp-elim-form? proof)
+		   (proof-in-imp-elim-form-to-op proof)
+		   (proof-in-impnc-elim-form-to-op proof)))
+	   (arg (if (proof-in-imp-elim-form? proof)
+		    (proof-in-imp-elim-form-to-arg proof)
+		    (proof-in-impnc-elim-form-to-arg proof)))
+	   (arg-fla (proof-to-formula arg))
+	   (op-proof (proof-to-soundness-proof-aux
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar))
+	   (arg-proof (proof-to-soundness-proof-aux
+		       arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (if (not (formula-of-nulltype? arg-fla))
+	  (let ((elim-proof
+		 (apply
+		  mk-proof-in-elim-form
+		  (make-proof-in-aconst-form
+		   (formula-to-invarall-aconst arg-fla))
+		  (append
+		   (map make-term-in-var-form (formula-to-free arg-fla))
+		   (list
+		    (proof-to-extracted-term-aux
+		     arg avar-or-ga-to-var #t) ;unfold-let-flag is true here
+		    arg-proof)))))
+	    (mk-proof-in-elim-form op-proof elim-proof))
+	  (mk-proof-in-elim-form op-proof arg-proof))))
+   ((proof-in-and-intro-form? proof)
+    (let* ((left (proof-in-and-intro-form-to-left proof))
+	   (right (proof-in-and-intro-form-to-right proof))
+	   (left-proof (proof-to-soundness-proof-aux
+			left avar-or-ga-to-var avar-or-ga-to-mr-avar))
+	   (right-proof (proof-to-soundness-proof-aux
+			 right avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (make-proof-in-and-intro-form left-proof right-proof)))
+   ((proof-in-and-elim-left-form? proof)
+    (let* ((kernel (proof-in-and-elim-left-form-to-kernel proof))
+	   (kernel-proof (proof-to-soundness-proof-aux
+			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (make-proof-in-and-elim-left-form kernel-proof)))
+   ((proof-in-and-elim-right-form? proof)
+    (let* ((kernel (proof-in-and-elim-right-form-to-kernel proof))
+	   (kernel-proof (proof-to-soundness-proof-aux
+			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (make-proof-in-and-elim-right-form kernel-proof)))
+   ((proof-in-all-intro-form? proof)
+    (let* ((var (proof-in-all-intro-form-to-var proof))
+	   (kernel (proof-in-all-intro-form-to-kernel proof))
+	   (kernel-proof (proof-to-soundness-proof-aux
+			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (mk-proof-in-intro-form var kernel-proof)))
+   ((proof-in-all-elim-form? proof)
+    (let* ((op (proof-in-all-elim-form-to-op proof))
+	   (op-proof (proof-to-soundness-proof-aux
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar))
+	   (arg (proof-in-all-elim-form-to-arg proof)))
+      (mk-proof-in-elim-form op-proof arg)))
+   ((proof-in-allnc-intro-form? proof)
+    (let* ((var (proof-in-allnc-intro-form-to-var proof))
+	   (kernel (proof-in-allnc-intro-form-to-kernel proof))
+	   (kernel-proof (proof-to-soundness-proof-aux
+			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (mk-proof-in-intro-form var kernel-proof)))
+   ((proof-in-allnc-elim-form? proof)
+    (let* ((op (proof-in-allnc-elim-form-to-op proof))
+	   (op-proof (proof-to-soundness-proof-aux
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar))
+	   (arg (proof-in-allnc-elim-form-to-arg proof)))
+      (mk-proof-in-elim-form op-proof arg)))
+   (else (myerror "proof-to-soundness-proof-aux"
+		  "unexpected proof with tag" (tag proof)))))
 
-(define alltotal-intro-mr-aconst
-  (let* ((formula-of-alltotal-intro-aconst
-	  (aconst-to-uninst-formula alltotal-intro-aconst))
-	 (id-eterm (proof-to-extracted-term
-		    (make-proof-in-aconst-form alltotal-intro-aconst)))
-	 (formula-of-alltotal-intro-mr-aconst
-	  (real-and-formula-to-mr-formula
-	   id-eterm formula-of-alltotal-intro-aconst)))
-    (make-aconst "AllTotalIntroSound"
-		 'axiom formula-of-alltotal-intro-mr-aconst empty-subst)))
+;; Code discarded 2016-07-24
+;; (define alltotal-intro-mr-aconst
+;;   (let* ((formula-of-alltotal-intro-aconst
+;; 	  (aconst-to-uninst-formula alltotal-intro-aconst))
+;; 	 (id-eterm (proof-to-extracted-term
+;; 		    (make-proof-in-aconst-form alltotal-intro-aconst)))
+;; 	 (formula-of-alltotal-intro-mr-aconst
+;; 	  (real-and-formula-to-mr-formula
+;; 	   id-eterm formula-of-alltotal-intro-aconst)))
+;;     (make-aconst "AllTotalIntroSound"
+;; 		 'axiom formula-of-alltotal-intro-mr-aconst empty-subst)))
 
-(define alltotal-elim-mr-aconst
-  (let* ((formula-of-alltotal-elim-aconst
-	  (aconst-to-uninst-formula alltotal-elim-aconst))
-	 (id-eterm (proof-to-extracted-term
-		    (make-proof-in-aconst-form alltotal-elim-aconst)))
-	 (formula-of-alltotal-elim-mr-aconst
-	  (real-and-formula-to-mr-formula
-	   id-eterm formula-of-alltotal-elim-aconst)))
-    (make-aconst "AllTotalElimSound"
-		 'axiom formula-of-alltotal-elim-mr-aconst empty-subst)))
+;; (define alltotal-elim-mr-aconst
+;;   (let* ((formula-of-alltotal-elim-aconst
+;; 	  (aconst-to-uninst-formula alltotal-elim-aconst))
+;; 	 (id-eterm (proof-to-extracted-term
+;; 		    (make-proof-in-aconst-form alltotal-elim-aconst)))
+;; 	 (formula-of-alltotal-elim-mr-aconst
+;; 	  (real-and-formula-to-mr-formula
+;; 	   id-eterm formula-of-alltotal-elim-aconst)))
+;;     (make-aconst "AllTotalElimSound"
+;; 		 'axiom formula-of-alltotal-elim-mr-aconst empty-subst)))
 
-(define allnctotal-intro-mr-aconst
-  (let* ((formula-of-allnctotal-intro-aconst
-	  (aconst-to-uninst-formula allnctotal-intro-aconst))
-	 (id-eterm (proof-to-extracted-term
-		    (make-proof-in-aconst-form allnctotal-intro-aconst)))
-	 (formula-of-allnctotal-intro-mr-aconst
-	  (real-and-formula-to-mr-formula
-	   id-eterm formula-of-allnctotal-intro-aconst)))
-    (make-aconst "AllncTotalIntroSound"
-		 'axiom formula-of-allnctotal-intro-mr-aconst empty-subst)))
+;; (define allnctotal-intro-mr-aconst
+;;   (let* ((formula-of-allnctotal-intro-aconst
+;; 	  (aconst-to-uninst-formula allnctotal-intro-aconst))
+;; 	 (id-eterm (proof-to-extracted-term
+;; 		    (make-proof-in-aconst-form allnctotal-intro-aconst)))
+;; 	 (formula-of-allnctotal-intro-mr-aconst
+;; 	  (real-and-formula-to-mr-formula
+;; 	   id-eterm formula-of-allnctotal-intro-aconst)))
+;;     (make-aconst "AllncTotalIntroSound"
+;; 		 'axiom formula-of-allnctotal-intro-mr-aconst empty-subst)))
 
-(define allnctotal-elim-mr-aconst
-  (let* ((formula-of-allnctotal-elim-aconst
-	  (aconst-to-uninst-formula allnctotal-elim-aconst))
-	 (id-eterm (proof-to-extracted-term
-		    (make-proof-in-aconst-form allnctotal-elim-aconst)))
-	 (formula-of-allnctotal-elim-mr-aconst
-	  (real-and-formula-to-mr-formula
-	   id-eterm formula-of-allnctotal-elim-aconst)))
-    (make-aconst "AllncTotalElimSound"
-		 'axiom formula-of-allnctotal-elim-mr-aconst empty-subst)))
-
-(define mr-intro-mr-aconst
-  (let* ((formula-of-mr-intro-aconst
-	  (aconst-to-uninst-formula mr-intro-aconst))
-	 (id-eterm (proof-to-extracted-term
-		    (make-proof-in-aconst-form mr-intro-aconst)))
-	 (formula-of-mr-intro-mr-aconst
-	  (real-and-formula-to-mr-formula
-	   id-eterm formula-of-mr-intro-aconst)))
-    (make-aconst "MRIntroSound"
-		 'axiom formula-of-mr-intro-mr-aconst empty-subst)))
-
-(define mr-elim-mr-aconst
-  (let* ((formula-of-mr-elim-aconst
-	  (aconst-to-uninst-formula mr-elim-aconst))
-	 (id-eterm (proof-to-extracted-term
-		    (make-proof-in-aconst-form mr-elim-aconst)))
-	 (formula-of-mr-elim-mr-aconst
-	  (real-and-formula-to-mr-formula
-	   id-eterm formula-of-mr-elim-aconst)))
-    (make-aconst "MRElimSound"
-		 'axiom formula-of-mr-elim-mr-aconst empty-subst)))
+;; (define allnctotal-elim-mr-aconst
+;;   (let* ((formula-of-allnctotal-elim-aconst
+;; 	  (aconst-to-uninst-formula allnctotal-elim-aconst))
+;; 	 (id-eterm (proof-to-extracted-term
+;; 		    (make-proof-in-aconst-form allnctotal-elim-aconst)))
+;; 	 (formula-of-allnctotal-elim-mr-aconst
+;; 	  (real-and-formula-to-mr-formula
+;; 	   id-eterm formula-of-allnctotal-elim-aconst)))
+;;     (make-aconst "AllncTotalElimSound"
+;; 		 'axiom formula-of-allnctotal-elim-mr-aconst empty-subst)))
 
 (define (axiom-to-soundness-proof aconst)
   (let ((name (aconst-to-name aconst)))
@@ -4967,10 +5021,10 @@
 	     (aconst-to-repro-data aconst)))
      ((member name (list "AllTotalIntro" "AllTotalElim"
 			 "AllncTotalIntro" "AllncTotalElim"
-			 "MRIntro" "MRElim"
-			 "ExDTotalIntro" "ExDTotalElim"
-			 "ExLTotalIntro" "ExLTotalElim"
-			 "ExRTotalIntro" "ExRTotalElim"
+			 ;; "MRIntro" "MRElim"
+			 ;; "ExDTotalIntro" "ExDTotalElim"
+			 ;; "ExLTotalIntro" "ExLTotalElim"
+			 ;; "ExRTotalIntro" "ExRTotalElim"
 			 "ExTotalIntro" "ExTotalElim"))
       (let* ((tpsubst (aconst-to-tpsubst aconst))
 	     (uninst-formula (aconst-to-uninst-formula aconst))
@@ -5007,14 +5061,6 @@
 	       ((string=? name "AllTotalElim") alltotal-elim-mr-aconst)
 	       ((string=? name "AllncTotalIntro") allnctotal-intro-mr-aconst)
 	       ((string=? name "AllncTotalElim") allnctotal-elim-mr-aconst)
-	       ((string=? name "MRIntro") mr-intro-mr-aconst)
-	       ((string=? name "MRElim") mr-elim-mr-aconst)
-	       ((string=? name "ExDTotalIntro")	exdtotal-intro-mr-aconst)
-	       ((string=? name "ExDTotalElim") exdtotal-elim-mr-aconst)
-	       ((string=? name "ExLTotalIntro")	exltotal-intro-mr-aconst)
-	       ((string=? name "ExLTotalElim") exltotal-elim-mr-aconst)
-	       ((string=? name "ExRTotalIntro")	exrtotal-intro-mr-aconst)
-	       ((string=? name "ExRTotalElim") exrtotal-elim-mr-aconst)
 	       ((string=? name "ExTotalIntro") extotal-intro-mr-aconst)
 	       ((string=? name "ExTotalElim") extotal-elim-mr-aconst))))
 	(make-proof-in-aconst-form
@@ -5147,6 +5193,8 @@
 		(closed-inst-proof
 		 (apply mk-proof-in-intro-form
 			(append free (list inst-proof)))))
+	   (comment "proof-to-soundness-proof : recursive call at "
+		    (aconst-to-name aconst))
 	   (proof-to-soundness-proof closed-inst-proof))))))))
 
 (define (global-assumption-to-soundness-proof aconst avar-or-ga-to-mr-avar)
@@ -5164,3 +5212,366 @@
   (real-and-formula-to-mr-formula
    (proof-to-extracted-term proof)
    (proof-to-formula proof)))
+
+(set! COMMENT-FLAG #f)
+
+;; TotalVar
+(set-goal "all alpha Total alpha")
+(use "AllTotalIntro")
+(assume "alpha^" "Tx")
+(use "Tx")
+;; Proof finished
+(save "TotalVar")
+
+;; (pp (rename-variables (nt (proof-to-extracted-term))))
+;; [alpha]alpha
+
+(define sproof (proof-to-soundness-proof (current-proof)))
+
+;; TotalVarSound
+(set-goal (rename-variables (nf (proof-to-formula sproof))))
+(use sproof)
+;; Proof finished.
+(save "TotalVarSound")
+
+;; ExDTotalElim
+(set-goal "exd alpha (Pvar alpha)alpha -> 
+           exr alpha^(Total alpha^ andd (Pvar alpha)alpha^)")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha" "alphaProp")
+(intro 0 (pt "alpha"))
+(split)
+(use "TotalVar")
+(use "alphaProp")
+;; Proof finished.
+(save "ExDTotalElim")
+
+;; (pp (rename-variables (nt (proof-to-extracted-term))))
+;; [(alpha yprod gamma)](alpha yprod gamma)
+
+(define sproof (proof-to-soundness-proof (current-proof)))
+
+;; ExDTotalElimSound
+(set-goal (rename-variables (nf (proof-to-formula sproof))))
+(use-with sproof)
+;; Proof finished.
+(save "ExDTotalElimSound")
+
+;; ExLTotalElim
+(set-goal "exl alpha (Pvar alpha)^ alpha -> 
+           exr alpha^(Total alpha^ andl (Pvar alpha)^ alpha^)")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha" "alphaProp")
+(intro 0 (pt "alpha"))
+(split)
+(use "TotalVar")
+(use "alphaProp")
+;; Proof finished.
+(save "ExLTotalElim")
+
+;; (pp (rename-variables (nt (proof-to-extracted-term))))
+;; [alpha]alpha
+
+(define sproof (proof-to-soundness-proof (current-proof)))
+
+;; ExLTotalElimSound
+(set-goal (rename-variables (nf (proof-to-formula sproof))))
+(use-with sproof)
+;; Proof finished.
+(save "ExLTotalElimSound")
+
+;; ExRTotalElim
+(set-goal "exr alpha (Pvar alpha)alpha -> 
+           exr alpha^(TotalMR alpha^ alpha^ andr (Pvar alpha)alpha^)")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha" "alphaProp")
+(intro 0 (pt "alpha"))
+(split)
+(use "TotalMRIntro")
+(use "alphaProp")
+;; Proof finished.
+(save "ExRTotalElim")
+
+;; (pp (rename-variables (nt (proof-to-extracted-term))))
+;; [gamma]gamma
+
+(define sproof (proof-to-soundness-proof (current-proof)))
+
+;; ExRTotalElimSound
+(set-goal (rename-variables (nf (proof-to-formula sproof))))
+(use-with sproof)
+;; Proof finished.
+(save "ExRTotalElimSound")
+
+;; ExUTotalElim
+(set-goal "exu alpha (Pvar alpha)alpha -> 
+           exu alpha^(Total alpha^ andu (Pvar alpha)alpha^)")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha" "alphaProp")
+(intro 0 (pt "alpha"))
+(split)
+(use "TotalVar")
+(use "alphaProp")
+;; Proof finished.
+(save "ExUTotalElim")
+
+;; AllTotalIntroSound
+(set-goal "all (alpha=>gamma)^(
+ all alpha^0,alpha^1(
+  TotalMR alpha^1 alpha^0 -> 
+  (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0) -> 
+ all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0)")
+(assume "(alpha=>gamma)^" "AllHyp" "alpha")
+(use "AllHyp")
+(use "TotalMRIntro")
+;; Proof finished.
+(save "AllTotalIntroSound")
+
+;; AllTotalElimSound
+(set-goal "all (alpha=>gamma)^(
+ all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0 -> 
+ all alpha^0,alpha^1(
+  TotalMR alpha^1 alpha^0 -> 
+  (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0))")
+(assume "(alpha=>gamma)^" "AllHyp")
+(assert "allnc alpha^0(Total alpha^0 -> 
+                       (Pvar gamma alpha)^((alpha=>gamma)^ alpha^0)alpha^0)")
+ (use "AllTotalElim" )
+ (use "AllHyp")
+ (drop "AllHyp")
+(assume "AllncHyp" "alpha^0"  "alpha^1" "TMRHyp")
+(assert "alpha^1 eqd alpha^0")
+ (use "TotalMRToEq")
+ (use "TMRHyp")
+(assume "alpha^1 eqd alpha^0")
+(simp "alpha^1 eqd alpha^0")
+(use "AllncHyp")
+(use "TotalMRToTotal" (pt "alpha^1"))
+(use "TMRHyp")
+;; Proof finished.
+(save "AllTotalElimSound")
+
+;; AllncTotalIntroSound
+(set-goal "all gamma^(
+ all alpha^0(Total alpha^0 -> (Pvar gamma alpha)^ gamma^ alpha^0) -> 
+ all alpha_0 (Pvar gamma alpha)^ gamma^ alpha_0)")
+(assume "gamma^" "AllHyp" "alpha")
+(use "AllHyp")
+(use "TotalVar")
+;; Proof finished.
+(save "AllncTotalIntroSound")
+
+;; AllncTotalElimSound
+(set-goal "all gamma^(
+ all alpha_0 (Pvar gamma alpha)^ gamma^ alpha_0 -> 
+ all alpha^0(Total alpha^0 -> (Pvar gamma alpha)^ gamma^ alpha^0))")
+(assume "gamma^" "AllHyp")
+(use-with "AllTotalElim"
+	  (make-cterm (pv "alpha^") (pf "(Pvar gamma alpha)^ gamma^ alpha^"))
+	  "?")
+(use "AllHyp")
+;; Proof finished.
+(save "AllncTotalElimSound")
+
+;; ExDMRIntro is exactly InitExDMR.  The converse is proved via elim:
+
+;; ExDMRElim
+(set-goal "all (alpha yprod gamma)^(
+     (ExDMR (cterm (gamma^,alpha^) (Pvar gamma alpha)^ gamma^ alpha^))
+     (alpha yprod gamma)^ -> 
+     (Pvar gamma alpha)^(rht(alpha yprod gamma)^)
+     (lft(alpha yprod gamma)^))")
+(assume "(alpha yprod gamma)^" "ExDMRHyp")
+(elim "ExDMRHyp")
+(ng)
+(assume "alpha^" "gamma^" "Hyp")
+(use "Hyp")
+;; Proof finished.
+(save "ExDMRElim")
+
+;; ExLMRIntro is exactly InitExLMR.  The converse is proved via elim:
+
+;; ExLMRElim
+(set-goal "all alpha^((ExLMR (cterm (alpha^) (Pvar alpha)^ alpha^))alpha^ ->
+ (Pvar alpha)^ alpha^)")
+(assume "alpha^" "ExLMRHyp")
+(elim "ExLMRHyp")
+(assume "alpha^1" "Palpha1")
+(use "Palpha1")
+;; Proof finished.
+(save "ExLMRElim")
+
+;; ExRMRIntro is exactly InitExRMR.  The converse is proved via elim:
+
+;; ExRMRElim
+(set-goal "all gamma^,alpha^((ExRMR gamma
+  alpha
+  (cterm (gamma^0,alpha^1) (Pvar gamma alpha)^ gamma^0 alpha^1))
+  gamma^ ->
+  exu alpha^ (Pvar gamma alpha)^ gamma^ alpha^)")
+(assume "gamma^" "alpha^" "ExRMRHyp")
+(elim "ExRMRHyp")
+(assume "alpha^1" "gamma^1" "PHyp")
+(intro 0 (pt "alpha^1"))
+(use "PHyp")
+;; Proof finished.
+(save "ExRMRElim")
+
+;; Same for ExDT ExLT ExRT
+
+;; ExDTMRElim
+(set-goal "all (alpha yprod gamma)^(
+     (ExDTMR (cterm (gamma^,alpha) (Pvar gamma alpha)^ gamma^ alpha))
+     (alpha yprod gamma)^ -> 
+     (Pvar gamma alpha)^(rht(alpha yprod gamma)^)
+     (lft(alpha yprod gamma)^))")
+(assume "(alpha yprod gamma)^" "ExDTMRHyp")
+(elim "ExDTMRHyp")
+(ng)
+(assume "alpha" "gamma^" "Hyp")
+(use "Hyp")
+;; Proof finished.
+(save "ExDTMRElim")
+
+;; ExLTMRElim
+(set-goal "all alpha((ExLTMR (cterm (alpha) (Pvar alpha)^ alpha))alpha ->
+ (Pvar alpha)^ alpha)")
+(assume "alpha" "ExLTMRHyp")
+(elim "ExLTMRHyp")
+(assume "alpha_1" "Palpha1")
+(use "Palpha1")
+;; Proof finished.
+(save "ExLTMRElim")
+
+;; ExRTMRElim
+(set-goal "all gamma^,alpha((ExRTMR gamma
+  alpha
+  (cterm (gamma^0,alpha_1) (Pvar gamma alpha)^ gamma^0 alpha_1))
+  gamma^ ->
+  exu alpha (Pvar gamma alpha)^ gamma^ alpha)")
+(assume "gamma^" "alpha" "ExRTMRHyp")
+(elim "ExRTMRHyp")
+(assume "alpha_1" "gamma^1" "PHyp")
+(intro 0 (pt "alpha_1"))
+(use "PHyp")
+;; Proof finished.
+(save "ExRTMRElim")
+
+;; Same for conjunction
+
+;; AndDMRIntro is exactly InitAndDMR.  The converse is proved via elim:
+
+;; AndDMRElim
+(set-goal "all (beta1 yprod beta2)^
+  ((AndDMR (cterm (beta1^1) (Pvar beta1)^ beta1^1)
+    (cterm (beta2^1) (Pvar beta2)^ beta2^1))
+  (beta1 yprod beta2)^ ->
+  (Pvar beta1)^(lft (beta1 yprod beta2)^) andu
+  (Pvar beta2)^(rht (beta1 yprod beta2)^))")
+(assume "(beta1 yprod beta2)^" "AndDMRHyp")
+(elim "AndDMRHyp")
+(ng)
+(assume "beta1^" "Hyp1" "beta2^" "Hyp2")
+(split)
+(use "Hyp1")
+(use "Hyp2")
+;; Proof finished.
+(save "AndDMRElim")
+
+;; AndLMRElimLeft
+(set-goal "all beta1^(
+ (AndLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar2))beta1^ ->
+ (Pvar beta1)^1 beta1^)")
+(assume "beta1^" "AndLMRHyp")
+(elim "AndLMRHyp")
+(assume "beta1^1" "Hyp1" "Hyp2")
+(use "Hyp1")
+;; Proof finished.
+(save "AndDMRElimLeft")
+
+;; AndLMRElimRight
+(set-goal "all beta1^(
+ (AndLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar^2))beta1^ ->
+ Pvar^2)")
+(assume "beta1^" "AndLMRHyp")
+(elim "AndLMRHyp")
+(assume "beta1^1" "Hyp1" "Hyp2")
+(use "Hyp2")
+;; Proof finished.
+(save "AndDMRElimdRight")
+
+;; OrDMRElim
+(set-goal "allnc (beta1 ysum beta2)^(
+ (OrDMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0)
+   (cterm (beta2^0) (Pvar beta2)^2 beta2^0))(beta1 ysum beta2)^ ->
+ all beta1^((Pvar beta1)^1 beta1^ -> Pvar^) -> 
+ all beta2^((Pvar beta2)^2 beta2^ -> Pvar^) -> Pvar^)")
+(assume "(beta1 ysum beta2)^" "OrDMRHyp")
+(elim "OrDMRHyp")
+;; 3,4
+(assume "beta1^" "PHyp" "Hyp1" "Hyp2")
+(use-with "Hyp1" (pt "beta1^") "PHyp")
+;; 4
+(assume "beta2^" "PHyp" "Hyp1" "Hyp2")
+(use-with "Hyp2" (pt "beta2^") "PHyp")
+;; Proof finished.
+(save "OrDMRElim")
+
+;; OrLMRElim
+(set-goal "all (beta1 ysumu)^(
+ (OrLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar2))
+ (beta1 ysumu)^ ->
+ all beta1^((Pvar beta1)^1 beta1^ -> Pvar^) -> (Pvar2 -> Pvar^) -> Pvar^)")
+(assume "(beta1 ysumu)^" "OrLMRHyp")
+(elim "OrLMRHyp")
+;; 3,4
+(assume "beta1^" "PHyp" "Hyp1" "Hyp2")
+(use-with "Hyp1" (pt "beta1^") "PHyp")
+;; 4
+(assume "PHyp" "Hyp1" "Hyp2")
+(use-with "Hyp2" "PHyp")
+;; Proof finished.
+(save "OrLMRElim")
+
+;; OrRMRElim
+(set-goal "all (uysum beta2)^(
+ (OrRMR (cterm () Pvar1) (cterm (beta2^0) (Pvar beta2)^2 beta2^0))
+ (uysum beta2)^ ->
+ (Pvar1 -> Pvar^) -> all beta2^((Pvar beta2)^2 beta2^ -> Pvar^) -> Pvar^)")
+(assume "(uysum beta2)^" "OrRMRHyp")
+(elim "OrRMRHyp")
+;; 3,4
+(assume "PHyp" "Hyp1" "Hyp2")
+(use-with "Hyp1" "PHyp")
+;; 4
+(assume "beta2^" "PHyp" "Hyp1" "Hyp2")
+(use-with "Hyp2" (pt "beta2^") "PHyp")
+;; Proof finished.
+(save "OrRMRElim")
+
+;; OrUMRElim
+(set-goal "all boole((OrUMR (cterm () Pvar^1) (cterm () Pvar^2))boole ->
+ (Pvar^1 -> Pvar^) -> (Pvar^2 -> Pvar^) -> Pvar^) ")
+(ind)
+;; 2,3
+(assume "OrUMRHyp")
+(elim "OrUMRHyp")
+;; 5,6
+(assume "P1" "Hyp1" "Hyp2")
+(use-with "Hyp1" "P1")
+;; 6
+(assume "P2" "Hyp1" "Hyp2")
+(use-with "Hyp2" "P2")
+;; 3
+(assume "OrUMRHyp")
+(elim "OrUMRHyp")
+;; 10,11
+(assume "P1" "Hyp1" "Hyp2")
+(use-with "Hyp1" "P1")
+;; 11
+(assume "P2" "Hyp1" "Hyp2")
+(use-with "Hyp2" "P2")
+;; Proof finished.
+(save "OrUMRElim")
+
+(set! COMMENT-FLAG #t)
