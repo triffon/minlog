@@ -4891,50 +4891,49 @@
    (else (myerror "proof-to-soundness-proof-aux"
 		  "unexpected proof with tag" (tag proof)))))
 
-;; Code discarded 2016-07-24
-;; (define alltotal-intro-mr-aconst
-;;   (let* ((formula-of-alltotal-intro-aconst
-;; 	  (aconst-to-uninst-formula alltotal-intro-aconst))
-;; 	 (id-eterm (proof-to-extracted-term
-;; 		    (make-proof-in-aconst-form alltotal-intro-aconst)))
-;; 	 (formula-of-alltotal-intro-mr-aconst
-;; 	  (real-and-formula-to-mr-formula
-;; 	   id-eterm formula-of-alltotal-intro-aconst)))
-;;     (make-aconst "AllTotalIntroSound"
-;; 		 'axiom formula-of-alltotal-intro-mr-aconst empty-subst)))
+(define alltotal-intro-mr-aconst
+  (let* ((formula-of-alltotal-intro-aconst
+	  (aconst-to-uninst-formula alltotal-intro-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form alltotal-intro-aconst)))
+	 (formula-of-alltotal-intro-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-alltotal-intro-aconst)))
+    (make-aconst "AllTotalIntroSound"
+		 'axiom formula-of-alltotal-intro-mr-aconst empty-subst)))
 
-;; (define alltotal-elim-mr-aconst
-;;   (let* ((formula-of-alltotal-elim-aconst
-;; 	  (aconst-to-uninst-formula alltotal-elim-aconst))
-;; 	 (id-eterm (proof-to-extracted-term
-;; 		    (make-proof-in-aconst-form alltotal-elim-aconst)))
-;; 	 (formula-of-alltotal-elim-mr-aconst
-;; 	  (real-and-formula-to-mr-formula
-;; 	   id-eterm formula-of-alltotal-elim-aconst)))
-;;     (make-aconst "AllTotalElimSound"
-;; 		 'axiom formula-of-alltotal-elim-mr-aconst empty-subst)))
+(define alltotal-elim-mr-aconst
+  (let* ((formula-of-alltotal-elim-aconst
+	  (aconst-to-uninst-formula alltotal-elim-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form alltotal-elim-aconst)))
+	 (formula-of-alltotal-elim-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-alltotal-elim-aconst)))
+    (make-aconst "AllTotalElimSound"
+		 'axiom formula-of-alltotal-elim-mr-aconst empty-subst)))
 
-;; (define allnctotal-intro-mr-aconst
-;;   (let* ((formula-of-allnctotal-intro-aconst
-;; 	  (aconst-to-uninst-formula allnctotal-intro-aconst))
-;; 	 (id-eterm (proof-to-extracted-term
-;; 		    (make-proof-in-aconst-form allnctotal-intro-aconst)))
-;; 	 (formula-of-allnctotal-intro-mr-aconst
-;; 	  (real-and-formula-to-mr-formula
-;; 	   id-eterm formula-of-allnctotal-intro-aconst)))
-;;     (make-aconst "AllncTotalIntroSound"
-;; 		 'axiom formula-of-allnctotal-intro-mr-aconst empty-subst)))
+(define allnctotal-intro-mr-aconst
+  (let* ((formula-of-allnctotal-intro-aconst
+	  (aconst-to-uninst-formula allnctotal-intro-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form allnctotal-intro-aconst)))
+	 (formula-of-allnctotal-intro-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-allnctotal-intro-aconst)))
+    (make-aconst "AllncTotalIntroSound"
+		 'axiom formula-of-allnctotal-intro-mr-aconst empty-subst)))
 
-;; (define allnctotal-elim-mr-aconst
-;;   (let* ((formula-of-allnctotal-elim-aconst
-;; 	  (aconst-to-uninst-formula allnctotal-elim-aconst))
-;; 	 (id-eterm (proof-to-extracted-term
-;; 		    (make-proof-in-aconst-form allnctotal-elim-aconst)))
-;; 	 (formula-of-allnctotal-elim-mr-aconst
-;; 	  (real-and-formula-to-mr-formula
-;; 	   id-eterm formula-of-allnctotal-elim-aconst)))
-;;     (make-aconst "AllncTotalElimSound"
-;; 		 'axiom formula-of-allnctotal-elim-mr-aconst empty-subst)))
+(define allnctotal-elim-mr-aconst
+  (let* ((formula-of-allnctotal-elim-aconst
+	  (aconst-to-uninst-formula allnctotal-elim-aconst))
+	 (id-eterm (proof-to-extracted-term
+		    (make-proof-in-aconst-form allnctotal-elim-aconst)))
+	 (formula-of-allnctotal-elim-mr-aconst
+	  (real-and-formula-to-mr-formula
+	   id-eterm formula-of-allnctotal-elim-aconst)))
+    (make-aconst "AllncTotalElimSound"
+		 'axiom formula-of-allnctotal-elim-mr-aconst empty-subst)))
 
 (define (axiom-to-soundness-proof aconst)
   (let ((name (aconst-to-name aconst)))
