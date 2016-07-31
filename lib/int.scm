@@ -1,4 +1,4 @@
-;; 2016-06-23.  int.scm.  Based on the former numbers.scm.
+;; 2016-07-31.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -4391,7 +4391,7 @@
 ;; Proof finished.
 (save "IntLeIntS")
 
-;; ;; IntLeAbs
+;; IntLeAbs
 (set-goal "all k k<=abs k")
 (cases)
 (assume "p")
@@ -4402,6 +4402,26 @@
 ;; Proof finished.
 ;; (save "IntLeAbs")
 (add-rewrite-rule "k<=abs k" "True")
+
+(set-goal "all k 0<=abs k")
+(cases)
+(assume "p")
+(use "Truth")
+(use "Truth")
+(assume "p")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "0<=abs k" "True")
+
+(set-goal "all k ~abs k<=0")
+(cases)
+(assume "p")
+(use "Truth")
+(use "Truth")
+(assume "p")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "~abs k<=0" "True")
 
 ;; IntLeAbsPlus
 (set-goal "all k,j abs(k+j)<=abs k+abs j")
@@ -4467,8 +4487,8 @@
 (save "IntLeAbsPlus")
 (add-rewrite-rule "abs(k+j)<=abs k+abs j" "True")
 
-(display-pconst "IntUMinus" "IntMinus")
-(pp "IntMinus0CompRule")
+;; (display-pconst "IntUMinus" "IntMinus")
+;; (pp "IntMinus0CompRule")
 ;; k-j => k+ ~j
 ;; Replace (simp "<-" IntPlusUMinusId) by (simp "IntMinus0CompRule")
 
@@ -4511,6 +4531,96 @@
 ;; (use "Truth")
 ;; ;; Proof finished.
 ;; (save "IntPlusUMinusId")
+
+;; IntLeMinusAbs
+(set-goal "all k,j(abs k+ ~abs j<=abs(k+ ~j))")
+(cases)
+;; 2-4
+(assume "p")
+(cases)
+;; 6-8
+(assume "q")
+(use "Truth")
+;; 7
+(use "Truth")
+;; 8
+(assume "q")
+(ng)
+(cases 'auto)
+(assume "Useless")
+(use "Truth")
+(assume "Useless")
+(ng)
+(cases 'auto)
+(assume "Useless1")
+(use "Truth")
+(assume "Useless1")
+(ng)
+(use "PosLeTrans" (pt "p"))
+(use "Truth")
+(use "Truth")
+;; 3
+(assume "j")
+(ng)
+(use "IntLeTrans" (pt "0"))
+(use "Truth")
+(use "Truth")
+;; 4
+(assume "p")
+(cases)
+;; 29-31
+(assume "q")
+(ng)
+(cases 'auto)
+(assume "Useless")
+(use "Truth")
+(assume "Useless")
+(ng)
+(cases 'auto)
+(assume "Useless1")
+(use "Truth")
+(assume "Useless1")
+(ng)
+(use "PosLeTrans" (pt "p"))
+(use "Truth")
+(use "Truth")
+;; 30
+(use "Truth")
+;; 31
+(assume "q")
+(ng)
+(cases 'auto)
+(assume "Useless")
+(use "Truth")
+(assume "Useless")
+(ng)
+(cases 'auto)
+(assume "Useless1")
+(use "Truth")
+(assume "Useless1")
+(use "Truth")
+;; Proof finished.
+(save "IntLeMinusAbs")
+
+;; IntLeAbs
+(set-goal "all k,j(k<=j -> ~k<=j -> abs k<=j)")
+(cases)
+(cases)
+(assume "j" "1<=j" "Useless")
+(use "1<=j")
+(assume "p" "j" "2p<=j" "Useless")
+(ng)
+(use "2p<=j")
+(assume "p" "j" "2p+1<=j" "Useless")
+(ng)
+(use "2p+1<=j")
+(assume "j" "0<=j" "Useless")
+(use "0<=j")
+(assume "p" "j" "Useless" "p<=j")
+(ng)
+(use "p<=j")
+;; Proof finished.
+(save "IntLeAbs")
 
 ;; IntLeMonMinus
 (set-goal "all k,j,i,i0(k<=j -> i0<=i -> k-i<=j-i0)")
