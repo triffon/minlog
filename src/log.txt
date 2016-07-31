@@ -1,6 +1,27 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-07-31
+
+In lib/int.scm
+
+Rewrite rules 0<=abs k -> True and ~abs k<=0 -> True added.  Theorems
+IntLeMinusAbs IntLeAbs added.
+
+In lib/rat.scm
+
+Rewrite rule ~abs a<=0 -> True and for RatLeAbsMinus added.
+Theorems RatLeMinusAbs RatLeAbs RatMaxUB1 RatMaxUB2 added.
+
+In lib/rea.scm
+
+Proofs completed (no admits) for RealNNegCharOne RealNNegChar2
+RealPosCharOne (renamed from RealPosChar1) RealPosCharTwo
+RealPosCompat RealPlusReal RealUMinusReal RealAbsReal CauchyTimes
+Added RatSeqFinBound RealBound RealNNegCompat.  Rules for RealTimes
+corrected.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-07-26
 
 In ets.scm
