@@ -1,4 +1,4 @@
-;; 2016-06-23.  rat.scm.  Based on numbers.scm.
+;; 2016-07-31.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -2427,6 +2427,13 @@
 ;; Proof finished.
 (add-rewrite-rule "0<=abs a" "True")
 
+(set-goal "all a ~abs a<=0")
+(cases)
+(assume "k" "p")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "~abs a<=0" "True")
+
 ;; RatLeAbsPlus
 (set-goal "all a,b abs(a+b)<=abs a+abs b")
 (cases)
@@ -2457,8 +2464,48 @@
 (use "Truth")
 ;; Proof finished.
 (save "RatLeAbsMinus")
+(add-rewrite-rule "abs(a+ ~b)<=abs(a+ ~c)+abs(c+ ~b)" "True")
 
-;; Added 2016-06-23
+;; RatLeMinusAbs
+(set-goal "all a,b abs a+ ~abs b<=abs(a+ ~b)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(simp "<-" "IntTimes5RewRule")
+(simp "<-" "IntTimesPlusDistrLeft")
+(use "IntLeMonTimes")
+(use "Truth")
+(assert "all k,p abs k*p=abs k*(abs p)")
+ (strip)
+ (use "Truth")
+(assume "Assertion")
+(simp "Assertion")
+(simp "Assertion")
+(simp "<-" "IntAbs1RewRule")
+(simp "<-" "IntAbs1RewRule")
+(use "IntLeMinusAbs")
+;; Proof finished.
+(save "RatLeMinusAbs")
+
+;; RatLeAbs
+(set-goal "all a,b(a<=b -> ~a<=b -> abs a<=b)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(assert "all k,p abs k*p=abs k*(abs p)")
+ (strip)
+ (use "Truth")
+(assume "Assertion")
+(simp "Assertion")
+(simp "<-" "IntAbs1RewRule")
+(use "IntLeAbs")
+;; Proof finished.
+(save "RatLeAbs")
+
 ;; RatTimesInj
 (set-goal "all a,b,c(0<abs a -> a*b==a*c -> b==c)")
 (cases)
@@ -3607,6 +3654,40 @@
 (use "Truth")
 ;; Proof finished.
 (save "RatHalfPlus")
+
+;; RatMaxUB1
+(set-goal "all a,b a<=a max b")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(cases 'auto)
+(assume "kq<=jp")
+(ng)
+(use "kq<=jp")
+(assume "Useless")
+(use "Truth")
+;; Proof finished.
+(save "RatMaxUB1")
+
+;; RatMaxUB2
+(set-goal "all a,b b<=a max b")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(cases 'auto)
+(assume "Useless")
+(use "Truth")
+(assume "kq<=jp -> F")
+(ng)
+(use "IntLtToLe")
+(use "IntNotLeToLt")
+(use "kq<=jp -> F")
+;; Proof finished.
+(save "RatMaxUB2")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
