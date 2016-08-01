@@ -1,6 +1,16 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-08-01
+
+In pproof.scm
+
+In simp-with-intern simprat-with-intern and simphyp-with-intern
+((and (term-in-const-form? op) replaced by
+((and (prime-form? used-formula) (term-in-const-form? op)
+and similarly for nop instead of op
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-07-31
 
 In lib/int.scm
