@@ -4568,7 +4568,8 @@
       (simp-with-kernel-aux num-goals proof maxgoal
 			    negatom-or-eq-proof new-num-goals new-maxgoal
 			    used-kernel bvar goal-formula-without-kernel))
-     ((and (term-in-const-form? op)
+     ((and (prime-form? used-formula)
+	   (term-in-const-form? op)
 	   (string=? "=" (const-to-name (term-in-const-form-to-const op)))
 	   (let* ((args (term-in-app-form-to-args used-kernel))
 		  (lhs (car args))
@@ -4663,7 +4664,8 @@
       (simp-with-kernel-aux num-goals proof maxgoal
 			    negatom-or-eq-proof new-num-goals new-maxgoal
 			    used-nkernel bvar ngoal-formula-without-nkernel))
-     ((and (term-in-const-form? nop)
+     ((and (prime-form? used-formula)
+	   (term-in-const-form? nop)
 	   (string=? "=" (const-to-name (term-in-const-form-to-const nop)))
 	   (let* ((args (term-in-app-form-to-args used-nkernel))
 		  (lhs (car args))
@@ -5022,7 +5024,8 @@
 	 (nop (term-in-app-form-to-final-op used-nkernel))
 	 (ngoal-formula (nf goal-formula)))
     (cond
-     ((and (term-in-const-form? op)
+     ((and (prime-form? used-formula)
+	   (term-in-const-form? op)
 	   (string=? "RatEqv" (const-to-name (term-in-const-form-to-const op)))
 	   (let* ((args (term-in-app-form-to-args used-kernel))
 		  (lhs (car args))
@@ -5064,7 +5067,8 @@
 	 (append (list new-num-goal) new-num-goals (cdr num-goals))
 	 (goal-subst proof goal new-proof)
 	 new-maxgoal)))
-     ((and (term-in-const-form? nop)
+     ((and (prime-form? used-formula)
+	   (term-in-const-form? nop)
 	   (string=? "RatEqv" (const-to-name (term-in-const-form-to-const nop)))
 	   (let* ((args (term-in-app-form-to-args used-nkernel))
 		  (lhs (car args))
@@ -5843,7 +5847,8 @@
       (simphyp-with-kernel-aux
        num-goals proof maxgoal negatom-or-eq-proof new-num-goals new-maxgoal
        used-nkernel bvar nleaf-formula-without-nkernel leaf))
-     ((and (term-in-const-form? op)
+     ((and (prime-form? used-formula)
+	   (term-in-const-form? op)
 	   (string=? "=" (const-to-name (term-in-const-form-to-const op)))
 	   (let* ((args (term-in-app-form-to-args used-kernel))
 		  (lhs (car args))
@@ -5894,7 +5899,8 @@
 	 (append (list new-num-goal) new-num-goals (cdr num-goals))
 	 (goal-subst proof goal new-proof)
 	 new-maxgoal)))
-     ((and (term-in-const-form? nop)
+     ((and (prime-form? used-formula)
+	   (term-in-const-form? nop)
 	   (string=? "=" (const-to-name (term-in-const-form-to-const nop)))
 	   (let* ((args (term-in-app-form-to-args used-nkernel))
 		  (lhs (car args))
