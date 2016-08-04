@@ -1,6 +1,15 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-08-04
+
+In psym.scm
+
+In add-co make-cr-or-nc-andl -r -d and make-cr-or-nc-exl -r -d
+removed.  Cases in (imp-impnc-form? fla) (all-allnc-form? fla)
+corrected and simplified.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-08-01
 
 In pproof.scm
