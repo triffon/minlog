@@ -1,6 +1,38 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-08-12
+
+In proof.scm
+
+formulas-to-and-intro-proof added.  It generalizes the introduction
+axioms for AndD AndL AndR AndU to more than two conjuncts.
+vars-and-formulas-to-exand-intro-proof added.  It generalizes the
+introduction axioms for ExD ExL ExDT ExLT to more than one variable
+and finitely many conjuncts.
+
+In atr.scm
+
+min-excl-formula renamed into atr-excl-formula.  In case of a tocnc
+formula it is called imp-excl-formula.  atr-excl-proof-to-ex-proof
+replaces atr-min-excl-proof-to-ex-proof.  It recursively works
+through an allcnc prefix and then expects an imp-excl-formula.
+min-excl-formula? rewritten accordingly, called atr-excl-formula?
+atr-min-excl-proof-to-structured-extracted-term renamed into
+atr-excl-proof-to-structured-extracted-term.  Instead one should
+use (proof-to-extr-term (atr-excl-proof-to-ex-proof excl-proof))
+
+In examples/deco/rev.scm
+
+Adapted to the new atr.scm.  The abstracted variable rev in the
+extracted term has disappeared.
+
+In examples/test/proof.scm
+
+Tests for formulas-to-and-intro-proof and
+vars-and-formulas-to-exand-intro-proof added.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-08-04
 
 In psym.scm
