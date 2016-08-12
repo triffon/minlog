@@ -705,227 +705,536 @@
 	 (apply mk-proof-in-intro-form
 		u (append goal-avars (list proof-of-bot)))))))
 
-;; Given a proof of As -> Ds -> all ys(Gs -> bot) -> bot with As
-;; arbitrary, Ds definite and Gs goal formulas, we transform it into a
-;; proof of (F -> bot) -> As -> Ds^F -> all ys(Gs^F -> bot) -> bot.
+;; E.g. for As arbitrary, Ds definite and Gs goal formulas, we prove
+;; from F-to-bot-avar : F -> bot the bot-reduced implication
+;; (As -> Ds -> all ys(Gs -> bot) -> bot) ->
+;; As -> Ds^F -> all ys(Gs^F -> bot) -> bot
 
-(define (atr-min-excl-proof-to-bot-reduced-proof min-excl-proof)
-  (let* ((formula (unfold-formula (proof-to-formula min-excl-proof)))
-	 (params-and-kernel (all-form-to-vars-and-final-kernel formula))
-	 (params (car params-and-kernel))
-	 (kernel (cadr params-and-kernel))
-	 (prems (imp-form-to-premises kernel))
-	 (rev-prems (reverse prems))
-	 (wrong-formula (car rev-prems))
-	 (vars-and-final-kernel
+(define (atr-imp-excl-formula-to-proof-of-bot-reduced-implication
+	 imp-excl-formula)
+  (if (not (imp-impnc-form? imp-excl-formula))
+      (myerror "atr-imp-excl-formula-to-proof-of-bot-reduced-implication"
+	       "imp-excl-formula expected" imp-excl-formula))
+  (let ((prem (imp-impnc-form-to-premise imp-excl-formula))
+	(concl (imp-impnc-form-to-conclusion imp-excl-formula)))
+    (cond
+     ((formula=? concl falsity-log) ;wrong formula, hence imp
+      (let* ((vars-and-final-kernel (all-form-to-vars-and-final-kernel prem))
+	     (vars (car vars-and-final-kernel))
+	     (final-kernel (cadr vars-and-final-kernel))
+	     (goals (imp-form-to-premises (cadr vars-and-final-kernel)))
+	     (goals-F (map (lambda (f)
+			     (formula-subst f falsity-log-pvar F-cterm))
+			   goals))
+	     (bot-reduced-wrong-formula ;all ys(Gs^F -> bot)
+	      (apply mk-all
+		     (append vars
+			     (list (apply mk-imp
+					  (append goals-F
+						  (list falsity-log)))))))
+	     (u (formula-to-new-avar bot-reduced-wrong-formula))
+	     (wrong-formula-proof ;of all ys(Gs -> bot) from u
+	      (apply mk-proof-in-intro-form
+		     (append vars
+			     (list (make-proof-in-imp-elim-form
+				    (apply atr-goals-F-to-bot-proof goals)
+				    (apply mk-proof-in-elim-form
+					   (make-proof-in-avar-form u)
+					   (map make-term-in-var-form
+						vars)))))))
+	     (v (formula-to-new-avar imp-excl-formula)))
+	(mk-proof-in-intro-form
+	 v u (make-proof-in-imp-elim-form
+	      (make-proof-in-avar-form v) wrong-formula-proof))))
+     ((atr-definite? prem)
+      (let* ((prev (atr-imp-excl-formula-to-proof-of-bot-reduced-implication
+		    concl))
+	     (v (formula-to-new-avar imp-excl-formula))
+	     (prem-F (formula-subst prem falsity-log-pvar F-cterm))
+	     (u (formula-to-new-avar prem-F))
+	     (bot-reduced-prem-proof ;of prem
+	      (make-proof-in-imp-elim-form
+	       (atr-arb-definite-proof prem) ;of D^F -> D
+	       (make-proof-in-avar-form u)))
+	     (concl-proof (mk-proof-in-elim-form
+			   (make-proof-in-avar-form v)
+			   bot-reduced-prem-proof))
+	     (bot-reduced-concl-proof
+	      (make-proof-in-imp-elim-form prev concl-proof)))
+	(make-proof-in-imp-intro-form
+	 v (if (imp-form? imp-excl-formula)
+	       (make-proof-in-imp-intro-form u bot-reduced-concl-proof)
+	       (make-proof-in-impnc-intro-form u bot-reduced-concl-proof)))))
+     (else
+      (let* ((prev (atr-imp-excl-formula-to-proof-of-bot-reduced-implication
+		    concl))
+	     (v (formula-to-new-avar imp-excl-formula))
+	     (u (formula-to-new-avar prem))
+	     (concl-proof (mk-proof-in-elim-form
+			   (make-proof-in-avar-form v)
+			   (make-proof-in-avar-form u)))
+	     (bot-reduced-concl-proof
+	      (make-proof-in-imp-elim-form prev concl-proof)))
+	(make-proof-in-imp-intro-form
+	 v (if (imp-form? imp-excl-formula)
+	       (make-proof-in-imp-intro-form u bot-reduced-concl-proof)
+	       (make-proof-in-impnc-intro-form
+		u bot-reduced-concl-proof))))))))
+
+(define (atr-imp-excl-formula-to-wrong-formula imp-excl-formula)
+  (if (not (imp-impnc-form? imp-excl-formula))
+      (myerror "atr-imp-excl-formula-to-wrong-formula"
+	       "imp-excl-formula expected" imp-excl-formula))
+  (if (formula=? (imp-impnc-form-to-conclusion imp-excl-formula) falsity-log)
+      (let* ((prem (imp-impnc-form-to-premise imp-excl-formula))
+	     (vars-and-kernel (all-form-to-vars-and-final-kernel prem))
+	     (vars (car vars-and-kernel))
+	     (kernel (cadr vars-and-kernel))
+	     (prems (imp-form-to-premises kernel))
+	     (subst-prems
+	      (map (lambda (prem)
+		     (formula-subst prem falsity-log-pvar (make-cterm falsity)))
+		   prems)))
+	(apply mk-all
+	       (append
+		vars (list (apply mk-imp
+				  (append subst-prems (list falsity-log)))))))
+      (atr-imp-excl-formula-to-wrong-formula
+       (imp-impnc-form-to-conclusion imp-excl-formula))))
+
+;; atr-wrong-formula-to-ex-formula takes an optional argument
+;; opt-prim-prod-info, which is either 'prim or 'idpc with () meaning
+;; ('prim).  In case prim the ex-formula is formed with mk-ex, mk-and
+;; (generating extracted terms with the primitive product make-star).
+;; In case idpc the ex-formula is formed with the inductively defined
+;; existential quantifiers and conjunctions (generating extracted
+;; terms with the defined product yprod).
+
+(define (atr-wrong-formula-to-ex-formula wrong-formula . opt-prim-prod-info)
+  (let* ((vars-and-final-kernel
 	  (all-form-to-vars-and-final-kernel wrong-formula))
 	 (vars (car vars-and-final-kernel))
 	 (goals (imp-impnc-form-to-premises (cadr vars-and-final-kernel)))
-	 (goals-F (map (lambda (f) (formula-subst f falsity-log-pvar F-cterm))
-		       goals))
-	 (as-and-ds (reverse (cdr rev-prems)))
-	 (us-and-bot-reduced-ad-proofs
-	  (map (lambda (d)
-		 (if (atr-definite? d)
-		     (let* ((d-F (formula-subst d falsity-log-pvar F-cterm))
-			    (u (formula-to-new-avar d-F))
-			    (bot-reduced-d-proof
-			     (make-proof-in-imp-elim-form
-			      (atr-arb-definite-proof d) ;of D^F -> D
-			      (make-proof-in-avar-form u))))
-		       (list u bot-reduced-d-proof))
-		     (let ((u (formula-to-new-avar d)))
-		       (list u (make-proof-in-avar-form u)))))
-	       as-and-ds))
-	 (us (map car us-and-bot-reduced-ad-proofs))
-	 (bot-reduced-ad-proofs (map cadr us-and-bot-reduced-ad-proofs))
-	 (bot-reduced-wrong-formula
-	  (apply mk-all
-		 (append vars
-			 (list (apply mk-imp
-				      (append goals-F
-					      (list falsity-log)))))))
-	 (u (formula-to-new-avar bot-reduced-wrong-formula))
-	 (wrong-formula-proof
-	  (apply mk-proof-in-intro-form
-		 (append vars
-			 (list (make-proof-in-imp-elim-form
-				(apply atr-goals-F-to-bot-proof goals)
-				(apply mk-proof-in-elim-form
-				       (make-proof-in-avar-form u)
-				       (map make-term-in-var-form
-					    vars)))))))
-	 (proof-of-bot
-	  (apply mk-proof-in-elim-form
-		 (append (list min-excl-proof)
-			 (map make-term-in-var-form params)
-			 bot-reduced-ad-proofs
-			 (list wrong-formula-proof)))))
-    (apply mk-proof-in-intro-form
-	   F-to-bot-avar
-	   (append us (list u proof-of-bot)))))
+	 (prim-prod? (or (null? opt-prim-prod-info)
+			 (eq? 'prim (car opt-prim-prod-info)))))
+    (cond ((null? vars)
+	   (myerror "atr-wrong-formula-to-ex-formula"
+		    "generalized variables expected in wrong formula"
+		    wrong-formula))
+	  ((null? goals)
+	   (myerror "atr-wrong-formula-to-ex-formula"
+		    "goals expected in wrong formula"
+		    wrong-formula))
+	  (else
+	   (if prim-prod?
+	       (apply mk-ex (append vars (list (apply mk-and goals))))
+	       (apply mk-exi (append vars (list (apply mk-andi goals)))))))))
 
-;; Substituting the formula ex ys Gs^F for bot in the proof given above
-;; of (F -> bot) -> As -> Ds^F -> all ys(Gs^F -> bot) -> bot, both the
-;; efq-premise and the wrong formula become provable and we obtain a
-;; proof of As' -> Ds^F -> ex ys Gs^F, where As' is defined to be
-;; As[bot := ex ys Gs^F].
+;; atr-imp-ex-proof-with-subst-wrong-formula-to-ex-proof again takes
+;; an optional argument opt-prim-prod-info.
 
-(define (atr-min-excl-proof-to-ex-proof min-excl-proof)
-  (let* ((formula (unfold-formula (proof-to-formula min-excl-proof)))
-	 (params-and-kernel (all-form-to-vars-and-final-kernel formula))
-	 (params (car params-and-kernel))
-	 (kernel (cadr params-and-kernel))
-	 (prems (imp-form-to-premises kernel))
-	 (rev-prems (reverse prems))
-	 (wrong-formula (if (null? rev-prems)
-			    (myerror "atr-min-excl-proof-to-ex-proof"
-				     "premises expected in kernel formula"
-				     kernel)
-			    (car rev-prems)))
-	 (vars-and-final-kernel
-	  (all-form-to-vars-and-final-kernel wrong-formula))
-	 (vars (car vars-and-final-kernel))
-	 (goals (imp-impnc-form-to-premises (cadr vars-and-final-kernel)))
-	 (ex-formula
-	  (cond
-	   ((null? vars)
-	    (myerror "atr-min-excl-proof-to-ex-proof"
-		     "generalized variables expected in wrong formula"
-		     wrong-formula))
-	   ((null? goals)
-	    (myerror "atr-min-excl-proof-to-ex-proof"
-		     "goals expected in wrong formula"
-		     wrong-formula))
-	   (else (apply mk-ex (append vars (list (apply mk-and goals)))))))
-	 (ex-formula-F (formula-subst ex-formula falsity-log-pvar F-cterm))
-	 (ex-cterm (make-cterm ex-formula-F))
-	 (bot-reduced-proof
-	  (np (atr-min-excl-proof-to-bot-reduced-proof min-excl-proof)))
-	 (subst-proof-with-ex
-	  (proof-subst bot-reduced-proof falsity-log-pvar ex-cterm))
-	 (formula-with-ex (proof-to-formula subst-proof-with-ex))
-	 (params-and-kernel-with-ex
-	  (all-form-to-vars-and-final-kernel formula-with-ex))
-	 (kernel-with-ex (cadr params-and-kernel-with-ex))
-	 (prems-with-ex (imp-form-to-premises kernel-with-ex))
-	 (as-with-ex-and-ds-F
-	  (reverse (cdr (reverse (cdr prems-with-ex)))))
-	 (us (map formula-to-new-avar as-with-ex-and-ds-F))
-	 (efq-proof (np (proof-of-efq-at ex-formula-F)))
-	 (goals-F (map (lambda (f) (formula-subst f falsity-log-pvar F-cterm))
-		       goals))
-	 (vs (map formula-to-new-avar goals-F))
-	 (proof-of-wrong-formula-F ;all vars(Gs^F -> ex vars Gs^F)
-	  (apply
-	   mk-proof-in-intro-form
-	   (append
-	    vars vs
-	    (list (apply mk-proof-in-ex-intro-form
-			 (append (map make-term-in-var-form vars)
-				 (list ex-formula-F
-				       (apply mk-proof-in-and-intro-form
-					      (map make-proof-in-avar-form
-						   vs))))))))))
-    (apply
-     mk-proof-in-intro-form
-     (append params us
-	     (list (apply mk-proof-in-elim-form
-			  subst-proof-with-ex efq-proof
-			  (append (map make-proof-in-avar-form us)
-				  (list proof-of-wrong-formula-F))))))))
+(define (atr-imp-ex-proof-with-subst-wrong-formula-to-ex-proof
+	 imp-ex-proof-with-subst-wrong-formula . opt-prim-prod-info)
+  (let* ((proof imp-ex-proof-with-subst-wrong-formula)
+	 (fla (proof-to-formula proof))
+	 (prim-prod? (or (null? opt-prim-prod-info)
+			 (eq? 'prim (car opt-prim-prod-info)))))
+    (cond
+     ((imp-form? fla)
+      (let ((prem (imp-form-to-premise fla))
+	    (concl (imp-form-to-conclusion fla)))
+	(if ;concl is the ex-fla
+	 (not (or (imp-impnc-form? concl) (all-allnc-form? concl)))
+	 ;; then prem is the substituted wrong formula
+	 (let* ((vars-and-final-kernel (all-form-to-vars-and-final-kernel prem))
+		(vars (car vars-and-final-kernel))
+		(goals-F (imp-form-to-premises (cadr vars-and-final-kernel)))
+		(vs (map formula-to-new-avar goals-F))
+		(ex-fla-F (formula-subst concl falsity-log-pvar F-cterm))
+		(proof-of-wrong-formula-F ;all vars(Gs^F -> ex vars Gs^F)
+		 (if
+		  prim-prod?
+		  (apply
+		   mk-proof-in-intro-form
+		   (append
+		    vars vs
+		    (list
+		     (apply mk-proof-in-ex-intro-form
+			    (append (map make-term-in-var-form vars)
+				    (list ex-fla-F
+					  (apply mk-proof-in-and-intro-form
+						 (map make-proof-in-avar-form
+						      vs))))))))
+		  (apply vars-and-formulas-to-exand-intro-proof
+			 (append vars goals-F)))))
+	   (mk-proof-in-elim-form proof proof-of-wrong-formula-F))
+	 (let ((u (formula-to-new-avar prem)))
+	   (make-proof-in-imp-intro-form
+	    u (apply
+	       atr-imp-ex-proof-with-subst-wrong-formula-to-ex-proof
+	       (mk-proof-in-elim-form proof (make-proof-in-avar-form u))
+	       opt-prim-prod-info))))))
+     ((impnc-form? fla)
+      (let ((u (formula-to-new-avar impnc-form-to-premise fla)))
+	(make-proof-in-impnc-intro-form
+	 u (apply atr-imp-ex-proof-with-subst-wrong-formula-to-ex-proof
+		  (mk-proof-in-elim-form proof (make-proof-in-avar-form u))
+		  opt-prim-prod-info))))
+     (else (myerror
+	    "atr-imp-ex-proof-with-subst-wrong-formula-to-ex-proof"
+	    "formula of imp-ex-proof-with-subst-wrong-formula expected"
+	    fla)))))
 
-;; For backwards comparibility we temporarily keep
+;; Let As be arbitrary, Ds definite and Gs goal formulas.  From a
+;; proof of As -> Ds -> all ys(Gs -> bot) -> bot from F-to-bot-avar :
+;; F -> bot we build a proof of As' -> Ds^F -> ex ys Gs^F, where As'
+;; is defined to be As[bot := ex ys Gs^F].
 
-(define atr-min-excl-proof-to-intuit-ex-proof
-  atr-min-excl-proof-to-ex-proof)
+(define (atr-imp-excl-proof-to-ex-proof imp-excl-proof . opt-prim-prod-info)
+  (let* ((imp-excl-formula (proof-to-formula imp-excl-proof))
+	 (proof-of-bot-reduced-implication
+	  (atr-imp-excl-formula-to-proof-of-bot-reduced-implication
+	   imp-excl-formula))
+	 (proof-of-bot-reduced-formula
+	  (mk-proof-in-elim-form
+	   proof-of-bot-reduced-implication imp-excl-proof))
+	 (wrong-formula
+	  (atr-imp-excl-formula-to-wrong-formula imp-excl-formula))
+	 (ex-formula (apply atr-wrong-formula-to-ex-formula
+			    wrong-formula opt-prim-prod-info))
+	 (pasubst (list (list falsity-log-pvar (make-cterm ex-formula))
+			(list F-to-bot-avar (proof-of-efq-at ex-formula))))
+	 (imp-ex-proof-with-subst-wrong-formula
+	  (proof-substitute proof-of-bot-reduced-formula pasubst)))
+    (apply atr-imp-ex-proof-with-subst-wrong-formula-to-ex-proof
+	   imp-ex-proof-with-subst-wrong-formula opt-prim-prod-info)))
+
+;; atr-excl-proof-to-ex-proof extends atr-imp-excl-proof-to-ex-proof
+;; to an excl-proof with an all/allnc prefix.
+
+(define (atr-excl-proof-to-ex-proof excl-proof . opt-prim-prod-info)
+  (let ((formula (proof-to-formula excl-proof)))
+    (cond
+     ((all-form? formula)
+      (if (proof-in-all-intro-form? excl-proof)
+	  (let ((var (proof-in-all-intro-form-to-var excl-proof))
+		(kernel (proof-in-all-intro-form-to-kernel excl-proof)))
+	    (make-proof-in-all-intro-form
+	     var (apply atr-excl-proof-to-ex-proof kernel opt-prim-prod-info)))
+	  (let* ((var (all-form-to-var formula))
+		 (elim-proof (make-proof-in-all-elim-form
+			      excl-proof (make-term-in-var-form var))))
+	    (make-proof-in-all-intro-form
+	     var (apply atr-excl-proof-to-ex-proof
+			elim-proof opt-prim-prod-info)))))
+     ((allnc-form? formula)
+      (if (proof-in-allnc-intro-form? excl-proof)
+	  (let ((var (proof-in-allnc-intro-form-to-var excl-proof))
+		(kernel (proof-in-allnc-intro-form-to-kernel excl-proof)))
+	    (make-proof-in-allnc-intro-form
+	     var (apply atr-excl-proof-to-ex-proof kernel opt-prim-prod-info)))
+	  (let* ((var (allnc-form-to-var formula))
+		 (elim-proof (make-proof-in-allnc-elim-form
+			      excl-proof (make-term-in-var-form var))))
+	    (make-proof-in-allnc-intro-form
+	     var (apply atr-excl-proof-to-ex-proof
+			elim-proof opt-prim-prod-info)))))
+     ((imp-impnc-form? formula)
+      (apply atr-imp-excl-proof-to-ex-proof excl-proof opt-prim-prod-info))
+     (else (myerror "atr-excl-proof-to-ex-proof"
+		    "all, allnc, imp or impnc-formula expected" formula)))))
 
 ;; Given a proof of As -> Ds -> all ys(Gs -> bot) -> bot with As
 ;; arbitrary, Ds definite and Gs goal formulas.  Let ss be realizers of
 ;; As' := As[bot := ex ys Gs^F] and ts be realizers of Ds^F, both under
 ;; the assumptions As and Ds.  The following procedure constructs an
-;; eterm such that As -> Ds->Gs^F[ys:=eterm].
+;; eterm such that As -> Ds -> Gs^F[ys:=eterm].
 
-(define (atr-min-excl-proof-to-structured-extracted-term
-	 min-excl-proof . realizers-for-nondefinite-formulas)
-  (if (not (min-excl-formula? (proof-to-formula min-excl-proof)))
-      (myerror "atr-min-excl-proof-to-structured-extracted-term"
-	       "min-excl-formula expected"
-	       (proof-to-formula min-excl-proof)))
-  (let* ((intuit-ex-proof
-	  (atr-min-excl-proof-to-intuit-ex-proof min-excl-proof))
-	 (formula (proof-to-formula intuit-ex-proof))
+(define (atr-excl-proof-to-structured-extracted-term
+	 excl-proof . realizers-for-nondefinite-formulas)
+  (if (not (atr-excl-formula? (proof-to-formula excl-proof)))
+      (myerror "atr-excl-proof-to-structured-extracted-term"
+	       "atr-excl-formula expected"
+	       (proof-to-formula excl-proof)))
+  (let* ((ex-proof (atr-excl-proof-to-ex-proof excl-proof))
+	 (formula (proof-to-formula ex-proof))
 	 (params-and-kernel (all-form-to-vars-and-final-kernel formula))
 	 (params (car params-and-kernel))
-	 (intuit-ex-proof-with-params
+	 (ex-proof-with-params
 	  (apply mk-proof-in-elim-form
-		 intuit-ex-proof
+		 ex-proof
 		 (map make-term-in-var-form params)))
-	 (eterm (proof-to-extracted-term intuit-ex-proof-with-params)))
+	 (eterm (proof-to-extracted-term ex-proof-with-params)))
     (apply
      mk-term-in-abst-form
      (append params
-	     (list  (apply mk-term-in-app-form
-			   eterm
-			   realizers-for-nondefinite-formulas))))))
+	     (list (apply mk-term-in-app-form
+			  eterm
+			  realizers-for-nondefinite-formulas))))))
 
-(define (min-excl-formula? formula)
-  (let* ((params-and-kernel (all-form-to-vars-and-final-kernel formula))
-	 (params (car params-and-kernel))
-	 (kernel (cadr params-and-kernel))
-	 (prems (imp-form-to-premises kernel))
-	 (concl (imp-form-to-final-conclusion kernel))
-	 (rev-prems (reverse prems))
-	 (wrong-formula (if (null? rev-prems)
-			    (myerror "min-excl-formula?"
-				     "premises expected in kernel formula"
-				     kernel)
-			    (car rev-prems)))
-	 (vars-and-final-kernel
-	  (all-form-to-vars-and-final-kernel wrong-formula))
-	 (vars (car vars-and-final-kernel))
-	 (final-kernel (cadr vars-and-final-kernel))
-	 (goals (imp-impnc-form-to-premises (cadr vars-and-final-kernel)))
-	 (ds (reverse (cdr rev-prems))))
-    (if (null? vars)
-	(myerror "min-excl-formula?"
-		 "generalized variables expected in wrong formula"
-		 wrong-formula))
-    (if (null? goals)
-	(myerror "min-excl-formula?"
-		 "goals expected in wrong formula"
-		 wrong-formula))
-    (if (not (formula=? concl falsity-log))
-	(myerror "min-excl-formula?" "falsity-log expected" concl))
-    (if (not (formula=?
-	      (imp-impnc-form-to-final-conclusion final-kernel) falsity-log))
-	(myerror "min-excl-formula?"
-		 "falsity-log expected as final conclusion of"
-		 final-kernel))
-    (if (not (apply and-op (map atr-goal? goals)))
-	(let ((not-atr-goals
-	       (list-transform-positive goals
-		 (lambda (goal) (not (atr-goal? goal))))))
-	  (apply myerror
-		 "min-excl-formula?" "goal formulas expected"
-		 not-atr-goals)))
-    (if (not (apply and-op (map atr-definite? ds)))
-	(if COMMENT-FLAG
-	    (begin
-	      (comment "min-excl-formula?")
-	      (comment "warning: non definite premise(s)")
-	      (do ((l ds (cdr l)))
-		  ((null? l))
-		(if (not (atr-definite? (car l)))
-		    (comment (formula-to-string (car l))))))))
-    (if (or (null? vars) (null? goals))
-	(myerror "min-excl-formula?" "unexpected formula" formula))
-    #t))
+;; For backwards compatibility we keep
 
-;; For backward compatibility we keep
+(define atr-min-excl-proof-to-structured-extracted-term
+  atr-excl-proof-to-structured-extracted-term)
+  
+(define (atr-excl-formula? formula)
+  (cond
+   ((imp-form? formula)
+    (let ((concl (imp-form-to-conclusion formula)))
+      (or
+       (atr-excl-formula? concl) ;or all ys(Gs -> bot) -> bot, Gs goals
+       (let* ((prem (imp-form-to-premise formula))
+	      (vars-and-final-kernel (all-form-to-vars-and-final-kernel prem))
+	      (vars (car vars-and-final-kernel))
+	      (final-kernel (cadr vars-and-final-kernel))
+	      (goals (imp-form-to-premises (cadr vars-and-final-kernel))))
+	 (and
+	  (formula=? concl falsity-log)
+	  (formula=? (imp-form-to-final-conclusion final-kernel) falsity-log)
+	  (pair? vars)
+	  (pair? goals)
+	  (apply and-op (map atr-goal? goals)))))))
+   ((impnc-form? formula)
+    (atr-excl-formula? (impnc-form-to-conclusion formula)))
+   ((all-allnc-form? formula)
+    (atr-excl-formula? (all-allnc-form-to-final-kernel formula)))
+   (else #f)))
+	  
+;; For backwards compatibility we keep
 
-(define (min-excl-proof? proof)
-  (min-excl-formula? (proof-to-formula proof)))
+(define min-excl-formula? atr-excl-formula?)
+
+;; Code discarded 2016-08-12.  New:
+;; min-excl-formula renamed into atr-excl-formula.  In case of a tocnc
+;; formula it is called imp-excl-formula.  atr-excl-proof-to-ex-proof
+;; replaces atr-min-excl-proof-to-ex-proof.  It recursively works
+;; through an allcnc prefix and then expects an imp-excl-formula.
+;; min-excl-formula? rewritten accordingly, called atr-excl-formula?
+;; atr-min-excl-proof-to-structured-extracted-term renamed into
+;; atr-excl-proof-to-structured-extracted-term.  Instead one should
+;; use (proof-to-extr-term (atr-excl-proof-to-ex-proof excl-proof))
+
+;; ;; Given a proof of As -> Ds -> all ys(Gs -> bot) -> bot with As
+;; ;; arbitrary, Ds definite and Gs goal formulas, we transform it into a
+;; ;; proof of (F -> bot) -> As -> Ds^F -> all ys(Gs^F -> bot) -> bot.
+
+;; (define (atr-min-excl-proof-to-bot-reduced-proof min-excl-proof)
+;;   (let* ((formula (unfold-formula (proof-to-formula min-excl-proof)))
+;; 	 (params-and-kernel (all-form-to-vars-and-final-kernel formula))
+;; 	 (params (car params-and-kernel))
+;; 	 (kernel (cadr params-and-kernel))
+;; 	 (prems (imp-form-to-premises kernel))
+;; 	 (rev-prems (reverse prems))
+;; 	 (wrong-formula (car rev-prems))
+;; 	 (vars-and-final-kernel
+;; 	  (all-form-to-vars-and-final-kernel wrong-formula))
+;; 	 (vars (car vars-and-final-kernel))
+;; 	 (goals (imp-impnc-form-to-premises (cadr vars-and-final-kernel)))
+;; 	 (goals-F (map (lambda (f) (formula-subst f falsity-log-pvar F-cterm))
+;; 		       goals))
+;; 	 (as-and-ds (reverse (cdr rev-prems)))
+;; 	 (us-and-bot-reduced-ad-proofs
+;; 	  (map (lambda (d)
+;; 		 (if (atr-definite? d)
+;; 		     (let* ((d-F (formula-subst d falsity-log-pvar F-cterm))
+;; 			    (u (formula-to-new-avar d-F))
+;; 			    (bot-reduced-d-proof
+;; 			     (make-proof-in-imp-elim-form
+;; 			      (atr-arb-definite-proof d) ;of D^F -> D
+;; 			      (make-proof-in-avar-form u))))
+;; 		       (list u bot-reduced-d-proof))
+;; 		     (let ((u (formula-to-new-avar d)))
+;; 		       (list u (make-proof-in-avar-form u)))))
+;; 	       as-and-ds))
+;; 	 (us (map car us-and-bot-reduced-ad-proofs))
+;; 	 (bot-reduced-ad-proofs (map cadr us-and-bot-reduced-ad-proofs))
+;; 	 (bot-reduced-wrong-formula
+;; 	  (apply mk-all
+;; 		 (append vars
+;; 			 (list (apply mk-imp
+;; 				      (append goals-F
+;; 					      (list falsity-log)))))))
+;; 	 (u (formula-to-new-avar bot-reduced-wrong-formula))
+;; 	 (wrong-formula-proof
+;; 	  (apply mk-proof-in-intro-form
+;; 		 (append vars
+;; 			 (list (make-proof-in-imp-elim-form
+;; 				(apply atr-goals-F-to-bot-proof goals)
+;; 				(apply mk-proof-in-elim-form
+;; 				       (make-proof-in-avar-form u)
+;; 				       (map make-term-in-var-form
+;; 					    vars)))))))
+;; 	 (proof-of-bot
+;; 	  (apply mk-proof-in-elim-form
+;; 		 (append (list min-excl-proof)
+;; 			 (map make-term-in-var-form params)
+;; 			 bot-reduced-ad-proofs
+;; 			 (list wrong-formula-proof)))))
+;;     (apply mk-proof-in-intro-form
+;; 	   F-to-bot-avar
+;; 	   (append us (list u proof-of-bot)))))
+
+;; ;; Substituting the formula ex ys Gs^F for bot in the proof given above
+;; ;; of (F -> bot) -> As -> Ds^F -> all ys(Gs^F -> bot) -> bot, both the
+;; ;; efq-premise and the wrong formula become provable and we obtain a
+;; ;; proof of As' -> Ds^F -> ex ys Gs^F, where As' is defined to be
+;; ;; As[bot := ex ys Gs^F].
+
+;; (define (atr-min-excl-proof-to-ex-proof min-excl-proof)
+;;   (let* ((formula (unfold-formula (proof-to-formula min-excl-proof)))
+;; 	 (params-and-kernel (all-form-to-vars-and-final-kernel formula))
+;; 	 (params (car params-and-kernel))
+;; 	 (kernel (cadr params-and-kernel))
+;; 	 (prems (imp-form-to-premises kernel))
+;; 	 (rev-prems (reverse prems))
+;; 	 (wrong-formula (if (null? rev-prems)
+;; 			    (myerror "atr-min-excl-proof-to-ex-proof"
+;; 				     "premises expected in kernel formula"
+;; 				     kernel)
+;; 			    (car rev-prems)))
+;; 	 (vars-and-final-kernel
+;; 	  (all-form-to-vars-and-final-kernel wrong-formula))
+;; 	 (vars (car vars-and-final-kernel))
+;; 	 (goals (imp-impnc-form-to-premises (cadr vars-and-final-kernel)))
+;; 	 (ex-formula
+;; 	  (cond
+;; 	   ((null? vars)
+;; 	    (myerror "atr-min-excl-proof-to-ex-proof"
+;; 		     "generalized variables expected in wrong formula"
+;; 		     wrong-formula))
+;; 	   ((null? goals)
+;; 	    (myerror "atr-min-excl-proof-to-ex-proof"
+;; 		     "goals expected in wrong formula"
+;; 		     wrong-formula))
+;; 	   (else (apply mk-ex (append vars (list (apply mk-and goals)))))))
+;; 	 (ex-formula-F (formula-subst ex-formula falsity-log-pvar F-cterm))
+;; 	 (ex-cterm (make-cterm ex-formula-F))
+;; 	 (bot-reduced-proof
+;; 	  (np (atr-min-excl-proof-to-bot-reduced-proof min-excl-proof)))
+;; 	 (subst-proof-with-ex
+;; 	  (proof-subst bot-reduced-proof falsity-log-pvar ex-cterm))
+;; 	 (formula-with-ex (proof-to-formula subst-proof-with-ex))
+;; 	 (params-and-kernel-with-ex
+;; 	  (all-form-to-vars-and-final-kernel formula-with-ex))
+;; 	 (kernel-with-ex (cadr params-and-kernel-with-ex))
+;; 	 (prems-with-ex (imp-form-to-premises kernel-with-ex))
+;; 	 (as-with-ex-and-ds-F
+;; 	  (reverse (cdr (reverse (cdr prems-with-ex)))))
+;; 	 (us (map formula-to-new-avar as-with-ex-and-ds-F))
+;; 	 (efq-proof (np (proof-of-efq-at ex-formula-F)))
+;; 	 (goals-F (map (lambda (f) (formula-subst f falsity-log-pvar F-cterm))
+;; 		       goals))
+;; 	 (vs (map formula-to-new-avar goals-F))
+;; 	 (proof-of-wrong-formula-F ;all vars(Gs^F -> ex vars Gs^F)
+;; 	  (apply
+;; 	   mk-proof-in-intro-form
+;; 	   (append
+;; 	    vars vs
+;; 	    (list (apply mk-proof-in-ex-intro-form
+;; 			 (append (map make-term-in-var-form vars)
+;; 				 (list ex-formula-F
+;; 				       (apply mk-proof-in-and-intro-form
+;; 					      (map make-proof-in-avar-form
+;; 						   vs))))))))))
+;;     (apply
+;;      mk-proof-in-intro-form
+;;      (append params us
+;; 	     (list (apply mk-proof-in-elim-form
+;; 			  subst-proof-with-ex efq-proof
+;; 			  (append (map make-proof-in-avar-form us)
+;; 				  (list proof-of-wrong-formula-F))))))))
+
+;; ;; For backwards comparibility we temporarily keep
+
+;; (define atr-min-excl-proof-to-intuit-ex-proof
+;;   atr-min-excl-proof-to-ex-proof)
+
+;; ;; Given a proof of As -> Ds -> all ys(Gs -> bot) -> bot with As
+;; ;; arbitrary, Ds definite and Gs goal formulas.  Let ss be realizers of
+;; ;; As' := As[bot := ex ys Gs^F] and ts be realizers of Ds^F, both under
+;; ;; the assumptions As and Ds.  The following procedure constructs an
+;; ;; eterm such that As -> Ds->Gs^F[ys:=eterm].
+
+;; (define (atr-min-excl-proof-to-structured-extracted-term
+;; 	 min-excl-proof . realizers-for-nondefinite-formulas)
+;;   (if (not (min-excl-formula? (proof-to-formula min-excl-proof)))
+;;       (myerror "atr-min-excl-proof-to-structured-extracted-term"
+;; 	       "min-excl-formula expected"
+;; 	       (proof-to-formula min-excl-proof)))
+;;   (let* ((intuit-ex-proof
+;; 	  (atr-min-excl-proof-to-intuit-ex-proof min-excl-proof))
+;; 	 (formula (proof-to-formula intuit-ex-proof))
+;; 	 (params-and-kernel (all-form-to-vars-and-final-kernel formula))
+;; 	 (params (car params-and-kernel))
+;; 	 (intuit-ex-proof-with-params
+;; 	  (apply mk-proof-in-elim-form
+;; 		 intuit-ex-proof
+;; 		 (map make-term-in-var-form params)))
+;; 	 (eterm (proof-to-extracted-term intuit-ex-proof-with-params)))
+;;     (apply
+;;      mk-term-in-abst-form
+;;      (append params
+;; 	     (list  (apply mk-term-in-app-form
+;; 			   eterm
+;; 			   realizers-for-nondefinite-formulas))))))
+
+;; (define (min-excl-formula? formula)
+;;   (let* ((params-and-kernel (all-form-to-vars-and-final-kernel formula))
+;; 	 (params (car params-and-kernel))
+;; 	 (kernel (cadr params-and-kernel))
+;; 	 (prems (imp-form-to-premises kernel))
+;; 	 (concl (imp-form-to-final-conclusion kernel))
+;; 	 (rev-prems (reverse prems))
+;; 	 (wrong-formula (if (null? rev-prems)
+;; 			    (myerror "min-excl-formula?"
+;; 				     "premises expected in kernel formula"
+;; 				     kernel)
+;; 			    (car rev-prems)))
+;; 	 (vars-and-final-kernel
+;; 	  (all-form-to-vars-and-final-kernel wrong-formula))
+;; 	 (vars (car vars-and-final-kernel))
+;; 	 (final-kernel (cadr vars-and-final-kernel))
+;; 	 (goals (imp-impnc-form-to-premises (cadr vars-and-final-kernel)))
+;; 	 (ds (reverse (cdr rev-prems))))
+;;     (if (null? vars)
+;; 	(myerror "min-excl-formula?"
+;; 		 "generalized variables expected in wrong formula"
+;; 		 wrong-formula))
+;;     (if (null? goals)
+;; 	(myerror "min-excl-formula?"
+;; 		 "goals expected in wrong formula"
+;; 		 wrong-formula))
+;;     (if (not (formula=? concl falsity-log))
+;; 	(myerror "min-excl-formula?" "falsity-log expected" concl))
+;;     (if (not (formula=?
+;; 	      (imp-impnc-form-to-final-conclusion final-kernel) falsity-log))
+;; 	(myerror "min-excl-formula?"
+;; 		 "falsity-log expected as final conclusion of"
+;; 		 final-kernel))
+;;     (if (not (apply and-op (map atr-goal? goals)))
+;; 	(let ((not-atr-goals
+;; 	       (list-transform-positive goals
+;; 		 (lambda (goal) (not (atr-goal? goal))))))
+;; 	  (apply myerror
+;; 		 "min-excl-formula?" "goal formulas expected"
+;; 		 not-atr-goals)))
+;;     (if (not (apply and-op (map atr-definite? ds)))
+;; 	(if COMMENT-FLAG
+;; 	    (begin
+;; 	      (comment "min-excl-formula?")
+;; 	      (comment "warning: non definite premise(s)")
+;; 	      (do ((l ds (cdr l)))
+;; 		  ((null? l))
+;; 		(if (not (atr-definite? (car l)))
+;; 		    (comment (formula-to-string (car l))))))))
+;;     (if (or (null? vars) (null? goals))
+;; 	(myerror "min-excl-formula?" "unexpected formula" formula))
+;;     #t))
+
+;; ;; For backward compatibility we keep
+
+;; (define (min-excl-proof? proof)
+;;   (min-excl-formula? (proof-to-formula proof)))
 
 ;; atr-expand-theorems expands all non-definite theorems.  It only
 ;; makes sense before substituting for bot.
