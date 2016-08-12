@@ -1,5 +1,11 @@
 ;; 2016-06-09.  todo.scm
 
+;; 2016-08-12.  In the dev branch examples/classical/gcd.scm gives an
+;; error at (proof-to-extracted-d-term (theorem-name-to-proof "GcdAnd"))
+;; mk-term-in-app-form
+;; applicable type expected
+;; nat
+
 ;; 2016-06-09.  Replace axiom mr-intro-mr-aconst by a theorem
 
 ;; 2016-06-09.  Parsing of (i) cases display (ii) predicates
