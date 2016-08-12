@@ -822,6 +822,83 @@
 (remove-var-name "h" "w" "g" "b")
 (remove-pvar-name "P" "S")
 
+;; 10-7-2.  Generalizing the introduction axioms for defined and, ex
+
+;; Tests for formulas-to-and-intro-proof
+
+(define proof (formulas-to-and-intro-proof (pf "Pvar1") (pf "Pvar2")))
+(define proof (formulas-to-and-intro-proof (pf "Pvar1") (pf "Pvar^2")))
+(define proof (formulas-to-and-intro-proof (pf "Pvar^1") (pf "Pvar2")))
+(define proof (formulas-to-and-intro-proof (pf "Pvar^1") (pf "Pvar^2")))
+;; (cdp proof)
+
+(define proof
+  (formulas-to-and-intro-proof (pf "Pvar^1") (pf "Pvar2") (pf "Pvar^3")))
+(define proof
+  (formulas-to-and-intro-proof (pf "Pvar1") (pf "Pvar^2") (pf "Pvar3")))
+;; (cdp proof)
+;; (pp (proof-to-formula proof))
+;; (proof-to-expr-with-formulas proof)
+
+(add-pvar-name "P" (make-arity (py "nat")))
+
+(define proof (formulas-to-and-intro-proof (pf "P1 n1") (pf "P2 n2")))
+(define proof (formulas-to-and-intro-proof (pf "P1(n+n1)") (pf "P2(n+m+n2)")))
+;; (cdp proof)
+;; (pp (proof-to-formula proof))
+;; (proof-to-expr-with-formulas proof)
+
+(define proof
+  (formulas-to-and-intro-proof (pf "P1 n1") (pf "P2 n2") (pf "P3 n3")))
+(define proof (formulas-to-and-intro-proof
+	       (pf "P1(n+n1)") (pf "P2(n+m+n2)") (pf "P3 n3")))
+(define proof (formulas-to-and-intro-proof
+	       (pf "P^1(n+n1)") (pf "P2(n+m+n2)") (pf "P^3 n3")))
+(define proof (formulas-to-and-intro-proof
+	       (pf "P1(n+n1)") (pf "P^2(n+m+n2)") (pf "P3 n3")))
+;; (cdp proof)
+;; (pp (proof-to-formula proof))
+;; (proof-to-expr-with-formulas proof)
+
+;; Tests for vars-and-formulas-to-exand-intro-proof
+
+(define proof (vars-and-formulas-to-exand-intro-proof (pv "n") (pf "P n")))
+(define proof (vars-and-formulas-to-exand-intro-proof (pv "n") (pf "P^ n")))
+(define proof (vars-and-formulas-to-exand-intro-proof (pv "n^") (pf "P n^")))
+(define proof (vars-and-formulas-to-exand-intro-proof (pv "n^") (pf "P^ n^")))
+;; (cdp proof)
+;; (pp (rename-variables (proof-to-formula proof)))
+;; (proof-to-expr-with-formulas proof)
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n2") (pf "P1 n1") (pf "P2 n2")))
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n1") (pv "n2") (pf "P1 n1") (pf "P2 n2")))
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n1") (pv "n2") (pv "n3")
+   (pf "P^1(n+n1)") (pf "P2(n+m+n2)") (pf "P^3 n3")))
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n1") (pv "n2") (pv "n3")
+   (pf "P1(n+n1)") (pf "P^2(n+m+n2)") (pf "P3 n3")))
+
+;; (cdp proof)
+;; (pp (rename-variables (proof-to-formula proof)))
+;; (proof-to-expr-with-formulas proof)
+;; (define nproof (np proof))
+;; (cdp nproof)
+;; (proof-to-expr-with-formulas nproof)
+
+
+;; 10-8. Basic proof constructions
+;; ===============================
+
 ;; Tests for formula-to-efq-proof
 
 (define proof (formula-to-efq-proof (pf "Even 0")))
