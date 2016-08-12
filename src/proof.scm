@@ -10893,6 +10893,141 @@
 	   (list (make-proof-in-avar-form step-avar) lft-proof rht-proof))))
     (apply mk-proof-in-intro-form (list and-avar step-avar concl-proof))))
 
+;; 10-7-2.  Generalizing the introduction axioms for defined and, ex
+
+;; formulas-to-and-intro-proof generalizes the introduction axioms for
+;; AndD AndL AndR AndU to more than two conjuncts.  It returns a proof
+;; of As -> /\ As where the decorations of the conjunctions depend on
+;; whether A_i is c.r. or n.c.
+
+(define (formulas-to-and-intro-proof fla1 fla2 . formulas)
+  (if
+   (null? formulas) ;Case A B.  Treat directly
+   (let* ((cterms (list (make-cterm fla1) (make-cterm fla2)))
+	  (name (if (not (formula-of-nulltype? fla1))
+		    (if (not (formula-of-nulltype? fla2)) "AndD" "AndL")
+		    (if (not (formula-of-nulltype? fla2)) "AndR" "AndU")))
+	  (idpc (idpredconst-name-and-types-and-cterms-to-idpredconst
+		 name '() cterms))
+	  (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+	  (free (union (formula-to-free fla1)
+		       (formula-to-free fla2))))
+     (apply mk-proof-in-elim-form
+	    (make-proof-in-aconst-form aconst)
+	    (map make-term-in-var-form free)))
+   ;; Case A As with |As|>1.  Recursive call to As
+   (let* ((prev (apply formulas-to-and-intro-proof (cons fla2 formulas)))
+	  (u (formula-to-new-avar fla1))
+	  (us (map formula-to-new-avar (cons fla2 formulas)))
+	  (elim-proof1 ;of /\As
+	   (apply mk-proof-in-elim-form
+		  prev (map make-proof-in-avar-form us)))
+	  (and-fla (proof-to-formula elim-proof1))
+	  (cterms (list (make-cterm fla1) (make-cterm and-fla)))
+	  (name (if (not (formula-of-nulltype? fla1))
+		    (if (not (formula-of-nulltype? and-fla)) "AndD" "AndL")
+		    (if (not (formula-of-nulltype? and-fla)) "AndR" "AndU")))
+	  (idpc (idpredconst-name-and-types-and-cterms-to-idpredconst
+		 name '() cterms))
+	  (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+	  (free (apply union
+		       (map formula-to-free (cons fla1 (cons fla2 formulas)))))
+	  (elim-proof2
+	   (apply mk-proof-in-elim-form
+		  (make-proof-in-aconst-form aconst)
+		  (append (map make-term-in-var-form free)
+			  (list (make-proof-in-avar-form u)
+				elim-proof1)))))
+     (apply mk-proof-in-intro-form
+	    u (append us (list elim-proof2))))))
+
+;; vars-and-formulas-to-exand-intro-proof generalizes the introduction
+;; axioms for ExD ExL ExDT ExLT to more than one variable and finitely
+;; many conjuncts.  It proves all xs(As -> ex xs /\ As) where the
+;; decorations of the conjunctions depend on whether A_i is c.r. or
+;; n.c., and all existential quantifiers are exd except possibly the
+;; last one, which is exl iff all As are n.c.
+
+(define (vars-and-formulas-to-exand-intro-proof . vars-and-formulas)
+  (let ((variables (list-transform-positive vars-and-formulas var-form?))
+	(formulas (list-transform-positive vars-and-formulas formula-form?)))
+    (if
+     (null? variables)
+     (apply formulas-to-and-intro-proof formulas)
+     (let ((var (car variables))
+	   (vars (cdr variables))	   
+	   (fla (if (null? formulas)
+		    (myerror "vars-and-formulas-to-exand-intro-proof"
+			     "formulas expected")
+		    (car formulas)))
+	   (flas (cdr formulas)))
+       (if
+	(null? vars) ;ex x /\As with ExD or ExL
+	(if
+	 (null? flas) ;ex x A.  Treat directly with ExD or ExL
+	 (let* ((t-deg (var-to-t-deg var))
+		(types (list (var-to-type var)))
+		(cterms (list (make-cterm var fla)))
+		(name (if (formula-of-nulltype? fla)
+			  (if (t-deg-zero? t-deg) "ExL" "ExLT")
+			  (if (t-deg-zero? t-deg) "ExD" "ExDT")))
+		(idpc (idpredconst-name-and-types-and-cterms-to-idpredconst
+		       name types cterms))
+		(aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+		(free (formula-to-free (aconst-to-inst-formula aconst))))
+	   (apply mk-proof-in-elim-form
+		  (make-proof-in-aconst-form aconst)
+		  (map make-term-in-var-form free)))
+	 ;; ex x /\As.  Use formulas-to-and-intro-proof
+	 (let* ((and-intro-proof (apply formulas-to-and-intro-proof formulas))
+		(and-fla (proof-to-formula and-intro-proof))
+		(us (map formula-to-new-avar formulas))
+		(elim-proof1 (apply mk-proof-in-elim-form
+				    and-intro-proof
+				    (map make-proof-in-avar-form us)))
+		(and-fla (proof-to-formula elim-proof1))
+		(t-deg (var-to-t-deg var))
+		(types (list (var-to-type var)))
+		(cterms (list (make-cterm var and-fla)))
+		(name (if (not (formula-of-nulltype? and-fla))
+			  (if (t-deg-zero? t-deg) "ExD" "ExDT")
+			  (if (t-deg-zero? t-deg) "ExL" "ExLT")))
+		(idpc (idpredconst-name-and-types-and-cterms-to-idpredconst
+		       name types cterms))
+		(aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+		(free (remove var (apply union (map formula-to-free formulas))))
+		(elim-proof2 (apply mk-proof-in-elim-form
+				    (make-proof-in-aconst-form aconst)
+				    (append (map make-term-in-var-form free)
+					    (list (make-term-in-var-form var)
+						  elim-proof1)))))
+	   (apply mk-proof-in-intro-form
+		  var (append us (list elim-proof2)))))
+	;; ex x xs /\As.  Recursive call to xs As
+	(let* ((prev (apply vars-and-formulas-to-exand-intro-proof
+			    (append vars formulas)))
+	       (us (map formula-to-new-avar formulas))
+	       (elim-proof1
+		(apply mk-proof-in-elim-form
+		       prev (append (map make-term-in-var-form vars)
+				    (map make-proof-in-avar-form us))))
+	       (exand-fla (proof-to-formula elim-proof1))
+	       (cterms (list (make-cterm var exand-fla)))
+	       (t-deg (var-to-t-deg var))
+	       (types (list (var-to-type var)))
+	       (name (if (t-deg-zero? t-deg) "ExD" "ExDT"))
+	       (idpc (idpredconst-name-and-types-and-cterms-to-idpredconst
+		      name types cterms))
+	       (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+	       (free (formula-to-free (aconst-to-inst-formula aconst)))
+	       (elim-proof2 (apply mk-proof-in-elim-form
+				   (make-proof-in-aconst-form aconst)
+				   (append (map make-term-in-var-form free)
+					   (list (make-term-in-var-form var)
+						 elim-proof1)))))
+	  (apply mk-proof-in-intro-form
+		 var (append vars us (list elim-proof2)))))))))
+
 ;; 10-8. Basic proof constructions
 ;; ===============================
 
