@@ -2134,9 +2134,19 @@
 	   (make-imp prem
 		     (real-and-formula-to-mr-formula-for-mr-clauses
 		      real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	   (make-impnc prem
-		       (real-and-formula-to-mr-formula-for-mr-clauses
-			real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
+	   (let* ((type1 (formula-to-et-type-for-mr-clauses
+			  prem mr-et-tvars idpc-pvars pvar-to-mr-pvar))
+		  (var (type-to-new-partial-var type1))
+		  (varterm (make-term-in-var-form var)))
+	     (make-all
+	      var (make-imp
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))))
+	   ;; (make-impnc prem
+	   ;; 	       (real-and-formula-to-mr-formula-for-mr-clauses
+	   ;; 		real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
     ((and)
      (let* ((left (and-form-to-left formula))
 	    (type1 (formula-to-et-type-for-mr-clauses
