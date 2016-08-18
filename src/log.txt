@@ -1,6 +1,15 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done on dev branch 2016-08-18
+
+In psym.scm
+
+real-and-formula-to-mr-formula-for-mr-clauses corrected in case impnc
+with c.r. premise: proceed as in the c.r. case of imp, but with real
+instead of appterm (suggested by Kenji Miyamoto).
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-08-12
 
 In proof.scm
