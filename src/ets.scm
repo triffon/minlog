@@ -700,8 +700,14 @@
 		  (formula-to-et-type prem)
 		  (myerror "axiom-to-extracted-term"
 			   "formula with computational content expected" prem)))
-     	     (alg (type-substitute uninst-alg tsubst)))
-     	(make-term-in-const-form (alg-to-destr-const alg))))
+     	     (alg (type-substitute uninst-alg tsubst))
+					;we also need prim-prod-flag:
+	     (disj (imp-form-to-conclusion kernel))
+	     (disj-type (formula-to-et-type disj))
+	     (components (ysum-without-unit-to-components disj-type))
+	     (prim-prod-flag
+	      (pair? (list-transform-positive components star-form?))))
+     	(make-term-in-const-form (alg-to-destr-const alg prim-prod-flag))))
      ((string=? "Gfp" name)
       (let* ((inst-fla (aconst-to-inst-formula aconst))
 	     (et-type (formula-to-et-type inst-fla))
@@ -715,33 +721,32 @@
 	     (arg-types (arrow-form-to-arg-types et-type))
 	     (improper-corec? (= (length simalg-names)
 				 (length arg-types)))
-	     (uninst-step-types (if improper-corec?
-				    arg-types
-				    (cdr arg-types)))
+	     (inst-step-types (if improper-corec? arg-types (cdr arg-types)))
 	     (f-or-types (map (lambda (type)
 				(if (arrow-form? type)
 				    (arrow-form-to-arg-type type)
 				    #f))
-			      uninst-step-types))
+			      inst-step-types))
 	     (alg-or-arrow-types
 	      (map (lambda (f-or-type simalg-name)
 		     (if f-or-type
-			 (make-arrow
-			  f-or-type
-			  (apply make-alg
-				 (cons simalg-name alg-types)))
-			 (apply make-alg
-				(cons simalg-name alg-types))))
+			 (make-arrow f-or-type
+				     (apply make-alg simalg-name alg-types))
+			 (apply make-alg simalg-name alg-types)))
 		   f-or-types simalg-names))
 	     (alg-or-arrow-type
-	      (if improper-corec?
-		  alg
-		  (make-arrow (car arg-types) alg)))
+	      (if improper-corec? alg (make-arrow (car arg-types) alg)))
 	     (rest-alg-or-arrow-types
 	      (remove alg-or-arrow-type alg-or-arrow-types))
+	     (prim-prod-flag
+	      (and f-or-types
+		   (pair? (list-transform-positive
+			      (ysum-without-unit-to-components (car f-or-types))
+			    star-form?))))
 	     (corec-const (apply alg-or-arrow-types-to-corec-const
-				 (cons alg-or-arrow-type
-				       rest-alg-or-arrow-types))))
+				 alg-or-arrow-type
+				 (append rest-alg-or-arrow-types
+					 (list prim-prod-flag)))))
 	(make-term-in-const-form corec-const)))
      ((string=? "Ex-Intro" name)
       (ex-formula-to-ex-intro-et (car (aconst-to-repro-data aconst))))
@@ -2388,6 +2393,22 @@
 
 (add-theorem "YsumTotalVar" ysum-total-var-proof)
 
+;; YprodIfTotal
+(set-goal "allnc (alpha yprod beta)^(TotalYprod (alpha yprod beta)^ ->
+ allnc (alpha=>beta=>gamma)^(
+  allnc alpha^(Total alpha^ -> allnc beta^(Total beta^ -> 
+               Total((alpha=>beta=>gamma)^ alpha^ beta^))) ->
+ Total[if ((alpha yprod beta)^) (alpha=>beta=>gamma)^]))")
+(assume "(alpha yprod beta)^" "Tkj" "(alpha=>beta=>gamma)^" "Tf")
+(elim "Tkj")
+(assume "alpha^" "Tk" "beta^" "Tj")
+(ng #t)
+(use "Tf")
+(use "Tk")
+(use "Tj")
+;; Proof finished.
+(save "YprodIfTotal")
+
 ;; For invariance axioms we need aconsts invarex-aconst invarall-aconst.
 
 ;; PVAR-TO-MR-PVAR-ALIST initially has
@@ -2885,10 +2906,7 @@
 		     (aconst-to-uninst-formula orig-cases-aconst)))))))
     (if
      (formula-of-nulltype? kernel)
-     (let* ((mr-all-formula
-	     (real-and-formula-to-mr-formula-aux 'eps all-formula))
-	    (cases-aconst (all-formula-to-cases-aconst mr-all-formula)))
-       (make-proof-in-aconst-form cases-aconst))
+     (make-proof-in-aconst-form (all-formula-to-cases-aconst all-formula))
      (let* ((real-vars ;f1 ... fq
 	     (map (lambda (fla)
 		    (type-to-new-partial-var (formula-to-et-type fla)))
@@ -2927,19 +2945,43 @@
 	       (cons (make-term-in-var-form var)
 		     (map make-proof-in-avar-form avars))))))))))))))
 
+;; Consider guarded general induction 
+;; all mu,xs(Prog_mu{xs | A(xs)} -> all b(b -> A(xs))) with
+;; Prog_mu{xs | A(xs)} := all xs(all ys(mu ys<mu xs -> A(ys)) -> A(xs)).  Goal:
+;; GRecGuard is a realizer.  Fix mu,G,xs, prog-avar: G mr Prog_mu{xs | A(xs)}:=
+;; all xs,f(all ys(mu ys<mu xs -> f ys mr A(ys)) -> G xs f mr A(xs)).
+;; We must show all b(b -> GRecGuard mu xs G b mr A(xs))).
+
+;; 1.  We can assume b=True, since otherwise the claim follows from Efq.
+
+;; 2.  Recall that by definition GRecGuard mu xs G True = GRec mu xs G = G xs f
+;; for f ys := [if (mu ys<mu xs) (GRec mu ys G) eps]
+
+;; 3.  We show all xs GRec mu xs G mr A(xs) by general induction
+;; w.r.t. our fixed mu,G.  It suffices to show its step
+;; all xs(all ys(mu ys<mu xs -> GRec mu ys G mr A(ys)) -> GRec mu xs G mr A(xs))
+;; Fix xs.  Assume prog-prem: all ys(mu ys<mu xs -> GRec mu ys G mr A(ys)).
+;; Goal: GRec mu xs G mr A(xs).  Use prog-avar at xs and our f above.
+;; Its conclusion fits since GRec mu xs G = G xs f.  Its premise
+;; all ys(mu ys<mu xs -> f ys mr A(ys)) is prog-prem, by definition of f.
+
 (define (gind-aconst-to-mr-gind-proof aconst)
-  (let* ((uninst-gind-formula (aconst-to-uninst-formula aconst))
-         (all-formula (car (aconst-to-repro-data aconst)))
-         (free (formula-to-free all-formula))
-         (measure-var-and-vars (all-form-to-vars uninst-gind-formula))
-         (measure-var (car measure-var-and-vars))
-         (vars (cdr measure-var-and-vars))
-         (m (length vars))
-         (kernel-formula (all-form-to-final-kernel all-formula m)) ;A(xs)
-         (kernel-formula-et-type (formula-to-et-type kernel-formula))
-	 (inst-formula (aconst-to-inst-formula aconst))
+  (let* ((all-formula (car (aconst-to-repro-data aconst)))
+	 (free (formula-to-free all-formula))
+	 (inst-gind-formula (aconst-to-inst-formula aconst))
+	 (measure-var-and-vars (all-form-to-vars inst-gind-formula))
+	 (measure-var (car measure-var-and-vars))
+	 (vars (cdr measure-var-and-vars)) ;xs
+	 (m (length vars))
+	 (kernel-formula ;A(xs)
+	   (formula-substitute
+	    (all-form-to-final-kernel all-formula m)
+	    (make-substitution
+	     (all-form-to-vars all-formula m)
+	     (map make-term-in-var-form vars))))
+	 (kernel-formula-et-type (formula-to-et-type kernel-formula))
 	 (prog-formula ;Prog_mu{xs | A(xs)}
-	  (imp-form-to-premise (all-form-to-final-kernel inst-formula)))
+	  (imp-form-to-premise (all-form-to-final-kernel inst-gind-formula)))
 	 (prog-formula-et-type (formula-to-et-type prog-formula))
 	 (real-var (type-to-new-var prog-formula-et-type)) ;G
 	 (real-term (make-term-in-var-form real-var))
@@ -2965,24 +3007,28 @@
 	 (mr-kernel-formula ;GRec mu xs G mr A(xs)
 	  (real-and-formula-to-mr-formula-aux
 	   applied-grec-term kernel-formula))
-	 (mr-all-formula ;all xs.GRec mu xs G mr A(xs)
+	 (mr-all-formula ;all xs GRec mu xs G mr A(xs)
 	  (apply mk-all (append vars (list mr-kernel-formula))))
 	 (mr-free (formula-to-free mr-all-formula))
 	 (mr-gind-aconst
 	  (all-formula-and-number-to-gind-aconst mr-all-formula m))
-	 (mr-gind-inst-formula
-	  (aconst-to-inst-formula mr-gind-aconst))
+	 (mr-gind-inst-formula (aconst-to-inst-formula mr-gind-aconst))
 	 (mr-measure-var (all-form-to-var mr-gind-inst-formula))
 	 (mr-prog-formula
-	  (imp-form-to-premise
-	   (all-form-to-final-kernel mr-gind-inst-formula)))
+	  (imp-form-to-premise (all-form-to-final-kernel mr-gind-inst-formula)))
 	 (subst-mr-prog-formula
-	  (formula-subst mr-prog-formula mr-measure-var
-			 (make-term-in-var-form measure-var)))
+	   (formula-subst mr-prog-formula mr-measure-var
+			  (make-term-in-var-form measure-var)))
+	 (subst-mr-prog-formula-at-vars
+	   (formula-substitute
+	    (all-form-to-final-kernel subst-mr-prog-formula)
+	    (make-substitution
+	     (all-form-to-vars subst-mr-prog-formula)
+	     (map make-term-in-var-form vars))))
 	 (mr-prog-prem-avar ;u:all ys(mu ys<mu xs -> GRec mu ys G mr A(ys))
 	  (formula-to-new-avar
 	   (imp-form-to-premise
-	    (all-form-to-final-kernel subst-mr-prog-formula)) "u"))
+	    (all-form-to-final-kernel subst-mr-prog-formula-at-vars)) "u"))
 	 (new-vars (map var-to-new-var vars)) ;ys
 	 (test-term ;mu ys<mu xs
 	  (mk-term-in-app-form
@@ -3019,19 +3065,29 @@
 			     subst-kernel-formula)))
 					;this is a hack ... is there no better
 					;way to do this substitution?
-	 (tsubst-eq-compat-rev-proof
-	  (proof-subst (make-proof-in-aconst-form eq-compat-rev-aconst)
-		       (car (formula-to-tvars
-			     (aconst-to-formula eq-compat-rev-aconst)))
-		       (py "boole")))
-	 (tpsubst-eq-compat-rev-proof
-	  (proof-subst tsubst-eq-compat-rev-proof
-		       (car (formula-to-pvars
-			     (proof-to-formula tsubst-eq-compat-rev-proof)))
-		       cterm))
+	 (tpsubst-eqd-compat-rev-proof
+	  (proof-substitute
+	   eqd-compat-rev-proof
+	   (make-substitution
+	    (list (car (formula-to-tvars
+			(proof-to-formula eqd-compat-rev-proof)))
+		  (car (formula-to-pvars
+			(proof-to-formula eqd-compat-rev-proof))))
+	    (list (py "boole") cterm))))
 	 (aux-avar (formula-to-new-avar (make-atomic-formula test-term)))
-	 (aux-proof ;M' : all ys(mu ys<mu xs -> GRecGuard
-					;mu ys G (mu ys<mu xs) mr A(ys))
+	 (atom-true-proof
+	   (mk-proof-in-elim-form
+	    (make-proof-in-aconst-form atom-true-aconst)
+	    test-term
+	    (make-proof-in-avar-form aux-avar)))
+	 (eqd-proof
+	   (mk-proof-in-elim-form
+	    (theorem-name-to-proof "BooleEqToEqD")
+	    test-term
+	    (pt "True")
+	    atom-true-proof))
+	 (aux-proof
+	  ;;M' : all ys(mu ys<mu xs -> GRecGuard mu ys G(mu ys<mu xs) mr A(ys))
 	  (apply
 	   mk-proof-in-intro-form
 	   (append
@@ -3039,15 +3095,10 @@
 	    (list
 	     aux-avar
 	     (mk-proof-in-elim-form
-	      tpsubst-eq-compat-rev-proof test-term (pt "True")
-	      (mk-proof-in-elim-form
-	       (make-proof-in-aconst-form
-		(finalg-to-=-to-eq-aconst (py "boole")))
-	       test-term (pt "True")
-	       (mk-proof-in-elim-form
-		(make-proof-in-aconst-form atom-true-aconst)
-		test-term
-		(make-proof-in-avar-form aux-avar)))
+	      tpsubst-eqd-compat-rev-proof
+	      test-term
+	      (pt "True")
+	      eqd-proof
 	      (apply mk-proof-in-elim-form
 		     (make-proof-in-avar-form mr-prog-prem-avar)
 		     (append (map make-term-in-var-form new-vars)
@@ -3070,27 +3121,24 @@
 		       (append new-vars
 			       (list prev-applied-grecguard-term)))
 		aux-proof))))))))
-    (apply
-     mk-proof-in-intro-form
-     (append
-      free
-      (list
-       (apply
-	mk-proof-in-intro-form
-	measure-var
-	(append
-	 vars
-	 (list
-	  real-var
-	  prog-avar
-	  (apply
-	   mk-proof-in-elim-form
-	   (make-proof-in-aconst-form mr-gind-aconst)
+    (apply mk-proof-in-intro-form
 	   (append
-	    (map make-term-in-var-form mr-free)
-	    (list (make-term-in-var-form measure-var))
-	    (map make-term-in-var-form vars)
-	    (list mr-prog-proof)))))))))))
+	    free (list
+		  (apply
+		   mk-proof-in-intro-form
+		   measure-var
+		   (append
+		    vars (list
+			  real-var
+			  prog-avar
+			  (apply
+			   mk-proof-in-elim-form
+			   (make-proof-in-aconst-form mr-gind-aconst)
+			   (append
+			    (map make-term-in-var-form mr-free)
+			    (list (make-term-in-var-form measure-var))
+			    (map make-term-in-var-form vars)
+			    (list mr-prog-proof)))))))))))
 
 (define (type-to-inhabtotal-mr-proof type)
   (let* ((uninst-formula (aconst-to-uninst-formula inhabtotalmr-aconst))
@@ -3235,9 +3283,11 @@
 		    (cadr (car psubst))
 		    (make-cterm fla1)))
 	 (fla (cterm-to-formula cterm))
-	 (et-type (formula-to-et-type fla))
-	 (real (type-to-canonical-inhabitant et-type))
-	 (mr-fla (real-and-formula-to-mr-formula-aux real fla))
+	 (mr-fla (if (formula-of-nulltype? fla)
+		     fla
+		     (real-and-formula-to-mr-formula-aux
+		      (type-to-canonical-inhabitant (formula-to-et-type fla))
+		      fla)))
 	 (new-cterm (make-cterm mr-fla))
 	 (new-tpsubst (append tsubst (list (list pvar new-cterm))))
 	 (new-aconst (make-aconst name kind uninst-formula new-tpsubst)))
