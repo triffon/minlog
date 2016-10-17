@@ -1,4 +1,4 @@
-;; 2016-07-31.  int.scm.  Based on the former numbers.scm.
+;; 2016-10-16.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -351,6 +351,7 @@
 (add-program-constant "IntMinus" (py "int=>int=>int"))
 (add-program-constant "IntTimes" (py "int=>int=>int"))
 (add-program-constant "IntAbs" (py "int=>int"))
+(add-program-constant "IntSg" (py "int=>int"))
 (add-program-constant "IntExp" (py "int=>nat=>int"))
 (add-program-constant "IntMax" (py "int=>int=>int"))
 (add-program-constant "IntMin" (py "int=>int=>int"))
@@ -380,6 +381,9 @@
 (add-token "abs" 'prefix-op (make-term-creator1 "abs" "int"))
 (add-token-and-type-to-name "abs" (py "int") "IntAbs")
 
+(add-token "sg" 'prefix-op (make-term-creator1 "sg" "int"))
+(add-token-and-type-to-name "sg" (py "int") "IntSg")
+
 (add-token-and-types-to-name "**" (list (py "int") (py "pos")) "IntExp")
 (add-token-and-types-to-name "**" (list (py "int") (py "nat")) "IntExp")
 
@@ -394,6 +398,7 @@
 (add-display (py "int") (make-display-creator "IntTimes" "*" 'mul-op))
 (add-display (py "nat") (make-display-creator1 "IntAbs" "abs" 'prefix-op))
 (add-display (py "int") (make-display-creator1 "IntAbs" "abs" 'prefix-op))
+(add-display (py "int") (make-display-creator1 "IntSg" "sg" 'prefix-op))
 (add-display (py "int") (make-display-creator "IntExp" "**" 'exp-op))
 (add-display (py "int") (make-display-creator "IntMax" "max" 'mul-op))
 (add-display (py "int") (make-display-creator "IntMin" "min" 'mul-op))
@@ -534,35 +539,6 @@
 	 (make-term-in-const-form
 	  (pconst-name-to-pconst "NatToInt"))
 	 (make-term-in-var-form var)))))
-
-;; ;; NatToIntInj
-;; (set-goal "all nat1,nat2(NatToInt nat1=NatToInt nat2 -> nat1=nat2)")
-;; (cases)
-;; ;; 2-3
-;; (cases)
-;; ;; 4-5
-;; (ng)
-;; (strip)
-;; (use "Truth")
-;; (ng)
-;; ;; ?_8:all n(0=IntS n -> F)
-;; (assume "nat")
-;; (simp "<-" "NatToIntCompRule")
-
-;; (goal-to-formula (current-goal))
-
-;; (set-goal "all nat (0=NatToInt(Succ nat))=False")
-;; (ind)
-;; (use "Truth")
-;; ;; 3
-;; (assume "nat" "IH")
-;; (ng)
-
-;; (search-about "Succ")
-;; (search-about "Mon")
-;; (search-about "Inj")
-;; (display-pconst "NatToInt")
-;; (search-about "NatToInt")
 
 ;; Rules for IntPred
 
@@ -1910,29 +1886,6 @@
 ;; Proof finished.
 (add-rewrite-rule "k+IntS j" "IntS(k+j)")
 
-;; (display-pconst "IntPlus")
-;; (search-about "IntPlus")
-;; (display-pconst "IntS")
-;; (search-about "IntS")
-
-;; In numbers.scm we had unproven rewrite rules
-;; (add-rewrite-rule "i+One" "IntS i")
-;; (add-rewrite-rule "i+IntP(SZero p)" "i+IntP p+IntP p")
-;; (add-rewrite-rule "i+IntP(SOne p)" "IntS(i+IntP(SZero p))")
-;; (add-rewrite-rule "i+IntN(SZero p)" "i+IntN p+IntN p")
-;; (add-rewrite-rule "i+IntN(SOne p)" "IntPred(i+IntN(SZero p))")
-
-;; (add-rewrite-rule "One+i" "IntS i")
-;; (add-rewrite-rule "IntP(SZero p)+i" "i+IntP p+IntP p")
-;; (add-rewrite-rule "IntP(SOne p)+i" "IntS(i+IntP(SZero p))")
-;; (add-rewrite-rule "IntN(SZero p)+i" "i+IntN p+IntN p")
-;; (add-rewrite-rule "IntN(SOne p)+i" "IntPred(i+IntN(SZero p))")
-
-;; ;; Added 2007-02-13
-;; (add-rewrite-rule "i1+(i2+i3)" "i1+i2+i3")
-;; (add-rewrite-rule "IntS i+j" "IntS(i+j)")
-;; (add-rewrite-rule "i+IntS j" "IntS(i+j)")
-
 ;; Rules for IntTimes
 
 (add-computation-rules
@@ -2400,30 +2353,6 @@
 ;; Proof finished.
 (save-totality)
 
-;; Code discarded 2016-04-18
-;; (add-computation-rules
-;;  "abs IntZero" "Zero"
-;;  "abs IntP pos" "PosToNat pos"
-;;  "abs IntN pos" "PosToNat pos")
-
-;; ;; IntAbsTotal
-;; (set-totality-goal "IntAbs")
-;; (assume "k^" "Tk")
-;; (elim "Tk")
-
-;; (assume "p^" "Tp")
-;; (use "PosToNatTotal")
-;; (use "Tp")
-
-;; (ng #t)
-;; (use "TotalNatZero")
-
-;; (assume "p^" "Tp")
-;; (use "PosToNatTotal")
-;; (use "Tp")
-;; ;; Proof finished.
-;; (save-totality)
-
 (set-goal "all k abs(~k)=abs k")
 (cases)
 (assume "p")
@@ -2463,6 +2392,36 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "abs(k*j)" "abs k*abs j")
+
+;; Rules for IntSg
+
+(add-computation-rules
+ "sg IntZero" "IntZero"
+ "sg IntP p" "IntP One"
+ "sg IntN p" "IntN One")
+
+;; IntSgTotal
+(set-totality-goal "IntSg")
+(use "AllTotalElim")
+(cases)
+(assume "p")
+(use "IntTotalVar")
+(use "IntTotalVar")
+(assume "p")
+(use "IntTotalVar")
+;; Proof finished.
+(save-totality)
+
+;; IntSgUMinus
+(set-goal "all k sg~k= ~sg k")
+(cases)
+(strip)
+(use "Truth")
+(use "Truth")
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "IntSgUMinus")
 
 ;; Rules for IntExp : int=>nat=>int
 
@@ -2991,17 +2950,6 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "k<=IntS k" "True")
-
-;; (set-goal "all nat,k k<=k+nat")
-;; (cases)
-;; (assume "k")
-;; (use "Truth")
-;; (assume "nat" "k")
-;; (simp "NatToKCompRule")
-;; (ng)
-;; (simp "<-" "IntPlusIdOne")
-;; (simp "<-" "IntPlusAssoc")
-;; stuck, but probably non needed.
 
 (set-goal "all p IntS IntN p<1")
 (cases)
@@ -4487,51 +4435,6 @@
 (save "IntLeAbsPlus")
 (add-rewrite-rule "abs(k+j)<=abs k+abs j" "True")
 
-;; (display-pconst "IntUMinus" "IntMinus")
-;; (pp "IntMinus0CompRule")
-;; k-j => k+ ~j
-;; Replace (simp "<-" IntPlusUMinusId) by (simp "IntMinus0CompRule")
-
-;; ;; IntPlusUMinusId
-;; (set-goal "all k,j k+ ~j=k-j")
-;; (cases)
-;; ;; 2-4
-;; (assume "p")
-;; (cases)
-;; ;; 6-8
-;; (assume "q")
-;; (ng)
-;; (use "Truth")
-;; ;; 7
-;; (use "Truth")
-;; ;; 8
-;; (assume "q")
-;; (ng)
-;; (use "Truth")
-;; ;; 3
-;; (cases)
-;; ;; 13-15
-;; (assume "q")
-;; (use "Truth")
-;; ;; 14
-;; (use "Truth")
-;; ;; 15
-;; (assume "q")
-;; (use "Truth")
-;; ;; 4
-;; (assume "p")
-;; (cases)
-;; ;; 19-21
-;; (assume "q")
-;; (use "Truth")
-;; ;; 20
-;; (use "Truth")
-;; ;; 21
-;; (assume "q")
-;; (use "Truth")
-;; ;; Proof finished.
-;; (save "IntPlusUMinusId")
-
 ;; IntLeMinusAbs
 (set-goal "all k,j(abs k+ ~abs j<=abs(k+ ~j))")
 (cases)
@@ -4681,11 +4584,6 @@
 ;; Proof finished.
 (add-rewrite-rule "k-j+j" "k")
 
-;; (display-pconst "IntPlus")
-;; (search-about "Int" "Abs")
-;; (display-pconst "IntAbs")
-;; (display-pconst "IntLe")
-
 ;; IntLeAbsMinus
 (set-goal "all k,i,j abs(k+ ~i)<=abs(k+ ~j)+abs(j+ ~i)")
 (assume "k" "i" "j")
@@ -4699,26 +4597,4 @@
 ;; Proof finished.
 (save "IntLeAbsMinus")
 (add-rewrite-rule "abs(k+ ~i)<=abs(k+ ~j)+abs(j+ ~i)" "True")
-
-;; Code discarded 2016-06-23
-;; (set-goal "all k,i,j abs(k-i)<=abs(k-j)+abs(j-i)")
-;; (assume "k" "i" "j")
-;; (assert "k-i=(k-j)+(j-i)")
-;;  (assert "k-j=k+ ~j")
-;;   (use "Truth")
-;;  (assume "k-j=k+ ~j")
-;;  (simp "k-j=k+ ~j")
-;;  (assert "j-i=j+ ~i")
-;;   (use "Truth")
-;;  (assume "j-i=j+ ~i")
-;;  (simp "j-i=j+ ~i")
-;;  (simp "<-" "IntPlusAssoc")
-;;  (ng)
-;;  (use "Truth")
-;; (assume "Assertion")
-;; (simp "Assertion")
-;; (use "IntLeAbsPlus")
-;; ;; Proof finished.
-;; (save "IntLeAbsMinus")
-;; (add-rewrite-rule "abs(k-i)<=abs(k-j)+abs(j-i)" "True")
 
