@@ -1,4 +1,4 @@
-;; 2016-07-31.  rat.scm.  Based on numbers.scm.
+;; 2016-10-16.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1267,16 +1267,6 @@
 ;; Proof finished.
 (add-rewrite-rule "a<=a+p" "True")
 
-;; Code discarded 2016-06-23.  Can only be a theorem, since overridden
-;; be the computation rules of RatLe.  But too simple as theorem.
-
-;; (set-goal "all k,j,p ((k#p)<=(j#p))=(k<=j)")
-;; (assume "k" "j" "p")
-;; (ng)
-;; (use "Truth")
-;; ;; Proof finished.
-;; (add-rewrite-rule "(k#p)<=(j#p)" "k<=j")
-
 ;; RatLeTrans
 (set-goal "all a,b,c(a<=b -> b<=c -> a<=c)")
 (cases)
@@ -1373,21 +1363,6 @@
 (use "Truth")
 ;; Proof finished.
 (save "RatLeCompat")
-
-;; Code discarded 2016-04-21
-;; ;; RatLeCompat
-;; (set-goal "all a,b,c,d(a==b -> c==d -> a<=c -> b<=d)")
-;; (assume "a" "b" "c" "d" "a=b" "c=d" "a<=c")
-;; (use "RatLeTrans" (pt "a"))
-;; (use "RatLeRefl")
-;; (use "RatEqvSym")
-;; (use "a=b")
-;; (use "RatLeTrans" (pt "c"))
-;; (use "a<=c")
-;; (use "RatLeRefl")
-;; (use "c=d")
-;; ;; Proof finished.
-;; (save "RatLeCompat")
 
 ;; RatLeMonPlus
 (set-goal "all a,b,c,d(a<=b -> c<=d -> a+c<=b+d)")
@@ -2105,29 +2080,6 @@
 ;; Proof finished.
 (save "PosExpTwoMinus")
 
-;; (ppn "PosExpTwoMinus")
-
-;; (all (n)
-;;      (all (m)
-;;           ((m NatLe n)
-;;             imp
-;;             (((2 PosExp (n NatMinus m)) PosTimes (2 PosExp m))
-;;               =
-;;               (2 PosExp n)))))
-
-;; Code discarded 2016-04-16
-;; ;; PosExpTwoMinus
-;; (set-goal "all p,q(q<p -> 2**(p--q)*2**q=2**p)")
-;; (assume "p" "q" "q<p")
-;; (simp "PosToNatMinus")
-;; (use "NatExpTwoMinus")
-;; (simp "PosToNatLe")
-;; (use "PosLtToLe")
-;; (use "q<p")
-;; (use "q<p")
-;; ;; Proof finished.
-;; (save "PosExpTwoMinus")
-
 ;; RatTimesTwoExp
 (set-goal "all i,j 2**i*2**j==2**(i+j)")
 ;; We need PosExpTwoMinus with p,q for n,m
@@ -2267,9 +2219,9 @@
 (save "RatLePosExpTwoMinus")
 
 ;; RatLeBound
-(set-goal "all p,q ex n (p#q)<=2**n")
+(set-goal "all p,q exl n (p#q)<=2**n")
 (assume "p" "q")
-(ex-intro (pt "Succ(PosLog p)--PosLog q"))
+(intro 0 (pt "Succ(PosLog p)--PosLog q"))
 (use "RatLeTrans" (pt "2**Succ(PosLog p)#2**PosLog q"))
 (use "RatLePosExpTwo")
 (use "RatLePosExpTwoMinus")
@@ -2281,17 +2233,83 @@
 ;;   RatLe
 ;;   ((IntPos (2 PosExp n)) RatConstr 1))
 
+(pp (rename-variables
+     (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeBound")))))
+;; [p,p0]Succ(PosLog p)--PosLog p0
+
+(animate "RatLeBound")
+
+;; RatLeBoundExFree
+(set-goal "all p,q (p#q)<=2**cRatLeBound p q")
+(assume "p" "q")
+(use "RatLeTrans" (pt "2**Succ(PosLog p)#2**PosLog q"))
+(use "RatLePosExpTwo")
+(simp "cRatLeBound0CompRule")
+(simp (pf "([p0,p1]Succ(PosLog p0)--PosLog p1)p q=Succ(PosLog p)--PosLog q"))
+(use "RatLePosExpTwoMinus")
+(use "Truth")
+;; Proof finished.
+(save "RatLeBoundExFree")
+
+(deanimate "RatLeBound")
+
 ;; RatLeAbsBound
-(set-goal "all a ex n abs a<=2**n")
+(set-goal "all a exl n abs a<=2**n")
 (cases)
 (cases)
 (use "RatLeBound")
 (assume "p")
-(ex-intro "Succ Zero")
+(intro 0 (pt "Succ Zero"))
 (use "Truth")
 (use "RatLeBound")
 ;; Proof finished.
 (save "RatLeAbsBound")
+
+(pp (rename-variables
+     (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeAbsBound")))))
+
+;; [a][if a ([k,p][if k ([p0]cRatLeBound p0 p)
+;;                      (Succ Zero)
+;;                      ([p0]cRatLeBound p0 p)])]
+
+(ppc (rename-variables
+      (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeAbsBound")))))
+
+;; [a][case a (k#p -> [case k
+;;      (p0 -> cRatLeBound p0 p)
+;;      (0 -> Succ Zero)
+;;      (IntN p0 -> cRatLeBound p0 p)])]
+
+(animate "RatLeAbsBound")
+
+;; RatLeAbsBoundExFree
+(set-goal "all a abs a<=2**cRatLeAbsBound a")
+(cases)
+(cases)
+(use "RatLeBoundExFree")
+(assume "p")
+(use "Truth")
+(assume "p" "q")
+(simp (pf "cRatLeAbsBound(IntN p#q)=cRatLeAbsBound(p#q)"))
+(use "RatLeBoundExFree")
+(use "Truth")
+;; Proof finished.
+(save "RatLeAbsBoundExFree")
+
+;; RatLeAbsBoundUMinusEq
+(set-goal "all a cRatLeAbsBound a=cRatLeAbsBound(~a)")
+(cases)
+(cases)
+(assume "p" "q")
+(use "Truth")
+(assume "q")
+(use "Truth")
+(assume "p" "q")
+(use "Truth")
+;; Proof finished.
+(save "RatLeAbsBoundUMinusEq")
+
+(deanimate "RatLeAbsBound")
 
 ;; We show that (i) RatExp for (p#1) and positive exponents and (2)
 ;; PosExp (which has nat as exponent type) are isomorphic, using that
@@ -2334,11 +2352,11 @@
 ;;   ((IntPos (p PosExp n)) RatConstr 1))
 
 ;; RatLeBoundInt
-(set-goal "all p,q ex i (p#q)<=2**i")
+(set-goal "all p,q exl i (p#q)<=2**i")
 (assume "p" "q")
 (inst-with-to "RatLeBound" (pt "p") (pt "q") "RatLeBoundInst")
 (by-assume "RatLeBoundInst" "n" "nProp")
-(ex-intro (pt "NatToInt n"))
+(intro 0 (pt "NatToInt n"))
 (use "NatLeCases" (pt "Zero") (pt "n"))
 (use "Truth")
 ;; Case 0<n
@@ -2356,23 +2374,25 @@
 ;; Proof finished.
 (save "RatLeBoundInt")
 
-(define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
+(pp (rename-variables (nt (proof-to-extracted-term
+			   (theorem-name-to-proof "RatLeBoundInt")))))
 ;; [p,p0]cRatLeBound p p0
 
-;; (ppn neterm)
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(ppn neterm)
 ;; (lambda p (lambda p0 (NatToInt (p cRatLeBound p0))))
 
 ;; RatLeAbsBoundInt
-(set-goal "all a ex i abs a<=2**i")
+(set-goal "all a exl i abs a<=2**i")
 (cases)
-(cases) ;3-5
+(cases)
+;; 3-5
 (ng #t)
 (use "RatLeBoundInt")
 ;; 4
 (assume "p")
-(ex-intro "0")
+(intro 0 (pt "0"))
 (use "Truth")
 ;; 5
 (ng #t)
@@ -2506,6 +2526,23 @@
 ;; Proof finished.
 (save "RatLeAbs")
 
+;; RatLeAbsMinusAbs
+(set-goal "all a,c(abs(abs a+ ~(abs c))<=abs(a+ ~c))")
+(assume "a" "c")
+(use "RatLeAbs")
+(use "RatLeMinusAbs")
+(ng)
+(simp "RatPlusComm")
+(use "RatLeTrans" (pt "abs(c+ ~a)"))
+(use "RatLeMinusAbs")
+(simp "RatPlusComm")
+(simp (pf "~a+c= ~(a+ ~c)"))
+(simp "RatAbs0RewRule")
+(use "Truth")
+(use "Truth")
+;; Proof finshed.
+(save "RatLeAbsMinusAbs")
+
 ;; RatTimesInj
 (set-goal "all a,b,c(0<abs a -> a*b==a*c -> b==c)")
 (cases)
@@ -2551,924 +2588,8 @@
 ;; Proof finished.
 (save "RatTimesInjLeft")
 
-;; (search-about "Int" "Times" "Mon")
-;; (display-pconst "IntAbs")
-;; (display-pconst "RatAbs")
-;; (display-pconst "RatLe")
-
-;; New attempt: (1#2**p) instead of 1/2**k.  Fits better with rat.
-;; New attempt: eps k.  No.  1#2**p is more direct
-
-;; (add-program-constant "RatEps" (py "int=>rat"))
-;; (add-token "eps" 'prefix-op (make-term-creator1 "eps" "int"))
-;; (add-token-and-type-to-name "eps" (py "int") "RatEps")
-;; (add-display (py "rat") (make-display-creator1 "RatEps" "eps" 'prefix-op))
-
-;; ;; (pp (pt "eps k"))
-
-;; (add-computation-rules
-;;  "eps 0" "(1#1)"
-;;  "eps 1" "(1#2)"
-;;  "eps(SZero p)" "eps p*eps p"
-;;  "eps(SOne p)" "eps p*eps p*(1#2)"
-;;  "eps(IntN p)" "2**p")
-
-;; ;; (pp (nt (pt "eps 2")))
-;; ;; (pp (nt (pt "eps 3")))
-;; ;; (pp (nt (pt "eps 4")))
-;; ;; (pp (nt (pt "eps 5")))
-;; ;; (pp (nt (pt "eps 1")))
-;; ;; (pp (nt (pt "eps 0")))
-;; ;; (pp (nt (pt "eps ~1")))
-;; ;; (pp (nt (pt "eps ~4")))
-
-;; ;; RatEpsTotal
-;; (set-totality-goal "RatEps")
-;; (use "AllTotalElim")
-;; (cases)
-;; ;; 3-5
-;; (ind)
-;; ;; 6-8
-;; (ng)
-;; (use "RatTotalVar")
-;; ;; 7
-;; (assume "p" "IH")
-;; (ng)
-;; (use "RatTimesTotal")
-;; (use "IH")
-;; (use "IH")
-;; ;; 8
-;; (assume "p" "IH")
-;; (ng)
-;; (use "RatTimesTotal")
-;; (use "RatTimesTotal")
-;; (use "IH")
-;; (use "IH")
-;; (use "RatTotalVar")
-;; ;; 4
-;; (ng)
-;; (use "RatTotalVar")
-;; ;; 5
-;; (assume "p")
-;; (ng)
-;; (use "RatTotalVar")
-;; ;; Proof finished.
-;; (save-totality)
-
-;; Moved to pproof.scm:
-;; 2016-04-23.  Make simp usable for RatEqv ==
-
-;; In the following definition of simprat-with x is one of the following.
-;; - A number or string identifying a hypothesis form the context.
-;; - The name of a theorem or global assumption, but not one whose final
-;;   conclusion is a predicate variable.
-;; - A closed proof.
-;; - A formula with free variables from the context, generating a new goal.
-;; Moreover xs is a list consisting of
-;; - a number or string identifying a hypothesis form the context,
-;; - the name of a theorem or global assumption,
-;; - a closed proof,
-;; - the string "?" (value of DEFAULT-GOAL-NAME), generating a new goal,
-;; - a symbol left or right,
-;; - a term, whose free variables are added to the context,
-;; - a type, which is substituted for the 1st tvar,
-;; - a comprehension term, which is substituted for the 1st pvar.
-;; This generates a used formula lhs==rhs with lhs or its normal form present
-;; in the goal.  Replace lhs by rhs.  In case "<-" exchange lhs by rhs.
-
-;; (define (simprat-with opt-dir-or-x . x-and-xs-or-xs)
-;;   (let* ((num-goals (pproof-state-to-num-goals))
-;; 	 (proof (pproof-state-to-proof))
-;; 	 (maxgoal (pproof-state-to-maxgoal))
-;; 	 (number (num-goal-to-number (car num-goals))))
-;;     (set! PPROOF-STATE
-;; 	  (apply simprat-with-intern
-;; 		 num-goals proof maxgoal opt-dir-or-x x-and-xs-or-xs))
-;;     (pproof-state-history-push PPROOF-STATE)
-;;     (display-new-goals num-goals number)))
-
-;; (define (simprat-with-intern num-goals proof maxgoal . rest)
-;;   (let* ((opt-dir-or-x
-;; 	  (if (null? rest)
-;; 	      (myerror "simprat-with-intern" "more arguments expected")
-;; 	      (car rest)))
-;; 	 (left-to-right
-;; 	  (not (and (string? opt-dir-or-x) (string=? "<-" opt-dir-or-x))))
-;; 	 (x-and-x-list (if left-to-right
-;; 			   rest
-;; 			   (cdr rest)))
-;; 	 (x (if (null? x-and-x-list)
-;; 		(myerror "simprat-with-intern" "more arguments expected")
-;; 		(car x-and-x-list)))
-;; 	 (x-list (cdr x-and-x-list))
-;; 	 (num-goal (car num-goals))
-;; 	 (goal (num-goal-to-goal num-goal))
-;; 	 (drop-info (num-goal-to-drop-info num-goal))
-;; 	 (hypname-info (num-goal-to-hypname-info num-goal))
-;; 	 (context (goal-to-context goal))
-;; 	 (ncvars (goal-to-ncvars goal))
-;; 	 (proof-and-new-num-goals-and-maxgoal
-;; 	  (if (and (string? x)
-;; 		   (let ((info (assoc x (append THEOREMS GLOBAL-ASSUMPTIONS))))
-;; 		     (and info
-;; 			  (let* ((aconst (cadr info))
-;; 				 (aconst-formula (aconst-to-formula aconst))
-;; 				 (final-concl
-;; 				  (imp-impnc-all-allnc-form-to-final-conclusion
-;; 				   aconst-formula)))
-;; 			    (and (predicate-form? final-concl)
-;; 				 (pvar? (predicate-form-to-predicate
-;; 					 final-concl)))))))
-;; 	      (myerror "simprat-with-intern" "unexpected aconst name" x)
-;; 	      (apply x-and-x-list-to-proof-and-new-num-goals-and-maxgoal
-;; 		     num-goal (+ 1 maxgoal) x x-list)))
-;; 	 (eqv-proof (car proof-and-new-num-goals-and-maxgoal))
-;; 	 (new-num-goals (cadr proof-and-new-num-goals-and-maxgoal))
-;; 	 (new-maxgoal (caddr proof-and-new-num-goals-and-maxgoal))
-;; 	 (goal-formula (goal-to-formula goal))
-;; 	 (used-formula (proof-to-formula eqv-proof))
-;; 	 (used-prime-formula
-;; 	  (if (prime-form? used-formula) used-formula
-;; 	      (myerror "simprat-with-intern" "prime formula expected"
-;; 		       used-formula)))
-;; 	 (used-nprime-formula (normalize-formula used-prime-formula))
-;; 	 (used-kernel
-;; 	  (if (atom-form? used-prime-formula)
-;; 	      (atom-form-to-kernel used-prime-formula)
-;; 	      (myerror "simprat-with-intern" "atom formula expected"
-;; 		       used-prime-formula)))
-;; 	 (used-nkernel (nt used-kernel))
-;; 	 (op (term-in-app-form-to-final-op used-kernel))
-;; 	 (nop (term-in-app-form-to-final-op used-nkernel))
-;; 	 (ngoal-formula (nf goal-formula)))
-;;     (cond
-;;      ((and (term-in-const-form? op)
-;; 	   (string=? "RatEqv" (const-to-name (term-in-const-form-to-const op)))
-;; 	   (let* ((args (term-in-app-form-to-args used-kernel))
-;; 		  (lhs (car args))
-;; 		  (rhs (cadr args))
-;; 		  (type (term-to-type lhs))
-;; 		  (var (type-to-new-var type))
-;; 		  (varterm (make-term-in-var-form var))
-;; 		  (simprat-formula
-;; 		   (if left-to-right
-;; 		       (formula-gen-subst goal-formula lhs varterm)
-;; 		       (formula-gen-subst goal-formula rhs varterm))))
-;; 	     (not (formula=? simprat-formula goal-formula))))
-;;       (let* ((args (term-in-app-form-to-args used-kernel))
-;; 	     (lhs (car args))
-;; 	     (rhs (cadr args))
-;; 	     (type (term-to-type lhs))
-;; 	     (var (type-to-new-var type))
-;; 	     (varterm (make-term-in-var-form var))
-;; 	     (simprat-formula
-;; 	      (if left-to-right
-;; 		  (formula-gen-subst goal-formula lhs varterm)
-;; 		  (formula-gen-subst goal-formula rhs varterm)))
-;; 	     (new-goal ;A(rhs) or A(lhs)
-;; 	      (context-and-ncvars-and-formula-to-new-goal
-;; 	       context ncvars
-;; 	       (formula-subst simprat-formula var
-;; 			      (if left-to-right rhs lhs))))
-;; 	     (new-num-goal
-;; 	      (make-num-goal
-;; 	       (+ 1 maxgoal) new-goal drop-info hypname-info))
-;; 	     (new-proof ;of A(lhs) or A(rhs)
-;; 	      (mk-proof-in-elim-form
-;; 	       (rateqv-formula-compat
-;; 		 simprat-formula var
-;; 		 (if left-to-right lhs rhs)
-;; 		 (if left-to-right rhs lhs)
-;; 		 eqv-proof new-goal))))
-;; 	(make-pproof-state
-;; 	 (append (list new-num-goal) new-num-goals (cdr num-goals))
-;; 	 (goal-subst proof goal new-proof)
-;; 	 new-maxgoal)))
-;;      ((and (term-in-const-form? nop)
-;; 	   (string=? "RatEqv" (const-to-name (term-in-const-form-to-const nop)))
-;; 	   (let* ((args (term-in-app-form-to-args used-nkernel))
-;; 		  (lhs (car args))
-;; 		  (rhs (cadr args))
-;; 		  (type (term-to-type lhs))
-;; 		  (var (type-to-new-var type))
-;; 		  (varterm (make-term-in-var-form var))
-;; 		  (simprat-formula
-;; 		   (if left-to-right
-;; 		       (formula-gen-subst goal-formula lhs varterm)
-;; 		       (formula-gen-subst goal-formula rhs varterm))))
-;; 	     (not (formula=? simprat-formula goal-formula))))
-;;       (let* ((args (term-in-app-form-to-args used-nkernel))
-;; 	     (lhs (car args))
-;; 	     (rhs (cadr args))
-;; 	     (type (term-to-type lhs))
-;; 	     (var (type-to-new-var type))
-;; 	     (varterm (make-term-in-var-form var))
-;; 	     (simprat-formula
-;; 	      (if left-to-right
-;; 		  (formula-gen-subst goal-formula lhs varterm)
-;; 		  (formula-gen-subst goal-formula rhs varterm)))
-;; 	     ;; (all-formula (mk-all var simprat-formula))
-;; 	     (new-goal ;A(rhs) or A(lhs)
-;; 	      (context-and-ncvars-and-formula-to-new-goal
-;; 	       context ncvars
-;; 	       (formula-subst simprat-formula var
-;; 			      (if left-to-right rhs lhs))))
-;; 	     (new-num-goal
-;; 	      (make-num-goal
-;; 	       (+ 1 maxgoal) new-goal drop-info hypname-info))
-;; 	     (new-proof ;of A(lhs) or A(rhs)
-;; 	      (mk-proof-in-elim-form
-;; 	       (rateqv-formula-compat
-;; 		 simprat-formula var
-;; 		 (if left-to-right lhs rhs)
-;; 		 (if left-to-right rhs lhs)
-;; 		 eqv-proof new-goal))))
-;; 	(make-pproof-state
-;; 	 (append (list new-num-goal) new-num-goals (cdr num-goals))
-;; 	 (goal-subst proof goal new-proof)
-;; 	 new-maxgoal)))
-;;      (else (myerror "simprat-with-intern" "goal cannot be simplified with"
-;; 		    used-formula)))))
-
-;; ;; Auxiliary functions
-
-;; ;; Given t(x), x, lhs, rhs and a proof of lhs==rhs, rateqv-term-compat
-;; ;; returns a proof of t(lhs)==t(rhs).  Here t(x), x, lhs, rhs are of
-;; ;; type rat.
-
-;; (define (rateqv-term-compat term var term1 term2 eqv-proof)
-;;   (cond
-;;    ((not (member var (term-to-free term)))
-;;     (make-proof-in-aconst-form truth-aconst)) ;a==a -> True is a rewrite rule
-;;    ((term-in-var-form? term) eqv-proof) ;of term1==term2, i.e., lhs==rhs
-;;    ((term-in-app-form? term)
-;;     (let* ((op (term-in-app-form-to-final-op term))
-;; 	   (args (term-in-app-form-to-args term))
-;; 	   (name (if (not (term-in-const-form? op))
-;; 		     (myerror "rateqv-term-compat"
-;; 			      "term in constant form expected" op)
-;; 		     (string-append
-;; 		      (const-to-name (term-in-const-form-to-const op))
-;; 		      "Compat")))
-;; 	   (unary-compat-names
-;; 	    (list "RatUMinusCompat" "RatAbsCompat"))
-;; 	   (binary-compat-names
-;; 	    (list "RatPlusCompat" "RatTimesCompat" "RatMinusCompat")))
-;;       (cond
-;;        ((member name unary-compat-names)
-;; 	(mk-proof-in-elim-form ;of ~t(lhs)== ~t(rhs)
-;; 	 (make-proof-in-aconst-form ;of all a,b(a==b -> ~a== ~b))
-;; 	  (theorem-name-to-aconst name))
-;; 	 (term-subst (car args) var term1) ;t(lhs)
-;; 	 (term-subst (car args) var term2) ;t(rhs)
-;; 	 ;; (term-subst term var term1) ;t(lhs)
-;; 	 ;; (term-subst term var term2) ;t(rhs)
-;; 	 (rateqv-term-compat (car args) var term1 term2 eqv-proof)))
-;;        ((member name binary-compat-names)
-;; 	(mk-proof-in-elim-form ;of t(lhs)+s(lhs)==t(rhs)+s(rhs)
-;; 	 (make-proof-in-aconst-form ;of all a,b,c,d(a==b -> c==d -> a+c==b+d))
-;; 	  (theorem-name-to-aconst name))
-;; 	 (term-subst (car args) var term1) ;t(lhs)
-;; 	 (term-subst (car args) var term2) ;t(rhs)
-;; 	 (term-subst (cadr args) var term1) ;s(lhs)
-;; 	 (term-subst (cadr args) var term2) ;s(rhs)
-;; 	 ;; (term-subst term var term1) ;t(lhs)+s(lhs)
-;; 	 ;; (term-subst term var term2) ;t(rhs)+s(rhs)
-;; 	 (rateqv-term-compat ;proves t(lhs)==t(rhs) from lhs==rhs by IH
-;; 	  (car args) var term1 term2 eqv-proof)
-;; 	 (rateqv-term-compat ;proves s(lhs)==s(rhs) from lhs==rhs by IH
-;; 	  (cadr args) var term1 term2 eqv-proof)))
-;;        (else (apply myerror "rateqv-term-compat" name
-;; 		    "expected to be among" (append unary-compat-names
-;; 						   binary-compat-names))))))
-;;    (else (myerror "rateqv-term-compat" "unexpected term" term))))
-
-;; ;; Given A(x), x, lhs, rhs and proofs eqv-proof of lhs==rhs and new-goal
-;; ;; of A(rhs) returns a proof of A(lhs).  Here x, lhs, rhs are of type
-;; ;; rat.
-
-;; (define (rateqv-formula-compat fla var term1 term2 eqv-proof new-goal)
-;;   (cond
-;;    ((not (member var (formula-to-free fla))) new-goal)
-;;    ((atom-form? fla)
-;;     (let* ((kernel (atom-form-to-kernel fla)) ;t(x)<=s(x)
-;; 	   (op (if (not (term-in-app-form? kernel))
-;; 		   (myerror "rateqv-formula-compat"
-;; 			    "term in application form expected" kernel)
-;; 		   (term-in-app-form-to-final-op kernel)))
-;; 	   (args (term-in-app-form-to-args kernel)) ;(t(x) s(x))
-;; 	   (name (if (not (term-in-const-form? op))
-;; 		     (myerror "rateqv-formula-compat"
-;; 			      "term in constant form expected" op)
-;; 		     (string-append
-;; 		      (const-to-name (term-in-const-form-to-const op))
-;; 		      "Compat")))
-;; 	   (compat-names (list "RatLeCompat" "RatEqvCompat")))
-;;       (if
-;;        (member name compat-names)
-;;        (let* ((elim-proof1 ;of t(lhs)==t(rhs)
-;; 	       (rateqv-term-compat (car args) var term1 term2 eqv-proof))
-;; 	      (elim-proof2 ;of s(lhs)==s(rhs)
-;; 	       (rateqv-term-compat (cadr args) var term1 term2 eqv-proof))
-;; 	      (elim-proof3 ;of (t(lhs)<=s(lhs))=(t(rhs)<=s(rhs))
-;; 	       (mk-proof-in-elim-form
-;; 		(make-proof-in-aconst-form (theorem-name-to-aconst name))
-;; 		;; (theorem-name-to-proof name) ;all a,b,c,d(a==b -> c==d ->
-;; 		;; 			;                 (a<=c)=(b<=d))
-;; 		(term-subst (car args) var term1) ;t(lhs)
-;; 		(term-subst (car args) var term2) ;t(rhs)
-;; 		(term-subst (cadr args) var term1) ;s(lhs)
-;; 		(term-subst (cadr args) var term2) ;s(rhs)
-;; 		elim-proof1 elim-proof2))
-;; 	      (eq-fla (proof-to-formula elim-proof3)) 
-;; 	      (booleterms (term-in-app-form-to-args
-;; 			   (atom-form-to-kernel eq-fla)))
-;; 	      (booleterm1 (car booleterms)) ;t(lhs)<=s(lhs)
-;; 	      (booleterm2 (cadr booleterms))) ;t(rhs)<=s(rhs)
-;; 	 (mk-proof-in-elim-form
-;; 	  (make-proof-in-aconst-form
-;; 	   (theorem-name-to-aconst "BooleEqToAeqRight"))
-;; 	  ;; (theorem-name-to-proof "BooleEqToAeqRight")
-;; 					;of all boole1,boole2(boole1=boole2 ->
-;; 					;                     boole2 -> boole1)
-;; 	  booleterm1 booleterm2 elim-proof3 new-goal))
-;;        (myerror "rateqv-formula-compat" "RatLeCompat or RatEqvCompat expected"
-;; 		name))))
-;;    (else (myerror "rateqv-formula-compat" "not implemented for formula" fla))))
-
-;; (define (simprat opt-dir-or-x . x-and-xs-or-xs)
-;;   (let* ((num-goals (pproof-state-to-num-goals))
-;; 	 (proof (pproof-state-to-proof))
-;; 	 (maxgoal (pproof-state-to-maxgoal))
-;; 	 (number (num-goal-to-number (car num-goals)))
-;; 	 (simprat-result
-;; 	  (apply simprat-intern
-;; 		 num-goals proof maxgoal opt-dir-or-x x-and-xs-or-xs)))
-;;     (if (not simprat-result)
-;; 	(begin (display-comment "no simplification possible")
-;; 	       (if COMMENT-FLAG (newline)))
-;; 	(begin
-;; 	  (set! PPROOF-STATE simprat-result)
-;; 	  (pproof-state-history-push PPROOF-STATE)
-;; 	  (display-new-goals num-goals number)))))
-
-;; (define (simprat-intern num-goals proof
-;; 		     maxgoal . opt-dir-and-x-and-elab-path-and-terms)
-;;   (let* ((opt-dir (if (null? opt-dir-and-x-and-elab-path-and-terms)
-;; 		      (myerror "simprat-intern" "more arguments expected")
-;; 		      (car opt-dir-and-x-and-elab-path-and-terms)))
-;; 	 (left-to-right (not (and (string? opt-dir) (string=? "<-" opt-dir))))
-;; 	 (x-and-elab-path-and-terms
-;; 	  (if left-to-right
-;; 	      opt-dir-and-x-and-elab-path-and-terms
-;; 	      (cdr opt-dir-and-x-and-elab-path-and-terms)))
-;; 	 (x (if (null? x-and-elab-path-and-terms)
-;; 		(myerror "simprat-intern" "more arguments expected")
-;; 		(car x-and-elab-path-and-terms)))
-;; 	 (elab-path-and-terms (cdr x-and-elab-path-and-terms))
-;; 	 (num-goal (car num-goals))
-;; 	 (goal (num-goal-to-goal num-goal))
-;; 	 (hypname-info (num-goal-to-hypname-info num-goal))
-;; 	 (context (goal-to-context goal))
-;; 	 (ncvars (goal-to-ncvars goal))
-;; 	 (avars (context-to-avars context))
-;; 	 (maxhyp (length avars))
-;; 	 (goal-formula (goal-to-formula goal))
-;; 	 (leaf (if (formula-form? x)
-;; 		   (context-and-ncvars-and-formula-to-new-goal
-;; 		    context ncvars x)
-;; 		   (hyp-info-to-leaf num-goal x)))
-;; 	 (used-formula
-;; 	  (unfold-formula (if (formula-form? x) x (proof-to-formula leaf))))
-;; 	 (sig-vars (context-to-vars context))
-;; 	 (sig-tvars-and-sig-vars
-;; 	  (if (assoc x (append THEOREMS GLOBAL-ASSUMPTIONS))
-;; 	      sig-vars
-;; 	      (append (formula-to-tvars used-formula) sig-vars)))
-;; 	 (elab-path (do ((l elab-path-and-terms (cdr l))
-;; 			 (res '() (if (memq (car l) '(left right))
-;; 				      (cons (car l) res)
-;; 				      res)))
-;; 			((null? l) (reverse res))))
-;; 	 (xs-and-vars-and-toinst1
-;; 	  (apply
-;; 	   fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 	   used-formula sig-tvars-and-sig-vars
-;; 	   goal-formula left-to-right
-;; 	   elab-path))
-;; 	 (xs-and-vars-and-toinst
-;; 	  (if xs-and-vars-and-toinst1
-;; 	      xs-and-vars-and-toinst1
-;; 	      (apply
-;; 	       fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 	       (normalize-formula used-formula)
-;; 	       sig-tvars-and-sig-vars
-;; 	       (normalize-formula goal-formula)
-;; 	       left-to-right
-;; 	       elab-path))))
-;;     (if
-;;      (not xs-and-vars-and-toinst)
-;;      #f
-;;      (let* ((xs (car xs-and-vars-and-toinst))
-;; 	    (vars (cadr xs-and-vars-and-toinst))
-;; 	    (toinst (caddr xs-and-vars-and-toinst))
-;; 	    (terms (do ((l elab-path-and-terms (cdr l))
-;; 			(res '() (if (memq (car l) '(left right))
-;; 				     res
-;; 				     (cons (car l) res))))
-;; 		       ((null? l) (reverse res))))
-;; 	    (subst (if (<= (length vars) (length terms))
-;; 		       (map list vars (list-head terms (length vars)))
-;; 		       empty-subst))
-;; 	    (subst-xs (map (lambda (x) (if (term-form? x)
-;; 					   (term-substitute x subst)
-;; 					   x))
-;; 			   xs))
-;; 	    (types (let ((info1 (assoc x THEOREMS))
-;; 			 (info2 (assoc x GLOBAL-ASSUMPTIONS))
-;; 			 (tsubst (list-transform-positive toinst
-;; 				   (lambda (x) (tvar-form? (car x))))))
-;; 		     (if
-;; 		      (and (or info1 info2) (pair? tsubst)) ;else '()
-;; 		      (let* ((aconst (if info1
-;; 					 (theorem-name-to-aconst x)
-;; 					 (global-assumption-name-to-aconst x)))
-;; 			     (fla (aconst-to-formula aconst))
-;; 			     (tvars (formula-to-tvars fla)))
-;; 			(map (lambda (tvar) (type-substitute tvar tsubst))
-;; 			     tvars))
-;; 		      '()))))
-;;        (if (> (length vars) (length terms))
-;; 	   (apply myerror
-;; 		  "simprat-intern" "more terms expected, to be substituted for"
-;; 		  (list-tail vars (length terms))))
-;;        (if (and COMMENT-FLAG (< (length vars) (length terms)))
-;; 	   (begin
-;; 	     (comment "warning: superfluous terms")
-;; 	     (for-each comment
-;; 		       (map term-to-string (list-tail terms (length vars))))))
-;;        (apply simprat-with-intern
-;; 	      (if left-to-right
-;; 		  (append (list num-goals proof maxgoal x)
-;; 			  (append types subst-xs))
-;; 		  (append (list num-goals proof maxgoal "<-" x)
-;; 			  (append types subst-xs))))))))
-
-;; ;; fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data is #f if
-;; ;; (a) no atomic or negated atomic head of formula and also (b) no lhs
-;; ;; (resp. rhs) of an equality head of formula is a pattern in the goal
-;; ;; formula.  Otherwise the following data are returned: (1) the
-;; ;; arguments xs for the hypothesis x that produce the instance, (2)
-;; ;; vars (from xs) whose instantiations cannot be inferred, hence need
-;; ;; to be provided, (3) a tosubst that produces the instance.
-
-;; (define (fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 	 used-formula sig-tvars-and-sig-vars goal-formula
-;; 	 left-to-right . elab-path)
-;;   (let ((match-res
-;; 	 (cond
-;; 	  ((imp-form? used-formula)
-;; 	   (let ((prem (imp-form-to-premise used-formula))
-;; 		 (concl (imp-form-to-conclusion used-formula)))
-;; 	     (and (atom-form? prem)
-;; 		  (classical-formula=? falsity concl)
-;; 		  (let ((kernel (atom-form-to-kernel prem)))
-;; 		    (first-match sig-tvars-and-sig-vars
-;; 				 kernel goal-formula)))))
-;; 	  ((impnc-form? used-formula)
-;; 	   (let ((prem (impnc-form-to-premise used-formula))
-;; 		 (concl (impnc-form-to-conclusion used-formula)))
-;; 	     (and (atom-form? prem)
-;; 		  (classical-formula=? falsity concl)
-;; 		  (let ((kernel (atom-form-to-kernel prem)))
-;; 		    (first-match sig-tvars-and-sig-vars
-;; 				 kernel goal-formula)))))
-;; 	  ((atom-form? used-formula)
-;; 	   (let* ((kernel (atom-form-to-kernel used-formula))
-;; 		  (op (term-in-app-form-to-final-op kernel))
-;; 		  (res (first-match sig-tvars-and-sig-vars
-;; 				    kernel goal-formula)))
-;; 	     (if res res
-;; 		 (if (and (term-in-const-form? op)
-;; 		      (member (const-to-name
-;; 			       (term-in-const-form-to-const op))
-;; 			      (list "=" "RatEqv")))
-;; 		     (let* ((args (term-in-app-form-to-args kernel))
-;; 			    (lhs (car args))
-;; 			    (rhs (cadr args)))
-;; 		       (if left-to-right
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					lhs goal-formula)
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					rhs goal-formula)))
-;; 		     #f))))
-;; 	  ;; ((atom-form? used-formula)
-;; 	  ;;  (let ((kernel (atom-form-to-kernel used-formula)))
-;; 	  ;;    (first-match sig-tvars-and-sig-vars
-;; 	  ;; 		  kernel goal-formula)))
-;; 	  ;; ((atom-form? used-formula)
-;; 	  ;;  (let* ((kernel (atom-form-to-kernel used-formula))
-;; 	  ;; 	  (op (term-in-app-form-to-final-op kernel)))
-;; 	  ;;    (if (and (term-in-const-form? op)
-;; 	  ;; 	      (member (const-to-name
-;; 	  ;; 		       (term-in-const-form-to-const op))
-;; 	  ;; 		      (list "=" "RatEqv")))
-;; 	  ;; 	 (let* ((args (term-in-app-form-to-args kernel))
-;; 	  ;; 		(lhs (car args))
-;; 	  ;; 		(rhs (cadr args)))
-;; 	  ;; 	   (if left-to-right
-;; 	  ;; 	       (first-match sig-tvars-and-sig-vars
-;; 	  ;; 			    lhs goal-formula)
-;; 	  ;; 	       (first-match sig-tvars-and-sig-vars
-;; 	  ;; 			    rhs goal-formula)))
-;; 	  ;; 	 #f)))
-;; 	  ((predicate-form? used-formula)
-;; 	   (let ((predicate (predicate-form-to-predicate used-formula)))
-;; 	     (if (idpredconst-form? predicate)
-;; 		 (if (string=? "EqD" (idpredconst-to-name predicate))
-;; 		     (let* ((args (predicate-form-to-args used-formula))
-;; 			    (lhs (car args))
-;; 			    (rhs (cadr args)))
-;; 		       (if left-to-right
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					lhs goal-formula)
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					rhs goal-formula)))
-;; 		     #f)
-;; 		 #f)))
-;; 	  (else #f))))
-;;     (if
-;;      match-res
-;;      (list '() '() match-res)
-;;      (cond
-;;       ((atom-form? used-formula) #f)
-;;       ((ex-form? used-formula) #f)
-;;       ((imp-form? used-formula)
-;;        (let* ((concl (imp-form-to-conclusion used-formula))
-;; 	      (prev
-;; 	       (apply
-;; 		fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		concl sig-tvars-and-sig-vars
-;; 		goal-formula left-to-right
-;; 		elab-path)))
-;; 	 (if (not prev)
-;; 	     #f
-;; 	     (let* ((xs (car prev))
-;; 		    (vars (cadr prev))
-;; 		    (toinst (caddr prev)))
-;; 	       (list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
-;;       ((impnc-form? used-formula)
-;;        (let* ((concl (impnc-form-to-conclusion used-formula))
-;; 	      (prev
-;; 	       (apply
-;; 		fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		concl sig-tvars-and-sig-vars
-;; 		goal-formula left-to-right
-;; 		elab-path)))
-;; 	 (if (not prev)
-;; 	     #f
-;; 	     (let* ((xs (car prev))
-;; 		    (vars (cadr prev))
-;; 		    (toinst (caddr prev)))
-;; 	       (list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
-;;        ((all-form? used-formula)
-;; 	(let* ((var (all-form-to-var used-formula))
-;; 	       (kernel (all-form-to-kernel used-formula))
-;; 	       (new-var (var-to-new-var var))
-;; 	       (new-kernel
-;; 		(formula-subst kernel var (make-term-in-var-form new-var)))
-;; 	       (prev
-;; 		(apply
-;; 		 fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		 new-kernel sig-tvars-and-sig-vars
-;; 		 goal-formula left-to-right
-;; 		 elab-path)))
-;; 	  (if (not prev)
-;; 	      #f
-;; 	      (let* ((xs (car prev))
-;; 		     (vars (cadr prev))
-;; 		     (toinst (caddr prev))
-;; 		     (info (assoc new-var toinst)))
-;; 		(if
-;; 		 info ;instance found by matching
-;; 		 (list ;insert instance into xs
-;; 		  (cons (cadr info) xs) vars toinst)
-;; 		 (list ;else insert new-var into xs, and new-var to vars
-;; 		  (cons (make-term-in-var-form new-var) xs)
-;; 		  (cons new-var vars)
-;; 		  toinst))))))
-;;        ((allnc-form? used-formula)
-;; 	(let* ((var (allnc-form-to-var used-formula))
-;; 	       (kernel (allnc-form-to-kernel used-formula))
-;; 	       (new-var (var-to-new-var var))
-;; 	       (new-kernel
-;; 		(formula-subst kernel var (make-term-in-var-form new-var)))
-;; 	       (prev
-;; 		(apply
-;; 		 fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		 new-kernel sig-tvars-and-sig-vars
-;; 		 goal-formula left-to-right
-;; 		 elab-path)))
-;; 	  (if (not prev)
-;; 	      #f
-;; 	      (let* ((xs (car prev))
-;; 		     (vars (cadr prev))
-;; 		     (toinst (caddr prev))
-;; 		     (info (assoc new-var toinst)))
-;; 		(if
-;; 		 info ;instance found by matching
-;; 		 (list ;insert instance into xs
-;; 		  (cons (cadr info) xs) vars toinst)
-;; 		 (list ;else insert new-var into xs, and new-var to vars
-;; 		  (cons (make-term-in-var-form new-var) xs)
-;; 		  (cons new-var vars)
-;; 		  toinst))))))
-;;        ((or (and-form? used-formula)
-;; 	    (andd-form? used-formula)
-;; 	    (andl-form? used-formula)
-;; 	    (andr-form? used-formula)
-;; 	    (andu-form? used-formula))
-;; 	(let ((left-conjunct (bicon-form-to-left used-formula))
-;; 	      (right-conjunct (bicon-form-to-right used-formula)))
-;; 	  (if
-;; 	   (pair? elab-path)
-;; 	   (let* ((direction (car elab-path))
-;; 		  (conjunct (cond ((eq? 'left direction) left-conjunct)
-;; 				  ((eq? 'right direction) right-conjunct)
-;; 				  (else (myerror "left or right expected"
-;; 						 direction))))
-;; 		  (prev
-;; 		   (apply
-;; 		    fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		    conjunct sig-tvars-and-sig-vars
-;; 		    goal-formula left-to-right
-;; 		    (cdr elab-path))))
-;; 	     (if (not prev)
-;; 		 #f
-;; 		 (let* ((xs (car prev))
-;; 			(vars (cadr prev))
-;; 			(toinst (caddr prev)))
-;; 		   (list (cons direction xs) vars toinst))))
-;; 	   (let ((prev1
-;; 		  (fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		   left-conjunct sig-tvars-and-sig-vars
-;; 		   goal-formula left-to-right)))
-;; 	     (if
-;; 	      prev1
-;; 	      (let* ((xs (car prev1))
-;; 		     (vars (cadr prev1))
-;; 		     (toinst (caddr prev1)))
-;; 		(list (cons 'left xs) vars toinst))
-;; 	      (let ((prev2
-;; 		     (fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		      right-conjunct sig-tvars-and-sig-vars
-;; 		      goal-formula left-to-right)))
-;; 		(if prev2
-;; 		    (let* ((xs (car prev2))
-;; 			   (vars (cadr prev2))
-;; 			   (toinst (caddr prev2)))
-;; 		      (list (cons 'right xs) vars toinst))
-;; 		    #f)))))))
-;;        ((predicate-form? used-formula) #f)
-;;        (else (myerror
-;; 	      "fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data"
-;; 	      "formula expected"
-;; 	      used-formula))))))
-
-;; (define (fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 	 used-formula sig-tvars-and-sig-vars goal-formula
-;; 	 left-to-right . elab-path)
-;;   (let ((match-res
-;; 	 (or (and (imp-form? used-formula)
-;; 		  (let ((prem (imp-form-to-premise used-formula))
-;; 			(concl (imp-form-to-conclusion used-formula)))
-;; 		    (and (atom-form? prem)
-;; 			 (classical-formula=? falsity concl)
-;; 			 (let ((kernel (atom-form-to-kernel prem)))
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					kernel goal-formula)))))
-;; 	     (and (impnc-form? used-formula)
-;; 		  (let ((prem (impnc-form-to-premise used-formula))
-;; 			(concl (impnc-form-to-conclusion used-formula)))
-;; 		    (and (atom-form? prem)
-;; 			 (classical-formula=? falsity concl)
-;; 			 (let ((kernel (atom-form-to-kernel prem)))
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					kernel goal-formula)))))
-;; 	     (and (atom-form? used-formula)
-;; 		  (let ((kernel (atom-form-to-kernel used-formula)))
-;; 		    (first-match sig-tvars-and-sig-vars
-;; 				 kernel goal-formula)))
-;; 	     (and (atom-form? used-formula)
-;; 		  (let* ((kernel (atom-form-to-kernel used-formula))
-;; 			 (op (term-in-app-form-to-final-op kernel)))
-;; 		    (and
-;; 		     (term-in-const-form? op)`
-;; 		     (member (const-to-name (term-in-const-form-to-const op))
-;; 			     (list "=" "RatEqv"))
-;; 		     (let* ((args (term-in-app-form-to-args kernel))
-;; 			    (lhs (car args))
-;; 			    (rhs (cadr args)))
-;; 		       (if left-to-right
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					lhs goal-formula)
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					rhs goal-formula))))))
-;; 	     (and (predicate-form? used-formula)
-;; 		  (let ((predicate (predicate-form-to-predicate
-;; 				    used-formula)))
-;; 		    (and
-;; 		     (idpredconst-form? predicate)
-;; 		     (string=? "EqD" (idpredconst-to-name predicate))
-;; 		     (let* ((args (predicate-form-to-args used-formula))
-;; 			    (lhs (car args))
-;; 			    (rhs (cadr args)))
-;; 		       (if left-to-right
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					lhs goal-formula)
-;; 			   (first-match sig-tvars-and-sig-vars
-;; 					rhs goal-formula)))))))))
-;;     (if
-;;      match-res
-;;      (list '() '() match-res)
-;;      (cond
-;;       ((atom-form? used-formula) #f)
-;;       ((ex-form? used-formula) #f)
-;;       ((imp-form? used-formula)
-;;        (let* ((concl (imp-form-to-conclusion used-formula))
-;; 	      (prev
-;; 	       (apply
-;; 		fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		concl sig-tvars-and-sig-vars
-;; 		goal-formula left-to-right
-;; 		elab-path)))
-;; 	 (if (not prev)
-;; 	     #f
-;; 	     (let* ((xs (car prev))
-;; 		    (vars (cadr prev))
-;; 		    (toinst (caddr prev)))
-;; 	       (list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
-;;       ((impnc-form? used-formula)
-;;        (let* ((concl (impnc-form-to-conclusion used-formula))
-;; 	      (prev
-;; 	       (apply
-;; 		fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		concl sig-tvars-and-sig-vars
-;; 		goal-formula left-to-right
-;; 		elab-path)))
-;; 	 (if (not prev)
-;; 	     #f
-;; 	     (let* ((xs (car prev))
-;; 		    (vars (cadr prev))
-;; 		    (toinst (caddr prev)))
-;; 	       (list (cons DEFAULT-GOAL-NAME xs) vars toinst)))))
-;;        ((all-form? used-formula)
-;; 	(let* ((var (all-form-to-var used-formula))
-;; 	       (kernel (all-form-to-kernel used-formula))
-;; 	       (new-var (var-to-new-var var))
-;; 	       (new-kernel
-;; 		(formula-subst kernel var (make-term-in-var-form new-var)))
-;; 	       (prev
-;; 		(apply
-;; 		 fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		 new-kernel sig-tvars-and-sig-vars
-;; 		 goal-formula left-to-right
-;; 		 elab-path)))
-;; 	  (if (not prev)
-;; 	      #f
-;; 	      (let* ((xs (car prev))
-;; 		     (vars (cadr prev))
-;; 		     (toinst (caddr prev))
-;; 		     (info (assoc new-var toinst)))
-;; 		(if
-;; 		 info ;instance found by matching
-;; 		 (list ;insert instance into xs
-;; 		  (cons (cadr info) xs) vars toinst)
-;; 		 (list ;else insert new-var into xs, and new-var to vars
-;; 		  (cons (make-term-in-var-form new-var) xs)
-;; 		  (cons new-var vars)
-;; 		  toinst))))))
-;;        ((allnc-form? used-formula)
-;; 	(let* ((var (allnc-form-to-var used-formula))
-;; 	       (kernel (allnc-form-to-kernel used-formula))
-;; 	       (new-var (var-to-new-var var))
-;; 	       (new-kernel
-;; 		(formula-subst kernel var (make-term-in-var-form new-var)))
-;; 	       (prev
-;; 		(apply
-;; 		 fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		 new-kernel sig-tvars-and-sig-vars
-;; 		 goal-formula left-to-right
-;; 		 elab-path)))
-;; 	  (if (not prev)
-;; 	      #f
-;; 	      (let* ((xs (car prev))
-;; 		     (vars (cadr prev))
-;; 		     (toinst (caddr prev))
-;; 		     (info (assoc new-var toinst)))
-;; 		(if
-;; 		 info ;instance found by matching
-;; 		 (list ;insert instance into xs
-;; 		  (cons (cadr info) xs) vars toinst)
-;; 		 (list ;else insert new-var into xs, and new-var to vars
-;; 		  (cons (make-term-in-var-form new-var) xs)
-;; 		  (cons new-var vars)
-;; 		  toinst))))))
-;;        ((or (and-form? used-formula)
-;; 	    (andd-form? used-formula)
-;; 	    (andl-form? used-formula)
-;; 	    (andr-form? used-formula)
-;; 	    (andu-form? used-formula))
-;; 	(let ((left-conjunct (bicon-form-to-left used-formula))
-;; 	      (right-conjunct (bicon-form-to-right used-formula)))
-;; 	  (if
-;; 	   (pair? elab-path)
-;; 	   (let* ((direction (car elab-path))
-;; 		  (conjunct (cond ((eq? 'left direction) left-conjunct)
-;; 				  ((eq? 'right direction) right-conjunct)
-;; 				  (else (myerror "left or right expected"
-;; 						 direction))))
-;; 		  (prev
-;; 		   (apply
-;; 		    fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		    conjunct sig-tvars-and-sig-vars
-;; 		    goal-formula left-to-right
-;; 		    (cdr elab-path))))
-;; 	     (if (not prev)
-;; 		 #f
-;; 		 (let* ((xs (car prev))
-;; 			(vars (cadr prev))
-;; 			(toinst (caddr prev)))
-;; 		   (list (cons direction xs) vars toinst))))
-;; 	   (let ((prev1
-;; 		  (fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		   left-conjunct sig-tvars-and-sig-vars
-;; 		   goal-formula left-to-right)))
-;; 	     (if
-;; 	      prev1
-;; 	      (let* ((xs (car prev1))
-;; 		     (vars (cadr prev1))
-;; 		     (toinst (caddr prev1)))
-;; 		(list (cons 'left xs) vars toinst))
-;; 	      (let ((prev2
-;; 		     (fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
-;; 		      right-conjunct sig-tvars-and-sig-vars
-;; 		      goal-formula left-to-right)))
-;; 		(if prev2
-;; 		    (let* ((xs (car prev2))
-;; 			   (vars (cadr prev2))
-;; 			   (toinst (caddr prev2)))
-;; 		      (list (cons 'right xs) vars toinst))
-;; 		    #f)))))))
-;;        ((predicate-form? used-formula) #f)
-;;        (else (myerror
-;; 	      "fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data"
-;; 	      "formula expected"
-;; 	      used-formula))))))
-
-;; Test
-
-;; (set-goal "all a,b(a==b -> 0<=a)")
-;; (assume "a" "b" "EqHyp")
-;; (simprat "EqHyp")
-
-;; (define proof (current-proof))
-;; (define nproof (np proof))
-;; (cdp nproof)
-;; (proof-to-expr-with-formulas nproof)
-
-;; (set-goal "all a,b(a==b -> 0<=a+b)")
-;; (assume "a" "b" "EqHyp")
-;; (simprat "EqHyp")
-
-;; (set-goal "all a,b(a==b -> 0<= ~a)")
-;; (assume "a" "b" "EqHyp")
-;; (simprat "EqHyp")
-
-;; (set-goal "all k eps(IntS k)+eps(IntS k)==eps k")
-;; (cases)
-;; ;; 2-4
-;; (ind)
-;; ;; 5-7
-;; (ng)
-;; (use "Truth")
-;; ;; 6
-;; (assume "p" "IH")
-;; (ng)
-;; (simprat "<-" "RatTimesPlusDistr")
-;; (simprat (pf "(1#2)+(1#2)==1"))
-;; (ng)
-;; (use "Truth")
-;; (ng)
-;; (use "Truth")
-;; ;; 7
-;; (assume "p" "IH")
-;; (ng)
-
-;; End of tests
-
-;; As further examples of simprat we prove some inequalities useful
-;; later for estimates.
+;; As examples of simprat we prove some inequalities useful later for
+;; estimates.
 
 ;; RatExpPosS
 (set-goal "all a,r a**PosS r==a**r*a")
@@ -3688,126 +2809,6 @@
 (use "kq<=jp -> F")
 ;; Proof finished.
 (save "RatMaxUB2")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(set-goal "all p (1#2)**PosS p+(1#2)**PosS p==(1#2)**p")
-(assume "p")
-(simprat "RatExpPosS")
-(simprat "<-" "RatTimesPlusDistr")
-(ng)
-(use "Truth")
-;; Proof finished.
-
-(set-goal "all p (1#2)**(p+1)+(1#2)**(p+1)==(1#2)**p")
-(assume "p")
-(assert "p+1=PosS p")
- (use "Truth")
-(assume "p+1=PosS p")
-(simp "p+1=PosS p")
-(drop "p+1=PosS p")
-(simprat "RatExpPosS")
-(simprat "<-" "RatTimesPlusDistr")
-(ng)
-(use "Truth")
-;; Proof finished.
-
-(set-goal "all p,r p**PosS r=p**r*p")
-(assume "p" "r")
-(simp "SuccPosPred")
-(use "Truth")
-(use "Truth")
-;; Proof finished.
-
-(set-goal "all p,r p**(r+1)=p**r*p")
-(assume "p" "r")
-(ng)
-(simp "SuccPosPred")
-(use "Truth")
-(use "Truth")
-;; Proof finished.
-
-;; Need PosMaxUB1 (done 2016-04-30) RatLeAntiSym (done as well)
-;; (see global assumptions in lib/real.scm)
-
-;; 2016-04-17.  Prove axioms of an ordered field for rat, with RatEqv
-;; == as equality.  Define RatUDiv.
-
-;; 2015-11-29.  Done up to this point.
-
-;; Added rules for RatPlus.  Goal: {1} Bring / out.  (2) Delete /.
-
-;; (add-rewrite-rule "(a1/b1)+(a2/b2)" "(a1*b2+a2*b1)/(b1*b2)")
-;; (add-rewrite-rule "a1+a2/b2" "(a1*b2+a2)/b2")
-;; (add-rewrite-rule "a1/b1+a2" "(a1+a2*b1)/b1")
-
-;; (add-rewrite-rule "(a1/b1)+(j#q)" "(a1*q+j*b1)/(b1*q)")
-;; (add-rewrite-rule "(k#p)+(a2/b2)" "(k*b2+a2*p)/(p*b2)")
-;; ;; The following leads to non-termination for a*b+1
-;; ;; (add-rewrite-rule "a1+(j#q)" "(a1*q+j)/q")
-;; ;; (add-rewrite-rule "(k#p)+a2" "(k+a2*p)/p")
-
-;; ;; Added 2007-08-28
-
-;; (add-rewrite-rule "a+(RatConstr IntZero One)" "a")
-;; (add-rewrite-rule "(RatConstr IntZero One)+a" "a")
-;; (add-rewrite-rule "a1+(a2+a3)" "a1+a2+a3")
-
-;; (add-rewrite-rule "(a1/b1)-(a2/b2)" "(a1*b2-a2*b1)/(b1*b2)")
-;; (add-rewrite-rule "a1-a2/b2" "(a1*b2-a2)/b2")
-;; (add-rewrite-rule "a1/b1-a2" "(a1-a2*b1)/b1")
-
-;; (add-rewrite-rule "(a1/b1)-(j#q)" "(a1*q-j*b1)/(b1*q)")
-;; (add-rewrite-rule "(k#p)-(a2/b2)" "(k*b2-a2*p)/(p*b2)")
-;; ;; (add-rewrite-rule "a1-(j#q)" "(a1*q-j)/q")
-;; ;; (add-rewrite-rule "(k#p)-a2" "(k-a2*p)/p")
-
-;; ;; Added 2007-08-28
-
-;; (add-rewrite-rule "a-(RatConstr IntZero One)" "a")
-;; (add-rewrite-rule "a-a" "RatConstr IntZero One")
-
-;; (add-rewrite-rule "(a1/b1)*(a2/b2)" "(a1*a2)/(b1*b2)")
-;; ;; (add-rewrite-rule "a1*(a2/b2)" "(a1*a2)/b2")
-;; ;; (add-rewrite-rule "(a1/b1)*a2" "(a1*a2)/b1")
-
-;; (add-rewrite-rule "(a1/b1)*(j#q)" "(a1*j)/(b1*q)")
-;; (add-rewrite-rule "(k#p)*(a2/b2)" "(k*a2)/(p*b2)")
-;; ;; (add-rewrite-rule "a1*(j#q)" "(a1*j)/q")
-;; ;; (add-rewrite-rule "(k#p)*a2" "(k*a2)/p")
-
-;; ;; Added 2007-02-26
-;; (add-rewrite-rule "RatConstr(IntP One)One*a" "a")
-;; (add-rewrite-rule "a*RatConstr(IntP One)One" "a")
-
-;; ;; Added 2007-08-28
-
-;; (add-rewrite-rule "a*(RatConstr IntZero One)" "RatConstr IntZero One")
-;; (add-rewrite-rule "(RatConstr IntZero One)*a" "RatConstr IntZero One")
-;; (add-rewrite-rule "a1*(a2*a3)" "a1*a2*a3")
-
-;; (add-rewrite-rule "(a1/b1)/(a2/b2)" "(a1*b2)/(b1*a2)")
-
-;; ;; Normal forms, which makes equally displayed terms equal.  Strategy:
-;; ;; do computations at the lowest possible level.  Raise the type outside.
-
-;; (add-rewrite-rules
-;;  "rat**(IntP One)" "rat"
-;;  "a**(IntS j)" "a**j*a"
-
-;;  "((IntP p)#One)**(IntP q)" "IntP(p**q)#One"
-;;  "((IntP p)#One)**(IntN q)" "IntP One#(p**q)"
-;;  "((IntP p)#One)**(NatToInt nat2)" "IntP(p**nat2)#One"
-
-;;  "((NatToInt nat1)#One)**(IntP q)" "NatToInt(nat1**q)#One"
-;;  "((NatToInt nat1)#One)**(NatToInt nat2)" "NatToInt(nat1**nat2)#One"
-
-;;  "((IntN p)#One)**(IntP q)" "IntN(p**q)#One"
-;;  "((IntN p)#One)**(IntN q)" "IntN One#(p**q)"
-;;  "((IntN p)#One)**(NatToInt nat2)" "IntN(p**nat2)#One"
-
-;;  "(k#One)**(IntP q)" "(k**q)#One")
 
 ;; 4.  Adding external code
 ;; ========================
