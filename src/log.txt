@@ -1,6 +1,50 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done dev branch 2016-10-17
+
+In axiom.scm
+
+aconst-to-computed-repro-data extended by missing cases for closure
+and gfp aconsts.  closure-aconst-to-computed-repro-data
+gfp-aconst-to-computed-repro-formulas added.
+
+In ets.scm
+
+Theorem YprodIfTotal added.  In axiom-to-extracted-term in case
+Closure prim-prod-flag added.  gind-aconst-to-mr-gind-proof adapted
+and corrected: measure-var-and-vars now refer to inst-gind-formula
+rather than uninst-gind-formula.  efq-ga-to-mr-efq-ga-proof
+all-formula-to-mr-cases-proof adapted to invariance axioms.
+
+In lib/pos.scm
+
+Theorem PosLeMonPosExp added.
+
+In lib/int.scm
+
+IntSg added.  Theorem IntSgUMinus added.
+
+In lib/rat.scm
+
+ex replaced by exl in RatLeBound etc.  Reason: Ex-Intro and Ex-Elim
+with total variables are not suitable for soundness proofs.
+RatLeBoundExFree etc added.  RatLeAbsMinusAbs added.  Theorem
+RatLeAbsBoundUMinusEq added.
+
+In lib/rea.scm
+
+RatSeqFinBound replaced by RatLeAbsBoundSeq extending RatLeAbsBound :
+all a exl n abs a<=2**n to finite sequences.  Computation rules for
+RealTimes simplified.  Theorems RealTimesReal NatPosExFree
+RealNNegCharOneExFree RealBoundExFree RatLeAbsBoundSeqExFree
+RealEqCharOneExFree RatLeAbsBoundExFree RatLeBoundExFree added.
+Primitive existential quantifier ex replaced by exl.  Theorems
+RatLeAbsBoundSeqUMinusEq RealBoundUMinusEq added.  Global assumptions
+RealPlusCompat RealUMinusCompat RealAbsCompat RealTimesCompat
+RealLeCompat RealUMinusPlus added.
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done on dev branch 2016-08-18
 
 In psym.scm
