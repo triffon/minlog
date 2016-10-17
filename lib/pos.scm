@@ -1,4 +1,4 @@
-;; 2016-06-16.  pos.scm.  Based on the former numbers.scm.
+;; 2016-10-17.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -4718,5 +4718,24 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "p<=SZero p" "True")
+
+;; PosLeMonPosExp
+(set-goal "all p,n,m(n<=m -> p**n<=p**m)")
+(assume "p")
+(ind)
+;; 3,4
+(strip)
+(use "Truth")
+;; 4
+(assume "n" "IH")
+(cases)
+(assume "Absurd")
+(use "EfqAtom")
+(use "Absurd")
+(assume "m")
+(ng)
+(use "IH")
+;; Proof finished.
+(save "PosLeMonPosExp")
 
 ;; (search-about "Pos" "Max")
