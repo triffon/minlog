@@ -263,6 +263,10 @@
 		   "a single pvar instantiation expected" psubst)))
      ((string=? name "ElimMR")
       (mr-elim-aconst-to-computed-repro-formulas aconst))
+     ((string=? name "Closure")
+      (closure-aconst-to-computed-repro-data aconst))
+     ((string=? name "Gfp")
+      (gfp-aconst-to-computed-repro-formulas aconst))
      (else '()))))
 
 (define (mr-elim-aconst-to-computed-repro-formulas aconst)
@@ -448,6 +452,80 @@
     (map (lambda (idpc-formula concl)
 	   (make-imp idpc-formula concl))
 	 relevant-inst-idpc-formulas (map cterm-to-formula relevant-cterms))))
+
+(define (closure-aconst-to-computed-repro-data aconst)
+  (let* ((inst-fla (aconst-to-inst-formula aconst))
+	 (kernel (all-allnc-form-to-final-kernel inst-fla))
+	 (prem (imp-form-to-premise kernel)))
+    (predicate-form-to-predicate prem)))
+
+;; The following is close to elim-aconst-to-computed-repro-formulas
+;; and hence the two functions might be joined into one.
+
+(define (gfp-aconst-to-computed-repro-formulas aconst)
+  (let* ((name (aconst-to-name aconst))
+	 (uninst-formula (aconst-to-uninst-formula aconst))
+	 (tpsubst (aconst-to-tpsubst aconst))
+	 (tsubst (list-transform-positive tpsubst
+		   (lambda (x) (tvar-form? (car x)))))
+	 (psubst (list-transform-positive tpsubst
+		  (lambda (x) (pvar-form? (car x)))))
+	 (uninst-idpc-formula (imp-impnc-all-allnc-form-to-final-conclusion
+			       uninst-formula))
+	 (uninst-idpc (predicate-form-to-predicate uninst-idpc-formula))
+	 (idpc-name (if (idpredconst-form? uninst-idpc)
+			(idpredconst-to-name uninst-idpc)
+			(myerror "gfp-aconst-to-computed-repro-formulas"
+				 "idpredconst expected" uninst-idpc)))
+	 (uninst-types (idpredconst-to-types uninst-idpc))
+	 (uninst-param-cterms (idpredconst-to-cterms uninst-idpc))
+	 (idpc-names-with-pvars-and-opt-alg-names
+	   (idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names
+	    idpc-name))
+	 (pvars (map cadr idpc-names-with-pvars-and-opt-alg-names))
+	 (relevant-pvars ;in the given order, as determined by psubst
+	  (list-transform-positive (map car psubst)
+	    (lambda (pvar) (member pvar pvars))))
+	 (pvar-name-alist (map (lambda (x) (list (cadr x) (car x)))
+			       idpc-names-with-pvars-and-opt-alg-names))
+	 (relevant-idpc-names
+	  (map (lambda (pvar)
+		 (let ((info (assoc pvar pvar-name-alist)))
+		   (if info (cadr info)
+		       (myerror "gfp-aconst-to-computed-repro-formulas"
+				"unexpected pvar" pvar))))
+	       relevant-pvars))
+	 (relevant-uninst-idpcs
+	  (map (lambda (name)
+		 (make-idpredconst name uninst-types uninst-param-cterms))
+	       relevant-idpc-names))
+	 (relevant-cterms
+	  (map cadr (list-transform-positive psubst
+		      (lambda (x) (member (car x) relevant-pvars)))))
+	 (inst-formula (aconst-to-inst-formula aconst))
+	 (inst-idpc-formula (imp-impnc-all-allnc-form-to-final-conclusion
+			     inst-formula))
+	 (inst-idpc (predicate-form-to-predicate inst-idpc-formula))
+	 (inst-types (idpredconst-to-types inst-idpc))
+	 (inst-param-cterms (idpredconst-to-cterms inst-idpc))
+	 (relevant-inst-idpcs
+	  (map (lambda (name)
+		 (make-idpredconst name inst-types inst-param-cterms))
+	       relevant-idpc-names))
+	 (pvars (map idpredconst-name-to-pvar relevant-idpc-names))
+	 (cterms (map (lambda (pvar) (cadr (assoc pvar psubst))) pvars))
+	 (var-lists (map cterm-to-vars cterms))
+	 (relevant-inst-idpc-formulas
+	  (map (lambda (idpc vars)
+		 (apply make-predicate-formula
+			idpc (map make-term-in-var-form vars)))
+	       relevant-inst-idpcs var-lists)))
+    ;; (map (lambda (idpc-formula concl)
+    ;; 	   (make-imp idpc-formula concl))
+    ;; 	 relevant-inst-idpc-formulas (map cterm-to-formula relevant-cterms))    
+    (map (lambda (prem idpc-formula)
+	   (make-imp prem idpc-formula))
+	 (map cterm-to-formula relevant-cterms) relevant-inst-idpc-formulas)))
 
 (define (uniform-non-recursive-clause? formula . pvars)
   (and
