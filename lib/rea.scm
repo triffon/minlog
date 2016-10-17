@@ -1,4 +1,4 @@
-;; 2016-07-31.  rea.scm.  Based on numbers.scm.
+;; 2016-10-16.  rea.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -748,9 +748,9 @@
 
 ;; RealEqCharOne
 (set-goal "allnc as,bs all M,N(RealConstr as M===RealConstr bs N -> 
-      all p ex n1 all n(n1<=n -> abs(as n-bs n)<=(1#2**p)))")
+      all p exl n1 all n(n1<=n -> abs(as n-bs n)<=(1#2**p)))")
 (assume "as" "bs" "M" "N" "x=y" "p")
-(ex-intro "M(PosS(PosS p))max N(PosS(PosS p))")
+(intro 0 (pt "M(PosS(PosS p))max N(PosS(PosS p))"))
 (assume "n" "BdHyp")
 (use "RatLeTrans"
      (pt "(1#2**(PosS(PosS p)))+(1#2**(PosS p))+(1#2**(PosS(PosS p)))"))
@@ -815,15 +815,86 @@
 ;; Proof finished.
 (save "RealEqCharOne")
 
-(define proof (current-proof))
-(define eterm (proof-to-extracted-term proof))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
+(pp (rename-variables
+     (nt (proof-to-extracted-term (theorem-name-to-proof "RealEqCharOne")))))
 ;; [M,M0,p]M(PosS(PosS p))max M0(PosS(PosS p))
+
+(animate "RealEqCharOne")
+
+;; RealEqCharOneExFree
+(set-goal "allnc as,bs all M,N(RealConstr as M===RealConstr bs N -> 
+      all p,n(cRealEqCharOne M N p<=n -> abs(as n-bs n)<=(1#2**p)))")
+(assume "as" "bs" "M" "N" "x=y" "p")
+(ng)
+(assume "n" "BdHyp")
+(use "RatLeTrans"
+     (pt "(1#2**(PosS(PosS p)))+(1#2**(PosS p))+(1#2**(PosS(PosS p)))"))
+(use "RatLeTrans" (pt "abs(as n+ ~(as(M(PosS(PosS p)))))+
+                       abs(as(M(PosS(PosS p)))+ ~(bs(N(PosS(PosS p)))))+
+                       abs(bs(N(PosS(PosS p)))+ ~(bs n))"))
+(assert "all a,b,c,d abs(a+ ~b)<=abs(a+ ~c)+abs(c+ ~d)+abs(d+ ~b)")
+ (assume "a" "b" "c" "d")
+ (use "RatLeTrans" (pt "abs(a+ ~d)+abs(d+ ~b)"))
+ (use "RatLeAbsMinus")
+ (use "RatLeMonPlus")
+ (use "RatLeAbsMinus")
+ (use "Truth")
+;; Assertion proved
+(assume "RatLeAbsMinus3")
+(use "RatLeAbsMinus3")
+(assert
+ "all a1,a2,b1,b2,c1,c2(a1<=a2 -> b1<=b2 -> c1<=c2 -> a1+b1+c1<=a2+b2+c2)")
+ (assume "a1" "a2" "b1" "b2" "c1" "c2" "a1<=a2" "b1<=b2" "c1<=c2")
+ (use "RatLeMonPlus")
+ (use "RatLeMonPlus")
+ (use "a1<=a2")
+ (use "b1<=b2")
+ (use "c1<=c2")
+;; Assertion proved
+(assume "RatLeMonPlus3")
+(use "RatLeMonPlus3")
+;; 26-28
+(use "CauchyElim" (pt "M"))
+(use "RealConstrToCauchy")
+(use "RealConstrEqElim0" (pt "bs") (pt "N"))
+(use "x=y")
+(use "NatLeTrans" (pt "(M(PosS(PosS p)))max(N(PosS(PosS p)))"))
+(use "NatMaxUB1")
+(use "BdHyp")
+(use "Truth")
+;; 27
+(use "RealConstrEqElim2")
+(use "x=y")
+;; 28
+(use "CauchyElim" (pt "N"))
+(use "RealConstrToCauchy")
+(use "RealConstrEqElim0" (pt "as") (pt "M"))
+(use "RealEqSym")
+(use "x=y")
+(use "Truth")
+(use "NatLeTrans" (pt "(M(PosS(PosS p)))max(N(PosS(PosS p)))"))
+(use "NatMaxUB2")
+(use "BdHyp")
+;; 7: (1#2**PosS(PosS p))+(1#2**PosS p)+(1#2**PosS(PosS p))<=(1#2**p)
+;; Use RatPlusHalfExpPosS :
+;; all p (1#2**PosS p)+(1#2**PosS p)==(1#2**p)
+(assert "(1#2**PosS(PosS p))+(1#2**PosS p)=(1#2**PosS p)+(1#2**PosS(PosS p))")
+ (use "RatPlusComm")
+(assume "Assertion")
+(simp "Assertion")
+(drop "Assertion")
+(simp "<-" "RatPlusAssoc")
+(simprat "RatPlusHalfExpPosS")
+(simprat "RatPlusHalfExpPosS")
+(use "Truth")
+;; Proof finished.
+(save "RealEqCharOneExFree")
+
+(deanimate "RealEqCharOne")
 
 ;; RealEqChar2
 (set-goal "all as,M,bs,N(Real(RealConstr as M) -> Real(RealConstr bs N) ->
-           all p ex n0 all n(n0<=n -> abs(as n-bs n)<=(1#2**p)) ->
+           all p exl n0 all n(n0<=n -> abs(as n-bs n)<=(1#2**p)) ->
            RealConstr as M===RealConstr bs N)")
 (assume "as" "M" "bs" "N" "Rx" "Ry" "Est")
 (use "RealEqIntro")
@@ -833,7 +904,7 @@
 (assume "p")
 (use "RatLeAllPlusToLe")
 (assume "q")
-;; :abs(as(M(PosS p))+ ~(bs(N(PosS p))))<=(1#2**p)+(1#2**q)
+;; abs(as(M(PosS p))+ ~(bs(N(PosS p))))<=(1#2**p)+(1#2**q)
 (inst-with-to "Est" (pt "q") "InstEst")
 (drop "Est")
 (by-assume "InstEst" "n0" "n0Prop")
@@ -924,19 +995,19 @@
 (use "y=z")
 (assume "p")
 ;; Use RealEqCharOne for x=y
-(assert "ex n all n0(n<=n0 -> abs(as n0-bs n0)<=(1#2**(PosS p)))")
-(use "RealEqCharOne" (pt "M") (pt "N"))
-(use "x=y")
+(assert "exl n all n0(n<=n0 -> abs(as n0-bs n0)<=(1#2**(PosS p)))")
+ (use "RealEqCharOne" (pt "M") (pt "N"))
+ (use "x=y")
 (assume "xyExHyp")
 (by-assume "xyExHyp" "m" "mProp")
 ;; Use RealEqCharOne for y=z
-(assert "ex n all n0(n<=n0 -> abs(bs n0-cs n0)<=(1#2**(PosS p)))")
-(use "RealEqCharOne" (pt "N") (pt "L"))
-(use "y=z")
+(assert "exl n all n0(n<=n0 -> abs(bs n0-cs n0)<=(1#2**(PosS p)))")
+ (use "RealEqCharOne" (pt "N") (pt "L"))
+ (use "y=z")
 (assume "yzExHyp")
 (by-assume "yzExHyp" "l" "lProp")
 ;; Take m max l for n
-(ex-intro "m max l")
+(intro 0 (pt "m max l"))
 (assume "n" "BdHyp")
 (use "RatLeTrans" (pt "abs(as n-bs n)+abs(bs n-cs n)"))
 (use "Truth")
@@ -967,96 +1038,244 @@
 
 ;; Every real has an upper bound, that is the reals are Archimedian ordered.
 
-;; RatSeqFinBound
-(set-goal "all as,n ex a all m(m<n -> as m<=a)")
+;; RatLeAbsBoundSeq
+(set-goal "all as,l exl n all m(m<l -> abs(as m)<=2**n)")
 (assume "as")
 (ind)
-  (ex-intro "IntP One#One")
-  (assume "m" "Absurd")
-  (use "EfqAtom")
-  (use "Absurd")
-(assume "n" "IH")
-(by-assume "IH" "a" "H")
-(ex-intro "a max as n")
-(assume "m" "m<Succ n")
-(use "NatLtSuccCases" (pt "m") (pt "n"))
-(use "m<Succ n")
-(assume "m<n")
-(use "RatLeTrans" (pt "a"))
-(use-with "H" (pt "m") "m<n")
-(use "RatMaxUB1")
-(assume "m=n")
-(simp "m=n")
-(use "RatMaxUB2")
+;; 3,4
+(intro 0 (pt "Zero"))
+(assume "m" "Absurd")
+(use "EfqAtom")
+(use "Absurd")
+;; 4
+(assume "l" "IH")
+(by-assume "IH" "n" "nProp")
+(inst-with-to "RatLeAbsBound" (pt "as l") "ExHyp")
+(by-assume "ExHyp" "n1" "n1Prop")
+(intro 0 (pt "n max n1"))
+(assume "m" "m<l+1")
+(use "NatLtSuccCases" (pt "m") (pt "l"))
+(use "m<l+1")
+(assume "m<l")
+(use "RatLeTrans" (pt "(2**n#One)"))
+(use "nProp")
+(use "m<l")
+(ng)
+(use "PosLeMonPosExp")
+(use "NatMaxUB1")
+(assume "m=l")
+(simp "m=l")
+(use "RatLeTrans" (pt "(2**n1#One)"))
+(use "n1Prop")
+(ng)
+(use "PosLeMonPosExp")
+(use "NatMaxUB2")
 ;; Proof finished.
-(save "RatSeqFinBound")
+(save "RatLeAbsBoundSeq")
 
 (pp (rename-variables
-     (nt (proof-to-extracted-term (theorem-name-to-proof "RatSeqFinBound")))))
-;; [as,n](Rec nat=>rat)n 1([n0,a]a max as n0)
+     (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeAbsBoundSeq")))))
+;; [as,n](Rec nat=>nat)n Zero([n0,n1]n1 max cRatLeAbsBound(as n0))
+
+(animate "RatLeAbsBoundSeq")
+
+;; RatLeAbsBoundSeqExFree
+(set-goal "all as,l,m(m<l -> abs(as m)<=2**cRatLeAbsBoundSeq as l)")
+(assume "as")
+(ind)
+;; 3,4
+(assume "m" "Absurd")
+(use "EfqAtom")
+(use "Absurd")
+;; 4
+(assume "l" "IH" "m" "m<l+1")
+(use "NatLtSuccCases" (pt "m") (pt "l"))
+(use "m<l+1")
+(assume "m<l")
+(use "RatLeTrans" (pt "(2**cRatLeAbsBoundSeq as l#1)"))
+(use "IH")
+(use "m<l")
+(ng)
+(use "PosLeMonPosExp")
+(use "NatMaxUB1")
+(assume "m=l")
+(simp "m=l")
+(assert "cRatLeAbsBoundSeq as(Succ l)=
+         cRatLeAbsBoundSeq as l max cRatLeAbsBound(as l)")
+ (use "Truth")
+(assume "EqHyp")
+(simp "EqHyp")
+(drop "EqHyp")
+(use "RatLeTrans" (pt "(2**cRatLeAbsBound(as l)#One)"))
+(use "RatLeAbsBoundExFree")
+(use "PosLeMonPosExp")
+(use "NatMaxUB2")
+;; Proof finished.
+(save "RatLeAbsBoundSeqExFree")
+
+;; RatLeAbsBoundSeqUMinusEq
+(set-goal "all as,n cRatLeAbsBoundSeq as n=cRatLeAbsBoundSeq([n0]~(as n0))n")
+(assume "as")
+(ind)
+;; 3,4
+(use "Truth")
+;; 4
+(assume "n" "IH")
+(ng)
+(simp "IH")
+(simp (pf "cRatLeAbsBound(as n)=cRatLeAbsBound~(as n)"))
+(use "Truth")
+(use "RatLeAbsBoundUMinusEq")
+;; Proof finshed.
+(save "RatLeAbsBoundSeqUMinusEq")
+
+(deanimate "RatLeAbsBoundSeq")
 
 ;; RealBound
-(set-goal "all as,M(Cauchy as M -> ex a all n as n<=a)")
+(set-goal "all as,M(Cauchy as M -> exl m all n abs(as n)<=2**m)")
 (assume "as" "M" "CasM")
-(cut "ex a all m(m<M 1 -> as m<=a)")
+(cut "exl m all n(n<=M 1 -> abs(as n)<=2**m)")
 (assume "ExHyp")
-(by-assume "ExHyp" "a" "FinBound")
-(ex-intro "a max(as(M 1))+1")
-
-;; ?_9:all n as n<=a max as(M 1)+1
+(by-assume "ExHyp" "m" "FinBound")
+(intro 0 (pt "m+1"))
+;; ?_9:all n abs(as n)<=2**(m+1)
 (assume "n")
-(cases (pt "n<M 1"))
-(assume "n<M 1")
-(use "RatLeTrans" (pt "a"))
+(cases (pt "n<=M 1"))
+;; 11,12
+(assume "n<=M 1")
+(use "RatLeTrans" (pt "(2**m#1)"))
 (use "FinBound")
-(use "n<M 1")
-(use "RatLeTrans" (pt "a max(as(M 1))"))
-(use "RatMaxUB1")
+(use "n<=M 1")
 (use "Truth")
-
-;; ?_12:(n<M 1 -> F) -> as n<=a max as(M 1)+1
+;; ?_12:(n<M 1 -> F) -> abs(as n)<=2**(m+1)
 (assume "n<M 1 -> F")
-(use "RatLeTrans" (pt "as(M 1)+(as n+ ~(as(M 1)))"))
+(use "RatLeTrans" (pt "abs(as(M 1))+(abs(as n)+ ~(abs(as(M 1))))"))
 (assert "all b,c b<=c+(b+ ~c)")
  (assume "b" "c")
  (simp "RatPlusComm")
  (simp "<-" "RatPlusAssoc")
  (simprat (pf "~c+c==0"))
  (use "Truth")
- (use "Truth")
+ (use "Truth") 
 (assume "Assertion")
 (use "Assertion")
-
-;; ?_21:as(M 1)+(as n+ ~(as(M 1)))<=a max as(M 1)+1
+;; ?_21:abs(as(M 1))+(abs(as n)+ ~abs(as(M 1)))<=2**(m+1)
+(use "RatLeTrans" (pt "(2**m#1)+(1#2**1)"))
 (use "RatLeMonPlus")
-(use "RatMaxUB2")
-
-;; ?_23: as n-as(M 1)<=1 
-(use "RatLeTrans" (pt "abs(as n+ ~(as(M 1)))"))
+(use "FinBound")
 (use "Truth")
-
-;; ?_33:abs(as n+ ~(as(M 1)))<=1
-(use "RatLeTrans" (pt "(1#2**1)"))
+;; ?_31:abs(as n)+ ~abs(as(M 1))<=(1#2)
+(use "RatLeTrans" (pt "abs(abs(as n)+ ~abs(as(M 1)))"))
+(use "Truth")
+(use "RatLeTrans" (pt "abs(as n+ ~(as(M 1)))"))
+(use "RatLeAbsMinusAbs")
+;; ?_36:abs(as n+ ~(as(M 1)))<=(1#2)
 (use "CauchyElim" (pt "M"))
 (use "CasM")
 (use "NatNotLtToLe")
+(assume "n<M 1")
 (use "n<M 1 -> F")
+(use "NatLtToLe")
+(use "n<M 1")
 (use "Truth")
+(simp (pf "2**(m+1)=2**m+2**m"))
 (use "Truth")
-(use "RatSeqFinBound")
+(ng)
+(simp "SZeroPosPlus")
+(use "Truth")
+(intro 0 (pt "cRatLeAbsBoundSeq as(Succ(M 1))"))
+(assume "n" "n<=M 1")
+(use "RatLeAbsBoundSeqExFree")
+(use "NatLeToLtSucc")
+(use "n<=M 1")
 ;; Proof finished.
 (save "RealBound")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
-;; [as,M]cRatSeqFinBound as(M 1)max as(M 1)+1
+;; [as,M]Succ(cRatLeAbsBoundSeq as(Succ(M 1)))
+
+(animate "RealBound")
+
+;; RealBoundPos
+(set-goal "all as,M Zero<cRealBound as M")
+(assume "as" "M")
+(use "Truth")
+;; Proof finished.
+(save "RealBoundPos")
+
+;; RealBoundExFree
+(set-goal "all as,M(Cauchy as M -> all n abs(as n)<=2**cRealBound as M)")
+(assume "as" "M" "CasM")
+(assert "all n(n<=M 1 -> abs(as n)<=2**cRatLeAbsBoundSeq as(Succ(M 1)))")
+(assume "n" "n<=M 1")
+(use "RatLeAbsBoundSeqExFree")
+(use "NatLeToLtSucc")
+(use "n<=M 1")
+(assume "FinBound" "n")
+(cases (pt "n<=M 1"))
+;; 9,10
+(assume "n<=M 1")
+(ng)
+(simp "SZeroPosPlus")
+(use "RatLeTrans" (pt "(2**cRatLeAbsBoundSeq as(Succ(M 1))#1)"))
+(use "FinBound")
+(use "n<=M 1")
+(use "Truth")
+;; ?_10:(n<=M 1 -> F) -> abs(as n)<=2**cRealBound as M
+(assume "n<M 1 -> F")
+(ng)
+(simp "SZeroPosPlus")
+(use "RatLeTrans" (pt "abs(as(M 1))+(abs(as n)+ ~(abs(as(M 1))))"))
+(assert "all b,c b<=c+(b+ ~c)")
+ (assume "b" "c")
+ (simp "RatPlusComm")
+ (simp "<-" "RatPlusAssoc")
+ (simprat (pf "~c+c==0"))
+ (use "Truth")
+ (use "Truth") 
+(assume "Assertion")
+(use "Assertion")
+;; ?_21:abs(as(M 1))+(abs(as n)+ ~abs(as(M 1)))<=
+;;      2**cRatLeAbsBoundSeq as(Succ(M 1))+2**cRatLeAbsBoundSeq as(Succ(M 1))
+(use "RatLeTrans" (pt "(2**cRatLeAbsBoundSeq as(Succ(M 1))#1)+(1#2**1)"))
+(use "RatLeMonPlus")
+(use "FinBound")
+(use "Truth")
+;; ?_33:abs(as n)+ ~abs(as(M 1))<=(1#2**1)
+(use "RatLeTrans" (pt "abs(abs(as n)+ ~abs(as(M 1)))"))
+(use "Truth")
+(use "RatLeTrans" (pt "abs(as n+ ~(as(M 1)))"))
+(use "RatLeAbsMinusAbs")
+;; ?_38:abs(as n+ ~(as(M 1)))<=(1#2**1)
+(use "CauchyElim" (pt "M"))
+(use "CasM")
+(use "NatNotLtToLe")
+(assume "n<M 1")
+(use "n<M 1 -> F")
+(use "NatLtToLe")
+(use "n<M 1")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RealBoundExFree")
+
+;; RealBoundUMinusEq
+(set-goal "all as,M cRealBound as M=cRealBound([n]~(as n))M")
+(assume "as" "M")
+(ng)
+(use "RatLeAbsBoundSeqUMinusEq")
+;; Proof finshed.
+(save "RealBoundUMinusEq")
+
+(deanimate "RealBound")
 
 ;; RealNNegCharOne
 (set-goal "allnc as all M(RealNNeg(RealConstr as M) -> 
-      all p ex n1 all n(n1<=n -> ~(1#2**p)<=as n))")
+      all p exl n1 all n(n1<=n -> ~(1#2**p)<=as n))")
 (assume "as" "M" "0<=x" "p")
-(ex-intro "M(PosS p)")
+(intro 0 (pt "M(PosS p)"))
 (assume "n" "BdHyp")
 (use "RatLeTrans" (pt "~(1#2**(PosS p))+(as(M(PosS p))+ ~(as n))+as n"))
 ;; 5,6
@@ -1122,15 +1341,85 @@
 ;; Proof finished.
 (save "RealNNegCharOne")
 
-(define proof (current-proof))
-(define eterm (proof-to-extracted-term proof))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
+(pp (rename-variables
+     (nt (proof-to-extracted-term (theorem-name-to-proof "RealNNegCharOne")))))
 ;; [M,p]M(PosS p)
 
+(animate "RealNNegCharOne")
+
+;; RealNNegCharOneExFree
+(set-goal "all as,M(RealNNeg(RealConstr as M) -> 
+      all p,n(cRealNNegCharOne M p<=n -> ~(1#2**p)<=as n))")
+(assume "as" "M" "0<=x" "p" "n" "BdHyp")
+(use "RatLeTrans" (pt "~(1#2**(PosS p))+(as(M(PosS p))+ ~(as n))+as n"))
+;; 3,4
+(use "RatLeTrans" (pt "~(1#2**(PosS p))+as(M(PosS p))"))
+(use "RatLePlusMinusToRatLePlus")
+(assert "(1#2**p)==(1#2**PosS p)+(1#2**PosS p)")
+ (use "RatEqvSym")
+ (use "RatPlusHalfExpPosS")
+(assume "RatPlusHalfExpPosSCor")
+(simprat "RatPlusHalfExpPosSCor")
+(drop "RatPlusHalfExpPosSCor")
+(simp "RatUMinus1RewRule")
+(simp "RatUMinus2RewRule")
+(simp "RatPlusAssoc")
+(use "RatLeTrans" (pt "0+ ~(1#2**PosS p)"))
+(use "RatLeMonPlus")
+(use "Truth")
+(use "Truth")
+(use "RatLeTrans" (pt "as(M(PosS p))+(1#2**PosS p)+ ~(1#2**PosS p)"))
+(use "RatLeMonPlus")
+(use "RealConstrNNegElim1")
+(use "0<=x")
+(use "Truth")
+(simprat "RatEqvPlusMinusRev")
+(use "RatLeRefl")
+(use "Truth")
+;; 6
+(simp "<-" "RatPlusAssoc")
+(use "RatLeMonPlus")
+(ng)
+(use "Truth")
+(simprat "RatEqvPlusMinus")
+(use "Truth")
+;; 4
+;; The following argument is repeated in the proof of RealPosCharOne below
+(assert
+ "all a1,a2,b1,b2,c1,c2(a1<=a2 -> b1<=b2 -> c1<=c2 -> a1+b1+c1<=a2+b2+c2)")
+ (assume "a1" "a2" "b1" "b2" "c1" "c2" "a1<=a2" "b1<=b2" "c1<=c2")
+ (use "RatLeMonPlus")
+ (use "RatLeMonPlus")
+ (use "a1<=a2")
+ (use "b1<=b2")
+ (use "c1<=c2")
+;; Assertion proved
+(assume "RatLeMonPlus3")
+(use "RatLeTrans" (pt "~(1#2**PosS p)+(1#2**PosS p)+as n"))
+(use "RatLeMonPlus3")
+(drop "RatLeMonPlus3")
+(use "Truth")
+(use "RatLeTrans" (pt "abs(as(M(PosS p))+ ~(as n))"))
+(use "Truth")
+(use "CauchyElim" (pt "M"))
+(use "RealConstrToCauchy")
+(use "RealNNegElim0")
+(use "0<=x")
+(use "Truth")
+(use "BdHyp")
+(use "Truth")
+(simp "RatPlusComm")
+(simp "RatPlusAssoc")
+(simprat "RatEqvPlusMinus")
+(use "Truth")
+;; Proof finished.
+(save "RealNNegCharOneExFree")
+
+(deanimate "RealNNegCharOne")
+
 ;; RealNNegChar2
-(set-goal "allnc as all M(Real(RealConstr as M) ->
-      all p ex n1 all n(n1<=n -> ~(1#2**p)<=as n) ->
+(set-goal "all as,M(Real(RealConstr as M) ->
+      all p exl n1 all n(n1<=n -> ~(1#2**p)<=as n) ->
       RealNNeg(RealConstr as M))")
 (assume "as" "M" "Rx" "Est")
 (use "RealNNegIntro")
@@ -1167,6 +1456,7 @@
 ;; Proof finished.
 (save "RealNNegChar2")
 
+;; RealNNegCompat
 (set-goal "all x,y(x===y -> RealNNeg x -> RealNNeg y)")
 (cases)
 (assume "as" "M")
@@ -1182,7 +1472,7 @@
 (inst-with-to "RealEqCharOne" (pt "as") (pt "bs") (pt "M") (pt "N")
 	      "x=y" (pt "PosS p") "EqCharOneInst")
 (by-assume "EqCharOneInst" "n1" "n1Prop")
-(ex-intro "n0 max n1")
+(intro 0 (pt "n0 max n1"))
 (assume "n" "nBd")
 (use "RatLeTrans" (pt "~(1#2**PosS p)+(as n)"))
 (simprat "<-" "RatPlusHalfExpPosS")
@@ -1212,16 +1502,13 @@
 ;; Proof finished.
 (save "RealNNegCompat")
 
-;; RealPosCharOne
-(set-goal "allnc as all M,p(
+;; RealPosChar1
+(set-goal "all as,M,p(
  Real(RealConstr as M) -> RealPos(RealConstr as M)p ->
- ex q,n1 all n(n1<=n -> (1#2**q)<=as n))")
-(assume "as" "M" "p" "Rx" "xPos")
-(ex-intro "PosS p")
-(ex-intro "M(PosS p)")
-(assume "n" "BdHyp")
+ all n(M(PosS p)<=n -> (1#2**PosS p)<=as n))")
+(assume "as" "M" "p" "Rx" "xPos" "n" "BdHyp")
 (use "RatLeTrans" (pt "~(1#2**(PosS p))+(as(M(PosS p))+ ~(as n))+as n"))
-;; 6,7
+;; 3,4
 (use "RatLePlusMinusToRatLePlus")
 (ng)
 (simp "RatPlusComm")
@@ -1237,7 +1524,7 @@
 (ng)
 (simprat "RatEqvPlusMinusRev")
 (use "Truth")
-;; 7
+;; 4
 ;; The following is similar to what was done for RealNNegCharOne
 (assert
  "all a1,a2,b1,b2,c1,c2(a1<=a2 -> b1<=b2 -> c1<=c2 -> a1+b1+c1<=a2+b2+c2)")
@@ -1266,20 +1553,13 @@
 (simprat "RatEqvPlusMinus")
 (use "Truth")
 ;; Proof finished.
-(save "RealPosCharOne")
+(save "RealPosChar1")
 
-(define proof (current-proof))
-(define eterm (proof-to-extracted-term proof))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; [M,p]PosS p@M(PosS p)
-
-;; RealPosCharTwo
-(set-goal "allnc as,M,n1 all q(Real(RealConstr as M) -> 
+;; RealPosChar2
+(set-goal "all as,M,n1,q(Real(RealConstr as M) -> 
                                all n(n1<=n -> (1#2**q)<=as n) ->
-                               ex p RealPos(RealConstr as M)p)")
+                               RealPos(RealConstr as M)(PosS q))")
 (assume "as" "M" "n1" "q" "Rx" "Est")
-(ex-intro (pt "PosS q"))
 (ng)
 (use "RatLeTrans" (pt "~(1#2**(PosS(PosS q)))+(1#2**q)"))
 (use "RatLeTrans" (pt "~(1#2**(PosS q))+(1#2**q)"))
@@ -1300,7 +1580,7 @@
 (assume "Assertion")
 (use "Assertion")
 (use "Truth")
-;; 6 
+;; 5
 ;; We now want to use n as an abbreviation for n1 max M(PosS(PosS q)).
 ;; Hence we introduce via cut the formula all n(n=term -> goal)
 (cut "all n(n=n1 max M(PosS(PosS q)) ->
@@ -1332,74 +1612,59 @@
 (simprat "RatEqvPlusMinus")
 (use "Truth")
 ;; Proof finished.
-(save "RealPosCharTwo")
-
-(define proof (current-proof))
-(define eterm (proof-to-extracted-term proof))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; PosS
+(save "RealPosChar2")
 
 ;; RealPosCompat
-(set-goal "allnc as all M allnc bs all N(
+(set-goal "all as,M,bs,N(
      RealConstr as M===RealConstr bs N -> all p(
      RealPos(RealConstr as M)p ->
-     ex q RealPos(RealConstr bs N)q))")
+     RealPos(RealConstr bs N)(PosS(PosS p))))")
 (assume "as" "M" "bs" "N" "x=y" "p" "0<x")
-(assert "ex q,n all n0(n<=n0 -> (1#2**q)<=as n0)")
- (use "RealPosCharOne" (pt "M") (pt "p"))
- (use "RealEqElim0" (pt "RealConstr bs N"))
- (use "x=y")
- (use "0<x")
-(assume "xPosChar")
-(by-assume "xPosChar" "q" "qProp")
-(by-assume "qProp" "n0" "qn0Prop")
-(inst-with-to "RealEqCharOne"
-	      (pt "as") (pt "bs") (pt "M") (pt "N") "x=y" (pt "PosS q")
-	      "RealEqCharOneInst")
-(by-assume "RealEqCharOneInst" "n1" "n1Prop")
-(use "RealPosCharTwo" (pt "n0 max n1") (pt "PosS q"))
-(use "RealEqElim1" (pt "RealConstr as M"))
-(use "x=y")
-(assume "n" "BdHyp")
-(use "RatLeTrans" (pt "~(1#2**PosS q)+(1#2**q)"))
-(use "RatLePlusMinusToRatLePlus")
-(simp "RatUMinus1RewRule")
-(simprat "RatPlusHalfExpPosS")
-(use "Truth")
-(use "RatLeTrans" (pt "bs n+ ~(as n)+ as n"))
-(use "RatLeMonPlus")
-(simp "<-" "RatLeUMinus")
 (ng)
-(simp "RatPlusComm")
-(use "RatLeTrans" (pt "abs(as n+ ~(bs n))"))
+;; (1#2**PosS(PosS p))<=bs(N(PosS(PosS(PosS p))))
+(use "RatLeTrans" (pt "(1#2**PosS p)+ ~(1#2**PosS(PosS p))"))
+;; 4,5
+(inst-with-to "RatPlusHalfExpPosS" (pt "PosS p") "RatPlusHalfExpPosSInst")
+(simprat "<-" "RatPlusHalfExpPosSInst")
+(simp "<-" "RatPlusAssoc")
 (use "Truth")
-(use "n1Prop")
-(use "NatLeTrans" (pt "n0 max n1"))
-(use "NatMaxUB2")
-(use "BdHyp")
-(use "qn0Prop")
-(use "NatLeTrans" (pt "n0 max n1"))
-(use "NatMaxUB1")
-(use "BdHyp")
-(simprat "RatEqvPlusMinus")
+;; ?_5:(1#2**PosS p)+ ~(1#2**PosS(PosS p))<=bs(N(PosS(PosS(PosS p))))
+(inst-with-to "RatEqvPlusMinus"
+	      (pt "bs(N(PosS(PosS(PosS p))))")
+	      (pt "as(M(PosS(PosS(PosS p))))")
+	      "RatEqvPlusMinusInst")
+(simphyp-to "RatEqvPlusMinusInst" "RatPlusComm" "RatEqvPlusMinusInstSimp")
+(drop "RatEqvPlusMinusInst")
+(simprat "<-" "RatEqvPlusMinusInstSimp")
+(drop "RatEqvPlusMinusInstSimp")
+(use "RatLeMonPlus")
+;; 17,18
+;; ?_17:(1#2**PosS p)<=as(M(PosS(PosS(PosS p))))
+(use "RealPosChar1" (pt "M"))
+(use "RealEqElim0" (pt "RealConstr bs N"))
+(use "x=y")
+(use "0<x")
+(use "MonElim")
+(use "RealConstrToMon" (pt "as"))
+(use "RealEqElim0" (pt "RealConstr bs N"))
+(use "x=y")
+(use "PosLeTrans" (pt "PosS(PosS p)"))
+(use "Truth")
+(use "Truth")
+;; ?_18:~(1#2**PosS(PosS p))<=
+;;      bs(N(PosS(PosS(PosS p))))+ ~(as(M(PosS(PosS(PosS p)))))
+(use "RatLeTrans"
+     (pt "~(as(M(PosS(PosS(PosS p))))+ ~(bs(N(PosS(PosS(PosS p))))))"))
+(simp "RatLeUMinus")
+(use "RatLeTrans"
+     (pt "abs(as(M(PosS(PosS(PosS p))))+ ~(bs(N(PosS(PosS(PosS p))))))"))
+(use "Truth")
+(use "RealConstrEqElim2")
+(use "x=y")
+(simp "RatPlusComm")
 (use "Truth")
 ;; Proof finished.
 (save "RealPosCompat")
-
-(define proof (current-proof))
-(define eterm (proof-to-extracted-term proof))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; [M,M0,p]cRealPosCharTwo(PosS left(cRealPosCharOne M p))
-
-(animate "RealPosCharOne")
-(animate "RealPosCharTwo")
-
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-;; [M,M0,p]PosS(PosS(PosS p))
-;; Todo: find a direct proof with a better eterm.
 
 ;; RealPlusReal
 (set-goal "all x,y(Real x -> Real y -> Real(RealPlus x y))")
@@ -1550,8 +1815,10 @@
  (pf "as n*bs n+ ~(as m*bs m)==as n*(bs n+ ~(bs m))+(as n+ ~(as m))*bs m"))
 ;; 6,7
 (use "RatLeTrans" (pt "abs(as n*(bs n+ ~(bs m)))+abs((as n+ ~(as m))*bs m)"))
+;; 8,9
 (use "RatLeAbsPlus")
 (use "RatLeTrans" (pt "(1#2**PosS p)+(1#2**PosS p)"))
+;; 10,11
 (use "RatLeMonPlus")
 ;; 12,13
 
@@ -1635,18 +1902,29 @@
 ;; Use cNatPos instead of the pconst NatToPos to block unwanted unfoldings
 
 ;; NatPos
-(set-goal "all n ex p p=NatToPos n")
+(set-goal "all n exl p p=NatToPos n")
 (assume "n")
-(ex-intro "NatToPos n")
+(intro 0 (pt "NatToPos n"))
 (use "Truth")
 ;; Proof finished.
 (save "NatPos")
 
+(animate "NatPos")
+
+;; NatPosExFree
+(set-goal "all n cNatPos n=NatToPos n")
+(assume "n")
+(use "Truth")
+;; Proof finished.
+(save "NatPosExFree")
+
+(deanimate "NatPos")
+
 (add-computation-rules
  "(RealConstr as M)*(RealConstr bs N)"
  "RealConstr([n]as n*bs n)
-            ([p]M(PosS(p+cNatPos(cRatLeAbsBound(cRealBound bs N))))max 
-                N(PosS(p+cNatPos(cRatLeAbsBound(cRealBound as M)))))")
+            ([p]M(PosS(p+cNatPos(cRealBound bs N)))max
+                N(PosS(p+cNatPos(cRealBound as M))))")
 
 (set-totality-goal "RealTimes")
 (use "AllTotalElim")
@@ -1677,35 +1955,92 @@
 (ng)
 (use-with "CauchyElim"
 	  (pt "[n]as n*bs n")
-	  (pt "[p]M(PosS(p+cNatPos(cRatLeAbsBound(cRealBound bs N))))max 
-                  N(PosS(p+cNatPos(cRatLeAbsBound(cRealBound as M))))")
+	  (pt "[p]M(PosS(p+cNatPos(cRealBound bs N)))max
+                  N(PosS(p+cNatPos(cRealBound as M)))")
 	  "?" (pt "p") (pt "n") (pt "m") "?" "?")
 (use "CauchyTimes")
 (use "CasM")
 (use "CbsN")
 (use "MonM")
 (use "MonN")
-;; ?_23:all n abs(as n)<=2**cNatPos(cRatLeAbsBound(cRealBound as M))
+;; ?_23:all n abs(as n)<=2**cNatPos(cRealBound as M)
+(assert "PosToNat(cNatPos(cRealBound as M))=cRealBound as M")
+ (simp "NatPosExFree")
+ (use "PosToNatToPosId")
+ (use "RealBoundPos")
+(assume "EqHyp")
+(simp "EqHyp")
+(use "RealBoundExFree")
+(use "CasM")
 
-;; Probably we need a soundness proof here.
+;; ?_24:all n abs(bs n)<=2**cNatPos(cRealBound bs N)
+(assert "PosToNat(cNatPos(cRealBound bs N))=cRealBound bs N")
+ (simp "NatPosExFree")
+ (use "PosToNatToPosId")
+ (use "RealBoundPos")
+(assume "EqHyp")
+(simp "EqHyp")
+(use "RealBoundExFree")
+(use "CbsN")
 
-;; To be done:
+(use "nBd")
+(use "mBd")
 
-;; RealPlusCompat
-(set-goal "all x,y,z,z1(x===y -> z===z1 -> x+z===y+z1)")
-(assume "x" "y" "z" "z1" "x=y" "z=z1")
+;; ?_11:Mon
+;;      ((RealConstr([n]as n*bs n)
+;;        ([p]
+;;          M(PosS(p+cNatPos(cRealBound bs N)))max 
+;;          N(PosS(p+cNatPos(cRealBound as M)))))mod)
 
-;; RealUMinusCompat
-(set-goal "all x,y(x===y -> ~x=== ~y)")
-(assume "x" "y" "x=y")
+(ng)
+(use "MonIntro")
+(ng)
+(assume "p" "q" "p<=q")
+(use "NatMaxLUB")
 
-;; RealAbsCompat
-(set-goal "all x,y(x===y -> abs x===abs y)")
+(use "NatLeTrans" (pt "M(PosS(q+cNatPos(cRealBound bs N)))"))
+(use "MonElim")
+(use "MonM")
+(ng)
+(use "PosLeMonPlus")
+(use "p<=q")
+(use "Truth")
+(use "NatMaxUB1")
 
-;; RealTimesCompat
-(set-goal "all x,y,z,z1(x===y -> z===z1 -> x*z===y*z1)")
-(assume "x" "y" "z" "z1" "x=y" "z=z1")
+(use "NatLeTrans" (pt "N(PosS(q+cNatPos(cRealBound as M)))"))
+(use "MonElim")
+(use "MonN")
+(ng)
+(use "PosLeMonPlus")
+(use "p<=q")
+(use "Truth")
+(use "NatMaxUB2")
+;; Proof finished.
+(save "RealTimesReal")
 
-;; RealLeCompat
-(set-goal "all x,y,z,z1(x===y -> z===z1 -> x<<=z -> y<<=z1)")
+;; To be proved:
+
+(add-global-assumption
+ "RealPlusCompat"
+ "all x,y,z,z1(x===y -> z===z1 -> x+z===y+z1)")
+
+(add-global-assumption
+ "RealUMinusCompat"
+ "all x,y(x===y -> ~x=== ~y)")
+
+(add-global-assumption
+  "RealAbsCompat"
+  "all x,y(x===y -> abs x===abs y)")
+
+(add-global-assumption
+ "RealTimesCompat"
+ "all x,y,z,z1(x===y -> z===z1 -> x*z===y*z1)")
+
+(add-global-assumption
+ "RealLeCompat"
+ "all x,y,z,z1(x===y -> z===z1 -> x<<=z -> y<<=z1)")
+
+(add-global-assumption
+ "RealUMinusPlus"
+ "all x,y(Real x -> Real y -> ~(x+y)=== ~x+ ~y)")
 
