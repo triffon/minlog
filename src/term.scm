@@ -2414,6 +2414,8 @@
   ;; Similar to fix-succ but for integers
   (define (fix-int arg)
     (cond
+     ;; numeric patterns can (and should) be left as-is
+     ((is-int-numeric-term? arg) (list arg empty-subst ""))
      ((term-in-app-form? arg)
       (let* ((intpos (string=? (const-to-name
 				(term-in-const-form-to-const
