@@ -81,3 +81,5 @@
   (split-window)
   (if filename (find-file filename))
   (other-window 1))
+
+(defun quote-string (s) (concat "\"" s "\""))
