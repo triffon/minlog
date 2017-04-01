@@ -4,8 +4,6 @@
 
 (display "loading nat.scm ...") (newline)
 
-(add-mr-ids "TotalBoole")
-
 (add-algs "nat" '("Zero" "nat") '("Succ" "nat=>nat"))
 (add-var-name "n" "m" "l" (py "nat")) ;l instead of k, which will be an int
 
@@ -15,7 +13,14 @@
 ;; TotalNatZero:	TotalNat Zero
 ;; TotalNatSucc:	allnc nat^(TotalNat nat^ -> TotalNat(Succ nat^))
 
-(add-mr-ids "TotalNat")
+(add-totalnc "nat")
+(add-co "TotalNat")
+(add-co "TotalNatNc")
+
+(add-eqp "nat")
+(add-co "EqPNat")
+(add-eqpnc "nat")
+(add-co "EqPNatNc")
 
 ;; NatTotalVar
 (set-goal "all n TotalNat n")
