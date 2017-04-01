@@ -859,40 +859,46 @@
 		   (myerror "make-proof-in-andd-elim-left-form"
 			    "andd form expected" fla)))
 	 (right (andd-form-to-right fla))
-	 (imp-fla (make-imp fla left))
-	 (aconst (imp-formulas-to-elim-aconst imp-fla))
-	 (inst-formula (aconst-to-inst-formula aconst))
-	 (free (formula-to-free inst-formula))
-	 (proj-left-proof ;of Pvar1 -> Pvar2 -> Pvar1
-	  (let ((u (formula-to-new-avar left))
-		(v (formula-to-new-avar right)))
-	    (mk-proof-in-intro-form
-	     u v (make-proof-in-avar-form u)))))
+	 (free (formula-to-free fla))
+	 (aconst (theorem-name-to-aconst "Lft"))
+	 (pvars (map (lambda (cterm) (predicate-form-to-predicate
+				      (cterm-to-formula cterm)))
+		     (idpredconst-to-cterms
+		      (predicate-form-to-predicate
+		       (imp-form-to-premise
+			(aconst-to-uninst-formula
+			 (theorem-name-to-aconst "Lft")))))))
+	 (psubst (make-substitution
+		  pvars (map make-cterm (list left right))))
+	 (subst-aconst (aconst-substitute aconst psubst)))
     (apply mk-proof-in-elim-form
-	   (make-proof-in-aconst-form aconst)
+	   (make-proof-in-aconst-form subst-aconst)
 	   (append (map make-term-in-var-form free)
-		   (list proof proj-left-proof)))))
+		   (list proof)))))
 
 (define (make-proof-in-andd-elim-right-form proof)
   (let* ((fla (proof-to-formula proof))
 	 (left (if (andd-form? fla)
 		   (andd-form-to-left fla)
-		   (myerror "make-proof-in-andd-elim-right-form"
+		   (myerror "make-proof-in-andd-elim-left-form"
 			    "andd form expected" fla)))
 	 (right (andd-form-to-right fla))
-	 (imp-fla (make-imp fla right))
-	 (aconst (imp-formulas-to-elim-aconst imp-fla))
-	 (inst-formula (aconst-to-inst-formula aconst))
-	 (free (formula-to-free inst-formula))
-	 (proj-right-proof ;of Pvar1 -> Pvar2 -> Pvar2
-	  (let ((u (formula-to-new-avar left))
-		(v (formula-to-new-avar right)))
-	    (mk-proof-in-intro-form
-	     u v (make-proof-in-avar-form v)))))
+	 (free (formula-to-free fla))
+	 (aconst (theorem-name-to-aconst "Rht"))
+	 (pvars (map (lambda (cterm) (predicate-form-to-predicate
+				      (cterm-to-formula cterm)))
+		     (idpredconst-to-cterms
+		      (predicate-form-to-predicate
+		       (imp-form-to-premise
+			(aconst-to-uninst-formula
+			 (theorem-name-to-aconst "Lft")))))))
+	 (psubst (make-substitution
+		  pvars (map make-cterm (list left right))))
+	 (subst-aconst (aconst-substitute aconst psubst)))
     (apply mk-proof-in-elim-form
-	   (make-proof-in-aconst-form aconst)
+	   (make-proof-in-aconst-form subst-aconst)
 	   (append (map make-term-in-var-form free)
-		   (list proof proj-right-proof)))))
+		   (list proof)))))
 
 (define (make-proof-in-andr-elim-left-form proof)
   (let* ((fla (proof-to-formula proof))
@@ -6466,6 +6472,8 @@
 	  (list-transform-positive composed-tsubst
 	    (lambda (x) (and (not (equal? (car x) (cadr x)))
 			     (member (car x) tvars0)))))
+	 (pvars (formula-to-pvars (aconst-to-inst-formula aconst)))
+
 	 (composed-psubst (map (lambda (x)
 				 (let ((pvar (car x))
 				       (cterm (cadr x)))
@@ -6476,6 +6484,38 @@
 	  (list-transform-positive composed-psubst
 	    (lambda (x) (and (not (pvar-cterm-equal? (car x) (cadr x)))
 			     (member (car x) pvars0)))))
+	 (mr-extended-reduced-composed-psubst
+	  (do ((ps reduced-composed-psubst (cdr ps))
+	       (res
+		'()
+		(let* ((pair (car ps))
+		       (pvar (car pair))
+		       (cterm (cadr pair)))
+		  (if (and (h-deg-one? (pvar-to-h-deg pvar))
+			   (member pvar pvars)
+			   (member (PVAR-TO-MR-PVAR pvar) pvars))
+		      (let* ((info (assoc (PVAR-TO-MR-PVAR pvar) psubst))
+			     (fla (cterm-to-formula cterm))
+			     (type (formula-to-et-type fla))
+			     (var (type-to-new-partial-var type))
+			     (vars (cterm-to-vars cterm))
+			     (varterm (make-term-in-var-form var))
+			     (mr-fla (real-and-formula-to-mr-formula
+				      varterm fla))
+			     (mr-cterm
+			      (apply make-cterm
+				     var (append vars (list mr-fla)))))
+			(if info
+			    (if (cterm=? (cadr info) mr-cterm)
+				(cons pair res)
+				(myerror "aconst-substitute"
+					 "equal mr-formulas expected"
+					 (cterm-to-formula (cadr info))
+					 mr-fla))
+			    (cons (list (PVAR-TO-MR-PVAR pvar) mr-cterm)
+				  (cons pair res))))
+		      (cons pair res)))))
+	      ((null? ps) (reverse res))))
 	 (new-repro-data ;better: repro-data
 	  (if (string=? "Intro" (aconst-to-name aconst))
 	      (let* ((i (car repro-data0))
@@ -6497,7 +6537,8 @@
 	   (aconst-to-name aconst)
 	   (aconst-to-kind aconst)
 	   uninst-formula0
-	   (append reduced-composed-tsubst reduced-composed-psubst)
+	   (append reduced-composed-tsubst
+		   mr-extended-reduced-composed-psubst)
 	   new-repro-data)))
 
 ;; In proof-substitute substitution of a pvar in an aconst can generate
