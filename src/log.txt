@@ -133,7 +133,7 @@ execute "switch off".
 
 In lib/list.scm
 
-Removed (add-mr-ids "TotalList") (line 18) in lib/list.scm.  It
+Removed (add-mr-ids TotalList) (line 18) in lib/list.scm.  It
 produces the error: add-mr-ids use TotalAlgNc instead of TotalAlgMR
 
 
