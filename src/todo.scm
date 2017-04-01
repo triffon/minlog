@@ -1,4 +1,8 @@
-;; 2016-10-17.  todo.scm
+;; 2017-04-01.  todo.scm
+
+;; 2017-04-01.  Adapt the proofs of AllTotalIntroSound and
+;; AllTotalElimSound to use CoEqPNc rather than EqD.  Add transitivity
+;; of CoEqPNc as an axiom.
 
 ;; 2016-10-16.  formula-and-falsity-avar-to-efq-proof needs to be
 ;; adapted to the general form of clauses, for instance
