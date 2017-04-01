@@ -5044,25 +5044,28 @@
 	     (type (term-to-type lhs))
 	     (var (type-to-new-var type))
 	     (varterm (make-term-in-var-form var))
-	     (simprat-formula
+	     (simprat-formula ;A(var)
 	      (if left-to-right
 		  (formula-gen-subst goal-formula lhs varterm)
 		  (formula-gen-subst goal-formula rhs varterm)))
-	     (new-goal ;A(rhs) or A(lhs)
+	     (new (if left-to-right rhs lhs))
+	     (old (if left-to-right lhs rhs))
+	     (new-goal ;A(new)
 	      (context-and-ncvars-and-formula-to-new-goal
-	       context ncvars
-	       (formula-subst simprat-formula var
-			      (if left-to-right rhs lhs))))
+	       context ncvars (formula-subst simprat-formula var new)))
 	     (new-num-goal
 	      (make-num-goal
 	       (+ 1 maxgoal) new-goal drop-info hypname-info))
-	     (new-proof ;of A(lhs) or A(rhs)
+	     (eqv-rev-proof ;of rhs==lhs
+	       (mk-proof-in-elim-form
+		(make-proof-in-aconst-form
+		 (theorem-name-to-aconst "RatEqvSym"))
+		lhs rhs eqv-proof))
+	     (new-proof ;of A(old)
 	      (mk-proof-in-elim-form
-	       (rateqv-formula-compat
+	       (rateqv-formula-compat-rev
 		 simprat-formula var
-		 (if left-to-right lhs rhs)
-		 (if left-to-right rhs lhs)
-		 eqv-proof new-goal))))
+		 (if left-to-right eqv-proof eqv-rev-proof) new-goal))))
 	(make-pproof-state
 	 (append (list new-num-goal) new-num-goals (cdr num-goals))
 	 (goal-subst proof goal new-proof)
@@ -5087,26 +5090,29 @@
 	     (type (term-to-type lhs))
 	     (var (type-to-new-var type))
 	     (varterm (make-term-in-var-form var))
-	     (simprat-formula
+	     (simprat-formula ;A(var)
 	      (if left-to-right
 		  (formula-gen-subst goal-formula lhs varterm)
 		  (formula-gen-subst goal-formula rhs varterm)))
-	     ;; (all-formula (mk-all var simprat-formula))
-	     (new-goal ;A(rhs) or A(lhs)
+	     (new (if left-to-right rhs lhs))
+	     (old (if left-to-right lhs rhs))
+	     (new-goal ;A(new)
 	      (context-and-ncvars-and-formula-to-new-goal
 	       context ncvars
-	       (formula-subst simprat-formula var
-			      (if left-to-right rhs lhs))))
+	       (formula-subst simprat-formula var new)))
 	     (new-num-goal
 	      (make-num-goal
 	       (+ 1 maxgoal) new-goal drop-info hypname-info))
-	     (new-proof ;of A(lhs) or A(rhs)
+	     (eqv-rev-proof ;of rhs==lhs
+	       (mk-proof-in-elim-form
+		(make-proof-in-aconst-form
+		 (theorem-name-to-aconst "RatEqvSym"))
+		lhs rhs eqv-proof))
+	     (new-proof ;of A(old)
 	      (mk-proof-in-elim-form
-	       (rateqv-formula-compat
+	       (rateqv-formula-compat-rev
 		 simprat-formula var
-		 (if left-to-right lhs rhs)
-		 (if left-to-right rhs lhs)
-		 eqv-proof new-goal))))
+		 (if left-to-right eqv-proof eqv-rev-proof) new-goal))))
 	(make-pproof-state
 	 (append (list new-num-goal) new-num-goals (cdr num-goals))
 	 (goal-subst proof goal new-proof)
@@ -5167,58 +5173,71 @@
 						   binary-compat-names))))))
    (else (myerror "rateqv-term-compat" "unexpected term" term))))
 
-;; Given A(x), x, lhs, rhs and proofs eqv-proof of lhs==rhs and new-goal
-;; of A(rhs) returns a proof of A(lhs).  Here x, lhs, rhs are of type
-;; rat.
+;; Given A(var), var, eqhyp: old==new, new-goal: A(new)
+;; rateqv-formula-compat-rev returns a proof of A(old)
 
-(define (rateqv-formula-compat fla var term1 term2 eqv-proof new-goal)
+(define (rateqv-formula-compat-rev fla var eqhyp new-goal)
   (cond
    ((not (member var (formula-to-free fla))) new-goal)
    ((atom-form? fla)
-    (let* ((kernel (atom-form-to-kernel fla)) ;t(x)<=s(x)
+    (let* ((kernel (atom-form-to-kernel fla)) ;t(var)<=s(var)
 	   (op (if (not (term-in-app-form? kernel))
-		   (myerror "rateqv-formula-compat"
+		   (myerror "rateqv-formula-compat-rev"
 			    "term in application form expected" kernel)
 		   (term-in-app-form-to-final-op kernel)))
-	   (args (term-in-app-form-to-args kernel)) ;(t(x) s(x))
+	   (args (term-in-app-form-to-args kernel)) ;(t(var) s(var))
 	   (name (if (not (term-in-const-form? op))
-		     (myerror "rateqv-formula-compat"
+		     (myerror "rateqv-formula-compat-rev"
 			      "term in constant form expected" op)
 		     (string-append
 		      (const-to-name (term-in-const-form-to-const op))
 		      "Compat")))
-	   (compat-names (list "RatLeCompat" "RatEqvCompat")))
+	   (compat-names (list "RatLeCompat" "RatEqvCompat"))
+	   (old-and-new
+	    (if (and (proof-form? eqhyp)
+		     (atom-form? (proof-to-formula eqhyp))
+		     (let ((kernel
+			    (atom-form-to-kernel (proof-to-formula eqhyp))))
+		       (and (term-in-app-form? kernel)
+			    (let ((op (term-in-app-form-to-final-op kernel)))
+			      (term-in-const-form? op)
+			      (string=? "RatEqv"
+					(const-to-name
+					 (term-in-const-form-to-const op)))))))
+		(term-in-app-form-to-args
+		 (atom-form-to-kernel (proof-to-formula eqhyp)))
+		(myerror "rateqv-formula-compat-rev" "eqhyp expected" eqhyp)))
+	   (old (car old-and-new))
+	   (new (cadr old-and-new)))
       (if
-       (member name compat-names)
-       (let* ((elim-proof1 ;of t(lhs)==t(rhs)
-	       (rateqv-term-compat (car args) var term1 term2 eqv-proof))
-	      (elim-proof2 ;of s(lhs)==s(rhs)
-	       (rateqv-term-compat (cadr args) var term1 term2 eqv-proof))
-	      (elim-proof3 ;of (t(lhs)<=s(lhs))=(t(rhs)<=s(rhs))
+       (member name compat-names) ;all a,b,c,d(a==b -> c==d -> (a<=c)=(b<=d))
+       (let* ((told (term-subst (car args) var old))
+	      (tnew (term-subst (car args) var new))
+	      (sold (term-subst (cadr args) var old))
+	      (snew (term-subst (cadr args) var new))
+	      (proof1 ;of told==tnew
+	       (rateqv-term-compat (car args) var old new eqhyp))
+	      (proof2 ;of sold==snew
+	       (rateqv-term-compat (cadr args) var old new eqhyp))
+	      (proof3 ;of (told<=sold)=(tnew<=snew)
 	       (mk-proof-in-elim-form
 		(make-proof-in-aconst-form (theorem-name-to-aconst name))
-		;; (theorem-name-to-proof name) ;all a,b,c,d(a==b -> c==d ->
-		;; 			;                 (a<=c)=(b<=d))
-		(term-subst (car args) var term1) ;t(lhs)
-		(term-subst (car args) var term2) ;t(rhs)
-		(term-subst (cadr args) var term1) ;s(lhs)
-		(term-subst (cadr args) var term2) ;s(rhs)
-		elim-proof1 elim-proof2))
-	      (eq-fla (proof-to-formula elim-proof3)) 
+		;; all a,b,c,d(a==b -> c==d -> (a<=c)=(b<=d))
+		told tnew sold snew proof1 proof2))
+	      (eq-fla (proof-to-formula proof3))
 	      (booleterms (term-in-app-form-to-args
 			   (atom-form-to-kernel eq-fla)))
-	      (booleterm1 (car booleterms)) ;t(lhs)<=s(lhs)
-	      (booleterm2 (cadr booleterms))) ;t(rhs)<=s(rhs)
+	      (booleterm1 (car booleterms)) ;told<=sold
+	      (booleterm2 (cadr booleterms))) ;tnew<=snew
 	 (mk-proof-in-elim-form
 	  (make-proof-in-aconst-form
 	   (theorem-name-to-aconst "BooleEqToAeqRight"))
-	  ;; (theorem-name-to-proof "BooleEqToAeqRight")
-					;of all boole1,boole2(boole1=boole2 ->
-					;                     boole2 -> boole1)
-	  booleterm1 booleterm2 elim-proof3 new-goal))
-       (myerror "rateqv-formula-compat" "RatLeCompat or RatEqvCompat expected"
+	  ;; all boole1,boole2(boole1=boole2 -> boole2 -> boole1)
+	  booleterm1 booleterm2 proof3 new-goal))
+       (myerror "rateqv-formula-compat-rev"
+		"RatLeCompat or RatEqvCompat expected"
 		name))))
-   (else (myerror "rateqv-formula-compat" "not implemented for formula" fla))))
+   (else (myerror "rateqv-formula-compat-rev" "not implemented for" fla))))
 
 (define (simprat opt-dir-or-x . x-and-xs-or-xs)
   (let* ((num-goals (pproof-state-to-num-goals))
@@ -5332,6 +5351,657 @@
 	     (for-each comment
 		       (map term-to-string (list-tail terms (length vars))))))
        (apply simprat-with-intern
+	      (if left-to-right
+		  (append (list num-goals proof maxgoal x)
+			  (append types subst-xs))
+		  (append (list num-goals proof maxgoal "<-" x)
+			  (append types subst-xs))))))))
+
+;; In the following definition of simpreal-with x is one of the following.
+;; - A number or string identifying a hypothesis form the context.
+;; - The name of a theorem or global assumption, but not one whose final
+;;   conclusion is a predicate variable.
+;; - A closed proof.
+;; - A formula with free variables from the context, generating a new goal.
+;; Moreover xs is a list consisting of
+;; - a number or string identifying a hypothesis form the context,
+;; - the name of a theorem or global assumption,
+;; - a closed proof,
+;; - the string "?" (value of DEFAULT-GOAL-NAME), generating a new goal,
+;; - a symbol left or right,
+;; - a term, whose free variables are added to the context,
+;; - a type, which is substituted for the 1st tvar,
+;; - a comprehension term, which is substituted for the 1st pvar.
+;; This generates a used formula lhs==rhs with lhs or its normal form present
+;; in the goal.  Replace lhs by rhs.  In case "<-" exchange lhs by rhs.
+
+(define (simpreal-with opt-dir-or-x . x-and-xs-or-xs)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (number (num-goal-to-number (car num-goals))))
+    (set! PPROOF-STATE
+	  (apply simpreal-with-intern
+		 num-goals proof maxgoal opt-dir-or-x x-and-xs-or-xs))
+    (pproof-state-history-push PPROOF-STATE)
+    (display-new-goals num-goals number)))
+
+(define (simpreal-with-intern num-goals proof maxgoal . rest)
+  (let* ((opt-dir-or-x
+	  (if (null? rest)
+	      (myerror "simpreal-with-intern" "more arguments expected")
+	      (car rest)))
+	 (left-to-right
+	  (not (and (string? opt-dir-or-x) (string=? "<-" opt-dir-or-x))))
+	 (x-and-x-list (if left-to-right
+			   rest
+			   (cdr rest)))
+	 (x (if (null? x-and-x-list)
+		(myerror "simpreal-with-intern" "more arguments expected")
+		(car x-and-x-list)))
+	 (x-list (cdr x-and-x-list))
+	 (num-goal (car num-goals))
+	 (goal (num-goal-to-goal num-goal))
+	 (drop-info (num-goal-to-drop-info num-goal))
+	 (hypname-info (num-goal-to-hypname-info num-goal))
+	 (context (goal-to-context goal))
+	 (ncvars (goal-to-ncvars goal))
+	 (proof-and-new-num-goals-and-maxgoal
+	  (if (and (string? x)
+		   (let ((info (assoc x (append THEOREMS GLOBAL-ASSUMPTIONS))))
+		     (and info
+			  (let* ((aconst (cadr info))
+				 (aconst-formula (aconst-to-formula aconst))
+				 (final-concl
+				  (imp-impnc-all-allnc-form-to-final-conclusion
+				   aconst-formula)))
+			    (and (predicate-form? final-concl)
+				 (pvar? (predicate-form-to-predicate
+					 final-concl)))))))
+	      (myerror "simpreal-with-intern" "unexpected aconst name" x)
+	      (apply x-and-x-list-to-proof-and-new-num-goals-and-maxgoal
+		     num-goal (+ 1 maxgoal) x x-list)))
+	 (eq-proof (car proof-and-new-num-goals-and-maxgoal))
+	 (new-num-goals (cadr proof-and-new-num-goals-and-maxgoal))
+	 (new-maxgoal (caddr proof-and-new-num-goals-and-maxgoal))
+	 (goal-formula (goal-to-formula goal))
+	 (used-formula (proof-to-formula eq-proof))
+	 (used-nformula (normalize-formula used-formula))
+	 (ngoal-formula (nf goal-formula)))
+    (cond
+     ((and (predicate-form? used-formula)
+	   (idpredconst-form? (predicate-form-to-predicate used-formula))
+	   (string=? "RealEq" (idpredconst-to-name
+			       (predicate-form-to-predicate used-formula)))
+	   (let* ((args (predicate-form-to-args used-formula))
+		  ;; (args (term-in-app-form-to-args used-kernel))
+		  (lhs (car args))
+		  (rhs (cadr args))
+		  (type (term-to-type lhs))
+		  (var (type-to-new-var type))
+		  (varterm (make-term-in-var-form var))
+		  (simpreal-formula
+		   (if left-to-right
+		       (formula-gen-subst goal-formula lhs varterm)
+		       (formula-gen-subst goal-formula rhs varterm))))
+	     (not (formula=? simpreal-formula goal-formula))))
+      (let* ((args (predicate-form-to-args used-formula))
+	     ;; (args (term-in-app-form-to-args used-kernel))
+	     (lhs (car args))
+	     (rhs (cadr args))
+	     (type (term-to-type lhs))
+	     (var (type-to-new-var type))
+	     (varterm (make-term-in-var-form var))
+	     (simpreal-formula
+	      (if left-to-right
+		  (formula-gen-subst goal-formula lhs varterm)
+		  (formula-gen-subst goal-formula rhs varterm)))
+	     (new-goal ;A(rhs) or A(lhs)
+	      (context-and-ncvars-and-formula-to-new-goal
+	       context ncvars
+	       (formula-subst simpreal-formula var
+			      (if left-to-right rhs lhs))))
+	     (new-num-goal
+	      (make-num-goal
+	       (+ 1 maxgoal) new-goal drop-info hypname-info))
+	     (new-proof ;of A(lhs) or A(rhs)
+	      (mk-proof-in-elim-form
+	       (realeq-formula-compat
+		 simpreal-formula var
+		 (if left-to-right lhs rhs)
+		 (if left-to-right rhs lhs)
+		 (if left-to-right
+		     eq-proof
+		     (mk-proof-in-elim-form
+		      (make-proof-in-aconst-form
+		       (theorem-name-to-aconst "RealEqSym"))
+		      lhs rhs eq-proof)) context new-goal))))
+	(make-pproof-state
+	 (append (list new-num-goal) new-num-goals (cdr num-goals))
+	 (goal-subst proof goal new-proof)
+	 new-maxgoal)))
+     ((and (predicate-form? used-nformula)
+	   (idpredconst-form? (predicate-form-to-predicate used-nformula))
+	   (string=? "RealEq" (idpredconst-to-name
+			       (predicate-form-to-predicate used-nformula)))
+	   (let* ((args (predicate-form-to-args used-nformula))
+		  (lhs (car args))
+		  (rhs (cadr args))
+		  (type (term-to-type lhs))
+		  (var (type-to-new-var type))
+		  (varterm (make-term-in-var-form var))
+		  (simpreal-formula
+		   (if left-to-right
+		       (formula-gen-subst goal-formula lhs varterm)
+		       (formula-gen-subst goal-formula rhs varterm))))
+	     (not (formula=? simpreal-formula goal-formula))))
+      (let* ((args (predicate-form-to-args used-nformula))
+	     (lhs (car args))
+	     (rhs (cadr args))
+	     (type (term-to-type lhs))
+	     (var (type-to-new-var type))
+	     (varterm (make-term-in-var-form var))
+	     (simpreal-formula
+	      (if left-to-right
+		  (formula-gen-subst goal-formula lhs varterm)
+		  (formula-gen-subst goal-formula rhs varterm)))
+	     ;; (all-formula (mk-all var simpreal-formula))
+	     (new-goal ;A(rhs) or A(lhs)
+	      (context-and-ncvars-and-formula-to-new-goal
+	       context ncvars
+	       (formula-subst simpreal-formula var
+			      (if left-to-right rhs lhs))))
+	     (new-num-goal
+	      (make-num-goal
+	       (+ 1 maxgoal) new-goal drop-info hypname-info))
+	     (new-proof ;of A(lhs) or A(rhs)
+	      (mk-proof-in-elim-form
+	       (realeq-formula-compat
+		 simpreal-formula var
+		 (if left-to-right lhs rhs)
+		 (if left-to-right rhs lhs)
+		 (if left-to-right
+		     eq-proof
+		     (mk-proof-in-elim-form
+		      (make-proof-in-aconst-form
+		       (theorem-name-to-aconst "RealEqSym"))
+		      lhs rhs eq-proof)) context new-goal))))
+	(make-pproof-state
+	 (append (list new-num-goal) new-num-goals (cdr num-goals))
+	 (goal-subst proof goal new-proof)
+	 new-maxgoal)))
+     (else (myerror "simpreal-with-intern" "goal cannot be simplified with"
+		    used-formula)))))
+
+;; Auxiliary functions
+
+;; Given t(x), x, lhs, rhs, an eq-proof of lhs===rhs and a context.
+;; Then realeq-term-compat returns a proof of t(lhs)===t(rhs).  Here
+;; t(x), x, lhs, rhs are of type rea.  The context is necessary to
+;; prove Real r and then reflexivity r===r for r without x.  This
+;; needs RealPlusCompat RealUMinusCompat RealAbsCompat RealTimesCompat.
+
+(define (realeq-term-compat term var term1 term2 eq-proof context)
+  (cond
+   ((not (member var (term-to-free term))) ;we prove r===r
+    (let ((realproof (context-and-term-to-realproof context term)))
+      (mk-proof-in-elim-form
+       (make-proof-in-aconst-form (theorem-name-to-aconst "RealEqRefl"))
+       term realproof)))
+   ((term-in-var-form? term) eq-proof) ;of term1===term2, i.e., lhs===rhs
+   ((term-in-app-form? term)
+    (let* ((op (term-in-app-form-to-final-op term))
+	   (args (term-in-app-form-to-args term))
+	   (name (if (not (term-in-const-form? op))
+		     (myerror "realeq-term-compat"
+			      "term in constant form expected" op)
+		     (string-append
+		      (const-to-name (term-in-const-form-to-const op))
+		      "Compat")))
+	   (unary-compat-names
+	    (list "RealNNegCompat" "RealUMinusCompat" "RealAbsCompat"))
+	   (binary-compat-names
+	    (list "RealPlusCompat" "RealTimesCompat")))
+      (cond
+       ((member name unary-compat-names)
+	(mk-proof-in-elim-form ;of ~t(lhs)=== ~t(rhs)
+	 (make-proof-in-aconst-form ;of all x,y(x===y -> ~x=== ~y))
+	  (theorem-name-to-aconst name))
+	 (term-subst (car args) var term1) ;t(lhs)
+	 (term-subst (car args) var term2) ;t(rhs)
+	 (realeq-term-compat (car args) var term1 term2 eq-proof context)))
+       ((member name binary-compat-names)
+	(mk-proof-in-elim-form ;of t(lhs)+s(lhs)===t(rhs)+s(rhs)
+	 (make-proof-in-aconst-form ;of all x,y,z,z1(x===y -> z===z1 ->
+					; x+z===y+z1))
+	  (theorem-name-to-aconst name))
+	 (term-subst (car args) var term1) ;t(lhs)
+	 (term-subst (car args) var term2) ;t(rhs)
+	 (term-subst (cadr args) var term1) ;s(lhs)
+	 (term-subst (cadr args) var term2) ;s(rhs)
+	 (realeq-term-compat ;proves t(lhs)===t(rhs) from lhs===rhs by IH
+	  (car args) var term1 term2 eq-proof context)
+	 (realeq-term-compat ;proves s(lhs)===s(rhs) from lhs===rhs by IH
+	  (cadr args) var term1 term2 eq-proof context)))
+       (else (apply myerror "realeq-term-compat" name
+		    "expected to be among" (append unary-compat-names
+						   binary-compat-names))))))
+   (else (myerror "realeq-term-compat" "unexpected term" term))))
+
+;; context-and-term-to-realproof returns either a proof of Real(term) or #f
+
+(define (context-and-term-to-realproof context term)
+  (let* ((avars (context-to-avars context))
+	 (relevant-avars ;idpcs I with term an argument
+	  (list-transform-positive avars
+	    (lambda (avar)
+	      (let ((fla (avar-to-formula avar)))
+		(and (predicate-form? fla)
+		     (let ((pred (predicate-form-to-predicate fla))
+			   (args (predicate-form-to-args fla)))
+		       (and (idpredconst-form? pred)
+			    (member term args))))))))
+	 (name-avar-alist
+	  (map (lambda (avar)
+		 (let* ((fla (avar-to-formula avar))
+			(pred (predicate-form-to-predicate fla))
+			(name (idpredconst-to-name pred)))
+		   (list name avar)))
+	       relevant-avars)))
+    (cond
+     ((and ;term given as constant Cauchy sequence
+       (term-in-app-form? term)
+       (let ((op (term-in-app-form-to-final-op term))
+	     (args (term-in-app-form-to-args term)))
+	 (and (term-in-const-form? op)
+	      (string=? (const-to-name (term-in-const-form-to-const op))
+			"RealConstr")
+	      (term-in-abst-form? (car args))
+	      (not (member (term-in-abst-form-to-var (car args))
+			   (term-to-free
+			    (term-in-abst-form-to-kernel (car args))))))))
+      (mk-proof-in-elim-form
+       (make-proof-in-aconst-form (theorem-name-to-aconst "RealRat"))
+       (term-in-abst-form-to-kernel (car (term-in-app-form-to-args term)))))
+     ((pair? name-avar-alist) ;ex idpc-avars of the from I(..,term,..)
+      (cond ;proof from the first such avar
+       ((assoc "Real" name-avar-alist)
+	(let ((avar (cadr (assoc "Real" name-avar-alist))))
+	  (make-proof-in-avar-form avar)))
+       ((assoc "RealEq" name-avar-alist)
+	(let* ((avar (cadr (assoc "RealEq" name-avar-alist)))
+	       (fla (avar-to-formula avar))
+	       (args (predicate-form-to-args fla)))
+	  (cond
+	   ((equal? term (car args))
+	    (mk-proof-in-elim-form
+	     (make-proof-in-aconst-form
+	      (theorem-name-to-aconst "RealEqElim0"))
+	     term (cadr args) (make-proof-in-avar-form avar)))
+	   ((equal? term (cadr args))
+	    (mk-proof-in-elim-form
+	     (make-proof-in-aconst-form
+	      (theorem-name-to-aconst "RealEqElim1"))
+	     (car args) term (make-proof-in-avar-form avar)))
+	   (else (myerror "context-and-term-to-realproof" "unexpected term"
+			  term "for context" context)))))
+       ((assoc "RealNNeg" name-avar-alist)
+	(let ((avar (cadr (assoc "RealNNeg" name-avar-alist))))
+	  (mk-proof-in-elim-form
+	   (make-proof-in-aconst-form
+	    (theorem-name-to-aconst "RealNNegElim0"))
+	   term (make-proof-in-avar-form avar))))
+       ((assoc "RealLe" name-avar-alist)
+	(let* ((avar (cadr (assoc "RealLe" name-avar-alist)))
+	       (fla (avar-to-formula avar))
+	       (args (predicate-form-to-args fla)))
+	  (cond
+	   ((equal? term (car args))
+	    (mk-proof-in-elim-form
+	     (make-proof-in-aconst-form
+	      (theorem-name-to-aconst "RealLeElim0"))
+	     term (cadr args) (make-proof-in-avar-form avar)))
+	   ((equal? term (cadr args))
+	    (mk-proof-in-elim-form
+	     (make-proof-in-aconst-form
+	      (theorem-name-to-aconst "RealLeElim1"))
+	     (car args) term (make-proof-in-avar-form avar)))
+	   (else (myerror "context-and-term-to-realproof" "unexpected term"
+			  term "for context" context)))))
+       (else
+	(let ((shortened-name-avar-alist ;only those with ToReal aconst
+	       (list-transform-positive name-avar-alist
+		 (lambda (item)
+		   (let* ((name (car item))
+			  (extended-name (string-append name "ToReal")))
+		     (assoc extended-name
+			    (append THEOREMS GLOBAL-ASSUMPTIONS)))))))
+	  (and
+	   (pair? shortened-name-avar-alist) ;build proof, else rec call
+	   (let* ((item (car shortened-name-avar-alist))
+		  (name (car item))
+		  (extended-name (string-append name "ToReal"))
+		  (avar (cadr item)))
+	     (mk-proof-in-elim-form
+	      (make-proof-in-aconst-form
+	       (if (assoc extended-name THEOREMS)
+		   (theorem-name-to-aconst extended-name)
+		   (global-assumption-name-to-aconst extended-name)))
+	      term (make-proof-in-avar-form avar))))))))
+     ((and ;RealUMinusReal etc with rec call
+       (term-in-app-form? term)
+       (let ((op (term-in-app-form-to-final-op term))
+	     (args (term-in-app-form-to-args term)))
+	 (and (term-in-const-form? op)
+	      (let ((name (const-to-name (term-in-const-form-to-const op))))
+		(member name '("RealUMinus" "RealAbs" "RealPlus" "RealMinus"
+			       "RealTimes" "RealDiv" "RealMax" "RealMin"))))))
+      (let* ((op (term-in-app-form-to-final-op term))
+	     (args (term-in-app-form-to-args term))
+	     (name (const-to-name (term-in-const-form-to-const op))))
+	(cond
+	 ((member name '("RealUMinus" "RealAbs"))
+	  (let ((prev (context-and-term-to-realproof
+		       context (car args))))
+	    (and
+	     prev
+	     (mk-proof-in-elim-form
+	      (make-proof-in-aconst-form
+	       (theorem-name-to-aconst (string-append name "Real")))
+	      (car args) prev))))
+	 ((member name '("RealPlus" "RealMinus" "RealTimes"
+			 "RealDiv" "RealMax" "RealMin"))
+	  (let ((prev1 (context-and-term-to-realproof
+			context (car args)))
+		(prev2 (context-and-term-to-realproof
+			context (cadr args))))
+	    (and
+	     prev1 prev2
+	     (mk-proof-in-elim-form
+	      (make-proof-in-aconst-form
+	       (theorem-name-to-aconst (string-append name "Real")))
+	      (car args) (cadr args) prev1 prev2))))
+	 (else #f))))
+     (else #f))))
+
+(define (realproof)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (number (num-goal-to-number (car num-goals)))
+	 (search-result (realproof-intern num-goals proof maxgoal)))
+    (if (not search-result)
+	(begin (display-comment "no proof found")
+	       (if COMMENT-FLAG (newline)))
+	(begin
+	  (set! PPROOF-STATE search-result)
+	  (pproof-state-history-push PPROOF-STATE)
+	  (if
+	   COMMENT-FLAG
+	   (begin
+	     (display-comment "ok, " DEFAULT-GOAL-NAME "_"
+			      (number-to-string number)
+			      " is proved.")
+	     (if (null? (pproof-state-to-num-goals))
+		 (begin (display "  Proof finished.") (newline))
+		 (begin (display "  The active goal now is") (newline)
+			(display-num-goal
+			 (car (pproof-state-to-num-goals)))))))))))  
+
+(define (realproof-intern num-goals proof maxgoal)
+  (let* ((num-goal (car num-goals))
+	 (goal (num-goal-to-goal num-goal))
+	 (context (goal-to-context goal))
+	 (formula (goal-to-formula goal))
+	 (pred (if (predicate-form? formula)
+		   (predicate-form-to-predicate formula)
+		   (myerror "realproof-intern" "predicate form expected"
+			    formula)))
+	 (term (if (and (idpredconst-form? pred)
+			(string=? "Real" (idpredconst-to-name pred)))
+		   (car (predicate-form-to-args formula))
+		   (myerror "realproof-intern" "Real term expected" formula)))
+ 	 (proof1 (context-and-term-to-realproof context term)))
+    (if (not proof1)
+	#f
+	(make-pproof-state (cdr num-goals)
+			   (goal-subst proof goal proof1)
+			   maxgoal))))
+
+;; Given A(x), x, lhs, rhs and proofs eq-proof of lhs===rhs and
+;; new-goal of A(rhs) returns a proof of A(lhs).  Here x, lhs, rhs are
+;; of type rea.  This needs RealEqCompat RealNNegCompat RealLeCompat.
+;; Also for inductive predicate constants (for instance I, CoI, CoG)
+;; we need compatibility theorems.
+
+(define (realeq-formula-compat fla var term1 term2 eq-proof context new-goal)
+  (cond
+   ((not (member var (formula-to-free fla))) new-goal)
+   ((predicate-form? fla) ;CoI t(x) or t(x)<<=s(x)
+    (let* ((pred (predicate-form-to-predicate fla))
+	   (args (predicate-form-to-args fla))) ;t(x) or (t(x) s(x))
+      (if
+       (idpredconst-form? pred)
+       (let* ((name (idpredconst-to-name pred))
+	      (theorem-name (string-append name "Compat"))
+	      (aconst (theorem-name-to-aconst theorem-name))
+	      (eq-rev-proof ;of rhs===lhs
+	       (mk-proof-in-elim-form
+		(make-proof-in-aconst-form
+		 (theorem-name-to-aconst "RealEqSym"))
+		term1 term2 eq-proof))
+	      (l (length args)))
+	 (cond
+	  ((= 1 l) ;CoICompat allnc x,y(x===y -> CoI x -> CoI y)
+	   (let* ((tlhs (term-subst (car args) var term1))
+		  (trhs (term-subst (car args) var term2))
+		  (proof1 ;of trhs===tlhs
+		   (cond
+		    ((term=? trhs tlhs)
+		     (let ((realproof-or-f
+			    (context-and-term-to-realproof context trhs)))
+		       (if realproof-or-f
+			   (mk-proof-in-elim-form
+			    (make-proof-in-aconst-form
+			     (theorem-name-to-aconst "RealEqRefl"))
+			    trhs realproof-or-f)
+			   (myerror "realeq-formula-compat" "First put"
+				    (make-predicate-formula
+				     (make-idpredconst "Real" '() '()) trhs)
+				    "into the context, using assert"))))
+		    ((formula=? (make-predicate-formula
+				 (make-idpredconst "RealEq" '() '())
+				 trhs tlhs)
+				(proof-to-formula eq-proof))
+		     eq-proof)
+		    ((formula=? (make-predicate-formula
+				 (make-idpredconst "RealEq" '() '())
+				 trhs tlhs)
+				(proof-to-formula eq-rev-proof))
+		     eq-rev-proof)
+		    (else (realeq-term-compat
+			   (car args) var term2 term1 eq-rev-proof context)))))
+	     (mk-proof-in-elim-form
+	      (make-proof-in-aconst-form aconst)
+	      trhs tlhs proof1 new-goal)))
+	  ((= 2 l) ;RealLeCompat all x,y,z,z0(x===y -> z===z0 ->
+	 				; x<<=z -> y<<=z0)
+	   (let* ((tlhs (term-subst (car args) var term1))
+		  (trhs (term-subst (car args) var term2))
+		  (slhs (term-subst (cadr args) var term1))
+		  (srhs (term-subst (cadr args) var term2))
+		  (proof1 ;of trhs===tlhs
+		   (cond
+		    ((term=? trhs tlhs)
+		     (let ((realproof-or-f
+			    (context-and-term-to-realproof context trhs)))
+		       (if realproof-or-f
+			   (mk-proof-in-elim-form
+			    (make-proof-in-aconst-form
+			     (theorem-name-to-aconst "RealEqRefl"))
+			    trhs realproof-or-f)
+			   (myerror "realeq-formula-compat" "First put"
+				    (make-predicate-formula
+				     (make-idpredconst "Real" '() '()) trhs)
+				    "into the context, using assert"))))
+		    ((formula=? (make-predicate-formula
+				 (make-idpredconst "RealEq" '() '())
+				 trhs tlhs)
+				(proof-to-formula eq-proof))
+		     eq-proof)
+		    ((formula=? (make-predicate-formula
+				 (make-idpredconst "RealEq" '() '())
+				 trhs tlhs)
+				(proof-to-formula eq-rev-proof))
+		     eq-rev-proof)
+		    (else (realeq-term-compat
+			   (car args) var term2 term1 eq-rev-proof context))))
+		  (proof2 ;of srhs===slhs
+		   (cond
+		    ((term=? srhs slhs)
+		     (let ((realproof-or-f
+			    (context-and-term-to-realproof context srhs)))
+		       (if realproof-or-f
+			   (mk-proof-in-elim-form
+			    (make-proof-in-aconst-form
+			     (theorem-name-to-aconst "RealEqRefl"))
+			    srhs realproof-or-f)
+			   (myerror "realeq-formula-compat" "First put"
+				    (make-predicate-formula
+				     (make-idpredconst "Real" '() '()) srhs)
+				    "in the context, using assert"))))
+		    ((formula=? (make-predicate-formula
+				 (make-idpredconst "RealEq" '() '())
+				 srhs slhs)
+				(proof-to-formula eq-proof))
+		     eq-proof)
+		    ((formula=? (make-predicate-formula
+				 (make-idpredconst "RealEq" '() '())
+				 srhs slhs)
+				(proof-to-formula eq-rev-proof))
+		     eq-rev-proof)
+		    (else (realeq-term-compat
+			   (cadr args) var term2 term1 eq-rev-proof context)))))
+	     (mk-proof-in-elim-form
+	      (make-proof-in-aconst-form aconst)
+	      trhs tlhs srhs slhs proof1 proof2 new-goal)))
+	  (else (myerror "realeq-formula-compat" "arity 1 or 2 expected"
+	 		 name))))
+       (myerror "realeq-formula-compat" "idpredconst expected" fla))))
+   (else (myerror "realeq-formula-compat" "not implemented for formula" fla))))
+
+(define (simpreal opt-dir-or-x . x-and-xs-or-xs)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (number (num-goal-to-number (car num-goals)))
+	 (simpreal-result
+	  (apply simpreal-intern
+		 num-goals proof maxgoal opt-dir-or-x x-and-xs-or-xs)))
+    (if (not simpreal-result)
+	(begin (display-comment "no simplification possible")
+	       (if COMMENT-FLAG (newline)))
+	(begin
+	  (set! PPROOF-STATE simpreal-result)
+	  (pproof-state-history-push PPROOF-STATE)
+	  (display-new-goals num-goals number)))))
+
+(define (simpreal-intern num-goals proof
+			 maxgoal . opt-dir-and-x-and-elab-path-and-terms)
+  (let* ((opt-dir (if (null? opt-dir-and-x-and-elab-path-and-terms)
+		      (myerror "simpreal-intern" "more arguments expected")
+		      (car opt-dir-and-x-and-elab-path-and-terms)))
+	 (left-to-right (not (and (string? opt-dir) (string=? "<-" opt-dir))))
+	 (x-and-elab-path-and-terms
+	  (if left-to-right
+	      opt-dir-and-x-and-elab-path-and-terms
+	      (cdr opt-dir-and-x-and-elab-path-and-terms)))
+	 (x (if (null? x-and-elab-path-and-terms)
+		(myerror "simpreal-intern" "more arguments expected")
+		(car x-and-elab-path-and-terms)))
+	 (elab-path-and-terms (cdr x-and-elab-path-and-terms))
+	 (num-goal (car num-goals))
+	 (goal (num-goal-to-goal num-goal))
+	 (hypname-info (num-goal-to-hypname-info num-goal))
+	 (context (goal-to-context goal))
+	 (ncvars (goal-to-ncvars goal))
+	 (avars (context-to-avars context))
+	 (maxhyp (length avars))
+	 (goal-formula (goal-to-formula goal))
+	 (leaf (if (formula-form? x)
+		   (context-and-ncvars-and-formula-to-new-goal
+		    context ncvars x)
+		   (hyp-info-to-leaf num-goal x)))
+	 (used-formula
+	  (unfold-formula (if (formula-form? x) x (proof-to-formula leaf))))
+	 (sig-vars (context-to-vars context))
+	 (sig-tvars-and-sig-vars
+	  (if (assoc x (append THEOREMS GLOBAL-ASSUMPTIONS))
+	      sig-vars
+	      (append (formula-to-tvars used-formula) sig-vars)))
+	 (elab-path (do ((l elab-path-and-terms (cdr l))
+			 (res '() (if (memq (car l) '(left right))
+				      (cons (car l) res)
+				      res)))
+			((null? l) (reverse res))))
+	 (xs-and-vars-and-toinst1
+	  (apply
+	   fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
+	   used-formula sig-tvars-and-sig-vars
+	   goal-formula left-to-right
+	   elab-path))
+	 (xs-and-vars-and-toinst
+	  (if xs-and-vars-and-toinst1
+	      xs-and-vars-and-toinst1
+	      (apply
+	       fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data
+	       (normalize-formula used-formula)
+	       sig-tvars-and-sig-vars
+	       (normalize-formula goal-formula)
+	       left-to-right
+	       elab-path))))
+    (if
+     (not xs-and-vars-and-toinst)
+     #f
+     (let* ((xs (car xs-and-vars-and-toinst))
+	    (vars (cadr xs-and-vars-and-toinst))
+	    (toinst (caddr xs-and-vars-and-toinst))
+	    (terms (do ((l elab-path-and-terms (cdr l))
+			(res '() (if (memq (car l) '(left right))
+				     res
+				     (cons (car l) res))))
+		       ((null? l) (reverse res))))
+	    (subst (if (<= (length vars) (length terms))
+		       (map list vars (list-head terms (length vars)))
+		       empty-subst))
+	    (subst-xs (map (lambda (x) (if (term-form? x)
+					   (term-substitute x subst)
+					   x))
+			   xs))
+	    (types (let ((info1 (assoc x THEOREMS))
+			 (info2 (assoc x GLOBAL-ASSUMPTIONS))
+			 (tsubst (list-transform-positive toinst
+				   (lambda (x) (tvar-form? (car x))))))
+		     (if
+		      (and (or info1 info2) (pair? tsubst)) ;else '()
+		      (let* ((aconst (if info1
+					 (theorem-name-to-aconst x)
+					 (global-assumption-name-to-aconst x)))
+			     (fla (aconst-to-formula aconst))
+			     (tvars (formula-to-tvars fla)))
+			(map (lambda (tvar) (type-substitute tvar tsubst))
+			     tvars))
+		      '()))))
+       (if (> (length vars) (length terms))
+	   (apply myerror
+		  "simpreal-intern" "more terms expected, to be substituted for"
+		  (list-tail vars (length terms))))
+       (if (and COMMENT-FLAG (< (length vars) (length terms)))
+	   (begin
+	     (comment "warning: superfluous terms")
+	     (for-each comment
+		       (map term-to-string (list-tail terms (length vars))))))
+       (apply simpreal-with-intern
 	      (if left-to-right
 		  (append (list num-goals proof maxgoal x)
 			  (append types subst-xs))
@@ -6346,6 +7016,54 @@
 	   (maxhyp (length avars)))
       (apply name-hyp-intern
 	     (append pproof-state1 (list maxhyp name))))))
+
+;; (invar term) expects a goal A of the same type as term.  It applies
+;; InvarAll to solve the goal, resulting in the new goal term mr A.
+
+(define (invar term)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (number (num-goal-to-number (car num-goals))))
+    (set! PPROOF-STATE (invar-intern num-goals proof maxgoal term))
+    (pproof-state-history-push PPROOF-STATE)
+    (display-new-goals num-goals number)))
+
+(define (invar-intern num-goals proof maxgoal term)
+  (let* ((num-goal (car num-goals))
+	 (number (num-goal-to-number num-goal))
+	 (goal (num-goal-to-goal num-goal))
+	 (formula (goal-to-formula goal))
+	 (type (formula-to-et-type formula))
+	 (newvar (type-to-new-partial-var type))
+	 (mr-formula (if (equal? type (term-to-type term))
+			 (real-and-formula-to-mr-formula
+			  (make-term-in-var-form newvar) formula)
+			 (myerror "invar" "Type" type "of formula" formula
+				  "differs from type" (term-to-type term)
+				  "of realizer"	term)))
+	 (vars (formula-to-free mr-formula))
+	 (uninst-fla (aconst-to-uninst-formula invarall-aconst))
+	 (var (all-form-to-var uninst-fla))
+	 (tvar (var-to-type var))
+	 (kernel (all-form-to-kernel uninst-fla))
+	 (mr-predicate (imp-form-to-premise kernel))
+	 (predicate (imp-form-to-conclusion kernel))
+	 (mr-pvar (predicate-form-to-predicate mr-predicate))
+	 (pvar (predicate-form-to-predicate predicate))
+	 (tsubst (make-subst tvar type))
+	 (subst (make-subst-wrt var-term-equal? var term))
+	 (psubst (make-substitution-wrt
+		  pvar-cterm-equal?
+		  (list pvar mr-pvar)
+		  (list (make-cterm formula) (make-cterm newvar mr-formula))))
+	 (topsubst (append tsubst subst psubst))
+	 (subst-aconst (aconst-substitute invarall-aconst topsubst)))
+    (apply use-with-intern
+     num-goals proof maxgoal
+     (make-proof-in-aconst-form subst-aconst)
+     (append (map make-term-in-var-form (remove newvar vars))
+	     (list term DEFAULT-GOAL-NAME)))))
 
 ;; Now we provide some tactics to generate classical proofs.
 
