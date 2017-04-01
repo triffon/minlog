@@ -1,6 +1,143 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+Done locally in dev branch 2017-03-30
+
+In typ.scm
+
+EqNc CoEq CoEqNc added as reserved names
+
+In grammar.scm
+
+EqP EqONc CoEqP CoEqPNc EqPMR CoEqPMR added as predicate constants
+
+In term.scm
+
+In match-aux and pattern-and-instance-to-tsubst-aux EqP EqPNc CoEqP
+CoEqPNc EqPMR CoEqPMR added.
+term-to-eta-nf-with-simplified-simrec-appterms extended by converting
+lft(alpha yprod beta)pair rht(alpha yprod beta) and also clft(alpha
+yprod beta)pair crht(alpha yprod beta) into alpha yprod beta.  In
+pconst-name-to-haskell-function numeric patterns can (and should) be
+left as-is (bug fix by Fredrik Nordvall Forsberg)
+
+In psym.scm
+
+EqP EqPNc CoEqP CoEqPNc EqPMR CoEqPMR added as predconsts.  In
+formula-to-et-type-for-mr-clauses EqP and CoEqP added.  add-eqp
+with auxiliary functions alg-name-to-eqp-idpredconst-name
+alg-to-eqp-idpredconst term-and-alist-to-compatibility-formula
+term-to-eqp-compatibility-formula added.  Similarly: add-eqpnc
+added.
+
+In add-mr-ids application to totality-idpcs forbidden, since
+TotalAlgNc suffices.  In real-and-formula-to-mr-formula-aux usage of
+TotalAlgMR replaced by TotalAlgNc.  TotalNc CoTotal CoTotalNc TotalMR
+EqP EqPNc CoEqP CoEqPNc EqPMR CoEqPMR added as predconsts.  In
+formula-to-et-type-for-mr-clauses CoTotal EqP CoEqP added.
+add-totalnc with auxiliary function
+alg-name-to-totalnc-idpredconst-name alg-to-totalnc-idpredconst
+term-and-alist-to-totalnc-formula added.  add-rtotalnc with auxiliary
+functions alg-name-to-rtotalnc-idpredconst-name
+alg-to-rtotalnc-idpredconst term-and-alist-to-rtotalnc-formula added.
+
+add-co now takes an optional argument opt-prim-prod-eq-info.  If 'prim
+is present clauses are formed with mk-ex, mk-and (generating extracted
+terms with the primitive product make-star).  Otherwise the clauses
+are formed with the inductively defined existential quantifiers and
+conjunctions (generating extracted terms with the defined product
+yprod).  The other items are lists of eq-names, usually as many as
+there are (simultaneously defined) idpc-names.  Each list should have
+as many eq-names as there are arguments, with fitting types.  Too
+short lists are filled by EqD, and missing lists are taken to be lists
+of EqD.  For clarity clause-to-exand-formula taken out of add-co .
+c-flag removed.  It is determined by nc-idpc?
+eq-name-to-predicate-generator added.
+
+In formula.scm
+
+totality-predicate? extended to TotalNc.  unfold-formula extended to
+TotalNc CoTotal CoTotalNc EqP EqPNc CoEqP CoEqPNc with auxiliary
+functions make-eqp make-eqpnc make-coeqp make-coeqpnc make-eqpmr
+make-coeqpmr alg-name-to-cototality-idpredconst-name
+alg-to-cototality-idpredconst term-and-alist-to-cototality-formula
+term-to-cototality-formula .  alg-name-to-cototalnc-idpredconst-name
+alg-to-cototalnc-idpredconst term-and-alist-to-cototalnc-formula
+term-to-cototalnc-formula make-totalnc make-cototal make-cototalnc
+make-totalmr make-cototalmr added.  formula-to-nc-formula added.  This
+requires PVAR-TO-NC-PVAR .
+
+In pconst.scm
+
+In alg-or-arrow-types-to-uninst-corecop-types-and-tsubst default for
+prim-prod-flag changed to #f
+
+In proof.scm
+
+aconst-substitute adapted to invarall-aconst by using
+reduced-composed-psubst.  make-proof-in-andd-elim-left-form changed
+to use the theorem Lft: Pvar1 andd Pvar2 -> Pvar1 rather than the
+elimination axiom for Andd.
+
+In pproof.scm
+
+fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data extended to
+also cover RealEq.  rateqv-formula-compat replaced by
+rateqv-formula-compat-rev .  simprat-with-intern adapted.
+simpreal-with and simpreal-with-intern added, with auxiliary functions
+realeq-term-compat context-and-term-to-realproof realproof and
+realproof-intern, with auxiliary function realeq-formula-compat .
+simpreal simpreal-intern and simpreal-with added, similar to simp and
+simprat .  invar and inver-intern added.  (invar term) expects a goal
+A of the same type as term.  It applies InvarAll to solve the goal.
+New goal: term mr A.
+
+In ets.scm
+
+formula-to-et-type formula-of-nulltype? and
+formula-of-nulltype-under-extension? extended to CoTotal EqP CoEqP
+andlr-formula-and-concl-to-andlr-elim-mr-proof corrected (work of
+Kenji Miyamoto).
+
+Because of the change of real-and-formula-to-mr-formula for totality
+formulas we redefine invarex-aconst invarall-aconst and remove
+totalmrtoeq-aconst and the theorems InvarEx InvarAll TotalMRToEq
+TotalMRIntro TotalMRToTotal.
+real-and-formula-to-invar-proof added.
+Given a term t and a formula A, real-and-formula-to-invar-proof
+returns a proof of t mr A -> A.  There can be parameters in t,A.
+
+There is another way to introduce and eliminate the abbreviation allnc
+alpha with a total variable alpha, which uses TotalNc alpha^ -> rather
+than Total alpha^ --> .  Theorems TotalToTotalNc TotalNcToTotal
+AllncTotalIntroTotalNc AllncTotalElimTotalNc TotalNcIntro
+CoTotalToCoTotalNc CoTotalNcToCoTotal added.
+
+In theorems ExRTotalElim AllTotalIntroSound AllTotalElimSound usage
+of TotalMR eliminated.
+
+In todo.txt
+
+Adapt the proofs of AllTotalIntroSound and AllTotalElimSound to use
+CoEqPNc rather than EqD.  Add transitivity of CoEqPNc as an axiom.
+
+In util/minlog.texplate.de
+
+(load "---MINLOGPATH---/util/minlog-unicode.el") added.
+File minlog-unicode.el added to util.
+
+To obtain minor mode MinlogUnicode copy minlog-unicode.el into an
+emacs buffer and evaluate the buffer (by M-x eval-current-buffer).  To
+switch off the minor mode take the cursor to this minor mode and
+execute "switch off".
+
+In lib/list.scm
+
+Removed (add-mr-ids "TotalList") (line 18) in lib/list.scm.  It
+produces the error: add-mr-ids use TotalAlgNc instead of TotalAlgMR
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done dev branch 2016-10-17
 
 In axiom.scm
