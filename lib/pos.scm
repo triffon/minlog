@@ -75,7 +75,14 @@
 (add-var-name "p" "q" "r" (py "pos"))
 
 (add-totality "pos")
-(add-mr-ids "TotalPos")
+(add-totalnc "pos")
+(add-co "TotalPos")
+(add-co "TotalPosNc")
+
+(add-eqp "pos")
+(add-co "EqPPos")
+(add-eqpnc "pos")
+(add-co "EqPPosNc")
 
 ;; PosTotalVar
 (set-goal "all p TotalPos p")
