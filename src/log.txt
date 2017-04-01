@@ -1,7 +1,50 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done in dev branch 2017-04-01
+
+In formula.scm
+
+make-totalnc make-cototal make-cototalnc make-cototalmr added (were forgotten)
+
+In lib/nat.scm
+
+add-mr-ids for TotalBoole and TotalNat removed (we can use TotalAlgNc
+instead of TotalAlgMR).  Added (add-totalnc nat) (add-co TotalNat)
+(add-co TotalNatNc) (add-eqp nat) (add-co EqPNat) (add-eqpnc nat)
+(add-co EqPNatNc).
+
+In lib/list.scm
+
+add-mr-ids for TotalList removed.  Added (add-totality list)
+(add-rtotality list) (add-totalnc list) (add-rtotalnc list) (add-co
+TotalList) (add-co TotalListNc) (add-eqp list) (add-eqpnc list)
+(add-co EqPList) (add-co EqPListNc).  Soundness theorems temporarily
+postponed.
+
+In lib/pos.scm
+
+add-mr-ids for TotalPos removed.  Added (add-totalnc pos) (add-co TotalPos)
+(add-co TotalPosNc) (add-eqp pos) (add-co EqPPos) (add-eqpnc pos)
+(add-co EqPPosNc). 
+
+In lib/int.scm
+
+add-mr-ids for TotalInt removed.  Added (add-totalnc int) (add-co TotalInt)
+(add-co TotalIntNc) (add-eqp int) (add-co EqPInt) (add-eqpnc int)
+(add-co EqPIntNc). 
+
+In lib/rat.scm
+
+add-mr-ids for TotalRat removed.  Added (add-totalnc rat) (add-co TotalRat)
+(add-co TotalRatNc) (add-eqp rat) (add-co EqPRat) (add-eqpnc rat)
+(add-co EqPRatNc). 
+
+In lib/rea.scm
+
+add-mr-ids for TotalRea removed.  Added (add-totalnc rea) (add-co TotalRea).. 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-Done locally in dev branch 2017-03-30
+Done  in dev branch 2017-03-30
 
 In typ.scm
 
