@@ -247,7 +247,14 @@
 (add-var-name "a" "b" "c" "d" (py "rat"))
 
 (add-totality "rat")
-(add-mr-ids "TotalRat")
+(add-totalnc "rat")
+(add-co "TotalRat")
+(add-co "TotalRatNc")
+
+(add-eqp "rat")
+(add-co "EqPRat")
+(add-eqpnc "rat")
+(add-co "EqPRatNc")
 
 ;; RatTotalVar
 (set-goal "all a TotalRat a")
