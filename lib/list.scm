@@ -15,7 +15,6 @@
 	  '("alpha=>list=>list" "Cons"))
 (add-rtotality "list")
 (add-totality "list")
-(add-mr-ids "TotalList")
 
 ;; Infix notation allowed (and type parameters omitted) for binary
 ;; constructors, as follows.  This would also work for prefix notation.
