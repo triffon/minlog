@@ -2422,6 +2422,8 @@
   ;; Similar to fix-succ but for integers
   (define (fix-int arg)
     (cond
+     ;; numeric patterns can (and should) be left as-is
+     ((is-int-numeric-term? arg) (list arg empty-subst ""))
      ((term-in-app-form? arg)
       (let* ((intpos (string=? (const-to-name
 				(term-in-const-form-to-const
@@ -5081,22 +5083,50 @@ intDestr n | n > 0  = Left n
 	    (args (term-in-app-form-to-args term))
 	    (prev-args
 	     (map term-to-eta-nf-with-simplified-simrec-appterms args)))
-       (if ;op is simrec-constant
-	(and
-	 (term-in-const-form? op)
-	 (string=? "Rec" (const-to-name (term-in-const-form-to-const op)))
-	 (let* ((const (term-in-const-form-to-const op))
-		(uninst-type (const-to-uninst-type const))
-		(arg-types (arrow-form-to-arg-types uninst-type))
-		(alg-type (car arg-types))
-		(alg-name (alg-form-to-name alg-type))
-		(simalg-names (alg-name-to-simalg-names alg-name)))
-	   (< 1 (length simalg-names))))
-	(simplify-simrec-appterm
-	 (apply mk-term-in-app-form op prev-args))
-	(apply mk-term-in-app-form
-	       (term-to-eta-nf-with-simplified-simrec-appterms op)
-	       prev-args))))
+       (cond ;op is simrec-constant
+	((and
+	  (term-in-const-form? op)
+	  (string=? "Rec" (const-to-name (term-in-const-form-to-const op)))
+	  (let* ((const (term-in-const-form-to-const op))
+		 (uninst-type (const-to-uninst-type const))
+		 (arg-types (arrow-form-to-arg-types uninst-type))
+		 (alg-type (car arg-types))
+		 (alg-name (alg-form-to-name alg-type))
+		 (simalg-names (alg-name-to-simalg-names alg-name)))
+	    (< 1 (length simalg-names))))
+	 (simplify-simrec-appterm
+	  (apply mk-term-in-app-form op prev-args)))
+	((and (term-in-const-form? op)
+	      (= 2 (length args))
+	      (string=? "PairConstr"
+			(const-to-name (term-in-const-form-to-const op))))
+	 (let ((prev-left (car prev-args))
+	       (prev-right (cadr prev-args)))
+	   (if
+	    (and ;lft r pair rht r -> r, clft r pair crht r -> r
+	     (term-in-app-form? prev-left)
+	     (term-in-app-form? prev-right)
+	     (let ((op1 (term-in-app-form-to-op prev-left))
+		   (arg1 (term-in-app-form-to-arg prev-left))
+		   (op2 (term-in-app-form-to-op prev-right))
+		   (arg2 (term-in-app-form-to-arg prev-right)))
+	       (and
+		(term-in-const-form? op1)
+		(term-in-const-form? op2)
+		(term=? arg1 arg2)
+		(let ((name1 (const-to-name (term-in-const-form-to-const op1)))
+		      (name2 (const-to-name (term-in-const-form-to-const op2))))
+		  (or (and (string=? "PairOne" name1)
+			   (string=? "PairTwo" name2))
+		      (and (string=? "cLft" name1)
+			   (string=? "cRht" name2)))))))
+	    (term-in-app-form-to-arg prev-left)
+	    (apply mk-term-in-app-form
+		   (term-to-eta-nf-with-simplified-simrec-appterms op)
+		   prev-args))))
+	(else (apply mk-term-in-app-form
+		     (term-to-eta-nf-with-simplified-simrec-appterms op)
+		     prev-args)))))
     ((term-in-abst-form)
      (let* ((var (term-in-abst-form-to-var term))
 	    (kernel (term-in-abst-form-to-kernel term))
@@ -6772,8 +6802,11 @@ intDestr n | n > 0  = Left n
 				 ignore-deco-flag prev-tsubst subst))))
 					;added 2011-09-02
 	      ((and (predconst-form? pred1)
-		    (member (predconst-to-name pred1)
-			    (list "Total" "TotalMR"))
+		    (member
+		     (predconst-to-name pred1) ;TotalMR is obsolete
+		     (list "Total" "TotalNc" "CoTotal" "CoTotalNc" "TotalMR"
+			   "EqP" "EqPNc" "CoEqP" "CoEqPNc"
+			   "EqPMR" "CoEqPMR"))
 		    (idpredconst-form? pred2))
 	       (let ((prev (match-aux (append new-mps (cdr match-problems))
 				      ignore-deco-flag tsubst subst)))
@@ -7340,8 +7373,10 @@ intDestr n | n > 0  = Left n
 		       ignore-deco-flag prev-tsubst subst))))
 					;added 2012-09-13
 	      ((and (predconst-form? pred1)
-		    (member (predconst-to-name pred1)
-			    (list "Total" "TotalMR"))
+		    (member
+		     (predconst-to-name pred1) ;TotalMR is obsolete
+		     (list "Total" "TotalNc" "CoTotal" "CoTotalNc" "TotalMR"
+			   "EqP" "EqPNc" "CoEqP" "CoEqPNc" "EqPMR" "CoEqPMR"))
 		    (idpredconst-form? pred2))
 	       (let ((prev (pattern-and-instance-to-tsubst-aux
 			    (append new-mps (cdr match-problems))
