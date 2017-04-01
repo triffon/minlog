@@ -145,7 +145,14 @@
 (add-var-name  "k" "j" "i" (py "int"))
 
 (add-totality "int")
-(add-mr-ids "TotalInt")
+(add-totalnc "int")
+(add-co "TotalInt")
+(add-co "TotalIntNc")
+
+(add-eqp "int")
+(add-co "EqPInt")
+(add-eqpnc "int")
+(add-co "EqPIntNc")
 
 ;; IntTotalVar
 (set-goal "all k TotalInt k")
