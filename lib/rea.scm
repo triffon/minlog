@@ -30,8 +30,14 @@
 
 (add-alg "rea" (list "RealConstr" "(nat=>rat)=>(pos=>nat)=>rea"))
 (add-totality "rea")
-(add-mr-ids "TotalRea")
+(add-totalnc "rea")
+(add-co "TotalRea")
+;; (add-co "TotalReaNc")
 
+;; (add-eqp "rea")
+;; (add-co "EqPRea")
+;; (add-eqpnc "rea")
+;; (add-co "EqPReaNc")
 (add-var-name "as" "bs" "cs" "ds" (py "nat=>rat"))
 (add-var-name "M" "N" "L" (py "pos=>nat"))
 (add-var-name "x" "y" "z" (py "rea"))
