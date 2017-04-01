@@ -3008,10 +3008,11 @@
 ;; avoid unit ysum ..).  In the alg-case (chosen if tau is nulltype or
 ;; unit) take uysum^m(product-type1 ysum .. ysum product-typek)=>alg.
 
+;; 2017-03-07 default for prim-prod-flag changed to #f 
 (define (alg-or-arrow-types-to-uninst-corecop-types-and-tsubst
 	 . alg-or-arrow-types-and-opt-prim-prod-flag)
   (let* ((last (car (last-pair alg-or-arrow-types-and-opt-prim-prod-flag)))
-	 (prim-prod-flag (if (or (alg-form? last) (arrow-form? last)) #t last))
+	 (prim-prod-flag (if (or (alg-form? last) (arrow-form? last)) #f last))
 	 (alg-or-arrow-types
 	  (if (or (alg-form? last) (arrow-form? last))
 	      alg-or-arrow-types-and-opt-prim-prod-flag
