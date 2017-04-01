@@ -81,7 +81,8 @@
 		  (PVAR-TO-TVAR pred)
 		  (make-tconst "nulltype")))
 	     ((predconst-form? pred)
-	      (if (string=? "Total" (predconst-to-name pred))
+	      (if (member (predconst-to-name pred)
+			  (list "Total" "CoTotal" "EqP" "CoEqP"))
 		  (car (arity-to-types (predconst-to-arity pred)))
 		  (make-tconst "nulltype")))
 	     ((idpredconst-form? pred) (idpredconst-to-et-type pred))
@@ -258,7 +259,8 @@
 	((pvar-form? pred)
 	 (not (pvar-with-positive-content? pred)))
 	((predconst-form? pred)
-	 (not (string=? (predconst-to-name pred) "Total")))
+	 (not (member (predconst-to-name pred)
+		      (list "Total" "CoTotal" "EqP" "CoEqP"))))
 	((idpredconst-form? pred)
 	 (let* ((name (idpredconst-to-name pred))
 		(opt-alg-name (idpredconst-name-to-opt-alg-name name)))
@@ -284,7 +286,8 @@
        (cond ((pvar-form? pred)
 	      (not (pvar-with-positive-content? pred)))
 	     ((predconst-form? pred)
-	      (not (string=? (predconst-to-name pred) "Total")))
+	      (not (member (predconst-to-name pred)
+			   (list "Total" "CoTotal" "EqP" "CoEqP"))))
 	     ((idpredconst-form? pred)
 	      (let* ((name (idpredconst-to-name pred))
 		     (opt-alg-name (idpredconst-name-to-opt-alg-name name)))
@@ -753,12 +756,12 @@
      ((string=? "Ex-Elim" name)
       (apply ex-formula-and-concl-to-ex-elim-et (aconst-to-repro-data aconst)))
      ((string=? "InvarEx" name)
-      (let* ((imp-fla (aconst-to-uninst-formula invarex-aconst))
+      (let* ((imp-fla (aconst-to-formula aconst))
 	     (exl-fla (imp-form-to-conclusion imp-fla))
 	     (var (exl-form-to-var exl-fla)))
 	(make-term-in-abst-form var (make-term-in-var-form var))))
      ((string=? "InvarAll" name)
-      (let* ((all-fla (aconst-to-uninst-formula invarall-aconst))
+      (let* ((all-fla (aconst-to-formula aconst))
 	     (var (all-form-to-var all-fla)))
 	(make-term-in-abst-form var (make-term-in-var-form var))))
      ((member name '("ExTotalIntro" "ExTotalElim"
@@ -2409,6 +2412,90 @@
 ;; Proof finished.
 (save "YprodIfTotal")
 
+;; PairConstrOneTwo
+(set-goal "all (alpha yprod beta)
+ (lft (alpha yprod beta) pair rht (alpha yprod beta))eqd(alpha yprod beta)")
+(cases)
+(assume "alpha" "beta")
+(use "InitEqD")
+;; Proof finished.
+(save "PairConstrOneTwo")
+
+;; Lft
+(set-goal "Pvar1 andd Pvar2 -> Pvar1")
+(assume "Andd-Hyp")
+(elim "Andd-Hyp")
+(assume "Hyp1" "Hyp2")
+(use "Hyp1")
+;; Proof finished.
+(save "Lft")
+
+;; Rht
+(set-goal "Pvar1 andd Pvar2 -> Pvar2")
+(assume "Andd-Hyp")
+(elim "Andd-Hyp")
+(assume "Hyp1" "Hyp2")
+(use "Hyp2")
+;; Proof finished.
+(save "Rht")
+
+;; To avoid / shorten (cLft pos pos)(p pair q) we introduce a prefix
+;; operator clft (reminding on cLft) to obtain clft(p pair q) instead
+
+(add-token
+ "clft"
+ 'prefix-op
+ (lambda (x) (make-term-in-app-form
+	      (make-term-in-const-form
+	       (let* ((const (pconst-name-to-pconst "cLft"))
+		      (tvars (const-to-tvars const))
+		      (pairtype (term-to-type x))
+		      (types (alg-form-to-types pairtype))
+		      (subst (make-substitution tvars types)))
+		 (const-substitute const subst #f)))
+	      x)))
+
+(add-display
+ (py "alpha")
+ (lambda (x)
+   (if (term-in-app-form? x)
+       (let ((op (term-in-app-form-to-final-op x))
+	     (args (term-in-app-form-to-args x)))
+	 (if (and (term-in-const-form? op)
+		  (string=? "cLft"
+			    (const-to-name (term-in-const-form-to-const op)))
+		  (= 1 (length args)))
+	     (list 'prefix-op "clft" (term-to-token-tree (car args)))
+	     #f))
+       #f)))
+
+(add-token
+ "crht"
+ 'prefix-op
+ (lambda (x) (make-term-in-app-form
+	      (make-term-in-const-form
+	       (let* ((const (pconst-name-to-pconst "cRht"))
+		      (tvars (const-to-tvars const))
+		      (pairtype (term-to-type x))
+		      (types (alg-form-to-types pairtype))
+		      (subst (make-substitution tvars types)))
+		 (const-substitute const subst #f)))
+	      x)))
+
+(add-display
+ (py "alpha")
+ (lambda (x)
+   (if (term-in-app-form? x)
+       (let ((op (term-in-app-form-to-final-op x))
+	     (args (term-in-app-form-to-args x)))
+	 (if (and (term-in-const-form? op)
+		  (string=? "cRht"
+			    (const-to-name (term-in-const-form-to-const op)))
+		  (= 1 (length args)))
+	     (list 'prefix-op "crht" (term-to-token-tree (car args)))
+	     #f))
+       #f)))
+
 ;; For invariance axioms we need aconsts invarex-aconst invarall-aconst.
 
 ;; PVAR-TO-MR-PVAR-ALIST initially has
@@ -2542,56 +2629,184 @@
 	 (tpsubst (append tsubst psubst)))
     (aconst-substitute invarall-aconst tpsubst)))
 
+;; Given a term t and a formula A, real-and-formula-to-invar-proof
+;; returns a proof of t mr A -> A.  There can be parameters in t,A.
+
+(define (real-and-formula-to-invar-proof real formula)
+  (let* ((invar-fla (aconst-to-uninst-formula invarall-aconst))
+	 (var (all-form-to-var invar-fla))
+	 (kernel (all-form-to-kernel invar-fla))
+	 (pvar-fla (imp-form-to-conclusion kernel))
+	 (pvar (predicate-form-to-predicate pvar-fla))
+	 (tvar (PVAR-TO-TVAR pvar))
+	 (mr-pvar (PVAR-TO-MR-PVAR pvar))
+	 (type (term-to-type real))
+	 (cterm (make-cterm formula))
+	 (newvar (type-to-new-partial-var type))
+	 (mr-fla (real-and-formula-to-mr-formula
+		  (make-term-in-var-form newvar)
+		  formula))
+	 (mr-cterm (make-cterm newvar mr-fla))
+	 (topsubst (make-substitution (list tvar pvar mr-pvar)
+				      (list type cterm mr-cterm)))
+	 (free (union (term-to-free real) (formula-to-free formula))))
+    (apply
+     mk-proof-in-elim-form
+     (make-proof-in-aconst-form (aconst-substitute invarall-aconst topsubst))
+     (map make-term-in-var-form free))))
+
 ;; (define formula (pf "exl boole2 boole1 eqd boole2"))
 ;; (pp (aconst-to-formula (formula-to-invarex-aconst formula)))
 ;; (pp (aconst-to-formula (formula-to-invarall-aconst formula)))
 
-(define totalmrtoeq-aconst
-  (let* ((var1 (make-var (make-tvar -1 DEFAULT-TVAR-NAME) 1 t-deg-zero ""))
-	 (var (make-var (make-tvar -1 DEFAULT-TVAR-NAME) -1 t-deg-zero ""))
-	 (varterm1 (make-term-in-var-form var1))	 
-	 (varterm (make-term-in-var-form var))
-	 (tmr-predconst
-	  (make-predconst (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
-				      (make-tvar -1 DEFAULT-TVAR-NAME))
-			  empty-subst -1 "TotalMR"))
-	 (tmr-fla (make-predicate-formula tmr-predconst varterm1 varterm))
-	 (eqd-fla (make-eqd varterm1 varterm)))
-    (make-aconst
-     "TotalMRToEq"
-     'axiom (mk-all var1 var (make-imp tmr-fla eqd-fla)) empty-subst)))
+;; Code discarded 2017-03-31, because of the change of
+;; real-and-formula-to-mr-formula for totality formulas
 
-(add-theorem "TotalMRToEq" (make-proof-in-aconst-form totalmrtoeq-aconst))
+;; (define totalmrtoeq-aconst
+;;   (let* ((var1 (make-var (make-tvar -1 DEFAULT-TVAR-NAME) 1 t-deg-zero ""))
+;; 	 (var (make-var (make-tvar -1 DEFAULT-TVAR-NAME) -1 t-deg-zero ""))
+;; 	 (varterm1 (make-term-in-var-form var1))	 
+;; 	 (varterm (make-term-in-var-form var))
+;; 	 (tmr-predconst
+;; 	  (make-predconst (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+;; 				      (make-tvar -1 DEFAULT-TVAR-NAME))
+;; 			  empty-subst -1 "TotalMR"))
+;; 	 (tmr-fla (make-predicate-formula tmr-predconst varterm1 varterm))
+;; 	 (eqd-fla (make-eqd varterm1 varterm)))
+;;     (make-aconst
+;;      "TotalMRToEq"
+;;      'axiom (mk-all var1 var (make-imp tmr-fla eqd-fla)) empty-subst)))
 
-;; TotalMRIntro
-(set-goal "all alpha TotalMR alpha alpha")
-(use "AllTotalIntro")
+;; (add-theorem "TotalMRToEq" (make-proof-in-aconst-form totalmrtoeq-aconst))
+
+;; ;; TotalMRIntro
+;; (set-goal "all alpha TotalMR alpha alpha")
+;; (use "AllTotalIntro")
+;; (assume "alpha^" "Talpha")
+;; (assert "exl alpha^1 TotalMR alpha^1 alpha^")
+;;  (use "InvarEx" (make-cterm (pf "Total alpha^")))
+;;  (use "Talpha")
+;; (assume "ExHyp")
+;; (by-assume "ExHyp" "alpha^1" "alpha1Prop")
+;; (assert "alpha^1 eqd alpha^")
+;;  (use "TotalMRToEq")
+;;  (use "alpha1Prop")
+;; (assume "alpha^1 eqd alpha^")
+;; (simphyp-with-to "alpha1Prop" "alpha^1 eqd alpha^" "alpha1PropInst")
+;; (use "alpha1PropInst")
+;; ;; Proof finished.
+;; (save "TotalMRIntro")
+
+;; ;; TotalMRToTotal
+;; (set-goal "all alpha^ allnc alpha^1(TotalMR alpha^1 alpha^ -> Total alpha^)")
+;; (assume "alpha^" "alpha^1" "TMRHyp")
+;; (use-with "InvarAll"
+;; 	  (py "alpha")
+;; 	  (make-cterm (pv "alpha^") (pf "TotalMR alpha^1 alpha^"))
+;; 	  (make-cterm (pf "Total alpha^"))
+;; 	  (pt "alpha^")
+;; 	  "TMRHyp")
+;; ;; Proof finished.
+;; (save "TotalMRToTotal")
+
+;; TotalToTotalNc
+(set-goal "all alpha^(Total alpha^ -> TotalNc alpha^)")
 (assume "alpha^" "Talpha")
-(assert "exl alpha^1 TotalMR alpha^1 alpha^")
+(assert "exl alpha^1 TotalNc alpha^")
  (use "InvarEx" (make-cterm (pf "Total alpha^")))
  (use "Talpha")
 (assume "ExHyp")
-(by-assume "ExHyp" "alpha^1" "alpha1Prop")
-(assert "alpha^1 eqd alpha^")
- (use "TotalMRToEq")
- (use "alpha1Prop")
-(assume "alpha^1 eqd alpha^")
-(simphyp-with-to "alpha1Prop" "alpha^1 eqd alpha^" "alpha1PropInst")
-(use "alpha1PropInst")
+(by-assume "ExHyp" "alpha^1" "Concl")
+(use "Concl")
 ;; Proof finished.
-(save "TotalMRIntro")
+(save "TotalToTotalNc")
 
-;; TotalMRToTotal
-(set-goal "all alpha^ allnc alpha^1(TotalMR alpha^1 alpha^ -> Total alpha^)")
-(assume "alpha^" "alpha^1" "TMRHyp")
+;; TotalNcToTotal
+(set-goal "all alpha^(TotalNc alpha^ -> Total alpha^)")
+(assume "alpha^" "TNcHyp")
 (use-with "InvarAll"
 	  (py "alpha")
-	  (make-cterm (pv "alpha^") (pf "TotalMR alpha^1 alpha^"))
+	  (make-cterm (pv "alpha^") (pf "TotalNc alpha^"))
 	  (make-cterm (pf "Total alpha^"))
 	  (pt "alpha^")
-	  "TMRHyp")
+	  "TNcHyp")
 ;; Proof finished.
-(save "TotalMRToTotal")
+(save "TotalNcToTotal")
+
+;; Recall the abbreviation axioms concerning total variables:
+;; (pp "AllncTotalIntro")
+;; allnc alpha^(Total alpha^ --> (Pvar alpha)alpha^) -> 
+;; allnc alpha (Pvar alpha)alpha
+;; (pp "AllncTotalElim")
+;; allnc alpha (Pvar alpha)alpha -> 
+;; allnc alpha^(Total alpha^ --> (Pvar alpha)alpha^)
+;; (pp "AllTotalIntro")
+;; allnc alpha^(Total alpha^ -> (Pvar alpha)alpha^) -> 
+;; all alpha (Pvar alpha)alpha
+;; (pp "AllTotalElim")
+;; all alpha (Pvar alpha)alpha -> 
+;; allnc alpha^(Total alpha^ -> (Pvar alpha)alpha^)
+
+;; Total here refers to a total variable, not the totality premise.
+
+;; In addition there is another way to introduce and eliminate the
+;; abbreviation allnc alpha with a total variable alpha, which uses
+;; TotalNc alpha^ -> rather than Total alpha^ -->
+
+;; AllncTotalIntroTotalNc
+(set-goal "allnc alpha^(TotalNc alpha^ -> (Pvar alpha)alpha^) -> 
+ allnc alpha (Pvar alpha)alpha")
+(assume "ImpHyp" "alpha")
+(use "AllncTotalIntro")
+(assume "alpha^" "Tx")
+(use "ImpHyp")
+(use "TotalToTotalNc")
+(use "Tx")
+;; Proof finished.
+(save "AllncTotalIntroTotalNc")
+
+;; AllncTotalElimTotalNc
+(set-goal "allnc alpha (Pvar alpha)alpha ->
+ allnc alpha^(TotalNc alpha^ -> (Pvar alpha)alpha^)")
+(assume "AllncHyp" "alpha^" "Tx")
+(use "AllncTotalElim")
+(use "AllncHyp")
+(use "TotalNcToTotal")
+(use "Tx")
+;; Proof finished.
+(save "AllncTotalElimTotalNc")
+
+;; TotalNcIntro
+(set-goal "all alpha TotalNc alpha")
+(use "AllTotalIntro")
+(assume "alpha^")
+(use "TotalToTotalNc")
+;; Proof finished.
+(save "TotalNcIntro")
+
+;; CoTotalToCoTotalNc
+(set-goal "all alpha^(CoTotal alpha^ -> CoTotalNc alpha^)")
+(assume "alpha^" "CoTalpha")
+(assert "exl alpha^1 CoTotalNc alpha^")
+ (use "InvarEx" (make-cterm (pf "CoTotal alpha^")))
+ (use "CoTalpha")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha^1" "Concl")
+(use "Concl")
+;; Proof finished.
+(save "CoTotalToCoTotalNc")
+
+;; CoTotalNcToCoTotal
+(set-goal "all alpha^(CoTotalNc alpha^ -> CoTotal alpha^)")
+(assume "alpha^" "CoTNcHyp")
+(use-with "InvarAll"
+	  (py "alpha")
+	  (make-cterm (pv "alpha^") (pf "CoTotalNc alpha^"))
+	  (make-cterm (pf "CoTotal alpha^"))
+	  (pt "alpha^")
+	  "CoTNcHyp")
+;; Proof finished.
+(save "CoTotalNcToCoTotal")
 
 (set! COMMENT-FLAG #t)
 
@@ -3533,7 +3748,6 @@
 
 (define (andlr-formula-and-concl-to-andlr-elim-mr-proof andlr-formula concl)
   (let* ((andlr-vars (formula-to-free andlr-formula))
-	 (concl-vars (formula-to-free concl))
 	 (andlr-type (formula-to-et-type andlr-formula))
 	 (real-var (type-to-new-partial-var andlr-type)) ;a
 	 (real-term (make-term-in-var-form real-var))
@@ -3548,19 +3762,16 @@
 	  (real-and-formula-to-mr-formula-aux app-term concl))
 	 (imp-fla (make-imp mr-andlr-fla mr-concl))
 	 (elim-aconst (imp-formulas-to-elim-aconst imp-fla))
-	 (free (append andlr-vars concl-vars))
-	 (intro-proof
-	  (apply mk-proof-in-intro-form
-		 (append free (list (make-proof-in-aconst-form elim-aconst)))))
+	 (intro-proof (make-proof-in-aconst-form elim-aconst))
 	 (elim-proof
 	  (apply mk-proof-in-elim-form
 		 intro-proof
 		 (append (map make-term-in-var-form
-			      (append andlr-vars (cons f concl-vars)))
+			      (append andlr-vars (list f)))
 			 (list real-term
 			       (make-proof-in-avar-form mr-andlr-fla-avar))))))
     (apply mk-proof-in-intro-form
-	   (append andlr-vars concl-vars
+	   (append andlr-vars
 		   (list real-var mr-andlr-fla-avar f elim-proof)))))
 
 (define (one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof
@@ -5308,12 +5519,12 @@
 
 ;; ExLTotalElim
 (set-goal "exl alpha (Pvar alpha)^ alpha -> 
-           exr alpha^(Total alpha^ andl (Pvar alpha)^ alpha^)")
+           exl alpha^(TotalNc alpha^ andu (Pvar alpha)^ alpha^)")
 (assume "ExHyp")
 (by-assume "ExHyp" "alpha" "alphaProp")
 (intro 0 (pt "alpha"))
 (split)
-(use "TotalVar")
+(use "TotalNcIntro")
 (use "alphaProp")
 ;; Proof finished.
 (save "ExLTotalElim")
@@ -5331,12 +5542,12 @@
 
 ;; ExRTotalElim
 (set-goal "exr alpha (Pvar alpha)alpha -> 
-           exr alpha^(TotalMR alpha^ alpha^ andr (Pvar alpha)alpha^)")
+           exr alpha^(TotalNc alpha^ andr (Pvar alpha)alpha^)")
 (assume "ExHyp")
 (by-assume "ExHyp" "alpha" "alphaProp")
 (intro 0 (pt "alpha"))
 (split)
-(use "TotalMRIntro")
+(use "TotalNcIntro")
 (use "alphaProp")
 ;; Proof finished.
 (save "ExRTotalElim")
@@ -5364,41 +5575,80 @@
 ;; Proof finished.
 (save "ExUTotalElim")
 
+;; 2017-04-01.  Code preliminarily discarded.
+;; The problem is in the formulation of AllTotalIntroSound, with eqd.
+;; Can we also proof it with CoEqPNc ?
+
+;; AllTotalIntroSoundCoEqPNc
+;; (set-goal "all (alpha=>gamma)^(
+;;  all alpha^0,alpha^1(
+;;   TotalNc alpha^1 andu CoEqPNc alpha^1 alpha^0 -> 
+;;   (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0) -> 
+;;  all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0)")
+;; (assume "(alpha=>gamma)^" "MRHyp")
+;; (use "AllTotalIntro")
+;; (assume "alpha^" "Talpha")
+;; (use "MRHyp")
+;; (split)
+;; (use "TotalToTotalNc")
+;; (use "Talpha")
+;;   (alpha=>gamma)^  MRHyp:all alpha^0,alpha^1(
+;;                           TotalNc alpha^1 andu CoEqPNc alpha^1 alpha^0 -> 
+;;                           (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)
+;;                           alpha^0)
+;;   {alpha^}  Talpha:Total alpha^
+;; -----------------------------------------------------------------------------
+;; ?_7:CoEqPNc alpha^ alpha^
+;; (use "InitEqD")
+;; (admit) ;then the proof is finished.
+
+;; Need an axiom
+;; all alpha^(Total alpha^ -> CoEqPNc alpha^ alpha^)
+;; or even more detailed ones (provable e.g. for nat)
+;; EqPRefl
+;; (pp (pf "allnc alpha^(Total alpha^ -> EqP alpha^ alpha^)"))
+;; EqPToCoEqP
+;; (pp (pf "allnc alpha^1,alpha^2(EqP alpha^1 alpha^2 -> CoEqP alpha^1 alpha^2)"))
+;; CoEqPToCoEqPNc
+;; (pp (pf "all alpha^1,alpha^2(CoEqP alpha^1 alpha^2 -> CoEqPNc alpha^1 alpha^2)"))
+
+
 ;; AllTotalIntroSound
-(set-goal "all (alpha=>gamma)^(
- all alpha^0,alpha^1(
-  TotalMR alpha^1 alpha^0 -> 
-  (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0) -> 
- all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0)")
-(assume "(alpha=>gamma)^" "AllHyp" "alpha")
-(use "AllHyp")
-(use "TotalMRIntro")
+;; (set-goal "all (alpha=>gamma)^(
+;;  all alpha^0,alpha^1(
+;;   TotalNc alpha^1 andu alpha^1 eqd alpha^0 -> 
+;;   (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0) -> 
+;;  all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0)")
+;; (assume "(alpha=>gamma)^" "MRHyp")
+;; (use "AllTotalIntro")
+;; (assume "alpha^" "Talpha")
+;; (use "MRHyp")
+;; (split)
+;; (use "TotalToTotalNc")
+;; (use "Talpha")
+;; (use "InitEqD")
 ;; Proof finished.
-(save "AllTotalIntroSound")
+;; (save "AllTotalIntroSound")
 
 ;; AllTotalElimSound
-(set-goal "all (alpha=>gamma)^(
- all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0 -> 
- all alpha^0,alpha^1(
-  TotalMR alpha^1 alpha^0 -> 
-  (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0))")
-(assume "(alpha=>gamma)^" "AllHyp")
-(assert "allnc alpha^0(Total alpha^0 -> 
-                       (Pvar gamma alpha)^((alpha=>gamma)^ alpha^0)alpha^0)")
- (use "AllTotalElim" )
- (use "AllHyp")
- (drop "AllHyp")
-(assume "AllncHyp" "alpha^0"  "alpha^1" "TMRHyp")
-(assert "alpha^1 eqd alpha^0")
- (use "TotalMRToEq")
- (use "TMRHyp")
-(assume "alpha^1 eqd alpha^0")
-(simp "alpha^1 eqd alpha^0")
-(use "AllncHyp")
-(use "TotalMRToTotal" (pt "alpha^1"))
-(use "TMRHyp")
+;; (set-goal "all (alpha=>gamma)^(
+;;  all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0 -> 
+;;  all alpha^0,alpha^1(
+;;   TotalNc alpha^1 andu alpha^1 eqd alpha^0 -> 
+;;   (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0))")
+;; (assume "(alpha=>gamma)^" "THyp" "alpha^" "alpha^1" "Conj")
+;; (simp "Conj")
+;; (use-with
+;;  "AllTotalElim"
+;;  (make-cterm (pv "alpha^0")
+;; 	     (pf "(Pvar gamma alpha)^((alpha=>gamma)^ alpha^0)alpha^0"))
+;;  "?" (pt "alpha^") "?")
+;; (use "THyp")
+;; (use "TotalNcToTotal")
+;; (simp "<-" "Conj")
+;; (use "Conj")
 ;; Proof finished.
-(save "AllTotalElimSound")
+;; (save "AllTotalElimSound")
 
 ;; AllncTotalIntroSound
 (set-goal "all gamma^(
