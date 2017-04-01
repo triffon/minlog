@@ -66,3 +66,5 @@
     ;; open file
     (select-frame-set-input-focus right-frame)
     (if filename (find-file filename))))
+
+    (load "---MINLOGPATH---/util/minlog-unicode.el")
