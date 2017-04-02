@@ -1,4 +1,4 @@
-;; 2016-10-17.  pos.scm.  Based on the former numbers.scm.
+;; 2017-04-01.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -4483,7 +4483,7 @@
  "SZero p min SZero q" "SZero(p min q)"
  "SZero p min SOne q" "[if (p<=q) (SZero p) (SOne q)]"
  "SOne p min One" "One"
- "SOne p min SZero q" "[if (p<=q) (SZero q) (SOne p)]"
+ "SOne p min SZero q" "[if (q<=p) (SZero q) (SOne p)]"
  "SOne p min SOne q" "SOne(p min q)")
 
 ;; PosMinTotal
@@ -4522,8 +4522,8 @@
 (ng #t)
 (use "BooleIfTotal")
 (use "PosLeTotal")
-(use "Tp1")
 (use "Tq1")
+(use "Tp1")
 (use "TotalPosSZero")
 (use "Tq1")
 (use "TotalPosSOne")
@@ -4535,6 +4535,281 @@
 (use "Tq1")
 ;; Proof finished.
 (save-totality)
+
+(set-goal "all p p min One=One")
+(cases)
+(use "Truth")
+(assume "p")
+(ng #t)
+(use "Truth")
+(assume "p")
+(ng #t)
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "p min One" "One")
+
+;; NatMinOnePos
+(set-goal "all p Succ Zero min p=One")
+(assume "p")
+(use "PosLeLtCases" (pt "p") (pt "1"))
+(ng)
+(assume "p=1")
+(simp "p=1")
+(use "Truth")
+(assume "1<p")
+(simp "SuccPosPred")
+(use "Truth")
+(use "1<p")
+;; Proof finished.
+(save "NatMinOnePos")
+
+;; NatMinPosOne
+(set-goal "all p p min Succ Zero=One")
+(assume "p")
+(use "PosLeLtCases" (pt "p") (pt "1"))
+(ng)
+(assume "p=1")
+(simp "p=1")
+(use "Truth")
+(assume "1<p")
+(simp "SuccPosPred")
+(use "Truth")
+(use "1<p")
+;; Proof finished.
+(save "NatMinPosOne")
+
+;; PosMinComm
+(set-goal "all p,q p min q = q min p")
+(ind)
+;; 2-4
+(strip)
+(use "Truth")
+;; 3
+(assume "p" "IH")
+(cases)
+;; 7-9
+(use "Truth")
+;; 8
+(use "IH")
+;; 9
+(ng)
+(strip)
+(use "Truth")
+;; 4
+(assume "p" "IH")
+(cases)
+;; 13-15
+(use "Truth")
+;; 14
+(ng)
+(strip)
+(use "Truth")
+;; 15
+(use "IH")
+;; Proof finished.
+(save "PosMinComm")
+
+;; PosMinEq1
+(set-goal "all p,q(q<=p -> p min q=q)")
+(ind)
+(ng)
+(assume "q" "q=1")
+(simp "q=1")
+(use "Truth")
+;; 3
+(assume "p" "IH")
+(cases)
+;; 9--11
+(strip)
+(use "Truth")
+;; 10
+(ng)
+(use "IH")
+;; 11
+(ng)
+(assume "q" "q<p")
+(assert "p<=q -> F")
+ (assume "p<=q")
+ (assert "p<p")
+  (use "PosLeLtTrans" (pt "q"))
+  (use "p<=q")
+  (use "q<p")
+ (assume "p<p")
+ (use "p<p")
+(assume "p<=q -> F")
+(simp "p<=q -> F")
+(use "Truth")
+;; 4
+(assume "p" "IH")
+(cases)
+;; 27-29
+(ng)
+(strip)
+(use "Truth")
+;; 28
+(ng)
+(assume "q" "q<=p")
+(simp "q<=p")
+(use "Truth")
+;; 29
+(use "IH")
+;; Proof finished.
+(save "PosMinEq1")
+
+;; PosMinEq2
+(set-goal "all p,q(p<=q -> p min q=p)")
+(assume "p" "q")
+(simp "PosMinComm")
+(use "PosMinEq1")
+;; Proof finished.
+(save "PosMinEq2")
+
+;; We prove that PosToNat is an isomorphism w.r.t. min
+
+;; PosToNatMin
+(set-goal "all p,q PosToNat(p min q)=PosToNat p min PosToNat q")
+(ind)
+;; 2-4
+(assume "q")
+(ng)
+(simp "NatMinOnePos")
+(use "Truth")
+;; 3
+(assume "p" "IH")
+(cases)
+;; 9-11
+(ng)
+(simp "NatDoubleSZero")
+(simp "NatMinPosOne")
+(use "Truth")
+;; 10
+(assume "q")
+(ng)
+(simp "IH")
+(simp "NatMinDouble")
+(use "Truth")
+;; 11
+(assume "q")
+(ng)
+(cases (pt "p<=q"))
+(assume "p<=q")
+(ng)
+(simp "NatMinEq1")
+(use "Truth")
+(use "NatLeTrans" (pt "NatDouble(PosToNat q)"))
+(simp "NatDoubleLe")
+(simp "PosToNatLe")
+(use "p<=q")
+(use "Truth")
+;; 22
+(assume "p<=q -> F")
+(ng)
+(simp "NatMinEq2")
+(use "Truth")
+(simp "NatLeSuccDoubleDouble")
+(assert "q<p")
+ (use "PosNotLeToLt")
+ (use "p<=q -> F")
+(assume "q<p")
+(simp "PosToNatLt")
+(use "q<p")
+;; 4
+(assume "p" "IH")
+(cases)
+;; 42-44
+(ng)
+(use "Truth")
+;; 43
+(assume "q")
+(ng)
+(cases (pt "q<=p"))
+(assume "q<=p")
+(ng)
+(simp "NatMinEq2")
+(use "Truth")
+(use "NatLeTrans" (pt "NatDouble(PosToNat p)"))
+(simp "NatDoubleLe")
+(simp "PosToNatLe")
+(use "q<=p")
+(use "Truth")
+;; 49
+(assume "q<=p -> F")
+(ng)
+(simp "NatMinEq1")
+(use "Truth")
+(simp "NatLeSuccDoubleDouble")
+(assert "p<q")
+ (use "PosNotLeToLt")
+ (use "q<=p -> F")
+(assume "p<q")
+(simp "PosToNatLt")
+(use "p<q")
+;; 44
+(ng)
+(assume "q")
+(simp "NatMinDouble")
+(simp "IH")
+(use "Truth")
+;; Proof finished.
+(save "PosToNatMin")
+
+;; (search-about "NatMin")
+;; (display-pconst "PosMax")
+;; (search-about "Pos" "Max")
+;; (display-pconst "PosMin")
+;; (search-about "Nat" "One")
+
+;; PosMinLB1
+(set-goal "all p,q p min q<=p")
+(assume "p" "q")
+(assert "NatToPos(PosToNat(p min q))<=NatToPos(PosToNat p)")
+ (simp "NatToPosLe")
+ (simp "PosToNatMin")
+ (use "NatMinLB1")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+;; Assertion proved.
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(assume "p min q<=p")
+(use "p min q<=p")
+;; Proof finished.
+(save "PosMinLB1")
+
+;; PosMinLB2
+(set-goal "all p,q p min q<=q")
+(assume "p" "q")
+(simp "PosMinComm")
+(use "PosMinLB1")
+;; Proof finished.
+(save "PosMinLB2")
+
+;; PosMinGLB
+(set-goal "all p,q,r(r<=p -> r<=q -> r<=p min q)")
+(assume "p" "q" "r")
+(assert "NatToPos(PosToNat r)<=NatToPos(PosToNat p) ->
+         NatToPos(PosToNat r)<=NatToPos(PosToNat q) ->
+         NatToPos(PosToNat r)<=NatToPos(PosToNat(p min q))")
+ (simp "NatToPosLe")
+ (simp "NatToPosLe")
+ (simp "NatToPosLe")
+ (simp "PosToNatMin")
+ (use "NatMinGLB")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+ (use "NatLt0Pos")
+;; Assertion proved.
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(assume "r<=p -> r<=q -> r<=p min q")
+(use "r<=p -> r<=q -> r<=p min q")
+;; Proof finished.
+(save "PosMinGLB")
 
 ;; Rules for NatExp : nat=>nat=>nat
 
