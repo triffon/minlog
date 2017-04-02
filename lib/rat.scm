@@ -1,4 +1,4 @@
-;; 2016-10-16.  rat.scm.  Based on numbers.scm.
+;; 2017-04-01.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1569,6 +1569,46 @@
 ;; Proof finished.
 (save "RatEqvPlusMinusRev")
 
+;; RatEqvConstrPlus
+(set-goal "all k,j,p (k+j#p)==(k#p)+(j#p)")
+(assume "k" "j" "p")
+(ng)
+(simp "<-" "IntTimesPlusDistrLeft")
+(simp "<-" "IntTimesPlusDistrLeft")
+(simp "<-" "IntTimesPlusDistrLeft")
+(assert "p*p=IntP p*p")
+ (use "Truth")
+(assume "EqHyp")
+(simp "EqHyp")
+(use "IntTimesAssoc")
+;; Proof finished.
+(save "RatEqvConstrPlus")
+
+;; RatPlusInjLeft
+(set-goal "all a,b,c(a+c==b+c -> a==b)")
+(assume "a" "b" "c" "EqvHyp")
+;; (pp "RatEqvPlusMinusRev") ;all a,b a+b+ ~b==a
+(use "RatEqvTrans" (pt "a+c+ ~c"))
+(use "RatEqvSym")
+(use "RatEqvPlusMinusRev")
+(use "RatEqvTrans" (pt "b+c+ ~c"))
+(simprat "EqvHyp")
+(use "Truth")
+(use "RatEqvPlusMinusRev")
+;; Proof finished.
+(save "RatPlusInjLeft")
+
+;; RatPlusInj
+(set-goal "all a,b,c(a+b==a+c -> b==c)")
+(assume "a" "b" "c" "EqvHyp")
+(use "RatPlusInjLeft" (pt "a"))
+(simp "RatPlusComm")
+(simp (pf "c+a=a+c"))
+(use "EqvHyp")
+(use "RatPlusComm")
+;; Proof finished.
+(save "RatPlusInj")
+
 (set-goal "all p,q,r,r0((IntN p#q)<=(IntN r#r0))=((r#r0)<=(p#q))")
 (assume "p" "q" "r" "r0")
 (ng)
@@ -2595,6 +2635,41 @@
 ;; Proof finished.
 (save "RatTimesInjLeft")
 
+;; RatTimesIntNOne
+(set-goal "all a a*IntN 1== ~a")
+(cases)
+(cases)
+(assume "p" "q")
+(use "Truth")
+(assume "p")
+(use "Truth")
+(assume "p" "q")
+(use "Truth")
+;; Proof finished.
+(save "RatTimesIntNOne")
+
+;; RatIntNOneTimes
+(set-goal "all a IntN 1*a== ~a")
+(cases)
+(cases)
+(assume "p" "q")
+(use "Truth")
+(assume "p")
+(use "Truth")
+(assume "p" "q")
+(use "Truth")
+;; Proof finished.
+(save "RatIntNOneTimes")
+
+;; RatTimesIdIntUMinus
+(set-goal "all a,k a* ~k= ~(a*k)")
+(cases)
+(assume "k" "p" "j")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RatTimesIdIntUMinus")
+
 ;; As examples of simprat we prove some inequalities useful later for
 ;; estimates.
 
@@ -2816,6 +2891,66 @@
 (use "kq<=jp -> F")
 ;; Proof finished.
 (save "RatMaxUB2")
+
+;; RatMaxLUB
+(set-goal "all a,b,c(a<=c -> b<=c -> a max b<=c)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(cases)
+(assume "i" "r")
+(ng)
+(cases (pt "k*q<=j*p"))
+(assume "kq<=jp")
+(ng)
+(assume "Useless" "Hyp")
+(use "Hyp")
+(assume "kq<=jp -> F")
+(ng)
+(assume "Hyp" "Useless")
+(use "Hyp")
+;; Proof finished.
+(save "RatMaxLUB")
+
+;; RatAbsMax
+(set-goal "all a abs a=a max ~a")
+(cases)
+(cases)
+(assume "p" "q")
+(use "Truth")
+(assume "p")
+(use "Truth")
+(assume "p" "q")
+(use "Truth")
+;; Proof finished.
+(save "RatAbsMax")
+
+;; RatAbsId
+(set-goal "all a(0<=a -> abs a=a)")
+(cases)
+(assume "k" "p")
+(ng)
+(use "IntAbsId")
+;; Proof finished.
+(save "RatAbsId")
+
+;; RatAbsCases
+(set-goal
+ "all a((abs a=a -> (Pvar rat)a) -> (abs a= ~a -> (Pvar rat)a) -> (Pvar rat)a)")
+(cases)
+(cases)
+(assume "q" "r" "H1" "H2")
+(use "H1")
+(use "Truth")
+(assume "r" "H1" "H2")
+(use "H2")
+(use "Truth")
+(assume "q" "r" "H1" "H2")
+(use "H2")
+(use "Truth")
+;; Proof finished.
+(save "RatAbsCases")
 
 ;; 4.  Adding external code
 ;; ========================
