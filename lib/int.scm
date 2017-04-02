@@ -1,4 +1,4 @@
-;; 2016-10-16.  int.scm.  Based on the former numbers.scm.
+;; 2017-04-01.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -4605,3 +4605,579 @@
 (save "IntLeAbsMinus")
 (add-rewrite-rule "abs(k+ ~i)<=abs(k+ ~j)+abs(j+ ~i)" "True")
 
+;; IntAbsId
+(set-goal "all k(0<=k -> abs k=k)")
+(cases)
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+(assume "p" "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "IntAbsId")
+
+;; IntLtMonPlus1
+(set-goal "all k,j,i,i0(k<j -> i<=i0 -> k+i<j+i0)")
+(assume "k" "j" "i" "i1" "k<j" "i<=i1")
+(simp "<-" "IntLeIntS")
+(use-with "IntLeMonPlus" (pt "IntS k") (pt "j") (pt "i") (pt "i1") "?" "?")
+(simp "IntLeIntS")
+(use "k<j")
+(use "i<=i1")
+;; Proof finished.
+(save "IntLtMonPlus1")
+
+;; IntLtMonPlus2
+(set-goal "all k,j,i,i0(k<=j -> i<i0 -> k+i<j+i0)")
+(assume "k" "j" "i" "i1" "k<=j" "i<i1")
+(simp "<-" "IntLeIntS")
+(use-with "IntLeMonPlus" (pt "k") (pt "j") (pt "IntS i") (pt "i1") "?" "?")
+(use "k<=j")
+(simp "IntLeIntS")
+(use "i<i1")
+;; Proof finished.
+(save "IntLtMonPlus2")
+
+;; IntPlusOneIntS
+(set-goal "all k k+1=IntS k")
+(cases)
+(assume "p")
+(use "Truth")
+(use "Truth")
+(cases)
+(use "Truth")
+(assume "p")
+(use "Truth")
+(assume "p")
+(use "Truth")
+;; Proof finished.
+(save "IntPlusOneIntS")
+
+;; IntTimesIntNOne
+(set-goal "all k k*IntN 1= ~k")
+(cases)
+(assume "p")
+(use "Truth")
+(use "Truth")
+(assume "p")
+(use "Truth")
+;; Proof finished.
+(save "IntTimesIntNOne")
+
+;; IntIntNOneTimes
+(set-goal "all k IntN 1*k= ~k")
+(cases)
+(assume "p")
+(use "Truth")
+(use "Truth")
+(assume "p")
+(use "Truth")
+;; Proof finished.
+(save "IntIntNOneTimes")
+
+(add-program-constant "PosQR" (py "pos=>pos=>int yprod int"))
+;; (remove-program-constant "PosQR")
+
+(add-computation-rules
+ "PosQR 1 1" "IntP 1 pair 0"
+ "PosQR 1(SZero q)" "0 pair IntP 1"
+ "PosQR 1(SOne q)" "0 pair IntP 1"
+
+ "PosQR(SZero p)q"
+ "[if (PosQR p q)
+      ([k,j] [if (2*j<q) (2*k pair 2*j) (2*k+1 pair 2*j-q)])]"
+
+ "PosQR(SOne p)q"
+ "[if (PosQR p q)
+      ([k,j] [if (2*j+1<q) (2*k pair 2*j+1) (2*k+1 pair 2*j+1-q)])]")
+
+;; Tests
+
+;; (pp (nt (pt "PosQR 1 2")))
+;; (pp (nt (pt "PosQR 1 3")))
+;; (pp (nt (pt "PosQR 1 7")))
+
+;; (pp (nt (pt "PosQR 2 1")))
+;; (pp (nt (pt "PosQR 2 2")))
+;; (pp (nt (pt "PosQR 2 3")))
+;; (pp (nt (pt "PosQR 2 7")))
+
+;; (pp (nt (pt "PosQR 3 1")))
+;; (pp (nt (pt "PosQR 3 2")))
+;; (pp (nt (pt "PosQR 3 3")))
+;; (pp (nt (pt "PosQR 3 4")))
+;; (pp (nt (pt "PosQR 3 7")))
+
+;; (pp (nt (pt "PosQR 456 63"))) ;7 pair 15
+;; (pp (nt (pt "7*63+15"))) ;456
+
+;; (time (pp (nt (pt "PosQR 123456 123"))))
+;; ;; 1003 pair 87
+;; ;; 39 ms
+;; (pp (nt (pt "1003*123+87")))
+;; 123456
+
+(set-totality-goal "PosQR")
+(use "AllTotalElim")
+(ind)
+;; 3-5
+(use "AllTotalElim")
+(cases)
+;; 7-9
+(use "YprodTotalVar")
+;; 8
+(assume "q")
+(use "YprodTotalVar")
+;; 9
+(assume "q")
+(use "YprodTotalVar")
+;; 4
+(assume "p" "IH")
+(use "AllTotalElim")
+(assume "q")
+(ng #t)
+(use "YprodIfTotal")
+;; 16,17
+(use "IH")
+(use "PosTotalVar")
+;; 17
+(use "AllTotalElim")
+(assume "k")
+(use "AllTotalElim")
+(assume "j")
+(use "BooleIfTotal")
+;; 23-25
+(use "BooleTotalVar")
+;; 24
+(use "YprodTotalVar")
+;; 25
+(use "YprodTotalVar")
+;; 5
+(assume "p" "IH")
+(use "AllTotalElim")
+(assume "q")
+(ng #t)
+(use "YprodIfTotal")
+;; 30,31
+(use "IH")
+(use "PosTotalVar")
+;; 31
+(use "AllTotalElim")
+(assume "k")
+(use "AllTotalElim")
+(assume "j")
+(use "BooleIfTotal")
+;; 37-39
+(use "BooleTotalVar")
+;; 38
+(use "YprodTotalVar")
+;; 39
+(use "YprodTotalVar")
+;; Proof finished.
+(save-totality)
+
+(add-var-name "kj" (py "int yprod int"))
+
+;; YprodIntIntEqToEqD
+(set-goal "all kj1,kj2(kj1=kj2 -> kj1 eqd kj2)")
+(cases)
+(assume "k1" "j1")
+(cases)
+(assume "k2" "j2" "k1j1=k2j2")
+(ng "k1j1=k2j2")
+(assert "k1 eqd k2")
+ (use "IntEqToEqD")
+ (use "k1j1=k2j2")
+(assume "k1 eqd k2")
+(assert "j1 eqd j2")
+ (use "IntEqToEqD")
+ (use "k1j1=k2j2")
+(assume "j1 eqd j2")
+(drop "k1j1=k2j2")
+(elim "k1 eqd k2")
+(assume "k^")
+(elim "j1 eqd j2")
+(assume "j^")
+(use "InitEqD")
+;; Proof finished.
+(save "YprodIntIntEqToEqD")
+
+;; The next proof is taken from libintqr.scm.  Renamed
+;; PosQRCorr into PosQRCorrAux, 
+;; PosQuotRemCorr into PosQRCorr
+
+;; PosQRCorrAux
+(set-goal "all p,q,k,j(PosQR p q=(k pair j) -> p=k*q+j andu 0<=j andu j<q)")
+;; For the induction steps it will be helpful to have IHAux
+(assert "all p,q(p=lft(PosQR p q)*q+rht(PosQR p q) ->
+                 SZero p=2*lft(PosQR p q)*q+2*rht(PosQR p q))")
+ (assume "p" "q" "EqHyp")
+ (simp "<-" "IntTimesAssoc")
+ (simp "<-" "IntTimesPlusDistr")
+ (simp "<-" "EqHyp")
+ (use "Truth")
+(assume "IHAux")
+(ind)
+;; 9-11
+(cases)
+;; 12-13
+(assume "k" "j")
+(ng #t)
+(simp "<-" "IfAndb")
+(cases (pt "1=k"))
+(ng #t)
+(assume "1=k")
+(simp "<-" "1=k")
+(assume "0=j")
+(simp "<-" "0=j")
+(ng #t)
+(split)
+(use "Truth")
+(split)
+(use "Truth")
+(use "Truth")
+;; 19
+(ng #t)
+(assume "Useless")
+(use "Efq")
+;; 13
+(assume "p" "k" "j")
+(ng #t)
+(simp "<-" "IfAndb")
+(cases (pt "0=k"))
+;; 35,36
+(ng #t)
+(assume "0=k")
+(simp "<-" "0=k")
+(assume "1=j")
+(simp "<-" "1=j")
+(ng #t)
+(split)
+(use "Truth")
+(split)
+(use "Truth")
+(use "Truth")
+;; 29
+(ng #t)
+(assume "Useless")
+(use "Efq")
+;; 14
+(assume "p" "k" "j")
+(ng #t)
+(simp "<-" "IfAndb")
+(cases (pt "0=k"))
+;; 52,53
+(ng #t)
+(assume "0=k")
+(simp "<-" "0=k")
+(assume "1=j")
+(simp "<-" "1=j")
+(ng #t)
+(split)
+(use "Truth")
+(split)
+(use "Truth")
+(use "Truth")
+;; 53
+(ng #t)
+(assume "Useless")
+(use "Efq")
+;; 10
+(assume "p" "IH" "q" "k" "j")
+(ng #t)
+(assert "all kj kj=(lft kj pair rht kj)") ;Use PairConstrOneTwo instead
+ (cases)
+ (ng #t)
+ (strip)
+ (use "Truth")
+(assume "Assertion")
+(inst-with-to "Assertion" (pt "PosQR p q") "InstAssertion")
+(simp "InstAssertion")
+(ng #t)
+(cases (pt "(2*rht(PosQR p q)<q)"))
+;; 78,79
+(ng #t)
+(inst-with-to "IH" (pt "q") (pt "lft(PosQR p q)") (pt "rht(PosQR p q)")
+	      "InstAssertion" "InstIH")
+(assume "2*rht(PosQR p q)<q")
+(simp "<-" "IfAndb")
+(cases (pt "2*lft(PosQR p q)=k"))
+;; 85,86
+(assume "2*lft(PosQR p q)=k")
+(ng #t)
+(simp "<-" "2*lft(PosQR p q)=k")
+(assume "2*rht(PosQR p q)=j")
+(simp "<-" "2*rht(PosQR p q)=j")
+(split)
+(use "IHAux")
+(use "InstIH")
+;; 93
+(split)
+(simp "IntTimesComm")
+(simp (pf "0=0*2"))
+(use "IntLeMonTimes")
+(use "Truth")
+(use "InstIH")
+(use "Truth")
+(use "2*rht(PosQR p q)<q")
+;; 86
+(assume "2*lft(PosQR p q)=k -> F")
+(ng #t)
+(use "Efq")
+;; 79
+(ng #t)
+(assume "2*rht(PosQR p q)<q -> F")
+(assert "q<=2*rht(PosQR p q)")
+ (use "IntNotLtToLe")
+ (use "2*rht(PosQR p q)<q -> F")
+(assume "q<=2*rht(PosQR p q)")
+(simp "<-" "IfAndb")
+(cases (pt "(2*lft(PosQR p q)+1=k)"))
+;; 111,112
+(ng #t)
+(assume "2*lft(PosQR p q)+1=k")
+(simp "<-" "2*lft(PosQR p q)+1=k")
+(assume "2*rht(PosQR p q)+IntN q=j")
+(simp "<-" "2*rht(PosQR p q)+IntN q=j")
+(split)
+(ng #t)
+(simp "<-" "IntPlusAssoc")
+(simp "<-" "IntPlusAssoc")
+(inst-with-to "IntPlusComm" (pt "2*rht(PosQR p q)") (pt "IntN q") "InstComm")
+(simp "InstComm")
+(ng #t)
+;; ?_126:SZero p=2*lft(PosQR p q)*q+2*rht(PosQR p q)
+(use "IHAux")
+(inst-with-to "IH" (pt "q") (pt "lft(PosQR p q)") (pt "rht(PosQR p q)")
+	      "InstAssertion" "InstIH")
+(use "InstIH")
+;; 119
+(split)
+(simp (pf "0=0+q+IntN q"))
+(use "IntLeMonPlus")
+(use "q<=2*rht(PosQR p q)")
+(use "Truth")
+(ng #t)
+(use "Truth")
+(inst-with-to "IH" (pt "q") (pt "lft(PosQR p q)") (pt "rht(PosQR p q)")
+	      "InstAssertion" "InstIH")
+(assert "2*rht(PosQR p q)=rht(PosQR p q)+rht(PosQR p q)")
+ (simp (pf "2=IntP 1+IntP 1"))
+ (simp "IntTimesPlusDistrLeft")
+ (ng #t)
+ (use "Truth")
+ (use "Truth")
+(assume "Assertion1")
+(simp "Assertion1")
+(simp "<-" "IntPlusAssoc")
+(use "IntLtLeTrans" (pt "rht(PosQR p q)+(q+IntN q)"))
+;;   InstIH:p=lft(PosQR p q)*q+rht(PosQR p q) andu 
+;;          0<=rht(PosQR p q) andu rht(PosQR p q)<q
+;; -----------------------------------------------------------------------------
+;; ?_147:rht(PosQR p q)+(rht(PosQR p q)+IntN q)<rht(PosQR p q)+(q+IntN q)
+
+;; (pp "IntLtMonPlus1")
+;; all k,j,i,i0(k<j -> i<=i0 -> k+i<j+i0)
+
+(use "IntLtMonPlus2")
+(use "Truth")
+(use "IntLtMonPlus1")
+(use "InstIH")
+(use "Truth")
+(ng #t)
+(use "IntLtToLe")
+(use "InstIH")
+;; 112
+(ng #t)
+(assume "Useless" "Absurd")
+(use "Efq")
+(use "Absurd")
+;; 11
+;; 2016-10-24.  Done up to this point.  provide InstIH early
+(assume "p" "IH" "q" "k" "j")
+(ng #t)
+(assert "all kj kj=(lft kj pair rht kj)")
+ (cases)
+ (ng #t)
+ (strip)
+ (use "Truth")
+(assume "Assertion")
+(inst-with-to "Assertion" (pt "PosQR p q") "InstAssertion")
+(simp "InstAssertion")
+(ng #t)
+(inst-with-to "IH" (pt "q") (pt "lft(PosQR p q)") (pt "rht(PosQR p q)")
+	      "InstAssertion" "InstIH")
+(simp "IntPlusOneIntS")
+(cases (pt "IntS(2*rht(PosQR p q))<q"))
+;; 174,175
+(ng #t)
+(assume "IntS(2*rht(PosQR p q))<q")
+(simp "<-" "IfAndb")
+(cases (pt "(2*lft(PosQR p q)=k)"))
+;; 179,180
+(assume "2*lft(PosQR p q)=k")
+(ng #t)
+(assume "IntS(2*rht(PosQR p q))=j")
+(simp "<-" "IntS(2*rht(PosQR p q))=j")
+(split)
+(ng #t)
+;;   IHAux:all p,q(
+;;          p=lft(PosQR p q)*q+rht(PosQR p q) -> 
+;;          SZero p=2*lft(PosQR p q)*q+2*rht(PosQR p q))
+;;   p16822  p  IH:all q,k,j(PosQR p q=(k pair j) -> p=k*q+j andu 0<=j andu j<q)
+;;   q  k  j  Assertion:all kj kj=(lft kj pair rht kj)
+;;   InstAssertion:PosQR p q=(lft(PosQR p q)pair rht(PosQR p q))
+;;   InstIH:p=lft(PosQR p q)*q+rht(PosQR p q) andu 
+;;          0<=rht(PosQR p q) andu rht(PosQR p q)<q
+;;   IntS(2*rht(PosQR p q))<q:
+;;     IntS(2*rht(PosQR p q))<q
+;;   2*lft(PosQR p q)=k:2*lft(PosQR p q)=k
+;;   IntS(2*rht(PosQR p q))=j:
+;;     IntS(2*rht(PosQR p q))=j
+;; -----------------------------------------------------------------------------
+;; ?_187:SOne p=IntS(k*q+2*rht(PosQR p q))
+
+(simp (pf "SOne p=IntS(SZero p)")) ;normalizes to T
+(simp (pf "SZero p=k*q+2*rht(PosQR p q)"))
+ (use "Truth")
+(simp "<-" "2*lft(PosQR p q)=k")
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesPlusDistr")
+(simp "<-" "InstIH")
+(ng #t)
+(use "Truth")
+(use "Truth")
+;; 186
+(split)
+(use "IntLeTrans" (pt "2*rht(PosQR p q)"))
+(simp "IntTimesComm")
+(simp (pf "0=0*2"))
+(use "IntLeMonTimes")
+(use "Truth")
+(use "InstIH")
+(use "Truth")
+(use "Truth")
+(use "IntS(2*rht(PosQR p q))<q")
+;; 180
+(assume "2*lft(PosQR p q)=k -> F")
+(ng #t)
+(use "Efq")
+;; 175
+(ng #t)
+(assume "IntS(2*rht(PosQR p q))<q -> F")
+(assert "q<=IntS(2*rht(PosQR p q))")
+ (use "IntNotLtToLe")
+ (use "IntS(2*rht(PosQR p q))<q -> F")
+(assume "q<=IntS(2*rht(PosQR p q))")
+;; New from here onwards
+(simp "<-" "IfAndb")
+(cases (pt "2*lft(PosQR p q)+1=k"))
+;; 215,216
+(assume "2*lft(PosQR p q)+1=k")
+(ng #t)
+(assume "IntS(2*rht(PosQR p q)+IntN q)=j")
+(simp "<-" "IntS(2*rht(PosQR p q)+IntN q)=j")
+(split)
+(simp "<-" "2*lft(PosQR p q)+1=k")
+(ng #t)
+(simp "<-" "IntPlusAssoc")
+(simp "<-" "IntPlusAssoc")
+(assert "all i q+(i+IntN q)=i")
+ (assume "i")
+ (simp (pf "i+IntN q=IntN q+i"))
+ (simp "IntPlusAssoc")
+ (ng #t)
+ (use "Truth")
+ (use "IntPlusComm")
+(assume "AllEqHyp")
+(simp "AllEqHyp")
+(simp (pf "SOne p=IntS(SZero p)"))
+(simp "IHAux" (pt "q"))
+(use "Truth")
+(use "InstIH")
+(use "Truth")
+(split)
+;; ?_240:0<=IntS(2*rht(PosQR p q)+IntN q)
+(assert "q+ ~q<=IntS(2*rht(PosQR p q))+ ~q")
+ (use "IntLeMonPlus")
+ (use "q<=IntS(2*rht(PosQR p q))")
+ (use "Truth")
+(assume "q+ ~q<=IntS(2*rht(PosQR p q))+ ~q")
+(use "q+ ~q<=IntS(2*rht(PosQR p q))+ ~q")
+;; ?_241:IntS(2*rht(PosQR p q)+IntN q)<q
+(assert "all i 2*i=i+i") ;should go into int.scm, as IntTimesTwoPlusId
+ (assume "i")
+ (simp-with (pf "2=IntP 1+IntP 1"))
+ (simp "IntTimes7RewRule")
+ (use "Truth")
+ (use "Truth")
+(assume "IntTimesTwoPlusId")
+(simp "IntTimesTwoPlusId")
+(simp "<-" "IntPlusAssoc")
+(simp "<-" "IntPlus2RewRule")
+(use "IntLeLtTrans" (pt "q+(rht(PosQR p q)+IntN q)"))
+(use "IntLeMonPlus")
+(simp "IntLeIntS")
+(use "InstIH")
+(use "Truth")
+(ng #t)
+(simp "IntPlusComm")
+(ng #t)
+(use "InstIH")
+;; 216
+(assume "Useless" "Absurd")
+(use "Efq")
+(use "Absurd")
+;; Proof finished.
+(save "PosQRCorrAux")
+
+;; PosQRCorr
+(set-goal "all p,q(
+     p=lft(PosQR p q)*q+rht(PosQR p q) andu 
+     0<=rht(PosQR p q) andu rht(PosQR p q)<q)")
+(assume "p" "q")
+(use "PosQRCorrAux")
+(simp "PairConstrOneTwo")
+(use "Truth")
+;; Proof finished.
+(save "PosQRCorr")
+
+;; (add-program-constant "PosQuot" (py "pos=>pos=>int"))
+;; (add-program-constant "PosRem" (py "pos=>pos=>int"))
+
+;; (add-computation-rules "PosQuot p q" "lft(PosQR p q)")
+;; (add-computation-rules "PosRem p q" "rht(PosQR p q)")
+
+;; (set-totality-goal "PosQuot")
+;; (use "AllTotalElim")
+;; (assume "p")
+;; (use "AllTotalElim")
+;; (assume "q")
+;; (ng)
+;; (use "IntTotalVar")
+;; ;; Proof finished.
+;; (save-totality)
+
+;; (set-totality-goal "PosRem")
+;; (use "AllTotalElim")
+;; (assume "p")
+;; (use "AllTotalElim")
+;; (assume "q")
+;; (ng)
+;; (use "IntTotalVar")
+;; ;; Proof finished.
+;; (save-totality)
+
+;; ;; PosQRCorr
+;; (set-goal
+;;  "all p,q(p=(PosQuot p q)*q+PosRem p q andu 0<=PosRem p q andu PosRem p q<q)")
+;; (assume "p" "q")
+;; (use "PosQRCorrAux")
+;; (cases (pt "PosQR p q"))
+;; (assume "k" "j" "EqHyp")
+;; (ng)
+;; (simp "EqHyp")
+;; (use "Truth")
+;; ;; Proof finished.
+;; (save "PosQRCorr")
