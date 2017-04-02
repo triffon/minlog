@@ -1,5 +1,82 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done in dev-branch 2017-04-02
+
+In formula.scm
+
+fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data extended to
+also cover RealEq (was forgotten)
+
+In lib/nat.scm
+
+NatMinDouble added.
+
+In lib/pos.scm
+
+Error in the definition of PosMin (observed by Nils Koepp) corrected.
+p min One |-> One added as rewrite rule.  NatMinOnePos NatMinPosOne
+PosMinComm PosMinEq1 PosMinEq2 added.  PosToNat proved to be an
+isomorphism w.r.t. min, via PosToNatMin.  PosMinLB1 PosMinLB2
+PosMinGLB added.
+
+In lib/int.scm
+
+IntAbsId added.  IntLtMonPlus1 and IntLtMonPlus2 added as corollaries
+to IntLeMonPlus.  IntPlusOneIntS IntTimesIntNOne IntIntNOneTimes
+added.  Program constant PosQR added.  Theorems YprodIntIntEqToEqD
+PosQRCorrAux PosQRCorr added.
+
+In lib/rat.scm
+
+RatMaxLUB RatEqvConstrPlus RatPlusInjLeft RatPlusInj RatTimesIntNOne
+RatIntNOneTimes RatTimesIdIntUMinus RatAbsMax RatAbsId added.
+
+In lib/rea.scm
+
+RealEqS =+= for extensional equality of Cauchy sequences introduced.
+(Postponed: RealLeS <+=).  These are versions referring to members of
+Cauchy sequences only.  Reason: r=+=s is often easier to prove, and we
+have RealEqSToEq.  Previous global assumptions proved, and many new
+theorems added.  Complete list of theorems in rea.scm:
+TotalReaRealConstr TotalReaNcRealConstr CoTotalReaClause
+cCoTotalReaClause0CompRule ReaTotalVar RealSeq0CompRule RealSeqTotal
+RealMod0CompRule RealModTotal RealPos0CompRule RealPosTotal
+RealUMinusTotal RealUMinus0CompRule RealPlus0CompRule RealPlusTotal
+RealMinus0CompRule RealMinusTotal RealLt0CompRule RealLtTotal
+RealAbs0CompRule RealAbsTotal RealInv0CompRule RealInvTotal
+RealExp0CompRule RealExp1CompRule RealExp2CompRule RealExp3CompRule
+CauchyIntro MonIntro CauchyElim MonElim RealIntro RealToCauchy
+RealToMon RealConstrToCauchy RealConstrToMon RealRat NatPos
+NatPosExFree RatLeAbsBoundSeq RatLeAbsBoundSeqExFree
+RatLeAbsBoundSeqUMinusEq RealBound RealBoundPos RealBoundExFree
+RealBoundUMinusEq RealTimes0CompRule RealTimesTotal RealEqIntro
+RealEqSIntro RealNNegIntro RealLeIntro RealEqElim0 RealEqElim1
+RealEqElim2 RealConstrEqElim0 RealConstrEqElim1 RealConstrEqElim2
+RealEqSElim RealConstrEqSElim TotalReaToEqD RealNNegElim0
+RealNNegElim1 RealConstrNNegElim0 RealConstrNNegElim1 RealLeElim0
+RealLeElim1 RealLeElim2 RealConstrLeElim0 RealConstrLeElim1
+RealConstrLeElim2 RealEqRefl RealEqSym RealEqCharOne
+RealEqCharOneExFree RealEqChar2 RealSeqEqToEq RealEqSToEq RealEqTrans
+RealNNegCharOne RealNNegCharOneExFree RealNNegChar2 RealPosChar1
+RealPosChar2 RealNNegChar2RealConstrFree RealPosChar1RealConstrFree
+RealPosChar2RealConstrFree RealPlusReal RealUMinusReal
+RealUMinusRealInv RealAbsReal CauchyTimes RealTimesReal
+RealNNegPlusNNeg RealNNegTimesNNeg RealEqCompat RealPosCompat
+RealPosCompatRealConstrFree RealNNegCompat RealPlusComm RealPlusCompat
+RealUMinusCompat RealUMinusUMinus RealUMinusCompatInv RealAbsCompat
+RealTimesComm RealTimesCompat RealLeCompat RealPlusAssoc
+RealTimesAssoc RealTimesPlusDistr RealTimesPlusDistrLeft RealTimesOne
+RealOneTimes RealTimesIntNOne RealIntNOneTimes RealTimesIdUMinus
+RealTimesIdRatUMinus RealUMinusPlus RealUMinusPlusRat RealAbsUMinus
+RealLeUMinus RealLeUMinusInv RealSeqLeNNegToNNeg RealSeqLeToLe
+RealLeAbsPlus RealPlusMinusZero RealNNegToEq RealAbsId RealLeAbsId
+RealNNegAbs RealPosMonPlus RealApprox RealLeRefl RealPlusZero
+RealTimesZero RealZeroTimes RealEqPlusMinus RealNNegLeToNNeg
+RealLeAntiSym RealLeTrans RealLeMonPlus RealLeMonTimes
+RealLeMonTimesTwo ApproxSplit RealNNegPos RealLeAbs RealAbsTimes
+RealAllncTotalIntro RealAllncTotalElim
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 Done in dev branch 2017-04-01
 
 In formula.scm
