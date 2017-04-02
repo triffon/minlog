@@ -1,4 +1,4 @@
-;; $Id: nat.scm 2677 2014-01-08 10:03:39Z schwicht $
+;; 2017-04-01.  nat.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -2713,6 +2713,21 @@
 (use "IH")
 ;; Proof finished.
 (save "NatMaxDouble")
+
+;; NatMinDouble
+(set-goal "all n,m NatDouble n min NatDouble m=NatDouble(n min m)")
+(ind)
+(assume "m")
+(ng)
+(use "Truth")
+(assume "n" "IH")
+(cases)
+(ng)
+(use "Truth")
+(ng)
+(use "IH")
+;; Proof finished.
+(save "NatMinDouble")
 
 (add-program-constant "NatEven" (py "nat=>boole"))
 
