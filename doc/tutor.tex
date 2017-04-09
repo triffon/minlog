@@ -117,8 +117,8 @@ chr \rangle$.
 In order to use \mi, one simply needs a shell in which to run \mi\ and
 also an editor in which to edit and record the commands for later
 sessions.  In this tutorial we shall refer to GNU Emacs\footnote{See
-  also the Appendix \ref{emacs} for some useful keyboard commands to
-  start working with Emacs.}.  While working with Emacs, the ideal
+  also the Appendix \ref{SS:Emacs} for some useful keyboard commands
+  to start working with Emacs.}.  While working with Emacs, the ideal
 would be to split the window in two parts: one containing the file in
 which to store the commands, and the other with the \mi\ interactive
 session taking place.  To this aim, it is recommended to use the
@@ -1213,6 +1213,7 @@ continuous function.  We suggest to solve the problem as follows.
 ;; (add-var-name "x" "y" (py "alpha"))
 (add-tvar-name "beta")
 (add-var-name "u" "v" "w" (py "beta"))
+(add-program-constant "In" (py "alpha=>beta=>boole"))
 (add-infix-display-string "In" "elem" 'rel-op)
 (add-var-name "f" (py "alpha=>alpha"))
 
