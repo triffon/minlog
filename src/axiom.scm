@@ -1837,7 +1837,8 @@
 ;; formulas, shortened by omitting all of its premises containing
 ;; irrelevant idpcs.  For each relevant uninst-idpc and corresponding
 ;; rel-pvar we form an uninst-elim-formula assuming uninst-idpc
-;; and the (fixed) step formulas and yielding rel-pvar.
+;; and the (fixed) step formulas and yielding rel-pvar.  Some of the 
+;; xs^ can be total.
 
 (define (imp-formulas-to-uninst-elim-formulas-etc . imp-formulas)
   (if (null? imp-formulas)
@@ -1899,12 +1900,20 @@
 		(else (map predicate-to-cterm param-pvars))))
 	 (params (idpredconst-name-to-params name))
 	 (new-var-lists
-	  (map (lambda (pvar)
-		 (append params (map type-to-new-partial-var
-				     (list-tail
-				      (arity-to-types (pvar-to-arity pvar))
-				      (length params)))))
-	       rel-pvars))
+	  (map (lambda (pvar prem)
+		 (let* ((arity (pvar-to-arity pvar))
+			(types (arity-to-types arity))
+			(rest-types (list-tail types (length params)))
+			(args (predicate-form-to-args prem))
+			(t-degs (map term-to-t-deg args))
+			(rest-t-degs (list-tail t-degs (length params))))
+		   (append params
+			   (map (lambda (type t-deg)
+				  (if (t-deg-zero? t-deg)
+				      (type-to-new-partial-var type)
+				      (type-to-new-var type)))
+				rest-types rest-t-degs))))
+	       rel-pvars prems))
 	 (rel-pvar-formulas
 	  (map (lambda (pvar vars)
 		 (apply make-predicate-formula
@@ -2017,14 +2026,11 @@
 	 (var-lists
 	  (map (lambda (args)
 		 (map (lambda (arg)
-			(if (and
-			     (term-in-var-form? arg)
-			     (t-deg-zero?
-			      (var-to-t-deg (term-in-var-form-to-var arg))))
+			(if (term-in-var-form? arg)
 			    (term-in-var-form-to-var arg)
 			    (myerror
 			     "imp-formulas-to-uninst-elim-formulas-etc"
-			     "partial variable expected" arg)))
+			     "variable expected" arg)))
 		      args))
 	       arg-lists))
 	 (var-lists-test
@@ -2103,7 +2109,8 @@
 ;; coclauses (i.e., those implying relevant coidpcs) we can form the
 ;; step formulas, shortened by omitting all of its disjuncts containing
 ;; irrelevant coidpcs.  Then the j-th uninst-gfp-formula is
-;; R_j xs^ -> (allnc xs^(R_j xs^ -> disj))_{j<N} -> J_j xs^.
+;; R_j xs^ -> (allnc xs^(R_j xs^ -> disj))_{j<N} -> J_j xs^.  Some of the 
+;; xs^ can be total.
 
 (define (imp-formulas-to-uninst-gfp-formulas-etc . imp-formulas)
   (if (null? imp-formulas)
@@ -2153,12 +2160,20 @@
 	      (map predicate-to-cterm param-pvars)))
 	 (params (idpredconst-name-to-params name))
 	 (new-var-lists
-	  (map (lambda (pvar)
-		 (append params (map type-to-new-partial-var
-				     (list-tail
-				      (arity-to-types (pvar-to-arity pvar))
-				      (length params)))))
-	       rel-pvars))
+	  (map (lambda (pvar concl)
+		 (let* ((arity (pvar-to-arity pvar))
+			(types (arity-to-types arity))
+			(rest-types (list-tail types (length params)))
+			(args (predicate-form-to-args concl))
+			(t-degs (map term-to-t-deg args))
+			(rest-t-degs (list-tail t-degs (length params))))
+		   (append params
+			   (map (lambda (type t-deg)
+				  (if (t-deg-zero? t-deg)
+				      (type-to-new-partial-var type)
+				      (type-to-new-var type)))
+				rest-types rest-t-degs))))
+	       rel-pvars concls))
 	 (rel-pvar-formulas
 	  (map (lambda (pvar vars)
 		 (apply make-predicate-formula
@@ -2250,13 +2265,10 @@
 	 (var-lists
 	  (map (lambda (args)
 		 (map (lambda (arg)
-			(if (and
-			     (term-in-var-form? arg)
-			     (t-deg-zero?
-			      (var-to-t-deg (term-in-var-form-to-var arg))))
+			(if (term-in-var-form? arg)
 			    (term-in-var-form-to-var arg)
 			    (myerror "imp-formulas-to-uninst-gfp-formulas-etc"
-				     "partial variable expected" arg)))
+				     "variable expected" arg)))
 		      args))
 	       arg-lists))
 	 (var-lists-test
