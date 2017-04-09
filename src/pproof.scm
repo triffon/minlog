@@ -3419,11 +3419,15 @@
 	 (arity (idpredconst-to-arity idpredconst))
 	 (args (predicate-form-to-args id-formula))
 	 (types (arity-to-types arity))
-	 (vars (map type-to-new-partial-var types))
+	 (t-degs (map term-to-t-deg args))
+	 (vars (map (lambda (type t-deg)
+		      (if (t-deg-zero? t-deg)
+			  (type-to-new-partial-var type)
+			  (type-to-new-var type)))
+		    types t-degs))
 	 (varterms (map make-term-in-var-form vars))
-	 (imp-formula
-	  (formula-gen-substitute
-	   inst-imp-formula (map list args varterms)))
+	 (imp-formula (formula-gen-substitute
+		       inst-imp-formula (map list args varterms)))
 	 (inst-imp-formula-test
 	  (if (not (classical-formula=?
 		    inst-imp-formula
@@ -3897,8 +3901,13 @@
 			       goal-formula))
 	 (arity (idpredconst-to-arity coidpredconst))
 	 (args (predicate-form-to-args coidpc-formula))
-	 (types (arity-to-types arity))
-	 (vars (map type-to-new-partial-var types))
+	 (vars (map (lambda (arg)
+		      (let ((t-deg (term-to-t-deg arg))
+			    (type (term-to-type arg)))
+			(if (t-deg-zero? t-deg)
+			    (type-to-new-partial-var type)
+			    (type-to-new-var type))))
+		    args))
 	 (varterms (map make-term-in-var-form vars))
 	 (imp-formula (formula-gen-substitute
 		       inst-imp-formula (map list args varterms)))
@@ -6044,9 +6053,9 @@
 				    kernel goal-formula)))
 	     (if res res
 		 (if (and (term-in-const-form? op)
-		      (member (const-to-name
-			       (term-in-const-form-to-const op))
-			      (list "=" "RatEqv")))
+			  (member (const-to-name
+				   (term-in-const-form-to-const op))
+				  (list "=" "RatEqv")))
 		     (let* ((args (term-in-app-form-to-args kernel))
 			    (lhs (car args))
 			    (rhs (cadr args)))
@@ -6059,7 +6068,8 @@
 	  ((predicate-form? used-formula)
 	   (let ((predicate (predicate-form-to-predicate used-formula)))
 	     (if (idpredconst-form? predicate)
-		 (if (string=? "EqD" (idpredconst-to-name predicate))
+		 (if (member (idpredconst-to-name predicate)
+			     (list "EqD" "RealEq"))
 		     (let* ((args (predicate-form-to-args used-formula))
 			    (lhs (car args))
 			    (rhs (cadr args)))
