@@ -1,5 +1,41 @@
 ;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
 
+Done in dev branch 2017-04-09
+
+In psym.scm
+
+clause-to-exand-formula in imp-impnc case corrected and simplified.
+
+In formula.scm
+
+quant-form-to-nc-quant extended to all (was forgotten).
+
+In axiom.scm
+
+In imp-formulas-to-uninst-elim-formulas-etc (and
+imp-formulas-to-uninst-gfp-formulas-etc) some of the xs^ in the
+premise (or conclusion) of the imp-formulas I xs^ -> A(xs^) (or
+A(xs^) -> J xs^) can be total.
+
+In pproof.scm
+
+In elim-intern (and coind-intern) some of the xs^ in I xs^ (or J xs^)
+can be total.
+
+In ets.scm
+
+In exrtotal-intro-aconst occurrence of make-totalmr with two identical
+arguments replaced by make-totalnc
+
+In doc/tutor.tex
+
+Missing addition of the program constant In added.
+
+In examples/analysis/
+
+Files sdJK.scm sdmult.scm graymult.scm added
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev-branch 2017-04-02
 
 In formula.scm
@@ -129,7 +165,7 @@ EqNc CoEq CoEqNc added as reserved names
 
 In grammar.scm
 
-EqP EqONc CoEqP CoEqPNc EqPMR CoEqPMR added as predicate constants
+EqP EqPNc CoEqP CoEqPNc EqPMR CoEqPMR added as predicate constants
 
 In term.scm
 
