@@ -1996,7 +1996,7 @@
 	 (exr-fla (mk-exr var (make-predicate-formula pvar varterm)))
 	 (expartial-fla
 	  (mk-exr varpartial
-		  (mk-andr (make-totalmr varpartialterm varpartialterm)
+		  (mk-andr (make-totalnc varpartialterm)
 			   (make-predicate-formula pvar varpartialterm))))
 	 (formula-of-exrtotal-intro-aconst (mk-imp expartial-fla exr-fla)))
     (make-aconst "ExRTotalIntro"
@@ -2658,56 +2658,6 @@
 ;; (define formula (pf "exl boole2 boole1 eqd boole2"))
 ;; (pp (aconst-to-formula (formula-to-invarex-aconst formula)))
 ;; (pp (aconst-to-formula (formula-to-invarall-aconst formula)))
-
-;; Code discarded 2017-03-31, because of the change of
-;; real-and-formula-to-mr-formula for totality formulas
-
-;; (define totalmrtoeq-aconst
-;;   (let* ((var1 (make-var (make-tvar -1 DEFAULT-TVAR-NAME) 1 t-deg-zero ""))
-;; 	 (var (make-var (make-tvar -1 DEFAULT-TVAR-NAME) -1 t-deg-zero ""))
-;; 	 (varterm1 (make-term-in-var-form var1))	 
-;; 	 (varterm (make-term-in-var-form var))
-;; 	 (tmr-predconst
-;; 	  (make-predconst (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
-;; 				      (make-tvar -1 DEFAULT-TVAR-NAME))
-;; 			  empty-subst -1 "TotalMR"))
-;; 	 (tmr-fla (make-predicate-formula tmr-predconst varterm1 varterm))
-;; 	 (eqd-fla (make-eqd varterm1 varterm)))
-;;     (make-aconst
-;;      "TotalMRToEq"
-;;      'axiom (mk-all var1 var (make-imp tmr-fla eqd-fla)) empty-subst)))
-
-;; (add-theorem "TotalMRToEq" (make-proof-in-aconst-form totalmrtoeq-aconst))
-
-;; ;; TotalMRIntro
-;; (set-goal "all alpha TotalMR alpha alpha")
-;; (use "AllTotalIntro")
-;; (assume "alpha^" "Talpha")
-;; (assert "exl alpha^1 TotalMR alpha^1 alpha^")
-;;  (use "InvarEx" (make-cterm (pf "Total alpha^")))
-;;  (use "Talpha")
-;; (assume "ExHyp")
-;; (by-assume "ExHyp" "alpha^1" "alpha1Prop")
-;; (assert "alpha^1 eqd alpha^")
-;;  (use "TotalMRToEq")
-;;  (use "alpha1Prop")
-;; (assume "alpha^1 eqd alpha^")
-;; (simphyp-with-to "alpha1Prop" "alpha^1 eqd alpha^" "alpha1PropInst")
-;; (use "alpha1PropInst")
-;; ;; Proof finished.
-;; (save "TotalMRIntro")
-
-;; ;; TotalMRToTotal
-;; (set-goal "all alpha^ allnc alpha^1(TotalMR alpha^1 alpha^ -> Total alpha^)")
-;; (assume "alpha^" "alpha^1" "TMRHyp")
-;; (use-with "InvarAll"
-;; 	  (py "alpha")
-;; 	  (make-cterm (pv "alpha^") (pf "TotalMR alpha^1 alpha^"))
-;; 	  (make-cterm (pf "Total alpha^"))
-;; 	  (pt "alpha^")
-;; 	  "TMRHyp")
-;; ;; Proof finished.
-;; (save "TotalMRToTotal")
 
 ;; TotalToTotalNc
 (set-goal "all alpha^(Total alpha^ -> TotalNc alpha^)")
