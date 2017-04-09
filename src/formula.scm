@@ -2318,6 +2318,7 @@
 
 (define (quant-form-to-nc-quant x)
   (cond
+   ((all-form? x) 'all)
    ((allnc-form? x) 'all)
    ((exd-form? x) 'exu)
    ((exl-form? x) 'exu)
