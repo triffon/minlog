@@ -1,4 +1,4 @@
-;; $Id: proof.scm 2689 2014-01-24 09:18:43Z schwicht $
+;; 2017-04-21
 ;; 10. Proofs
 ;; ==========
 
@@ -341,11 +341,11 @@
 	   (exd-form? formula)
 	   (exl-form? formula)
 	   (exr-form? formula)
-	   (exu-form? formula)
+	   (exnc-form? formula)
 	   (exdt-form? formula)
 	   (exlt-form? formula)
 	   (exrt-form? formula)
-	   (exut-form? formula))
+	   (exnct-form? formula))
        (myerror "mk-proof-in-elim-form"
 		"applicable formula expected" formula))
       ((imp-form? formula)
@@ -369,7 +369,7 @@
 			    (car elim-items)))))
       ((and (bicon-form? formula)
 	    (memq (bicon-form-to-bicon formula)
-		  '(andd andl andr andu)))
+		  '(andd andl andr andnc)))
        (let ((left-conjunct (bicon-form-to-left formula))
 	     (right-conjunct (bicon-form-to-right formula)))
 	 (myerror "mk-proof-in-elim-form"
@@ -994,20 +994,20 @@
 	   (append (map make-term-in-var-form free)
 		   (list proof proj-right-proof)))))
 
-(define (make-proof-in-andu-elim-left-form proof)
+(define (make-proof-in-andnc-elim-left-form proof)
   (let* ((fla (proof-to-formula proof))
-	 (left (if (andu-form? fla)
-		   (andu-form-to-left fla)
-		   (myerror "make-proof-in-andu-elim-left-form"
-			    "andu form expected" fla)))
-	 (right (andu-form-to-right fla))
+	 (left (if (andnc-form? fla)
+		   (andnc-form-to-left fla)
+		   (myerror "make-proof-in-andnc-elim-left-form"
+			    "andnc form expected" fla)))
+	 (right (andnc-form-to-right fla))
 	 (imp-fla (make-imp fla left))
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
 	 (proj-left-proof ;of Pvar^'1 --> Pvar2 --> Pvar^'1
 	  (if (not (formula-of-nulltype? left))
-	      (myerror "make-proof-in-andu-elim-left-form"
+	      (myerror "make-proof-in-andnc-elim-left-form"
 		       "formula of nulltype expected" left)
 	      (let ((u (formula-to-new-avar left))
 		    (v (formula-to-new-avar right)))
@@ -1019,20 +1019,20 @@
 	   (append (map make-term-in-var-form free)
 		   (list proof proj-left-proof)))))
 
-(define (make-proof-in-andu-elim-right-form proof)
+(define (make-proof-in-andnc-elim-right-form proof)
   (let* ((fla (proof-to-formula proof))
-	 (left (if (andu-form? fla)
-		   (andu-form-to-left fla)
-		   (myerror "make-proof-in-andu-elim-right-form"
-			    "andu form expected" fla)))
-	 (right (andu-form-to-right fla))
+	 (left (if (andnc-form? fla)
+		   (andnc-form-to-left fla)
+		   (myerror "make-proof-in-andnc-elim-right-form"
+			    "andnc form expected" fla)))
+	 (right (andnc-form-to-right fla))
 	 (imp-fla (make-imp fla right))
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
 	 (proj-right-proof ;of Pvar1 --> Pvar^'2 --> Pvar^'2
 	  (if (not (formula-of-nulltype? right))
-	      (myerror "make-proof-in-andu-elim-right-form"
+	      (myerror "make-proof-in-andnc-elim-right-form"
 		       "formula of nulltype expected" right)
 	  (let ((u (formula-to-new-avar left))
 		(v (formula-to-new-avar right)))
@@ -2259,9 +2259,9 @@
 
 ;; proof-to-ppat turns every imp, all formula in the given proof into
 ;; an impnc, allnc formula, and in case id-deco? is true moreover (i)
-;; every existential quantification exd, exl, exr into exu, (ii) every
-;; total existential quantification exdt, exlt, exrt into exut, (iii)
-;; every conjunction andd, andl, andr into andu (andb is for the
+;; every existential quantification exd, exl, exr into exnc, (ii) every
+;; total existential quantification exdt, exlt, exrt into exnct, (iii)
+;; every conjunction andd, andl, andr into andnc (andb is for the
 ;; boolean operator), and (iv) every disjunction or, orl, orr into oru
 ;; (orb is for the boolean operator).  This includes the parts of an
 ;; aconst which come from its uninstatiated formula.  proof-to-ppat
@@ -7707,7 +7707,7 @@
 					;but not one of the special ones
 					;allowing arbitrary conclusions
 					;(to be extended to e.g. EvenMR)
-	      (not (member idpc-name '("EqD" "ExU" "AndU")))
+	      (not (member idpc-name '("EqD" "ExNc" "AndNc")))
 					;not a uniform one-clause defined idpc
 	      (not (and (= 1 (length clauses))
 			(predicate-form?
@@ -10937,7 +10937,7 @@
 ;; 10-7-2.  Generalizing the introduction axioms for defined and, ex
 
 ;; formulas-to-and-intro-proof generalizes the introduction axioms for
-;; AndD AndL AndR AndU to more than two conjuncts.  It returns a proof
+;; AndD AndL AndR AndNc to more than two conjuncts.  It returns a proof
 ;; of As -> /\ As where the decorations of the conjunctions depend on
 ;; whether A_i is c.r. or n.c.
 
@@ -10947,7 +10947,7 @@
    (let* ((cterms (list (make-cterm fla1) (make-cterm fla2)))
 	  (name (if (not (formula-of-nulltype? fla1))
 		    (if (not (formula-of-nulltype? fla2)) "AndD" "AndL")
-		    (if (not (formula-of-nulltype? fla2)) "AndR" "AndU")))
+		    (if (not (formula-of-nulltype? fla2)) "AndR" "AndNc")))
 	  (idpc (idpredconst-name-and-types-and-cterms-to-idpredconst
 		 name '() cterms))
 	  (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
@@ -10967,7 +10967,7 @@
 	  (cterms (list (make-cterm fla1) (make-cterm and-fla)))
 	  (name (if (not (formula-of-nulltype? fla1))
 		    (if (not (formula-of-nulltype? and-fla)) "AndD" "AndL")
-		    (if (not (formula-of-nulltype? and-fla)) "AndR" "AndU")))
+		    (if (not (formula-of-nulltype? and-fla)) "AndR" "AndNc")))
 	  (idpc (idpredconst-name-and-types-and-cterms-to-idpredconst
 		 name '() cterms))
 	  (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
@@ -11539,7 +11539,7 @@
 ;; exd x B(x) unfolds to exr x^(T x^ andd B'(x^))
 ;; exl x B(x) unfolds to exr x^(T x^ andl B'(x^))
 ;; exr x B(x) unfolds to exr x^(T x^ andr B'(x^))
-;; exu x B(x) unfolds to exr x^(T x^ andu B'(x^))
+;; exnc x B(x) unfolds to exr x^(T x^ andnc B'(x^))
 ;; ex x B(x) unfolds to exr x^(T x^ & B'(x^))
 
 ;; unfold-total-variables applied to A returns A'.  The total variables
@@ -11626,8 +11626,8 @@
        ;;       (make-exr partial-var (make-andl totality-fla unfolded-kernel)))
        ((exrt-form? expr)
 	(make-exr partial-var (make-andr totality-fla unfolded-kernel)))
-       ((exut-form? expr)
-	(make-exr partial-var (make-andu totality-fla unfolded-kernel)))
+       ((exnct-form? expr)
+	(make-exr partial-var (make-andnc totality-fla unfolded-kernel)))
        ((ex-form? expr)
 	(make-exr partial-var (make-and totality-fla unfolded-kernel)))
        ((or (exca-form? expr)
@@ -11638,7 +11638,7 @@
        ((or (exd-form? expr)
 	    (exl-form? expr)
 	    (exr-form? expr)
-	    (exu-form? expr))
+	    (exnc-form? expr))
 	(myerror "unfold-total-variables" "total quantified variable expected"
 		 expr))
 	(else
@@ -11772,23 +11772,17 @@
 			    (andd-form-to-right kernel)
 			    (cons var vars))))
 					;commented out (andl still missing)
-	 ;; ((and (andl-form? kernel)
-	 ;;       (formula=? (andl-form-to-left kernel) totality-fla))
-	 ;;  (make-exl
-	 ;;   total-var (apply fold-total-variables
-	 ;; 		    (andl-form-to-right kernel)
-	 ;; 		    (cons var vars))))
 	 ((and (andr-form? kernel)
 	       (formula=? (andr-form-to-left kernel) totality-fla))
 	  (make-exr
 	   total-var (apply fold-total-variables
 			    (andr-form-to-right kernel)
 			    (cons var vars))))
-	 ((and (andu-form? kernel)
-	       (formula=? (andu-form-to-left kernel) totality-fla))
-	  (make-exu
+	 ((and (andnc-form? kernel)
+	       (formula=? (andnc-form-to-left kernel) totality-fla))
+	  (make-exnc
 	   total-var (apply fold-total-variables
-			    (andu-form-to-right kernel)
+			    (andnc-form-to-right kernel)
 			    (cons var vars))))
 	 ((and (and-form? kernel)
 	       (formula=? (and-form-to-left kernel) totality-fla))
