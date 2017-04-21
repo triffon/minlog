@@ -1,4 +1,4 @@
-;; 2017-04-01.  pos.scm.  Based on the former numbers.scm.
+;; 2017-04-15.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -1071,6 +1071,21 @@
 ;; Proof finished.
 (save "NatLt0Pos")
 
+;; SZeroPosPlus
+(set-goal "all p SZero p=p+p")
+(ind)
+(use "Truth")
+(assume "p" "IH")
+(ng #t)
+(use "IH")
+(assume "p" "IH")
+(ng #t)
+(simp "<-" "IH")
+(ng #t)
+(use "Truth")
+;; Proof finished.
+(save "SZeroPosPlus")
+
 ;; We derive some rewrite rules.  To ensure termination, we (1) decrease
 ;; the sum of the lengths of summands, where the rhs counts more than
 ;; the lhs.
@@ -1616,6 +1631,38 @@
 (save "PosPlusAssoc")
 (add-rewrite-rule "p+(q+r)" "p+q+r")
 
+;; To prove PosPlusCancelL we again transfer the problem to nat via
+;; PosToNatInj and PosToNatPlus.
+
+;; PosPlusCancelL
+(set-goal "all p,q,r(p+q=p+r -> q=r)")
+(assume "p" "q" "r" "EqHyp")
+(use "PosToNatInj")
+(use "NatPlusCancelL" (pt "PosToNat p"))
+(simp "<-" "PosToNatPlus")
+(simp "<-" "PosToNatPlus")
+(simp "EqHyp")
+(use "Truth")
+;; Proof finished.
+(save "PosPlusCancelL")
+
+;; PosPlusCancelR
+(set-goal "all p,q,r(p+q=r+q -> p=r)")
+(assume "p" "q" "r" "EqHyp")
+(use "PosToNatInj")
+(use "NatPlusCancelR" (pt "PosToNat q"))
+(simp "<-" "PosToNatPlus")
+(simp "<-" "PosToNatPlus")
+(simp "EqHyp")
+(use "Truth")
+;; Proof finished.
+(save "PosPlusCancelR")
+
+;; We postpone the treatment (as rewrite rules) of PosLePlusCancelL
+;; PosLePlusCancelR PosLtPlusCancelL PosLtPlusCancelR
+;; PosLeTimesCancelL PosLeTimesCancelR PosLtTimesCancelL
+;; PosLtTimesCancelR until after PosLe and PosLt.
+
 ;; The following (former) rules are not used any more, because they
 ;; increase the number of +'s.
 
@@ -2112,7 +2159,7 @@
 ;;  TotalPosMR p^0 p^ -->
 ;;  allnc q^,q^0(
 ;;   TotalPosMR q^0 q^ -->
-;;   TotalBooleMR(p^0<q^0)(p^ <q^) andu TotalBooleMR(p^0<=q^0)(p^ <=q^)))")
+;;   TotalBooleMR(p^0<q^0)(p^ <q^) andnc TotalBooleMR(p^0<=q^0)(p^ <=q^)))")
 ;; (assume "p^" "p^0" "TMRp0p")
 ;; (elim "TMRp0p")
 ;; (assume "q^" "q^0" "TMRq0q")
@@ -2150,11 +2197,11 @@
 ;; ;;      TotalPosMR pos^0 pos^ -->
 ;; ;;      allnc q^,q^0(
 ;; ;;       TotalPosMR q^0 q^ -->
-;; ;;       TotalBooleMR(pos^0<q^0)(pos^ <q^) andu
+;; ;;       TotalBooleMR(pos^0<q^0)(pos^ <q^) andnc
 ;; ;;       TotalBooleMR(pos^0<=q^0)(pos^ <=q^)) ->
 ;; ;;      allnc q^,q^0(
 ;; ;;       TotalPosMR q^0 q^ -->
-;; ;;       TotalBooleMR(SOne pos^0<q^0)(SOne pos^ <q^) andu
+;; ;;       TotalBooleMR(SOne pos^0<q^0)(SOne pos^ <q^) andnc
 ;; ;;       TotalBooleMR(SOne pos^0<=q^0)(SOne pos^ <=q^)))
 ;; (assume "p^1" "p^10" "TMRp10p1" "IHp1" "q^" "q^0" "TMRq0q")
 ;; (elim "TMRq0q")
@@ -3327,7 +3374,115 @@
 ;; Proof finished.
 (save "PosLeLtMonTimes")
 
-(set-goal "all p,q,r (p*r<=q*r)=(p<=q)")
+;; PosLePlusCancelL
+(set-goal "all p,q,r(p+q<=p+r)=(q<=r)") ;as rewrite rule
+(assume "p" "q" "r")
+(simp "<-" (pf "NatToPos(PosToNat(p+q))=p+q"))
+(simp "<-" (pf "NatToPos(PosToNat(p+r))=p+r"))
+(simp "PosToNatPlus")
+(simp "PosToNatPlus")
+(simp "NatToPosLe")
+(ng) ;uses NatPlusCancelL
+(simp "<-" "NatToPosLe")
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(use "Truth")
+(use "NatLt0Pos")
+(use "NatLt0Pos")
+(simp "<-" "PosToNatPlus")
+(use "NatLt0Pos")
+(simp "<-" "PosToNatPlus")
+(use "NatLt0Pos")
+(use "NatToPosToNatId")
+(use "NatToPosToNatId")
+;; Proof finished.
+(add-rewrite-rule "p+q<=p+r" "q<=r")
+
+;; PosLePlusCancelR
+(set-goal "all p,q,r(p+q<=r+q)=(p<=r)") ;as rewrite rule
+(assume "p" "q" "r")
+(simp "PosPlusComm")
+(simp (pf "r+q=q+r"))
+(ng)
+(use "Truth")
+(use "PosPlusComm")
+;; Proof finished.
+(add-rewrite-rule "p+q<=r+q" "p<=r")
+
+;; PosLtPlusCancelL
+(set-goal "all p,q,r(p+q<p+r)=(q<r)") ;as rewrite rule
+(assume "p" "q" "r")
+(simp "<-" (pf "NatToPos(PosToNat(p+q))=p+q"))
+(simp "<-" (pf "NatToPos(PosToNat(p+r))=p+r"))
+(simp "PosToNatPlus")
+(simp "PosToNatPlus")
+(simp "NatToPosLt")
+(ng) ;uses NatPlusCancelL
+(simp "<-" "NatToPosLt")
+(simp "NatToPosToNatId")
+(simp "NatToPosToNatId")
+(use "Truth")
+(use "NatLt0Pos")
+(use "NatLt0Pos")
+(simp "<-" "PosToNatPlus")
+(use "NatLt0Pos")
+(simp "<-" "PosToNatPlus")
+(use "NatLt0Pos")
+(use "NatToPosToNatId")
+(use "NatToPosToNatId")
+;; Proof finished.
+(add-rewrite-rule "p+q<p+r" "q<r")
+
+;; PosLtPlusCancelR
+(set-goal "all p,q,r(p+q<r+q)=(p<r)") ;as rewrite rule
+(assume "p" "q" "r")
+(simp "PosPlusComm")
+(simp (pf "r+q=q+r"))
+(ng)
+(use "Truth")
+(use "PosPlusComm")
+;; Proof finished.
+(add-rewrite-rule "p+q<r+q" "p<r")
+
+;; PosTimesCancelL
+(set-goal "all p,q,r(p*q=p*r -> q=r)")
+(assume "p" "q" "r" "pq=pr")
+(use "PosLeAntiSym")
+;; 3,4
+(use "PosNotLtToLe")
+(assume "r<q")
+(assert "p*r<p*q")
+ (use "PosLeLtMonTimes")
+ (use "Truth")
+ (use "r<q")
+(simp "pq=pr")
+(assume "Absurd")
+(use "Absurd")
+;; 4 
+(use "PosNotLtToLe")
+(assume "q<r")
+(assert "p*q<p*r")
+ (use "PosLeLtMonTimes")
+ (use "Truth")
+ (use "q<r")
+(simp "pq=pr")
+(assume "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "PosTimesCancelL")
+
+;; PosTimesCancelR
+(set-goal "all p,q,r(p*r=q*r -> p=q)")
+(assume "p" "q" "r" "pr=qr")
+(use "PosTimesCancelL" (pt "r"))
+(simp "PosTimesComm")
+(simp "pr=qr")
+(use "PosTimesComm")
+;; Proof finished.
+(save "PosTimesCancelR")
+
+;; PosLeTimesCancelR 
+(set-goal "all p,q,r (p*r<=q*r)=(p<=q)") ;as rewrite rule
 (assume "p" "q" "r")
 (use "BooleAeqToEq")
 ;; 3,4
@@ -3353,46 +3508,22 @@
 ;; Proof finished.
 (add-rewrite-rule "p*r<=q*r" "p<=q")
 
-;; PosTimesInj
-(set-goal "all p,q,r(p*q=p*r -> q=r)")
-(assume "p" "q" "r" "pq=pr")
-(use "PosLeAntiSym")
-;; 3,4
-(use "PosNotLtToLe")
-(assume "r<q")
-(assert "p*r<p*q")
- (use "PosLeLtMonTimes")
- (use "Truth")
- (use "r<q")
-(simp "pq=pr")
-(assume "Absurd")
-(use "Absurd")
-;; 4 
-(use "PosNotLtToLe")
-(assume "q<r")
-(assert "p*q<p*r")
- (use "PosLeLtMonTimes")
- (use "Truth")
- (use "q<r")
-(simp "pq=pr")
-(assume "Absurd")
-(use "Absurd")
-;; Proof finished.
-(save "PosTimesInj")
-
-;; PosTimesInjLeft
-(set-goal "all p,q,r(p*r=q*r -> p=q)")
-(assume "p" "q" "r" "pr=qr")
-(use "PosTimesInj" (pt "r"))
+;; PosLeTimesCancelL
+(set-goal  "all p,q,r(p*q<=p*r)=(q<=r)") ;as rewrite rule
+(assume "p" "q" "r")
 (simp "PosTimesComm")
-(simp "pr=qr")
+(simp (pf "p*r=r*p"))
+(use "Truth")
 (use "PosTimesComm")
 ;; Proof finished.
-(save "PosTimesInjLeft")
+(add-rewrite-rule "p*q<=p*r" "q<=r")
 
-;; PosLtMonTimesInv
-(set-goal  "all p,q,r(p*q<p*r -> q<r)")
-(assume "p" "q" "r" "pq<pr")
+;; PosLtTimesCancelL
+(set-goal  "all p,q,r(p*q<p*r)=(q<r)") ;as rewrite rule
+(assume "p" "q" "r")
+(use "BooleAeqToEq")
+;; 3,4
+(assume "pq<pr")
 (use "PosNotLeToLt")
 (assume "r<=q")
 (assert "p*r<=p*q")
@@ -3406,8 +3537,21 @@
  (use "pr<=pq")
 (assume "Absurd")
 (use "Absurd")
+;; 4
+(use "PosLeLtMonTimes")
+(use "Truth")
 ;; Proof finished.
-(save "PosLtMonTimesInv")
+(add-rewrite-rule "p*q<p*r" "q<r")
+
+;; PosLtTimesCancelR
+(set-goal  "all p,q,r(p*q<r*q)=(p<r)") ;as rewrite rule
+(assume "p" "q" "r")
+(simp "PosTimesComm")
+(simp (pf "r*q=q*r"))
+(use "Truth")
+(use "PosTimesComm")
+;; Proof finished.
+(add-rewrite-rule "p*q<r*q" "p<r")
 
 ;; PosLeLtCases
 (set-goal "all p,q((p<=q -> Pvar) -> (q<p -> Pvar) -> Pvar)")
