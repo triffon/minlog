@@ -1,4 +1,4 @@
-;; $Id: pproof.scm 2690 2014-01-24 09:19:13Z schwicht $
+;; 2017-04-21
 ;; 11. Partial proofs
 ;; ==================
 
@@ -1599,11 +1599,11 @@
 	   (exd-form? used-formula)
 	   (exl-form? used-formula)
 	   (exr-form? used-formula)
-	   (exu-form? used-formula)
+	   (exnc-form? used-formula)
 	   (exdt-form? used-formula)
 	   (exlt-form? used-formula)
 	   (exrt-form? used-formula)
-	   (exut-form? used-formula)) #f)
+	   (exnct-form? used-formula)) #f)
       ((or (imp-form? used-formula) (impnc-form? used-formula))
        (let* ((concl (bicon-form-to-right used-formula))
 	      (prev (apply
@@ -1648,7 +1648,7 @@
 		 toinst))))))
       ((and (bicon-form? used-formula)
 	    (memq (bicon-form-to-bicon used-formula)
-		  '(and andd andl andr andu)))
+		  '(and andd andl andr andnc)))
        (let ((left-conjunct (bicon-form-to-left used-formula))
 	     (right-conjunct (bicon-form-to-right used-formula)))
 	 (if
@@ -2138,13 +2138,13 @@
 	       (else (myerror
 		      "x-and-x-list-to-proof-and-new-num-goals-and-maxgoal"
 		      "left or right expected" x1))))
-	     ((andu-form? used-formula)
+	     ((andnc-form? used-formula)
 	      (cond
 	       ((eq? x1 'left)
-		(list (make-proof-in-andu-elim-left-form proof)
+		(list (make-proof-in-andnc-elim-left-form proof)
 		      new-num-goals maxgoal))
 	       ((eq? x1 'right)
-		(list (make-proof-in-andu-elim-right-form proof)
+		(list (make-proof-in-andnc-elim-right-form proof)
 		      new-num-goals maxgoal))
 	       (else (myerror
 		      "x-and-x-list-to-proof-and-new-num-goals-and-maxgoal"
@@ -2785,7 +2785,7 @@
 	 (andd-flag (andd-form? goal-formula))
 	 (andl-flag (andl-form? goal-formula))
 	 (andr-flag (andr-form? goal-formula))
-	 (andu-flag (andu-form? goal-formula))
+	 (andnc-flag (andnc-form? goal-formula))
 	 (andb-flag (and (atom-form? goal-formula)
 			 (term=? (make-term-in-const-form
 				  (pconst-name-to-pconst "AndConst"))
@@ -2793,14 +2793,14 @@
 				  (atom-form-to-kernel goal-formula)))
 			 (= 2 (length (term-in-app-form-to-args
 				       (atom-form-to-kernel goal-formula)))))))
-    (if (not (or and-flag andd-flag andl-flag andr-flag andu-flag andb-flag))
+    (if (not (or and-flag andd-flag andl-flag andr-flag andnc-flag andb-flag))
 	(myerror "split-intern" "conjunction expected" goal-formula))
     (let* ((left-conjunct
 	    (cond (and-flag (and-form-to-left goal-formula))
 		  (andd-flag (andd-form-to-left goal-formula))
 		  (andl-flag (andl-form-to-left goal-formula))
 		  (andr-flag (andr-form-to-left goal-formula))
-		  (andu-flag (andu-form-to-left goal-formula))
+		  (andnc-flag (andnc-form-to-left goal-formula))
 		  (andb-flag (make-atomic-formula
 			      (car (term-in-app-form-to-args
 				    (atom-form-to-kernel goal-formula)))))))
@@ -2809,7 +2809,7 @@
 		  (andd-flag (andd-form-to-right goal-formula))
 		  (andl-flag (andl-form-to-right goal-formula))
 		  (andr-flag (andr-form-to-right goal-formula))
-		  (andu-flag (andu-form-to-right goal-formula))
+		  (andnc-flag (andnc-form-to-right goal-formula))
 		  (andb-flag (make-atomic-formula
 			      (cadr (term-in-app-form-to-args
 				     (atom-form-to-kernel goal-formula)))))))
@@ -2871,9 +2871,9 @@
 		       (make-proof-in-aconst-form aconst)
 		       (append (map make-term-in-var-form free)
 			       (list ngleft ngright)))))
-	     (andu-flag
+	     (andnc-flag
 	      (let* ((idpc (make-idpredconst
-			    "AndU"
+			    "AndNc"
 			    '() ;no types
 			    (list (make-cterm (proof-to-formula ngleft))
 				  (make-cterm (proof-to-formula ngright)))))
@@ -2929,7 +2929,7 @@
 		(andd-form? new-goal-formula)
 		(andl-form? new-goal-formula)
 		(andr-form? new-goal-formula)
-		(andu-form? new-goal-formula)
+		(andnc-form? new-goal-formula)
 		(and (atom-form? new-goal-formula)
 		     (term=? (make-term-in-const-form
 			      (pconst-name-to-pconst "AndConst"))
@@ -4086,7 +4086,7 @@
 		   (list x1 DEFAULT-GOAL-NAME)))))
 
 ;; Assume we prove a goal from an existential formula ex x A, exd x A,
-;; exr x A, exl x A, exu x A or exc x1,..,xn(A1!..!Am).  The
+;; exr x A, exl x A, exnc x A or exc x1,..,xn(A1!..!Am).  The
 ;; natural way to use this hypothesis is to say "by exhyp assume we
 ;; have an x satisfying A" or "by exhyp assume we have x1,..,xn
 ;; satisfying A1...,Am".  Correspondingly we provide
@@ -4146,7 +4146,7 @@
 			     (exd-form? ex-fla) (exdt-form? ex-fla)
 			     (exr-form? ex-fla) (exrt-form? ex-fla)
 			     (exl-form? ex-fla) (exlt-form? ex-fla)
-			     (exu-form? ex-fla) (exut-form? ex-fla))
+			     (exnc-form? ex-fla) (exnct-form? ex-fla))
 			 (list 1 1))
 			((excl-form? ex-fla)
 			 (list (length (excl-form-to-vars ex-fla))
@@ -4178,7 +4178,7 @@
 		 ((or (exd-form? ex-fla) (exdt-form? ex-fla)
 		      (exr-form? ex-fla) (exrt-form? ex-fla)
 		      (exl-form? ex-fla) (exlt-form? ex-fla)
-		      (exu-form? ex-fla) (exut-form? ex-fla))
+		      (exnc-form? ex-fla) (exnct-form? ex-fla))
 		  (exi-elim-intern num-goals proof maxgoal exhyp))
 		 ((or (excl-form? ex-fla) (exca-form? ex-fla))
 		  (exc-elim-intern num-goals proof maxgoal exhyp))
@@ -6171,7 +6171,7 @@
 	    (andd-form? used-formula)
 	    (andl-form? used-formula)
 	    (andr-form? used-formula)
-	    (andu-form? used-formula))
+	    (andnc-form? used-formula))
 	(let ((left-conjunct (bicon-form-to-left used-formula))
 	      (right-conjunct (bicon-form-to-right used-formula)))
 	  (if
@@ -8799,7 +8799,7 @@
 				  m))
 	      ((and (quant-form? f)
 		    (memq (quant-form-to-quant f)
-			  '(exd exl exr exu exdt exlt exrt exut)))
+			  '(exd exl exr exnc exdt exlt exrt exnct)))
 	       (list (make-proof-in-aconst-form
 		      (number-and-idpredconst-to-intro-aconst
 		       0 (predicate-form-to-predicate f)))
@@ -8824,7 +8824,7 @@
 			    m))
 		     ((and (quant-form? (car l))
 			   (memq (quant-form-to-quant (car l))
-				 '(exd exl exr exu exdt exlt exrt exut)))
+				 '(exd exl exr exnc exdt exlt exrt exnct)))
 		      (list (make-proof-in-aconst-form
 			     (imp-formulas-to-elim-aconst
 			      (make-imp (car l) f)))
