@@ -500,13 +500,13 @@
 
 ;; (Pvar nat nat)_250 n^1960 n^1959 ->
 ;; allnc n^,n^0(
-;;  (Pvar nat nat)_250 n^ n^0 -> exl n1 exu m^(n^ eqd n1 andu n^0 eqd m^)) ->
+;;  (Pvar nat nat)_250 n^ n^0 -> exl n1 exnc m^(n^ eqd n1 andnc n^0 eqd m^)) ->
 ;; CoI n^1960 n^1959
 
-;; Hence we need cases andu exl exu in the internally defined
+;; Hence we need cases andnc exl exnc in the internally defined
 ;; and-ex-fla-to-shortened-fla in
 ;; imp-formulas-to-uninst-gfp-formulas-etc.  Otherwise we get an error:
 
 ;; and-ex-fla-to-shortened-fla
 ;; unexpected formula
-;; exl n exu m^(n^1954 eqd n andu n^1953 eqd m^)
+;; exl n exnc m^(n^1954 eqd n andnc n^1953 eqd m^)
