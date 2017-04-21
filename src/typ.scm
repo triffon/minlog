@@ -1,4 +1,4 @@
-;; $Id: typ.scm 2658 2014-01-08 09:49:43Z schwicht $
+;; 2017-04-21
 ;; 2. Types
 ;; ========
 
@@ -30,9 +30,9 @@
 	"GRec" "GRecGuard" "Ind" "Cases" "GInd" "Intro" "Elim"
 	"Ex-Intro" "Ex-Elim"
 	"all" "ex" "allnc" "excl" "exca"
-	"exi" "exd" "exl" "exr" "exu"
+	"exi" "exd" "exl" "exr" "exnc"
 	"or" "ori" "ord" "orl" "orr" "oru" "ornc"
-	"and" "andd" "andl" "andr" "andu"
+	"and" "andd" "andl" "andr" "andnc"
 	"lambda" "left" "right" "lft" "rht" "cterm" "if"
 	"Pvar" "MPC" "PROOF" "CLASSIC" "INTUITIONISTIC" "END" "LOAD"
 	"INCLUDE" "SCHEME" "TYPE" "PRED" "ALGEBRA" "FUNCTION" "PARTIAL"
