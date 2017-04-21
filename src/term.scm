@@ -1,4 +1,4 @@
-;; $Id: term.scm 2697 2014-04-03 15:29:35Z schwicht $
+;; 2017-04-21
 ;; 6. Terms
 ;; ========
 
@@ -6674,8 +6674,8 @@ intDestr n | n > 0  = Left n
 			 (memq bicon2 '(imp impnc)))
 			((ord orl orr oru ornc)
 			 (memq bicon2 '(ord orl orr oru ornc)))
-			((andd andl andr andu)
-			 (memq bicon2 '(andd andl andr andu)))
+			((andd andl andr andnc)
+			 (memq bicon2 '(andd andl andr andnc)))
 			(else #f)))
 		 (and (memq bicon1 '(imp impnc))
 		      (memq bicon2 '(imp impnc))
@@ -6701,10 +6701,10 @@ intDestr n | n > 0  = Left n
 				       (case quant1
 					 ((all allnc)
 					  (memq quant2 '(all allnc)))
-					 ((exd exl exr exu)
-					  (memq quant2 '(exd exl exr exu)))
-					 ((exdt exlt exrt exut)
-					  (memq quant2 '(exdt exlt exrt exut)))
+					 ((exd exl exr exnc)
+					  (memq quant2 '(exd exl exr exnc)))
+					 ((exdt exlt exrt exnct)
+					  (memq quant2 '(exdt exlt exrt exnct)))
 					 (else #f))))))
 	  (and
 	   quant-eq-test
@@ -6904,7 +6904,7 @@ intDestr n | n > 0  = Left n
       (case bicon
 	((imp impnc)
 	 (and (formula-of-nulltypen? left) (formula-of-nulltypep? right)))
-	((and tensor andd andl andr andu)
+	((and tensor andd andl andr andnc)
 	 (and (formula-of-nulltypep? left) (formula-of-nulltypep? right)))
 	((ord orl orr oru) #f)
 	(else (myerror "formula-of-nulltypep?" "bicon expected" bicon)))))
@@ -6914,7 +6914,7 @@ intDestr n | n > 0  = Left n
       (case quant
 	((all allnc) (formula-of-nulltypep? kernel))
 	((ex exd exl exdt exlt) #f)
-	((exr exu exrt exut) (formula-of-nulltypep? kernel))
+	((exr exnc exrt exnct) (formula-of-nulltypep? kernel))
 	((exca excl excu) (formula-of-nulltypep? (unfold-formula formula)))
 	(else (myerror "formula-of-nulltypep?" "quant expected" quant)))))
    ((predicate-form? formula)
@@ -6934,7 +6934,7 @@ intDestr n | n > 0  = Left n
       (case bicon
 	((imp impnc)
 	 (and (formula-of-nulltypep? left) (formula-of-nulltypen? right)))
-	((and tensor andd andl andr andu)
+	((and tensor andd andl andr andnc)
 	 (and (formula-of-nulltypen? left) (formula-of-nulltypen? right)))
 	((ord orl orr oru)
 	 (and (formula-of-nulltypen? left) (formula-of-nulltypen? right)))
@@ -6944,7 +6944,7 @@ intDestr n | n > 0  = Left n
 	  (kernel (quant-form-to-kernel formula)))
       (case quant
 	((all allnc) #f)
-	((ex exd exl exdt exlt exr exu exrt exut)
+	((ex exd exl exdt exlt exr exnc exrt exnct)
 	 (formula-of-nulltypen? kernel))
 	((exca excl excu) (formula-of-nulltypen? (unfold-formula formula)))
 	(else (myerror "formula-of-nulltypen?" "quant expected" quant)))))
@@ -7269,8 +7269,8 @@ intDestr n | n > 0  = Left n
 					  (memq bicon2 '(imp impnc)))
 					 ((ord orl orr oru)
 					  (memq bicon2 '(ord orl orr oru)))
-					 ((andd andl andr andu)
-					  (memq bicon2 '(andd andl andr andu)))
+					 ((andd andl andr andnc)
+					  (memq bicon2 '(andd andl andr andnc)))
 					 (else #f))))))
 	  (and
 	   bicon-eq-test
@@ -7293,10 +7293,10 @@ intDestr n | n > 0  = Left n
 				       (case quant1
 					 ((all allnc)
 					  (memq quant2 '(all allnc)))
-					 ((exd exl exr exu)
-					  (memq quant2 '(exd exl exr exu)))
-					 ((exdt exlt exrt exut)
-					  (memq quant2 '(exdt exlt exrt exut)))
+					 ((exd exl exr exnc)
+					  (memq quant2 '(exd exl exr exnc)))
+					 ((exdt exlt exrt exnct)
+					  (memq quant2 '(exdt exlt exrt exnct)))
 					 (else #f))))))
 	  (and
 	   quant-eq-test
@@ -8437,8 +8437,8 @@ intDestr n | n > 0  = Left n
 		   (and ignore-deco-flag
 			(case bicon1
 			  ((imp impnc) (memq bicon2 '(imp impnc)))
-			  ((andd andr andu)
-			   (memq bicon2 '(andd andr andu)))
+			  ((andd andr andnc)
+			   (memq bicon2 '(andd andr andnc)))
 			  ((ord orl orr oru) (memq bicon2 '(ord orl orr oru)))
 			  (else #f))))))
 	 (if
@@ -8460,9 +8460,9 @@ intDestr n | n > 0  = Left n
 		   (and ignore-deco-flag
 			(case quant1
 			  ((all allnc) (memq quant2 '(all allnc)))
-			  ((exd exl exr exu) (memq quant2 '(exd exl exr exu)))
-			  ((exdt exlt exrt exut)
-			   (memq quant2 '(exdt exlt exrt exut)))
+			  ((exd exl exr exnc) (memq quant2 '(exd exl exr exnc)))
+			  ((exdt exlt exrt exnct)
+			   (memq quant2 '(exdt exlt exrt exnct)))
 			  (else #f))))))
 	 (if
 	  quant-eq-test ;else '()
