@@ -1,4 +1,4 @@
-;; 2017-04-01.  nat.scm
+;; 2017-04-14.  nat.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -358,6 +358,35 @@
 ;; Proof finished.
 (save "NatPlusComm")
 
+;; NatPlusCancelL
+(set-goal "all n,m,l(n+m=n+l -> m=l)")
+(ind)
+(ng)
+(assume "m" "l" "m=l")
+(use "m=l")
+;; Step
+(assume "n" "IH")
+(ng)
+(use "IH")
+;; Proof finished.
+(save "NatPlusCancelL")
+
+;; NatPlusCancelR
+(set-goal "all n,m,l(n+m=l+m -> n=l)")
+(assert "all m,n,l(n+m=l+m -> n=l)")
+(ind)
+(assume "n" "l" "n=l")
+(use "n=l")
+;; Step
+(assume "m" "IH")
+(ng)
+(use "IH")
+;; Assertion proved.
+(assume "Assertion" "n" "m")
+(use "Assertion")
+;; Proof finished.
+(save "NatPlusCancelR")
+
 ;; Properties of NatTimes
 
 (set-totality-goal "NatTimes")
@@ -439,39 +468,18 @@
 
 ;; NatEqSym
 (set-goal "all n,m(n=m -> m=n)")
-(ind)
-  (cases)
-    (assume "H")
-    (use "H")
-  (assume "m" "Absurd")
-  (use "Absurd")
-(assume "n" "IH")
-(cases)
-  (assume "H")
-  (use "H")
-(use "IH")
+(assume "n" "m" "n=m")
+(simp "n=m")
+(use "Truth")
 ;; Proof finished.
 (save "NatEqSym")
 
 ;; NatEqTrans
 (set-goal "all n,m,l(n=m -> m=l -> n=l)")
-(ind)
-  (cases)
-    (assume "l" "Useless" "0=l")
-    (use "0=l")
-  (assume "m" "l" "Absurd" "H1")
-  (use "EfqAtom")
-  (use "Absurd")
-(assume "n" "IH")
-(cases)
-  (assume "l" "Absurd" "H1")
-  (use "EfqAtom")
-  (use "Absurd")
-(assume "m")
-(cases)
-  (assume "H1" "H2")
-  (use "H2")
-(use "IH")
+(assume "n" "m" "l" "=Hyp")
+(simp "<-" "=Hyp")
+(assume "n=l")
+(use "n=l")
 ;; Proof finished.
 (save "NatEqTrans")
 
@@ -539,6 +547,46 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "n*(m*l)" "n*m*l")
+
+;; NatTimesCancelL
+(set-goal "all n,m,l(Zero<n -> n*m=n*l -> m=l)")
+(assert "all n,m,l((Succ n)*m=(Succ n)*l -> m=l)")
+(assume "n")
+(ind)
+(cases)
+(strip)
+(use "Truth")
+(assume "l" "Absurd")
+(use "Absurd")
+;; Step of induction on m
+(assume "m" "IHm")
+(cases)
+(assume "Absurd")
+(use "Absurd")
+(assume "l" "Hyp")
+(ng)
+(use "IHm")
+(use "NatPlusCancelR" (pt "n"))
+(use "Hyp")
+(assume "Assertion")
+(cases)
+(assume "m" "l" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+(assume "n" "m" "l" "Useless")
+(use "Assertion")
+;; Proof finished.
+(save "NatTimesCancelL")
+
+;; NatTimesCancelR
+(set-goal "all n,m,l(Zero<m -> n*m=l*m -> n=l)")
+(assume "n" "m" "l")
+(simp "NatTimesComm")
+(simp (pf "l*m=m*l"))
+(use "NatTimesCancelL")
+(use "NatTimesComm")
+;; Proof finished.
+(save "NatTimesCancelR")
 
 ;; Properties of NatLt
 
@@ -701,6 +749,72 @@
 (use "IHn")
 ;; Proof finished.
 (save "NatLeAntiSym")
+
+;; NatLtPlusCancelR as rewrite rule
+(set-goal "all n,m,l(n+m<l+m)=(n<l)")
+(assert "all n,l,m(n+m<l+m)=(n<l)")
+(assume "n" "l")
+(ind)
+(use "Truth")
+(assume "m" "IH")
+(ng)
+(use "IH")
+;; Assertion proved.
+(assume "Assertion" "n" "m" "l")
+(use "Assertion")
+;; Proof finished.
+(add-rewrite-rule "n+m<l+m" "n<l")
+
+;; NatLtPlusCancelL
+(set-goal "all n,m,l(n+m<n+l)=(m<l)") ;as rewrite rule
+(assume "n" "m" "l")
+(simp "NatPlusComm")
+(simp (pf "n+l=l+n"))
+(use "Truth")
+(use "NatPlusComm")
+;; Proof finished.
+(add-rewrite-rule "n+m<n+l" "m<l")
+
+;; NatLtTimesCancelL
+(set-goal "all n,m,l(Zero<n -> n*m<n*l -> m<l)")
+(assert "all n,m,l((Succ n)*m<(Succ n)*l -> m<l)")
+(assume "n")
+(ind)
+(cases)
+(ng)
+(assume "Absurd")
+(use "Absurd")
+(strip)
+(use "Truth")
+;; Step of induction on m
+(assume "m" "IHm")
+(cases)
+(ng)
+(assume "Absurd")
+(use "Absurd")
+(assume "l")
+(ng)
+(use "IHm")
+;; Assertion proved.
+(assume "Assertion")
+(cases)
+(assume "m" "l" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+(assume "n" "m" "l" "Useless")
+(use "Assertion")
+;; Proof finished.
+(save "NatLtTimesCancelL")
+
+;; NatLtTimesCancelR
+(set-goal "all n,m,l(Zero<m -> n*m<l*m -> n<l)")
+(assume "n" "m" "l")
+(simp "NatTimesComm")
+(simp (pf "l*m=m*l"))
+(use "NatLtTimesCancelL")
+(use "NatTimesComm")
+;; Proof finished.
+(save "NatLtTimesCancelR")
 
 ;; Properties of NatLe
 
@@ -1138,6 +1252,70 @@
 (use "n<m")
 ;; Proof finished.
 (save "NatLtMonPred")
+
+;; NatLePlusCancelR
+(set-goal "all n,m,l(n+m<=l+m)=(n<=l)") ;as rewrite rule
+(assume "n")
+(ind)
+(assume "l")
+(use "Truth")
+;; Step
+(assume "m" "IH")
+(ng)
+(use "IH")
+;; Proof finished.
+(add-rewrite-rule "n+m<=l+m" "n<=l")
+
+;; NatLePlusCancelL
+(set-goal "all n,m,l(n+m<=n+l)=(m<=l)") ;as rewrite rule
+(assume "n" "m" "l")
+(simp "NatPlusComm")
+(simp (pf "n+l=l+n"))
+(use "Truth")
+(use "NatPlusComm")
+;; Proof finished.
+(add-rewrite-rule "n+m<=n+l" "m<=l")
+
+;; NatLeTimesCancelL
+(set-goal "all n,m,l(Zero<n -> n*m<=n*l -> m<=l)")
+(assert "all n,m,l((Succ n)*m<=(Succ n)*l -> m<=l)")
+(assume "n")
+(ind)
+(cases)
+(ng)
+(assume "Absurd")
+(use "Absurd")
+(strip)
+(use "Truth")
+;; Step of induction on m
+(assume "m" "IHm")
+(cases)
+(ng)
+(assume "Absurd")
+(use "Absurd")
+(assume "l")
+(ng)
+(use "IHm")
+;; Assertion proved.
+(assume "Assertion")
+(cases)
+(assume "m" "l" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+(assume "n" "m" "l" "Useless")
+(use "Assertion")
+;; Proof finished.
+(save "NatLeTimesCancelL")
+
+;; NatLeTimesCancelR
+(set-goal "all n,m,l(Zero<m -> n*m<=l*m -> n<=l)")
+(assume "n" "m" "l")
+(simp "NatTimesComm")
+(simp (pf "l*m=m*l"))
+(use "NatLeTimesCancelL")
+(use "NatTimesComm")
+;; Proof finished.
+(save "NatLeTimesCancelR")
 
 ;; Properties of NatMinus and Pred
 
@@ -1917,7 +2095,7 @@
 ;; ExBNatElim
 (set-goal "all (nat=>boole),m(
       ExBNat m(nat=>boole) ->
-      exu n(n<m andu (nat=>boole)n))")
+      exnc n(n<m andnc (nat=>boole)n))")
 (assume "(nat=>boole)")
 (ind)
 (ng)
@@ -1926,7 +2104,7 @@
 ;; unusable formula
 ;; F -> all boole^325 boole^325
 ;; for goal formula
-;; F -> exu n(F andu (nat=>boole)n)
+;; F -> exnc n(F andnc (nat=>boole)n)
 (assume "Absurd")
 (intro 0 (pt "0"))
 (split)
