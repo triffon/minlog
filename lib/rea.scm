@@ -1,4 +1,4 @@
-;; 2017-04-02.  rea.scm.  Based on numbers.scm.
+;; 2017-04-19.  rea.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1407,7 +1407,7 @@
 (use "RatLeTrans" (pt "~(1#2**(PosS p))+(as(M(PosS p))+ ~(as n))+as n"))
 ;; 5,6
 (use "RatLeTrans" (pt "~(1#2**(PosS p))+as(M(PosS p))"))
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (assert "(1#2**p)==(1#2**PosS p)+(1#2**PosS p)")
  (use "RatEqvSym")
  (use "RatPlusHalfExpPosS")
@@ -1481,7 +1481,7 @@
 (use "RatLeTrans" (pt "~(1#2**(PosS p))+(as(M(PosS p))+ ~(as n))+as n"))
 ;; 3,4
 (use "RatLeTrans" (pt "~(1#2**(PosS p))+as(M(PosS p))"))
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (assert "(1#2**p)==(1#2**PosS p)+(1#2**PosS p)")
  (use "RatEqvSym")
  (use "RatPlusHalfExpPosS")
@@ -1590,7 +1590,7 @@
 (assume "as" "M" "p" "Rx" "xPos" "n" "BdHyp")
 (use "RatLeTrans" (pt "~(1#2**(PosS p))+(as(M(PosS p))+ ~(as n))+as n"))
 ;; 3,4
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (ng)
 (simp "RatPlusComm")
 (simp "<-" "RatPlusAssoc")
@@ -2064,18 +2064,14 @@
 (use "MonElim")
 (use "MonM")
 (ng)
-(use "PosLeMonPlus")
 (use "p<=q")
-(use "Truth")
 (use "NatMaxUB1")
 
 (use "NatLeTrans" (pt "N(PosS(q+cNatPos(cRealBound as M)))"))
 (use "MonElim")
 (use "MonN")
 (ng)
-(use "PosLeMonPlus")
 (use "p<=q")
-(use "Truth")
 (use "NatMaxUB2")
 ;; Proof finished.
 (save "RealTimesReal")
@@ -2175,7 +2171,7 @@
 (use "RatLeCompat")
 (simprat (pf "0*bs l==0"))
 (use "Truth")
-(use "RatTimesZeroId")
+(use "RatTimesZeroL")
 (use "Truth")
 (assume "bs l<=0 -> F")
 ;; Case a<=0 & 0<b
@@ -2413,7 +2409,7 @@
 (use "NatLeTrans" (pt "n0 max n1"))
 (use "NatMaxUB1")
 (use "nBd")
-(use "RatLePlusToRatLePlusMinus")
+(use "RatLePlusRInv")
 (use "RatLeTrans" (pt "abs(as n-bs n)+bs n"))
 (use "RatLeTrans" (pt "(as n-bs n)+bs n"))
 (ng)
@@ -2612,7 +2608,7 @@
 ;; Proof finished.
 (save "RealUMinusUMinus")
 
-;; RealUMinusCompatInv
+;; RealUMinusInj
 (set-goal "all x,y(~x=== ~y -> x=== y)")
 (assume "x" "y" "EqHyp")
 (assert "Real x")
@@ -2630,7 +2626,7 @@
 (use "RealUMinusRealInv")
 (realproof)
 ;; Proof finished.
-(save "RealUMinusCompatInv")
+(save "RealUMinusInj")
 
 ;; RealAbsCompat
 (set-goal  "all x,y(x===y -> abs x===abs y)")
@@ -2933,7 +2929,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng)
-(use "RatTimesIntNOne")
+(use "Truth")
 ;; Assertion proved.
 (assume "RealTimesIntNOneEqS" "x" "Rx")
 (use "RealEqSToEq")
@@ -2951,7 +2947,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng)
-(use "RatIntNOneTimes")
+(use "Truth")
 ;; Assertion proved.
 (assume "RealIntNOneTimesEqS" "x" "Rx")
 (use "RealEqSToEq")
@@ -2989,7 +2985,6 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng)
-(simp "RatTimesIdIntUMinus")
 (use "Truth")
 ;; Assertion proved.
 (assume "RealTimesIdRatUMinusEqS" "x" "k" "Rx")
@@ -3226,7 +3221,7 @@
 (use "RatLeAbs")
 (use "RatLeTrans" (pt "(1#2**PosS p)"))
 (simprat (pf "as(M(PosS p))== ~(([n]~(as n))(M(PosS p)))+0"))
-(use "RatLePlusToRatLePlusMinus")
+(use "RatLePlusRInv")
 (use "RealConstrNNegElim1")
 (use "NNeg~x")
 (use "Truth")
@@ -3236,7 +3231,7 @@
 (use "Truth")
 (use "RatLeTrans" (pt "(1#2**PosS p)"))
 (simprat (pf "~(as(M(PosS p)))== ~(as(M(PosS p)))+0"))
-(use "RatLePlusToRatLePlusMinus")
+(use "RatLePlusRInv")
 (use "RealConstrNNegElim1")
 (use "NNegx")
 (use "Truth")
@@ -3286,7 +3281,7 @@
 (use "nProp")
 (use "n0Bd")
 (drop "Assertion")
-(simp "RatLe4RewRule")
+(simp "RatLe7RewRule")
 (use "RatLeAbs")
 (use "RatLeTrans" (pt "(0#1)"))
 (use "RatLtToLe")
@@ -3294,7 +3289,7 @@
 (use "0<=a -> F")
 (use "Truth")
 (simp (pf "(1#2**PosS p)= ~ ~(1#2**PosS p)"))
-(simp "RatLe4RewRule")
+(simp "RatLe7RewRule")
 (use "nProp")
 (use "n0Bd")
 (use "Truth")
@@ -3406,7 +3401,7 @@
 (ng)
 (simp "RatPlusComm")
 (simp "RatPlusAssoc")
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (simp "<-" "RatLeUMinus")
 (simprat (pf "~ ~abs(as(M p)+ ~(as(M(PosS(PosS p0)))))==
               abs(as(M p)+ ~(as(M(PosS(PosS p0)))))"))
@@ -3508,7 +3503,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng)
-(use "RatTimesIdZero")
+(use "RatTimesZeroR")
 ;; Assertion proved.
 (assume "RealTimesZeroEqS" "x" "Rx")
 (use "RealEqSToEq")
@@ -3526,7 +3521,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng)
-(use "RatTimesZeroId")
+(use "RatTimesZeroL")
 ;; Assertion proved.
 (assume "RealZeroTimesEqS" "x" "Rx")
 (use "RealEqSToEq")
@@ -3852,10 +3847,10 @@
 (use "Truth")
 (simprat (pf "(RealConstr as0 M0+ ~(RealConstr as1 M1))seq l==as0 l+ ~(as1 l)"))
 (simp "RatPlusComm")
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (simprat (pf "~ ~(as1 l)+0==as1 l"))
 (use "RatLeTrans" (pt "as1 m+(1#2**PosS(PosS p))"))
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (use "RatLeTrans" (pt "abs(as1 l+ ~(as1 m))"))
 (simp "RatPlusComm")
 (ng)
@@ -3912,9 +3907,9 @@
 (assume "arithm")
 (use "arithm")
 (simp "RatPlusComm")
-(use "RatLePlusToRatLePlusMinus")
+(use "RatLePlusRInv")
 (simp "RatPlusComm")
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (use "RatLeTrans" (pt "abs(as0 n+ ~(as0 l))"))
 (simp "RatPlusComm")
 (use "Truth")
@@ -3992,10 +3987,10 @@
 (use "Truth")
 (ng)
 (simp "RatPlusComm")
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (ng)
 (use "RatLeTrans" (pt "as n+(1#2**PosS(PosS p))"))
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (simp "RatPlusComm")
 (use "RatLeTrans" (pt "abs(as l+ ~(as n))"))
 (use "Truth")
@@ -4046,9 +4041,9 @@
 (assume "arithm")
 (use "arithm")
 (simp "RatPlusComm")
-(use "RatLePlusToRatLePlusMinus")
+(use "RatLePlusRInv")
 (simp "RatPlusComm")
-(use "RatLePlusMinusToRatLePlus")
+(use "RatLePlusR")
 (use "RatLeTrans" (pt "abs(as1 m+ ~(as1 l))"))
 (simp "RatPlusComm")
 (use "Truth")
