@@ -19,18 +19,21 @@
 
   ;; which scheme to use ?
   (cond ((getenv "SCHEME") (setq scheme (getenv "SCHEME")))
-	((and (file-readable-p "/usr/bin/petite")
-	      (string= system-type "gnu/linux"))
-	 (setq scheme "/usr/bin/petite"))
+	((eq 0 (shell-command "which scheme"))
+	 (setq scheme "scheme"))
 	((eq 0 (shell-command "which petite"))
 	 (setq scheme "petite"))
+	((eq 0 (shell-command "which racket"))
+	 (setq scheme "racket -l mzscheme -l r5rs -i --load"))
 	((eq 0 (shell-command "which mzscheme"))
-	 (if (string-match "v4." (shell-command-to-string "mzscheme --version"))
-	     (setq scheme "mzscheme -l mzscheme -l r5rs -i --load")
-	   (setq scheme "mzscheme --load")))
+	 (let ((version-info (shell-command-to-string "mzscheme --version")))
+	   (if (or (string-match "Racket" version-info) ;; >= version 5
+		   (string-match "v4." version-info))
+	       (setq scheme "mzscheme -l mzscheme -l r5rs -i --load")
+	     (setq scheme "mzscheme --load"))))
 	((eq 0 (shell-command "which guile"))
 	 (setq scheme "guile -l"))
-	(t (error "Neither petite nor mzscheme nor guile installed ")))
+	(t (error "Neither scheme nor petite nor racket nor mzscheme nor guile installed ")))
 
   ;; setup the frame
   (setq inhibit-startup-message t)
