@@ -1,4 +1,4 @@
-;; $Id: psym.scm 2661 2014-01-08 09:51:52Z schwicht $
+;; 2017-04-21
 ;; 5. Predicates
 ;; =============
 
@@ -637,7 +637,7 @@
 
 (define (make-idpredconst name types cterms)
   (if
-   (and (member name '("ExDT" "ExLT" "ExRT" "ExUT"))
+   (and (member name '("ExDT" "ExLT" "ExRT" "ExNcT"))
 	(not (t-deg-one? (var-to-t-deg (car (cterm-to-vars (car cterms)))))))
    (myerror "make-idpredconst"
 	    "comprehension term with total variable expected"
@@ -820,13 +820,13 @@
 	(string-append "exr" (separator-string "exr" varstring)
 		       varstring (separator-string varstring kernelstring)
 		       kernelstring)))
-     ((member name '("ExU" "ExUT"))
+     ((member name '("ExNc" "ExNcT"))
       (let* ((cterm (car param-cterms))
 	     (var (car (cterm-to-vars cterm)))
 	     (kernel (cterm-to-formula cterm))
 	     (varstring (var-to-string var))
 	     (kernelstring (formula-to-string kernel)))
-	(string-append "exu" (separator-string "exu" varstring)
+	(string-append "exnc" (separator-string "exnc" varstring)
 		       varstring (separator-string varstring kernelstring)
 		       kernelstring)))
      ((string=? "AndD" name)
@@ -853,13 +853,13 @@
 	(string-append (formula-to-string kernel1)
 		       " andr "
 		       (formula-to-string kernel2))))
-     ((string=? "AndU" name)
+     ((string=? "AndNc" name)
       (let* ((cterm1 (car param-cterms))
 	     (cterm2 (cadr param-cterms))
 	     (kernel1 (cterm-to-formula cterm1))
 	     (kernel2 (cterm-to-formula cterm2)))
 	(string-append (formula-to-string kernel1)
-		       " andu "
+		       " andnc "
 		       (formula-to-string kernel2))))
      ((string=? "OrD" name)
       (let* ((cterm1 (car param-cterms))
@@ -1163,7 +1163,7 @@
 ;; special case of a one-clause-nc definition (i.e., with only one clause
 ;; involving tonc, allnc only) there are no restrictions on the
 ;; elimination scheme.  This is the case for Leibniz equality EqD, and
-;; n.c. variants ExU and AndU of the existential quantifier and of
+;; n.c. variants ExNc and AndNc of the existential quantifier and of
 ;; conjunction.
 
 (define (add-ids idpc-names-with-arities-and-opt-alg-names .
@@ -1649,7 +1649,7 @@
 		       (cdr names)))
 	       ((= i (length clauses-with-idpc-pvars-and-names)))
 	     (let* ((cterms
-		     (if (member idpc-name '("ExDT" "ExLT" "ExRT" "ExUT"))
+		     (if (member idpc-name '("ExDT" "ExLT" "ExRT" "ExNcT"))
 			 (map predicate-to-cterm-with-total-vars param-pvars)
 			 (map predicate-to-cterm param-pvars)))
 		    (aconst
@@ -2014,7 +2014,7 @@
 	  ((string=? "Total" (predconst-to-name pred))
 	   (let* ((arg (car args))
 		  (type (term-to-type arg)))
-	     (cond ((tvar-form? type) (make-andu (make-totalnc arg)
+	     (cond ((tvar-form? type) (make-andnc (make-totalnc arg)
 						 (make-coeqpnc real arg)))
 		   ;; (make-totalmr real arg))
 		   ((or (alg-form? type)
@@ -2029,7 +2029,7 @@
 	  ((string=? "CoTotal" (predconst-to-name pred))
 	   (let* ((arg (car args))
 		  (type (term-to-type arg)))
-	     (cond ((tvar-form? type) (make-andu (make-cototalnc arg)
+	     (cond ((tvar-form? type) (make-andnc (make-cototalnc arg)
 						 (make-coeqpnc real arg)))
 		    ;; (make-cototalmr real arg))
 		   ((or (alg-form? type)
@@ -2045,7 +2045,7 @@
 	   (let* ((arg1 (car args))
 		  (arg2 (cadr args))
 		  (type (term-to-type arg1)))
-	     (cond ((tvar-form? type) (make-andu (make-eqpnc arg1 arg2)
+	     (cond ((tvar-form? type) (make-andnc (make-eqpnc arg1 arg2)
 						 (make-coeqpnc real arg1)))
 		   ((or (alg-form? type)
 			(arrow-form? type)
@@ -2060,7 +2060,7 @@
 	   (let* ((arg1 (car args))
 		  (arg2 (cadr args))
 		  (type (term-to-type arg1)))
-	     (cond ((tvar-form? type) (make-andu (make-coeqpnc arg1 arg2)
+	     (cond ((tvar-form? type) (make-andnc (make-coeqpnc arg1 arg2)
 						 (make-coeqpnc real arg1)))
 		   ((or (alg-form? type)
 			(arrow-form? type)
@@ -2083,16 +2083,16 @@
 				       formula))))
 	   (cond
 	    ((initial-substring? "Total" idpc-name)
-	     (make-andu (term-to-totalnc-formula real)
+	     (make-andnc (term-to-totalnc-formula real)
 			(terms-to-coeqpnc-formula real (car args))))
 	    ((initial-substring? "CoTotal" idpc-name)
-	     (make-andu (term-to-cototalnc-formula real)
+	     (make-andnc (term-to-cototalnc-formula real)
 			(terms-to-coeqpnc-formula real (car args))))
 	    ((initial-substring? "EqP" idpc-name)
-	     (make-andu (terms-to-eqpnc-formula (car args) (cadr args))
+	     (make-andnc (terms-to-eqpnc-formula (car args) (cadr args))
 			(terms-to-coeqpnc-formula real (car args))))
 	    ((initial-substring? "CoEqP" idpc-name)
-	     (make-andu (terms-to-coeqpnc-formula (car args) (cadr args))
+	     (make-andnc (terms-to-coeqpnc-formula (car args) (cadr args))
 			(terms-to-coeqpnc-formula real (car args))))
 	    (else (apply make-predicate-formula
 			 (idpredconst-to-mr-idpredconst pred) real args)))))
@@ -2175,22 +2175,22 @@
 	((predconst-form? pred)
 	 (cond
 	  ((string=? "Total" (predconst-to-name pred))
-	   (make-andu (make-totalnc (car args))
+	   (make-andnc (make-totalnc (car args))
 		      (make-coeqpnc real (car args))))
 	   ;; (make-totalmr real (car args)))
 	  ((string=? "CoTotal" (predconst-to-name pred))
-	   (make-andu (make-cototalnc (car args))
+	   (make-andnc (make-cototalnc (car args))
 		      (make-coeqpnc real (car args))))
 	   ;; (make-cototalmr real (car args)))
 	  ((string=? "EqP" (predconst-to-name pred))
 	   (let ((arg1 (car args))
 		 (arg2 (cadr args)))
-	     (make-andu (make-eqpnc arg1 arg2)
+	     (make-andnc (make-eqpnc arg1 arg2)
 			(make-coeqpnc real arg1))))
 	  ((string=? "CoEqP" (predconst-to-name pred))
 	   (let ((arg1 (car args))
 		 (arg2 (cadr args)))
-	     (make-andu (make-coeqpnc arg1 arg2)
+	     (make-andnc (make-coeqpnc arg1 arg2)
 			(make-coeqpnc real arg1))))
 	  (else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
 			 "c.r. predicate constant with mr version expected"
@@ -3610,7 +3610,13 @@
 	       (clauses-with-names
 		(idpredconst-name-to-clauses-with-names idpc-name))
 	       (clause-names (map cadr clauses-with-names)))
-	  (display idpc-name) (newline)
+	  (display idpc-name) (display tab)
+	  (let ((opt-alg-name (idpredconst-name-to-opt-alg-name idpc-name)))
+	    (if (pair? opt-alg-name)
+		(display (string-append "with content of type "
+					(car opt-alg-name)))
+		(display "non-computational")))
+	  (newline)
 	  (for-each (lambda (cn)
 		      (display tab)
 		      (display cn) (display ":")
@@ -4006,7 +4012,7 @@
 				((eq-name-to-predicate-generator eq-name)
 				 (make-term-in-var-form var) arg))
 			      eq-names-list vars args)))
-	   (apply (if prim-prod? mk-and mk-andu)
+	   (apply (if prim-prod? mk-and mk-andnc)
 		  (if mr-idpc? ;change the order of eq formulas
 		      (append (cdr eq-list) (list (car eq-list)))
 		      eq-list))))
@@ -4017,7 +4023,7 @@
 		       concl eq-names-list vars pvar
 		       prim-prod? mr-idpc? nc-idpc?)))
 	   (if nc-idpc?
-	       ((if prim-prod? mk-and mk-andu)
+	       ((if prim-prod? mk-and mk-andnc)
 		(if (or (formula-of-nulltype? prem)
 			(member pvar (formula-to-pvars prem)))
 		    prem (formula-to-nc-formula prem))
@@ -4033,7 +4039,7 @@
 		(prev (clause-to-exand-formula
 		       kernel eq-names-list vars pvar
 		       prim-prod? mr-idpc? nc-idpc?)))
-	   (cond (nc-idpc? (mk-exu var prev))
+	   (cond (nc-idpc? (mk-exnc var prev))
 		 ((allnc-form? fla) (mk-exr var prev))
 		 (else ((if prim-prod? mk-ex mk-exd) var prev)))))
 	(else (myerror "clause-to-exand-formula" "unexpected formula" fla))))
