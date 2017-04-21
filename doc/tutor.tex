@@ -1,4 +1,4 @@
-%% $Id: tutor.tex 2702 2014-09-18 13:43:39Z schwicht $
+%% 2017-04-21
 
 \documentclass[12pt]{amsart}
 \usepackage{amssymb,enumerate}
@@ -7,7 +7,7 @@
 \newcommand{\allnc}{\forall^{\mathrm{nc}}} %no computational content
 \newcommand{\ex}{\exists} %constructive
 \newcommand{\excl}{\tilde{\exists}} %classical, with logical falsum
-\newcommand{\exu}{\exists^{\mathrm{u}}} %constructive, no comp. content
+\newcommand{\exnc}{\exists^{\mathrm{nc}}} %constructive, no comp. content
 \newcommand{\tonc}{\to^{\mathrm{nc}}}
 \newcommand{\falsum}{\bot}
 \newcommand{\GTotal}{T} %obsolete, to be replaced by \Total
@@ -2150,14 +2150,14 @@ the \inquotes{uniform one clause defined}%
   $\to$) only; see the reference manual for details.}
 which are non-computational.  Examples are Leibniz equality%
 \index{Leibniz equality} \texttt{EqD}\index{EqD}, and uniform variants
-\texttt{ExU}\index{ExU} and \texttt{AndU}\index{AndU} of the
+\texttt{ExNc}\index{ExNc} and \texttt{AndNc}\index{AndNc} of the
 existential quantifier and conjunction.
 
 One can prove a non-computational version of the lemma above, where
 we only need to replace the \texttt{ex-intro} command by the general
-\texttt{intro}, since \texttt{ExU} is inductively defined.
+\texttt{intro}, since \texttt{ExNc} is inductively defined.
 \begin{verbatim}
-(set-goal "allnc n(EvenNC n -> exu m m+m=n)")
+(set-goal "allnc n(EvenNC n -> exnc m m+m=n)")
 (assume "n" "En")
 (elim "En")
 (intro 0 (pt "0"))
