@@ -1,4 +1,4 @@
-;; 2017-04-09.  sdmult.scm
+;; 2017-04-21.  sdmult.scm
 
 (load "~/git/minlog/init.scm")
 
@@ -78,7 +78,7 @@
 ;;  CoI x -> 
 ;;  exr d,x0,y(
 ;;   Sd d andd 
-;;   Real x0 andr abs x0<<=1 andr CoI x0 andl y===(1#2)*(x0+d) andu x===y))
+;;   Real x0 andr abs x0<<=1 andr CoI x0 andl y===(1#2)*(x0+d) andnc x===y))
 
 ;; We provide a simplified variant of CoIClause.
 
@@ -442,10 +442,9 @@
 ;; 38,39
 (simpreal "<-" "RealUMinusPlusRat")
 (simpreal "RealTimesIdUMinus")
-(use "RealUMinusCompatInv")
-(simpreal "dx2Prop")
-(use "RealEqSym")
-(use "RealUMinusUMinus")
+(use "RealUMinusInj")
+(simpreal "RealUMinusUMinus")
+(use "dx2Prop")
 (realproof)
 (realproof)
 (use "RealRat")
@@ -544,14 +543,12 @@
 ;; ?_51:(1#2)*((1#2)*(as n+d+(bs n+e)))==(1#4)*(as n+bs n+(d+e))
 (ng #t)
 ;; ?_52:(1#4)*(as n+d+bs n+e)==(1#4)*(as n+bs n+(d+e))
-(use "RatTimesCompat")
-(use "Truth")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_59:d+(bs n+e)==bs n+(d+e)
+;; ?_57:d+(bs n+e)==bs n+(d+e)
 (ng #t)
 (simp (pf "d+bs n=bs n+d"))
 (simp "<-" "RatPlusAssoc")
@@ -802,7 +799,7 @@
 ;; J(s1,s2,t) pair K(s1,s2,t) pair u1 pair u2.
 
 ;; SdtwoBoundReal
-(set-goal "all i(Sdtwo i -> RealAbs i<<=2)")
+(set-goal "all k(Sdtwo k -> RealAbs k<<=2)")
 (assume "i" "Sdtwoi")
 (use "RealLeIntro")
 (use "RealRat")
@@ -1042,7 +1039,7 @@
  (use "x3=0")
 ;;   {x}  x1  x1=0:x1===0
 ;;   x=x1:x===x1
-;;   {x2}  x3  x3Prop:x3===0 andu x2===x3
+;;   {x2}  x3  x3Prop:x3===0 andnc x2===x3
 ;;   x3=0:x3===0
 ;;   x2=x3:x2===x3
 ;; -----------------------------------------------------------------------------
@@ -1092,7 +1089,6 @@
 
 ;; CoISdTimes
 (set-goal "allnc d,x(Sd d -> CoI x -> CoI(d*x))")
-;; (set-goal "allnc x,d(Sd d -> CoI x -> CoI(d*x))")
 (assume "d" "x" "Sdd")
 (elim "Sdd")
 ;; 3-5
@@ -1151,9 +1147,6 @@
 (use "RatEqvTrans" 
      (pt "(1#4)*((1#2)*((as n+d)*bs n)+(1#2)*(cs n+d0)+(1#2)*RatPlus i i)"))
 (ng)
-(simprat (pf "(i+i#2)==i"))
-(use "Truth")
-(ng)
 (simp (pf "2=IntPlus 1 1"))
 (simp "IntTimes6RewRule") ;k*(j+i)=k*j+k*i
 (use "Truth")
@@ -1203,11 +1196,6 @@
  "allnc z0,d1,y,i(CoI z0 -> Sd d1 -> CoI y -> Sdtwo i -> exr z2,e,e0(
  CoI z2 andi Sd e andi Sd e0 andi (1#4)*(z0+d1*y+i)===(1#4)*(z2+e+2*e0)))")
 (assume "z0" "d1" "y" "i" "CoIz0" "Sdd1" "CoIy" "Sdtwoi")
-;; (assert "CoI(d1*y)")
-;; (use "CoISdTimes")
-;; (use "Sdd1")
-;; (use "CoIy")
-;; (assume "CoId1y")
 (assert "CoI((1#4)*(z0+d1*y+i))")
 (use "CoIAvcToCoI")
 (intro 0 (pt "i"))
@@ -1306,8 +1294,6 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-(use "RatTimesCompat")
-(use "Truth")
 (use "RatEqvTrans"
      (pt "(1#4)*as n*bs n+(1#4)*(cs n+e+2*e0)+(1#4)*RatPlus d0 i"))
 (use "RatPlusCompat")
