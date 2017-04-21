@@ -1,4 +1,4 @@
-;; 2017-04-09.  graymult.scm
+;; 2017-04-21.  graymult.scm
 
 (load "~/git/minlog/init.scm")
 
@@ -312,16 +312,16 @@
 ;; allnc x(
 ;;  CoG x -> 
 ;;  exr d,x0,y(
-;;   Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+IntN 1)* ~d andu x===y) ord 
-;;  exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andu x===y))
+;;   Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+IntN 1)* ~d andnc x===y) ord 
+;;  exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andnc x===y))
 
 ;; (pp "CoHClause")
 
 ;; allnc x(
 ;;  CoH x -> 
 ;;  exr d,x0,y(
-;;   Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+1)*d andu x===y) ord 
-;;  exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andu x===y))
+;;   Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+1)*d andnc x===y) ord 
+;;  exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andnc x===y))
 
 ;; By the greatest-fixed-point (or coinduction) axiom CoG is a fixed
 ;; point.  Hence the inverse implication holds as well.
@@ -329,14 +329,14 @@
 ;; CoGClauseInv
 (set-goal "allnc x(
  exr d,x0,y(Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+IntN 1)* ~d
-                                           andu x===y) ord 
- exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andu x===y) -> CoG x)")
+                                           andnc x===y) ord 
+ exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andnc x===y) -> CoG x)")
 (assume "x" "Disj")
 (coind
  "Disj"
  (pf "exr d,x0,y(
-  Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+1)*d andu x===y) ord 
-  exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andu x===y) -> CoH x"))
+  Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+1)*d andnc x===y) ord 
+  exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andnc x===y) -> CoH x"))
 ;; 3,4
 (drop "Disj")
 (assume "x1" "x1Prop")
@@ -436,14 +436,14 @@
 ;; CoHClauseInv
 (set-goal "allnc x(
  exr d,x0,y(
-  Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+1)*d andu x===y) ord 
- exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andu x===y) ->  CoH x)")
+  Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+1)*d andnc x===y) ord 
+ exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andnc x===y) ->  CoH x)")
 (assume "x" "Disj")
 (coind
  "Disj"
  (pf "exr d,x0,y(Psd d andd Real x0 andr CoG x0 andl y===(1#2)*(x0+IntN 1)* ~d
-                                           andu x===y) ord 
- exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andu x===y) -> CoG x"))
+                                           andnc x===y) ord 
+ exr x0,y(Real x0 andr CoH x0 andl y===(1#2)*x0 andnc x===y) -> CoG x"))
 ;; 3,4
 (drop "Disj")
 (assume "x1" "x1Prop")
@@ -1156,15 +1156,11 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng)
-;; ?_7:(~(as n)+IntN 1)* ~d==(as n+1)*d
-(simprat (pf "(IntN 1#1)== ~(1#1)"))
-;; ?_8:(~(as n)+ ~1)* ~d==(as n+1)*d
-(simp "<-" "RatUMinus2RewRule")
-(simp (pf "(IntUMinus d#1)=RatUMinus(d#1)"))
-(simp "RatTimes3RewRule")
-(simp "RatTimes4RewRule")
-(use "Truth")
-(use "Truth")
+;; ?_9:~((~(as n)+IntN 1)*d)==(as n+1)*d
+(simprat "RatTimesPlusDistrLeft")
+(simprat "RatTimesPlusDistrLeft")
+(ng)
+(simp "IntTimesIntNL")
 (use "Truth")
 ;; Assertion proved.
 (assume "CoHToCoGAuxEqS" "d" "x" "Rx")
@@ -1427,30 +1423,25 @@
 (simprat "<-" "RatTimesPlusDistr")
 (simp "RatTimesAssoc")
 (ng)
-;; (1#4)*((as n+IntN 1)* ~d+(bs n+IntN 1)* ~e)==(1#4)*(as n* ~d+bs n* ~e+(d+e))
+;; ~((as n+IntN 1)*d)+ ~((bs n+IntN 1)*e)== ~(as n*d)+ ~(bs n*e)+(d+e)
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
-(simprat (pf "RatTimes IntN 1~d==(d#1)"))
-(simprat (pf "RatTimes IntN 1~e==(e#1)"))
 (ng)
-(simp (pf "as n* ~d+d+bs n* ~e=as n* ~d+(d+bs n* ~e)"))
-(simp (pf "d+bs n* ~e=bs n* ~e+d"))
+(simp "IntTimesIntNL")
+(simp "IntTimesIntNL")
 (ng)
 (simp (pf "d+e=RatPlus d e"))
-(simp (pf "as n* ~d+bs n* ~e+RatPlus d e=as n* ~d+bs n* ~e+d+e"))
-(ng)
-(use "Truth")
 (simp "<-" "RatPlus2RewRule")
-(use "Truth")
-(use "Truth")
-(use "RatPlusComm")
+(simp "<-" "RatPlus2RewRule")
+(simp "<-" "RatPlus2RewRule")
+(simp "RatEqv4RewRule")
 (simp "RatPlusAssoc")
+(simp "RatPlusAssoc")
+(simp "RatEqv3RewRule")
+(simprat "RatEqvSym")
 (use "Truth")
-(simp "RatTimesIdIntUMinus")
-(simp "<-" "RatTimes4RewRule")
+(simp "RatPlusComm")
 (use "Truth")
-(simp "RatTimesIdIntUMinus")
-(simp "<-" "RatTimes4RewRule")
 (use "Truth")
 ;; Assertion proved.
 (assume "CoGAvAvcAuxEqS" "x" "y" "d" "e" "Rx" "Ry")
@@ -1484,20 +1475,16 @@
 (simprat "<-" "RatTimesPlusDistr")
 (simp "RatTimesAssoc")
 (ng)
-;; ?_19:(1#4)*((as n+IntN 1)* ~d+bs n)==(1#4)*(as n* ~d+bs n+d)
+;; ?_19:~((as n+IntN 1)*d)+bs n== ~(as n*d)+bs n+d
 (simprat "RatTimesPlusDistrLeft")
-(simprat (pf "RatTimes IntN 1~d==(d#1)"))
-(use "RatTimesCompat")
-(use "Truth")
-(simp "<-" "RatPlusAssoc")
-(simp "<-" "RatPlusAssoc")
-(use "RatPlusCompat")
-(use "Truth")
-(simp "RatPlusComm")
-(use "Truth")
 (ng)
-(simp "<-" "IntTimes5RewRule")
+(simp "IntTimesIntNL")
+(ng)
+(simp "<-" "RatPlusAssoc")
+(simp "<-" "RatPlusAssoc")
+(simp (pf "d+bs n=bs n+d"))
 (use "Truth")
+(use "RatPlusComm")
 ;; Assertion proved.
 (assume "CoGAvAvcPsdMidEqS" "x" "y" "d" "Rx" "Ry")
 (use "RealEqSToEq")
@@ -1524,17 +1511,11 @@
 (use "Truth")
 (simprat "<-" "RatTimesPlusDistr")
 (ng)
-(use "RatTimesCompat")
-(use "Truth")
 (simp "<-" "RatPlusAssoc")
-(use "RatPlusCompat")
-(use "Truth")
+(simp "RatEqv4RewRule")
 (simprat "RatTimesPlusDistrLeft")
-(use "RatPlusCompat")
-(use "Truth")
-;; ?_22:RatTimes IntN 1~e==e
 (ng)
-(simp "<-" "IntTimes5RewRule")
+(simp "IntTimesIntNL")
 (use "Truth")
 ;; Assertion proved
 (assume "CoGAvAvcMidPsdEqS" "x" "y" "e" "Rx" "Ry")
@@ -1834,10 +1815,8 @@
 (assume "n")
 (ng)
 (simprat "RatTimesPlusDistrLeft")
-(use "RatPlusCompat")
-(use "Truth")
 (ng)
-(simp "<-" "IntTimes5RewRule")
+(simp "IntTimesIntNL")
 (use "Truth")
 ;; Assertion proved.
 (assume "RealTimesPlusIntNOneDistrLeftEqS" "d" "x" "Rx")
@@ -1890,7 +1869,7 @@
 ;; Proof finished.
 (save "CoGAvUMinus")
 
-;; 2017-04-08.  Done up to this point.  We now need JK.scm
+;; We now need JK.scm
 
 ;; SdDisj
 (set-goal "allnc d(Sd d -> d=0 orr Psd d)")
@@ -2540,8 +2519,6 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng)
-(simp "<-" "RatTimesAssoc")
-(ng)
 (use "Truth")
 ;; Assertion proved.
 (assume "RealTimesPsdPsdEqS" "d" "x" "Rx" "Psdd")
@@ -2683,7 +2660,7 @@
 (assume "n")
 (ng #t)
 (use "Truth")
-;; ?_100:z1===(1#2)*((1#4)*(x1* ~d1+y1* ~d1+RealTimes i1~d1)+IntN 1)* ~d1 andu 
+;; ?_100:z1===(1#2)*((1#4)*(x1* ~d1+y1* ~d1+RealTimes i1~d1)+IntN 1)* ~d1 andnc 
 ;;       z1===z1
 (split)
 (simpreal "ixyProp")
@@ -2700,27 +2677,30 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_145:(1#2)*((1#4)*(as n+bs n+i1)+d1)==
-;;       (1#2)*((1#4)*(as n* ~d1+bs n* ~d1+ ~(i1*d1))+IntN 1)* ~d1
+;; ?_145:(1#2)*((1#4)*(as n+bs n+i1)+d1)== 
+;;       ~((1#2)*((1#4)*(~(as n*d1)+ ~(bs n*d1)+ ~(i1*d1))+IntN 1)*d1)
+(simp (pf "~(i1*d1)=RatUMinus(RatTimes i1 d1)"))
+(simp (pf "(IntN 1#1)= ~(1#1)"))
+(simp "<-" "RatUMinus2RewRule")
+(simp "<-" "RatUMinus2RewRule")
+(simp "RatTimes3RewRule")
+(simp "<-" "RatUMinus2RewRule")
+(simp "RatTimes3RewRule")
+(simp "RatTimes4RewRule")
+(simp "RatUMinus1RewRule")
+;; ?_156:(1#2)*((1#4)*(as n+bs n+i1)+d1)==
+;;       (1#2)*((1#4)*(as n*d1+bs n*d1+RatTimes i1 d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
-(use "RatTimesCompat")
-(use "Truth")
-;; ?_148:(1#4)*(as n+bs n+i1)+d1==
-;;       ((1#4)*(as n* ~d1+bs n* ~d1+ ~(i1*d1))+IntN 1)* ~d1
+(simp "RatEqv5RewRule")
 (simprat "RatTimesPlusDistrLeft")
-(simprat "RatIntNOneTimes")
-(use "RatPlusCompat")
-;; ?_151:(1#4)*(as n+bs n+i1)==(1#4)*(as n* ~d1+bs n* ~d1+ ~(i1*d1))* ~d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
+(ng)
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
-(ng #t)
-(use "RatTimesCompat")
-(use "Truth")
-;; ?_160:as n+bs n+i1==as n*(d1*d1)+bs n*(d1*d1)+i1*d1*d1
 (simp "<-" "IntTimesAssoc")
+(simp (pf "RatTimes d1 d1=d1*d1"))
 (assert "allnc d(Psd d -> d*d=1)")
  (assume "d" "Psdd")
  (elim "Psdd")
@@ -2730,6 +2710,8 @@
 (simp "PsdSquareOne")
 (use "Truth")
 (use "Psdd1")
+(use "Truth")
+(use "Truth")
 (use "Truth")
 ;; ?_133:z1===z1
 (use "RealEqRefl")
@@ -2754,7 +2736,7 @@
 ;; let introduction
 (cut "exr j,d,x0,y0(Sdtwo j andi Sd d andi CoG x0 andi CoG y0 andi
  (1#4)*(x+y+i)===(1#2)*((1#4)*(x0+y0+j)+d))")
-;; 185,186
+;; 192,193
 (use-with "Id" (make-cterm (goal-to-formula (current-goal))) "?")
 (assume "ExCoGAvcSatCoICl")
 (by-assume "ExCoGAvcSatCoICl" "i1" "i1Prop")
@@ -2779,7 +2761,7 @@
  (use "i1d1x1y1Prop")
 (assume "Disj")
 (elim "Disj")
-;; 218,219
+;; 225,226
 (drop "Disj")
 (assume "d1=0") ;case small
 (intro 1)
@@ -2803,7 +2785,7 @@
 (split)
 (simpreal "ixyProp")
 (simpreal "Eq")
-;; ?_243:(1#2)*((1#4)*(x1+y1+i1)+d1)===(1#2)*((1#4)*(x1+y1+i1))
+;; ?_250:(1#2)*((1#4)*(x1+y1+i1)+d1)===(1#2)*((1#4)*(x1+y1+i1))
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -2818,11 +2800,11 @@
 (ng #t)
 (simp "d1=0")
 (use "Truth")
-;; ?_241:z1===z1
+;; ?_248:z1===z1
 (use "RealEqRefl")
 (use "RealEqElim0" (pt "(1#4)*(x+y+i)"))
 (use "ixyProp")
-;; 219
+;; 226
 (drop "Disj")
 (assume "Psdd1")
 (intro 0)
@@ -2850,7 +2832,7 @@
 (use "CoGPsdTimes")
 (use "CoGy1")
 (use "Psdd1")
-;; ?_284:(1#4)*(x1*d1+y1*d1+RealTimes i1 d1)===(1#4)*(x1*d1+y1*d1+i1*d1)
+;; ?_291:(1#4)*(x1*d1+y1*d1+RealTimes i1 d1)===(1#4)*(x1*d1+y1*d1+i1*d1)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -2864,11 +2846,11 @@
 (assume "n")
 (ng #t)
 (use "Truth")
-;; ?_270:z1===(1#2)*((1#4)*(x1*d1+y1*d1+RealTimes i1 d1)+1)*d1 andu z1===z1
+;; ?_277:z1===(1#2)*((1#4)*(x1*d1+y1*d1+RealTimes i1 d1)+1)*d1 andnc z1===z1
 (split)
 (simpreal "ixyProp")
 (simpreal "Eq")
-;; ?_302:(1#2)*((1#4)*(x1+y1+i1)+d1)===
+;; ?_309:(1#2)*((1#4)*(x1+y1+i1)+d1)===
 ;;       (1#2)*((1#4)*(x1*d1+y1*d1+RealTimes i1 d1)+1)*d1
 (use "RealEqSToEq")
 (realproof)
@@ -2880,24 +2862,22 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_312:(1#2)*((1#4)*(as n+bs n+i1)+d1)==
+;; ?_319:(1#2)*((1#4)*(as n+bs n+i1)+d1)==
 ;;       (1#2)*((1#4)*(as n*d1+bs n*d1+i1*d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
-(use "RatTimesCompat")
-(use "Truth")
-;; ?_315:(1#4)*(as n+bs n+i1)+d1==((1#4)*(as n*d1+bs n*d1+i1*d1)+1)*d1
+(simp "RatEqv5RewRule")
+;; ?_321:(1#4)*(as n+bs n+i1)+d1==((1#4)*(as n*d1+bs n*d1+i1*d1)+1)*d1
 (simprat "RatTimesPlusDistrLeft")
-(use "RatPlusCompat")
-;; ?_317:(1#4)*(as n+bs n+i1)==(1#4)*(as n*d1+bs n*d1+i1*d1)*d1
+(simp (pf "RatTimes 1 d1=(d1#1)"))
+(simp "RatEqv3RewRule")
+;; ?_325:(1#4)*(as n+bs n+i1)==(1#4)*(as n*d1+bs n*d1+i1*d1)*d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (ng #t)
-(use "RatTimesCompat")
-(use "Truth")
-;; ?_326:as n+bs n+i1==as n*(d1*d1)+bs n*(d1*d1)+i1*d1*d1
+;; ?_331:as n+bs n+i1==as n*(d1*d1)+bs n*(d1*d1)+i1*d1*d1
 (simp "<-" "IntTimesAssoc")
 (assert "allnc d(Psd d -> d*d=1)")
  (assume "d" "Psdd")
@@ -2909,12 +2889,12 @@
 (use "Truth")
 (use "Psdd1")
 (use "Truth")
-;; ?_300:z1===z1
+;; ?_307:z1===z1
 (use "RealEqRefl")
 (use "RealEqElim0" (pt "(1#4)*(x+y+i)"))
 (use "ixyProp")
 
-;; ?_186:exr j,d,x0,y0(
+;; ?_193:exr j,d,x0,y0(
 ;;        Sdtwo j andd 
 ;;        Sd d andd 
 ;;        CoG x0 andd CoG y0 andl (1#4)*(x+y+i)===(1#2)*((1#4)*(x0+y0+j)+d))
@@ -3206,49 +3186,40 @@
 (simprat (pf "(1#2)*(as n+IntN 1)* ~d1*(1#2)==
               (1#2)*((1#2)*(as n+IntN 1)* ~d1)"))
 (ng #t)
-(simprat (pf "(1#4)*(as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1==
-              (1#4)*((as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1)"))
-(use "RatTimesCompat")
-(use "Truth")
-(simprat "RatTimesPlusDistrLeft")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "RatEqv5RewRule")
+;; ?_110:(as n+IntN 1)*(d1*((bs n+IntN 1)*e1))==
+;;       as n*d1*bs n*e1+ ~(as n*(d1*e1))+ ~(bs n*(d1*e1))+d1*e1
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistr")
 (simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistrLeft")
-(simprat "RatTimesPlusDistrLeft")
+(simprat "RatTimesPlusDistr")
 (ng #t)
 (use "RatPlusCompat")
 (use "RatPlusCompat")
-(use "RatPlusCompat")
-(simp "<-" "RatUMinus0RewRule")
-(simp "<-" "RatUMinus0RewRule")
-(simp "RatTimes3RewRule")
-(simp "RatTimes3RewRule")
-(ng #t)
+(simp "RatEqv4RewRule")
+(simp "<-" "RatTimes3RewRule")
+;; ?_122:as n*(d1*IntN 1*e1)==as n* ~(d1*e1)
+(simp "IntTimesIntNR")
 (use "Truth")
-;; ?_124:as n* ~d1*IntN 1* ~e1==as n* ~(d1*e1)
-(simp "<-" "RatTimesAssoc")
-(simp "<-" "RatTimesAssoc")
-(use "RatTimesCompat")
-(use "Truth")
-(ng #t)
-(simp "IntTimesIntNOne")
-(ng #t)
-(use "Truth")
-;; ?_122:~(IntN 1*d1)*bs n* ~e1==bs n* ~(d1*e1)
-(simp "IntIntNOneTimes")
+;; ?_120:IntN 1*d1*bs n*e1== ~(bs n*(d1*e1))
+(simp "IntTimesIntNL")
 (ng #t)
 (simp (pf "d1*bs n=bs n*d1"))
-(simp "<-" "RatTimesAssoc")
+(simp (pf "(d1*e1#1)=RatTimes d1 e1"))
+(use "RatEqvSym")
+(simp "RatTimesAssoc")
+(use "Truth")
 (use "Truth")
 (use "RatTimesComm")
-;; ?_120:IntN 1*d1*IntN 1*e1==d1*e1
-(simp "IntIntNOneTimes")
-(simp "IntTimesIntNOne")
-(use "Truth")
-;; ?_108:(1#4)*(as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1==
-;;       (1#4)*((as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1)
+;; ?_118:IntN 1*d1*IntN 1*e1==d1*e1
+(simp "IntTimesIntNL")
+(ng #t)
+(simp "<-" "IntTimesAssoc")
+(simp "IntTimesIntNL")
 (use "Truth")
 ;; ?_105:(1#2)*(as n+IntN 1)* ~d1*(1#2)==(1#2)*((1#2)*(as n+IntN 1)* ~d1)
 (simp (pf "(1#2)*((1#2)*(as n+IntN 1)* ~d1)=((1#2)*(as n+IntN 1)* ~d1)*(1#2)"))
@@ -3268,14 +3239,12 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-(use "RatTimesCompat")
-(use "Truth")
 (simprat "RatTimesPlusDistrLeft")
 (ng #t)
-(simp "IntIntNOneTimes")
+(simp "IntTimesIntNL")
 (ng #t)
-(simp (pf "d0+d1*e1=(d0#1)+d1*e1"))
-(simp "RatPlusAssoc")
+(simp (pf "d0+d1*e1=RatPlus d0(d1*e1)"))
+(simp "<-" "RatPlusAssoc")
 (use "Truth")
 (use "Truth")
 ;; ?_51:exr x0(CoH x0 andl (1#2)*(x1* ~(d1*e1)+y1* ~(d1*e1))===(1#2)*x0) -> 
@@ -3291,7 +3260,7 @@
 ;;   {z1}  z1Prop:CoH z1 andl (1#2)*(x1* ~(d1*e1)+y1* ~(d1*e1))===(1#2)*z1
 ;;   CoHz1:CoH z1
 ;; -----------------------------------------------------------------------------
-;; ?_174:exr i,x0,y0,z(
+;; ?_164:exr i,x0,y0,z(
 ;;        Sdtwo i andd 
 ;;        CoG x0 andd CoG y0 andd CoG z andl x*y===(1#4)*(x0*y0+z+i))
 
@@ -3315,17 +3284,17 @@
 (split)
 (use "CoHToCoG")
 (use "CoHz1")
-;; ?_193:x*y===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
+;; ?_183:x*y===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
 (simpreal "d1x1Prop")
 (simpreal "e1y1Prop")
-;; ?_196:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
+;; ?_186:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
 ;;       (1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
 ;; RealEqTrans for simpreal with (1#2)*z1
 (use "RealEqTrans" (pt "(1#4)*(x1*d1*(y1*e1)+2*((1#2)*z1)+d1*e1)"))
 (simpreal "<-" "z1Prop")
-;; ?_199:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
+;; ?_189:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
 ;;       (1#4)*(x1*d1*(y1*e1)+2*((1#2)*(x1* ~(d1*e1)+y1* ~(d1*e1)))+d1*e1)
-;; Same goal as above
+;; Same goal as 93 above
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3339,59 +3308,50 @@
 (simprat (pf "(1#2)*(as n+IntN 1)* ~d1*(1#2)==
               (1#2)*((1#2)*(as n+IntN 1)* ~d1)"))
 (ng #t)
-(simprat (pf "(1#4)*(as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1==
-              (1#4)*((as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1)"))
-(use "RatTimesCompat")
-(use "Truth")
-(simprat "RatTimesPlusDistrLeft")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "RatEqv5RewRule")
+;; ?_206:(as n+IntN 1)*(d1*((bs n+IntN 1)*e1))==
+;;       as n*d1*bs n*e1+ ~(as n*(d1*e1))+ ~(bs n*(d1*e1))+d1*e1
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistr")
 (simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistrLeft")
-(simprat "RatTimesPlusDistrLeft")
+(simprat "RatTimesPlusDistr")
 (ng #t)
 (use "RatPlusCompat")
 (use "RatPlusCompat")
-(use "RatPlusCompat")
-(simp "<-" "RatUMinus0RewRule")
-(simp "<-" "RatUMinus0RewRule")
-(simp "RatTimes3RewRule")
-(simp "RatTimes3RewRule")
-(ng #t)
+(simp "RatEqv4RewRule")
+(simp "<-" "RatTimes3RewRule")
+;; ?_218:as n*(d1*IntN 1*e1)==as n* ~(d1*e1)
+(simp "IntTimesIntNR")
 (use "Truth")
-;; ?_230:as n* ~d1*IntN 1* ~e1==as n* ~(d1*e1)
-(simp "<-" "RatTimesAssoc")
-(simp "<-" "RatTimesAssoc")
-(use "RatTimesCompat")
-(use "Truth")
-(ng #t)
-(simp "IntTimesIntNOne")
-(ng #t)
-(use "Truth")
-;; ?_228:~(IntN 1*d1)*bs n* ~e1==bs n* ~(d1*e1)
-(simp "IntIntNOneTimes")
+;; ?_216:IntN 1*d1*bs n*e1== ~(bs n*(d1*e1))
+(simp "IntTimesIntNL")
 (ng #t)
 (simp (pf "d1*bs n=bs n*d1"))
-(simp "<-" "RatTimesAssoc")
+(simp (pf "(d1*e1#1)=RatTimes d1 e1"))
+(use "RatEqvSym")
+(simp "RatTimesAssoc")
+(use "Truth")
 (use "Truth")
 (use "RatTimesComm")
-;; ?_226:IntN 1*d1*IntN 1*e1==d1*e1
-(simp "IntIntNOneTimes")
-(simp "IntTimesIntNOne")
+;; ?_214:IntN 1*d1*IntN 1*e1==d1*e1
+(simp "IntTimesIntNL")
+(ng #t)
+(simp "<-" "IntTimesAssoc")
+(simp "IntTimesIntNL")
 (use "Truth")
-;; ?_214:(1#4)*(as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1==
-;;       (1#4)*((as n+IntN 1)* ~d1*(bs n+IntN 1)* ~e1)
-(use "Truth")
-;; ?_211:(1#2)*(as n+IntN 1)* ~d1*(1#2)==(1#2)*((1#2)*(as n+IntN 1)* ~d1)
+;; ?_201:(1#2)*(as n+IntN 1)* ~d1*(1#2)==(1#2)*((1#2)*(as n+IntN 1)* ~d1)
 (simp (pf "(1#2)*((1#2)*(as n+IntN 1)* ~d1)=((1#2)*(as n+IntN 1)* ~d1)*(1#2)"))
 (use "Truth")
 (use "RatTimesComm")
-;; 198:(1#4)*(x1*d1*(y1*e1)+2*((1#2)*z1)+d1*e1)===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
+;; 188:(1#4)*(x1*d1*(y1*e1)+2*((1#2)*z1)+d1*e1)===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
 (simpreal (pf "2*((1#2)*z1)===z1"))
 (use "RealEqRefl")
 (realproof)
-;; ?_253:2*((1#2)*z1)===z1
+;; ?_235:2*((1#2)*z1)===z1
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3432,10 +3392,10 @@
 (use "CoHToCoG")
 (use "CoHy1")
 (use "d1x1Prop")
-;; ?_286:x*y===(1#4)*(x1* ~d1*y1+y1*d1+0)
+;; ?_268:x*y===(1#4)*(x1* ~d1*y1+y1*d1+0)
 (simpreal "d1x1Prop")
 (simpreal "y1Prop")
-;; ?_291:(1#2)*(x1+IntN 1)* ~d1*((1#2)*y1)===(1#4)*(x1* ~d1*y1+y1*d1+0)
+;; ?_273:(1#2)*(x1+IntN 1)* ~d1*((1#2)*y1)===(1#4)*(x1* ~d1*y1+y1*d1+0)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3446,24 +3406,22 @@
 (cases (pt "y1"))
 (assume "bs" "N" "y1Def")
 (ng #t)
-;; ?_301:(1#2)*(as n+IntN 1)* ~d1*(1#2)*bs n==(1#4)*(as n* ~d1*bs n+bs n*d1)
-(simp (pf "(1#2)*(as n+IntN 1)* ~d1*(1#2)=(1#2)*((1#2)*(as n+IntN 1)* ~d1)"))
+;; ?_283:~((1#2)*(as n+IntN 1)*d1*(1#2)*bs n)==(1#4)*(~(as n*d1*bs n)+bs n*d1)
+(simp (pf "(1#2)*(as n+IntN 1)*d1*(1#2)=(1#2)*((1#2)*(as n+IntN 1)*d1)"))
 (ng #t)
-(simp (pf "(1#4)*(as n+IntN 1)* ~d1*bs n=(1#4)*((as n+IntN 1)* ~d1*bs n)"))
-(use "RatTimesCompat")
-(use "Truth")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimes3RewRule")
+(simp "RatEqv5RewRule")
 (simprat "RatTimesPlusDistrLeft")
 (ng #t)
-(simp "IntIntNOneTimes")
+(simp "IntTimesIntNL")
 (ng #t)
-(simprat "RatTimesPlusDistrLeft")
-(use "RatPlusCompat")
-(use "Truth")
 (simp "RatTimesComm")
 (use "Truth")
+;; ?_285:(1#2)*(as n+IntN 1)*d1*(1#2)=(1#2)*((1#2)*(as n+IntN 1)*d1)
+(simp "RatTimesComm")
 (use "Truth")
-(use "RatTimesComm")
-
 ;; ?_6:exr x0(CoH x0 andl x===(1#2)*x0) -> 
 ;;     exr i,x0,y0,z(
 ;;      Sdtwo i andd CoG x0 andd CoG y0 andd CoG z andl x*y===(1#4)*(x0*y0+z+i))
@@ -3479,7 +3437,7 @@
 ;; We distinguish cases on CoG y
 (inst-with-to "CoGClosure" (pt "y") "CoGy" "yCases")
 (elim "yCases")
-;; 327,328
+;; 307,308
 (drop "yCases")
 
 ;; Subcase Ux, LRy
@@ -3508,10 +3466,10 @@
 (use "CoHToCoG")
 (use "CoHx1")
 (use "e1y1Prop")
-;; ?_355:x*y===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
+;; ?_335:x*y===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
 (simpreal "x1Prop")
 (simpreal "e1y1Prop")
-;; ?_360:(1#2)*x1*((1#2)*(y1+IntN 1)* ~e1)===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
+;; ?_340:(1#2)*x1*((1#2)*(y1+IntN 1)* ~e1)===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3522,26 +3480,23 @@
 (cases (pt "y1"))
 (assume "bs" "N" "y1Def")
 (ng #t)
-;; ?_370:(1#2)*as n*(1#2)*(bs n+IntN 1)* ~e1==(1#4)*(as n*bs n* ~e1+as n*e1)
+;; ?_350:~((1#2)*as n*(1#2)*(bs n+IntN 1)*e1)==(1#4)*(~(as n*bs n*e1)+as n*e1)
+;;         (1#2)*as n*(1#2)*(bs n+IntN 1)* ~e1==(1#4)*(as n*bs n* ~e1+as n*e1)
 (simp (pf "(1#2)*as n*(1#2)=(1#2)*((1#2)*as n)"))
 (ng #t)
-(simp (pf "(1#4)*as n*(bs n+IntN 1)* ~e1=(1#4)*(as n*(bs n+IntN 1)* ~e1)"))
-(use "RatTimesCompat")
-(use "Truth")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistrLeft")
-(use "RatPlusCompat")
-(use "Truth")
+(simp "<-" "RatTimes3RewRule")
+(simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (use "RatTimesCompat")
 (use "Truth")
-(ng #t)
-(simp "IntIntNOneTimes")
+(simprat "RatTimesPlusDistrLeft")
+(simprat "RatTimesPlusDistr")
+(simp "RatTimesIntNL")
 (use "Truth")
+;; ?_352:(1#2)*as n*(1#2)=(1#2)*((1#2)*as n)
+(simp "RatTimesComm")
 (use "Truth")
-(use "RatTimesComm")
-
-;; ?_328:exr x0(CoH x0 andl y===(1#2)*x0) -> 
+;; ?_308:exr x0(CoH x0 andl y===(1#2)*x0) -> 
 ;;       exr i,x0,y0,z(
 ;;        Sdtwo i andd 
 ;;        CoG x0 andd CoG y0 andd CoG z andl x*y===(1#4)*(x0*y0+z+i))
@@ -3567,10 +3522,10 @@
 (use "CoHy1")
 (split)
 (use "CoGZero")
-;; ?_408:x*y===(1#4)*(x1*y1+0+0)
+;; ?_384:x*y===(1#4)*(x1*y1+0+0)
 (simpreal "x1Prop")
 (simpreal "y1Prop")
-;; ?_410:(1#2)*x1*((1#2)*y1)===(1#4)*(x1*y1+0+0)
+;; ?_486:(1#2)*x1*((1#2)*y1)===(1#4)*(x1*y1+0+0)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3581,7 +3536,7 @@
 (cases (pt "y1"))
 (assume "bs" "N" "y1Def")
 (ng #t)
-;; ?_420:(1#2)*as n*(1#2)*bs n==(1#4)*as n*bs n
+;; ?_396:(1#2)*as n*(1#2)*bs n==(1#4)*as n*bs n
 (simp (pf "(1#2)*as n*(1#2)=(1#2)*((1#2)*as n)"))
 (use "Truth")
 (use "RatTimesComm")
@@ -3656,13 +3611,13 @@
 	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exu j j=J(e* ~e0+2*e0+d0+i)")
+(assert "exnc j j=J(e* ~e0+2*e0+d0+i)")
 (intro 0 (pt "J(e* ~e0+2*e0+d0+i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(e* ~e0+2*e0+d0+i)")
+(assert "exnc k k=K(e* ~e0+2*e0+d0+i)")
 (intro 0 (pt "K(e* ~e0+2*e0+d0+i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -3798,17 +3753,17 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_129:(1#2)*((1#2)*(cs n+IntN 1)* ~e+IntN 1)* ~e0+(d0+i#4)==
+;; ?_129:~((1#2)*(~((1#2)*(cs n+IntN 1)*e)+IntN 1)*e0)+(d0+i#4)==
 ;;       (1#4)*(cs n*e*e0+j)+k
 (use "RatEqvTrans"
      (pt "(1#2)*(((1#2)*((cs n+IntN 1)* ~e)+IntN 1)* ~e0)+(1#4)*RatPlus d0 i"))
 (use "Truth")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
-(simprat "RatIntNOneTimes")
-(simprat "RatIntNOneTimes")
-(simp (pf "~(~e#1)=(e#1)"))
-(simp (pf "~(~e0#1)=(e0#1)"))
+(simp "RatTimesIntNL")
+(simp "RatTimesIntNL")
+(simp (pf "~(RatTimes 1~e)=(e#1)"))
+(simp (pf "~(RatTimes 1~e0)=(e0#1)"))
 ;; ?_138:(1#2)*((1#2)*(cs n* ~e+e)* ~e0+e0)+(1#4)*RatPlus d0 i==
 ;;       (1#4)*(cs n*e*e0+j)+k
 (use "RatEqvTrans"
@@ -3892,13 +3847,13 @@
 	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exu j j=J(2*e0+d0+i)")
+(assert "exnc j j=J(2*e0+d0+i)")
 (intro 0 (pt "J(2*e0+d0+i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(2*e0+d0+i)")
+(assert "exnc k k=K(2*e0+d0+i)")
 (intro 0 (pt "K(2*e0+d0+i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -4007,13 +3962,13 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_107:(1#2)*((1#2)*cs n+IntN 1)* ~e0+(d0+i#4)==(1#4)*(cs n* ~e0+j)+k
+;; ?_107:~((1#2)*((1#2)*cs n+IntN 1)*e0)+(d0+i#4)==(1#4)*(~(cs n*e0)+j)+k
 (use "RatEqvTrans"
  (pt "(1#2)*(((1#2)*cs n+IntN 1)* ~e0)+(1#4)*RatPlus d0 i"))
 (use "Truth")
 (simprat "RatTimesPlusDistrLeft")
-(simprat "RatIntNOneTimes")
-(simp (pf "~(~e0#1)=(e0#1)"))
+(simp "RatTimesIntNL")
+(simp (pf "~(RatTimes 1~e0)=(e0#1)"))
 ;; ?_112:(1#2)*((1#2)*cs n* ~e0+e0)+(1#4)*RatPlus d0 i==(1#4)*(cs n* ~e0+j)+k
 (simp (pf "(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)"))
 (simprat (pf "(1#2)*((1#2)*(cs n* ~e0)+e0)==
@@ -4162,13 +4117,13 @@
 	"z2" "CoHz2" "z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exu j j=J(e+d0+i)")
+(assert "exnc j j=J(e+d0+i)")
 (intro 0 (pt "J(e+d0+i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(e+d0+i)")
+(assert "exnc k k=K(e+d0+i)")
 (intro 0 (pt "K(e+d0+i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -4320,13 +4275,13 @@
 	"z2" "CoHz2" "z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exu j j=J(d0+i)")
+(assert "exnc j j=J(d0+i)")
 (intro 0 (pt "J(d0+i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(d0+i)")
+(assert "exnc k k=K(d0+i)")
 (intro 0 (pt "K(d0+i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -4620,13 +4575,13 @@
 	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exu j j=J(e* ~e0+2*e0+i)")
+(assert "exnc j j=J(e* ~e0+2*e0+i)")
 (intro 0 (pt "J(e* ~e0+2*e0+i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(e* ~e0+2*e0+i)")
+(assert "exnc k k=K(e* ~e0+2*e0+i)")
 (intro 0 (pt "K(e* ~e0+2*e0+i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -4748,10 +4703,10 @@
 (use "Truth")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
-(simprat "RatIntNOneTimes")
-(simprat "RatIntNOneTimes")
-(simp (pf "~(~e#1)=(e#1)"))
-(simp (pf "~(~e0#1)=(e0#1)"))
+(simp "RatTimesIntNL")
+(simp "RatTimesIntNL")
+(simp (pf "~(RatTimes 1~e)=(e#1)"))
+(simp (pf "~(RatTimes 1~e0)=(e0#1)"))
 ;; ?_118:(1#2)*((1#2)*(cs n* ~e+e)* ~e0+e0)+(i#4)==(1#4)*(cs n*e*e0+j)+k
 (use "RatEqvTrans" (pt "(1#2)*((1#2)*((cs n* ~e+e)* ~e0)+e0)+(i#4)"))
 (use "Truth")
@@ -4832,13 +4787,13 @@
 	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exu j j=J(2*e0+i)")
+(assert "exnc j j=J(2*e0+i)")
 (intro 0 (pt "J(2*e0+i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(2*e0+i)")
+(assert "exnc k k=K(2*e0+i)")
 (intro 0 (pt "K(2*e0+i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -4928,8 +4883,8 @@
 (use "RatEqvTrans" (pt "(1#2)*(((1#2)*cs n+IntN 1)* ~e0)+(1#4)*i"))
 (use "Truth")
 (simprat "RatTimesPlusDistrLeft")
-(simprat "RatIntNOneTimes")
-(simp (pf "~(~e0#1)=(e0#1)"))
+(simp "RatTimesIntNL")
+(simp (pf "~(RatTimes 1~e0)=(e0#1)"))
 ;; ?_92:(1#2)*((1#2)*cs n* ~e0+e0)+(1#4)*i==(1#4)*(cs n* ~e0+j)+k
 (simp (pf "(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)"))
 (simprat (pf "(1#2)*((1#2)*(cs n* ~e0)+e0)==
@@ -4950,9 +4905,11 @@
 ;; ?_113:2*e0+i==RatPlus j(k*4)
 (simp "jDef")
 (simp "kDef")
-(simp "RatPlusComm")
+(simp "IntPlusComm")
+(simp (pf "J(i+2*e0)+K(i+2*e0)*4=K(i+2*e0)*4+J(i+2*e0)"))
 (simp "<-" "KJProp")
 (use "Truth")
+(use "IntPlusComm")
 (simp "RatPlusAssoc")
 (use "Truth")
 (simp "<-" "RatPlusAssoc")
@@ -5069,13 +5026,13 @@
 	"z2" "CoHz2" "z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exu j j=J(e+i)")
+(assert "exnc j j=J(e+i)")
 (intro 0 (pt "J(e+i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(e+i)")
+(assert "exnc k k=K(e+i)")
 (intro 0 (pt "K(e+i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -5206,13 +5163,13 @@
 	"z2" "CoHz2" "z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exu j j=J(i)")
+(assert "exnc j j=J(i)")
 (intro 0 (pt "J(i)"))
 (use "Truth")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exu k k=K(i)")
+(assert "exnc k k=K(i)")
 (intro 0 (pt "K(i)"))
 (use "Truth")
 (assume "ExHypk")
@@ -5513,61 +5470,72 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_22:(1#4)*((1#2)*(as n+IntN 1)* ~d1*bs n+(1#2)*(cs n+IntN 1)* ~d0+i)==
-;;      (1#2)*((1#4)*as n* ~d1*bs n+(1#4)*(bs n*d1+cs n* ~d0+i)+(d0+i#4))
+;; ?_22:(1#4)*(~((1#2)*(as n+IntN 1)*d1*bs n)+ ~((1#2)*(cs n+IntN 1)*d0)+i)==
+;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+(d0+i#4))
 ;; Replace first i by (1#2)*RatPlus i i, and prepare for taking (1#2) out
-
 (use "RatEqvTrans" 
- (pt "(1#4)*((1#2)*((as n+IntN 1)* ~d1*bs n)+(1#2)*((cs n+IntN 1)* ~d0)+
+ (pt "(1#4)*(~((1#2)*(as n+IntN 1)*d1*bs n)+ ~(1#2)*((cs n+IntN 1)*d0)+
       (1#2)*RatPlus i i)"))
 (ng #t)
-(simprat (pf "(i+i#2)==i"))
-(use "Truth")
-(ng #t)
-(simp (pf "2=IntPlus 1 1"))
+(simp (pf "IntP 2=IntPlus 1 1"))
 (simp "IntTimes6RewRule") ;k*(j+i)=k*j+k*i
 (use "Truth")
 (use "Truth")
 ;; Similarly replace (d0+i#4) by (1#4)*RatPlus d0 i.
 (use "RatEqvTrans" 
-  (pt "(1#2)*((1#4)*(as n* ~d1*bs n)+(1#4)*(bs n*d1+cs n* ~d0+i)+
+
+
+  (pt "(1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+
        (1#4)*RatPlus d0 i)"))
-;; ?_32:(1#4)*
-;;      ((1#2)*((as n+IntN 1)* ~d1*bs n)+(1#2)*((cs n+IntN 1)* ~d0)+
+;; ?_29:(1#4)*
+;;      (~((1#2)*(as n+IntN 1)*d1*bs n)+ ~(1#2)*((cs n+IntN 1)*d0)+
 ;;       (1#2)*RatPlus i i)==
 ;;      (1#2)*
-;;      ((1#4)*(as n* ~d1*bs n)+(1#4)*(bs n*d1+cs n* ~d0+i)+(1#4)*RatPlus d0 i)
-;; Cancel rational factors
+;;      (~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+(1#4)*RatPlus d0 i)
+(simp "<-" "RatTimes3RewRule")
+(simp "<-" "RatTimes3RewRule")
+(simp "<-" "RatTimes3RewRule")
+(simp (pf "~(1#2)*((cs n+IntN 1)*d0)= (1#2)* ~((cs n+IntN 1)*d0)"))
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
 (simprat "<-" "RatTimesPlusDistr")
 (simprat "<-" "RatTimesPlusDistr")
 (simprat "<-" "RatTimesPlusDistr")
 (simprat "<-" "RatTimesPlusDistr")
+(simp "RatTimesAssoc")
 (simp "RatTimesAssoc")
 (simp "RatTimesAssoc")
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_43:(as n+IntN 1)* ~d1*bs n+(cs n+IntN 1)* ~d0+RatPlus i i==
-;;      as n* ~d1*bs n+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
+;; ?_50:(as n+IntN 1)*d1* ~(bs n)+ ~((cs n+IntN 1)*d0)+RatPlus i i==
+;;      as n*(d1* ~(bs n))+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
-;; ?_46:as n* ~d1*bs n+RatTimes IntN 1~d1*bs n+(cs n* ~d0+RatTimes IntN 1~d0)+
+;; ?_53:as n*d1* ~(bs n)+RatTimes IntN 1 d1* ~(bs n)+ 
+;;      ~(cs n*d0+RatTimes IntN 1 d0)+
 ;;      RatPlus i i==
-;;      as n* ~d1*bs n+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
-(assert "all k (IntN 1#1)* ~k=k")
+;;      as n*(d1* ~(bs n))+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
+(assert "all k RatTimes IntN 1 k= ~k")
  (assume "k")
  (ng #t)
- (simp "IntIntNOneTimes")
+ (simp "IntTimesIntNL")
  (use "Truth")
 (assume "Assertion")
 (simp "Assertion")
 (simp "Assertion")
-;; ?_54:as n* ~d1*bs n+d1*bs n+(cs n* ~d0+d0)+RatPlus i i==
+;; ?_61:as n*d1* ~(bs n)+ ~d1* ~(bs n)+ ~(cs n*d0+ ~d0)+RatPlus i i==
+;;      as n*(d1* ~(bs n))+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
+;; ?_52:as n* ~d1*bs n+d1*bs n+(cs n* ~d0+d0)+RatPlus i i==
 ;;      as n* ~d1*bs n+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
-(simp (pf "d1*bs n=bs n*d1"))
+(simp "<-" (pf "d1*bs n=bs n*d1"))
 (use "RatEqvTrans" (pt "as n* ~d1*bs n+bs n*d1+(cs n* ~d0+i+RatPlus d0 i)"))
 (use "RatEqvTrans" (pt "as n* ~d1*bs n+bs n*d1+(cs n* ~d0+d0+RatPlus i i)"))
+(ng #t)
+(simp "RatTimesComm")
 (use "Truth")
 (use "RatPlusCompat")
 (use "Truth")
@@ -5580,17 +5548,32 @@
 (use "RatPlusCompat")
 (use "IntPlusComm")
 (use "Truth")
+;; ?_65:as n* ~d1*bs n+bs n*d1+(cs n* ~d0+i+RatPlus d0 i)==
+;;      as n*(d1* ~(bs n))+(d1*bs n+cs n* ~d0+i)+RatPlus d0 i
+(ng #t)
+(simp "RatTimesComm")
 (use "Truth")
 (use "RatTimesComm")
 (use "Truth")
+;; ?_35:~(1#2)*((cs n+IntN 1)*d0)=(1#2)* ~((cs n+IntN 1)*d0)
 (use "Truth")
+;; ?_30:(1#2)*
+;;      (~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+(1#4)*RatPlus d0 i)==
+;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+(d0+i#4))
+(use "Truth")
+;; ?_9:(1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*(z1+IntN 1)* ~d0+i)===
+;;     (1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(y*d1+z1* ~d0+i)+(d0+i#4))) -> 
+;;     exr d,j,x0,z0(
+;;      Sd d andd 
+;;      Sdtwo j andd 
+;;      CoG x0 andd CoG z0 andl (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d))
 (assume "Eq2")
 ;;   Eq1:(1#4)*(x*y+z+i)===
 ;;       (1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*(z1+IntN 1)* ~d0+i)
 ;;   Eq2:(1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*(z1+IntN 1)* ~d0+i)===
 ;;       (1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(y*d1+z1* ~d0+i)+(d0+i#4)))
 ;; -----------------------------------------------------------------------------
-;; ?_71:exr d,j,x0,z0(
+;; ?_82:exr d,j,x0,z0(
 ;;       Sd d andd 
 ;;       Sdtwo j andd 
 ;;       CoG x0 andd CoG z0 andl (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d))
@@ -5621,7 +5604,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_99:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
+;; ?_110:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqTrans" 
      (pt "(1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*(z1+IntN 1)* ~d0+i)"))
 (use "Eq1")
@@ -5637,7 +5620,7 @@
 (realproof)
 (assume "R")
 (simpreal "jdz0Prop")
-;; ?_111:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
+;; ?_122:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
 ;;       (1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
@@ -5651,20 +5634,21 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_123:(1#2)*((1#4)*as n* ~d1*bs n+(1#4)*(cs n+j)+d)==
-;;       (1#2)*((1#4)*(as n* ~d1*bs n+cs n+j)+d)
+;; ?_134:~((1#4)*as n*d1*bs n)+(1#4)*(cs n+j)==(1#4)*(~(as n*d1*bs n)+cs n+j)
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimes3RewRule")
+(simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_125:(1#4)*as n* ~d1*bs n+(1#4)*(cs n+j)+d==(1#4)*(as n* ~d1*bs n+cs n+j)+d
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
 (use "Truth")
+
 ;; Now we prove the formula cut in above
 (use "JKLrz")
 (use "Sdtwoi")
 (use "Psdd0")
 (use "CoGAvcToCoG")
+
 (intro 0 (pt "i"))
 (intro 0 (pt "y*d1"))
 (intro 0 (pt "z1* ~d0"))
@@ -5731,15 +5715,12 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_22:(1#4)*((1#2)*(as n+IntN 1)* ~d1*bs n+(1#2)*cs n+i)==
-;;      (1#2)*((1#4)*as n* ~d1*bs n+(1#4)*(bs n*d1+cs n+i)+(i#4))
+;; ?_22:(1#4)*(~((1#2)*(as n+IntN 1)*d1*bs n)+(1#2)*cs n+i)==
+;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(i#4))
 ;; Replace first i by (1#2)*RatPlus i i, and prepare for taking (1#2) out
 
 (use "RatEqvTrans" 
- (pt "(1#4)*((1#2)*((as n+IntN 1)* ~d1*bs n)+(1#2)*cs n+(1#2)*RatPlus i i)"))
-(ng #t)
-(simprat (pf "(i+i#2)==i"))
-(use "Truth")
+ (pt "(1#4)*(~(1#2)*((as n+IntN 1)*d1*bs n)+(1#2)*cs n+(1#2)*RatPlus i i)"))
 (ng #t)
 (simp (pf "2=IntPlus 1 1"))
 (simp "IntTimes6RewRule") ;k*(j+i)=k*j+k*i
@@ -5747,10 +5728,12 @@
 (use "Truth")
 ;; Similarly replace (i#4) by (1#4)*i.
 (use "RatEqvTrans" 
-  (pt "(1#2)*((1#4)*(as n* ~d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)"))
-;; ?_32:(1#4)*((1#2)*((as n+IntN 1)* ~d1*bs n)+(1#2)*cs n+(1#2)*RatPlus i i)==
-;;      (1#2)*((1#4)*(as n* ~d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)
+  (pt "(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)"))
+;; ?_29:(1#4)*(~(1#2)*((as n+IntN 1)*d1*bs n)+(1#2)*cs n+(1#2)*RatPlus i i)==
+;;      (1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)
 ;; Cancel rational factors
+(simp (pf "~(1#2)*((as n+IntN 1)*d1*bs n)=(1#2)* ~((as n+IntN 1)*d1*bs n)"))
+(simp (pf "~(1#4)*(as n*d1*bs n)=(1#4)* ~(as n*d1*bs n)"))
 (simprat "<-" "RatTimesPlusDistr")
 (simprat "<-" "RatTimesPlusDistr")
 (simprat "<-" "RatTimesPlusDistr")
@@ -5760,22 +5743,22 @@
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_43:(as n+IntN 1)* ~d1*bs n+cs n+RatPlus i i==
-;;      as n* ~d1*bs n+(bs n*d1+cs n+i)+i
+;; ?_44:~((as n+IntN 1)*d1*bs n)+cs n+RatPlus i i== 
+;;      ~(as n*d1*bs n)+(bs n*d1+cs n+i)+i
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
-;; ?_45:as n* ~d1*bs n+RatTimes IntN 1~d1*bs n+cs n+RatPlus i i==
-;;      as n* ~d1*bs n+(bs n*d1+cs n+i)+i
-(assert "all k (IntN 1#1)* ~k=k")
+;; ?_46:~(as n*d1*bs n+RatTimes IntN 1 d1*bs n)+cs n+RatPlus i i== 
+;;      ~(as n*d1*bs n)+(bs n*d1+cs n+i)+i
+(assert "all k (IntN 1#1)*k= ~k")
  (assume "k")
  (ng #t)
- (simp "IntIntNOneTimes")
+ (simp "IntTimesIntNL")
  (use "Truth")
 (assume "Assertion")
 (simp "Assertion")
-;; ?_52:as n* ~d1*bs n+d1*bs n+cs n+RatPlus i i==
-;;      as n* ~d1*bs n+(bs n*d1+cs n+i)+i
-(simp (pf "d1*bs n=bs n*d1"))
+;; ?_53:~(as n*d1*bs n+ ~d1*bs n)+cs n+RatPlus i i== 
+;;      ~(as n*d1*bs n)+(bs n*d1+cs n+i)+i
+(simp "RatUMinus2RewRule")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
@@ -5783,11 +5766,17 @@
 (use "Truth")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
+(ng #t)
+(simp "RatTimesComm")
 (use "Truth")
-(use "RatTimesComm")
 (use "Truth")
-;; ?_33:(1#2)*((1#4)*(as n* ~d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)==
-;;      (1#2)*((1#4)*as n* ~d1*bs n+(1#4)*(bs n*d1+cs n+i)+(i#4))
+;; ?_34:~(1#2)*((as n+IntN 1)*d1*bs n)=(1#2)* ~((as n+IntN 1)*d1*bs n)
+(use "Truth")
+;; ?_32:(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)==
+;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(i#4))
+(use "Truth")
+;; ?_30:(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)==
+;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(i#4))
 (use "Truth")
 (assume "Eq2")
 
@@ -5795,7 +5784,7 @@
 ;;   Eq2:(1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*z1+i)===
 ;;       (1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(y*d1+z1+i)+(i#4)))
 ;; -----------------------------------------------------------------------------
-;; ?_62:exr d,j,x0,z0(
+;; ?_64:exr d,j,x0,z0(
 ;;       Sd d andd 
 ;;       Sdtwo j andd 
 ;;       CoG x0 andd CoG z0 andl (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d))
@@ -5825,7 +5814,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_90:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
+;; ?_92:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqTrans" (pt "(1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*z1+i)"))
 (use "Eq1")
 (use "RealEqTrans" (pt "(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(y*d1+z1+i)+(i#4)))"))
@@ -5836,8 +5825,8 @@
 (assume "CoGz0")
 (simpreal "jdz0Prop")
 
-;; ?_99:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
-;;      (1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
+;; ?_101:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
+;;       (1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -5850,13 +5839,13 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_111:(1#2)*((1#4)*as n* ~d1*bs n+(1#4)*(cs n+j)+d)==
-;;       (1#2)*((1#4)*(as n* ~d1*bs n+cs n+j)+d)
+;; ?_113:~((1#4)*as n*d1*bs n)+(1#4)*(cs n+j)==(1#4)*(~(as n*d1*bs n)+cs n+j)
+(simp (pf "(1#4)*as n*d1*bs n=(1#4)*(as n*d1*bs n)"))
+(simp (pf "~((1#4)*(as n*d1*bs n))=(1#4)* ~(as n*d1*bs n)"))
+(simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_113:(1#4)*as n* ~d1*bs n+(1#4)*(cs n+j)+d==(1#4)*(as n* ~d1*bs n+cs n+j)+d
-(simp (pf "(1#4)*as n* ~d1*bs n=(1#4)*(as n* ~d1*bs n)"))
-(simprat "<-" "RatTimesPlusDistr")
+(use "Truth")
 (use "Truth")
 (use "Truth")
 ;; Now we prove the formula cut in above
@@ -5933,9 +5922,6 @@
 (use "RatEqvTrans" 
  (pt "(1#4)*((1#2)*(as n*bs n)+(1#2)*((cs n+IntN 1)* ~d0)+(1#2)*RatPlus i i)"))
 (ng #t)
-(simprat (pf "(i+i#2)==i"))
-(use "Truth")
-(ng #t)
 (simp (pf "2=IntPlus 1 1"))
 (simp "IntTimes6RewRule") ;k*(j+i)=k*j+k*i
 (use "Truth")
@@ -5953,7 +5939,7 @@
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_43:as n*bs n+(cs n+IntN 1)* ~d0+RatPlus i i==
+;; ?_40:as n*bs n+(cs n+IntN 1)* ~d0+RatPlus i i==
 ;;      as n*bs n+(cs n* ~d0+i)+RatPlus d0 i
 (simprat "RatTimesPlusDistrLeft")
 (simp "<-" "RatPlusAssoc")
@@ -5965,7 +5951,7 @@
 (use "RatPlusCompat")
 (use "Truth")
 (ng #t)
-(simp "IntIntNOneTimes")
+(simp "IntTimesIntNL")
 (ng #t)
 (simp (pf "d0+i=i+d0"))
 (use "Truth")
@@ -5977,7 +5963,7 @@
 ;;   Eq2:(1#4)*((1#2)*x1*y+(1#2)*(z1+IntN 1)* ~d0+i)===
 ;;       (1#2)*((1#4)*(x1*y)+((1#4)*(0+z1* ~d0+i)+(d0+i#4)))
 ;; -----------------------------------------------------------------------------
-;; ?_58:exr d,j,x0,y0,z0(
+;; ?_55:exr d,j,x0,y0,z0(
 ;;       Sd d andd 
 ;;       Sdtwo j andd 
 ;;       CoG x0 andd CoG z0 andl (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y0+z0+j)+d))
@@ -6005,7 +5991,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_84:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?_81:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqTrans" (pt "(1#4)*((1#2)*x1*y+(1#2)*(z1+IntN 1)* ~d0+i)"))
 (use "Eq1")
 (use "RealEqTrans"
@@ -6020,7 +6006,7 @@
 (realproof)
 (assume "R")
 (simpreal "jdz0Prop")
-;; ?_96:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?_93:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -6033,14 +6019,13 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_108:(1#2)*((1#4)*as n*bs n+(1#4)*(cs n+j)+d)==
-;;       (1#2)*((1#4)*(as n*bs n+cs n+j)+d)
+;; ?_105:(1#4)*as n*bs n+(1#4)*(cs n+j)==(1#4)*(as n*bs n+cs n+j)
+
+(simp "<-" "RatTimesAssoc")
+(simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_110:(1#4)*as n*bs n+(1#4)*(cs n+j)+d==(1#4)*(as n*bs n+cs n+j)+d
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
+;; ?_109:as n*bs n+(cs n+j)==as n*bs n+cs n+j
 (use "Truth")
 ;; Now we prove the formula cut in above
 (use "JKLrz")
@@ -6116,9 +6101,6 @@
 (use "RatEqvTrans" 
  (pt "(1#4)*((1#2)*(as n*bs n)+(1#2)*cs n+(1#2)*RatPlus i i)"))
 (ng #t)
-(simprat (pf "(i+i#2)==i"))
-(use "Truth")
-(ng #t)
 (simp (pf "2=IntPlus 1 1"))
 (simp "IntTimes6RewRule") ;k*(j+i)=k*j+k*i
 (use "Truth")
@@ -6135,7 +6117,7 @@
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_43:as n*bs n+cs n+RatPlus i i==as n*bs n+(cs n+i)+i
+;; ?_40:as n*bs n+cs n+RatPlus i i==as n*bs n+(cs n+i)+i
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
@@ -6147,7 +6129,7 @@
 ;;   Eq2:(1#4)*((1#2)*x1*y+(1#2)*z1+i)===
 ;;       (1#2)*((1#4)*(x1*y)+((1#4)*(0+z1+i)+(i#4)))
 ;; -----------------------------------------------------------------------------
-;; ?_47:exr d,j,x0,z0(
+;; ?_44:exr d,j,x0,z0(
 ;;       Sd d andd 
 ;;       Sdtwo j andd 
 ;;       CoG x0 andd CoG z0 andl (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d))
@@ -6175,7 +6157,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_73:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?_70:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqTrans" (pt "(1#4)*((1#2)*x1*y+(1#2)*z1+i)"))
 (use "Eq1")
 (use "RealEqTrans" (pt "(1#2)*((1#4)*(x1*y)+((1#4)*(0+z1+i)+(i#4)))"))
@@ -6186,7 +6168,7 @@
 (assume "CoGz0")
 
 (simpreal "jdz0Prop")
-;; ?_82:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?_79:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -6199,14 +6181,11 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_94:(1#2)*((1#4)*as n*bs n+(1#4)*(cs n+j)+d)==
-;;      (1#2)*((1#4)*(as n*bs n+cs n+j)+d)
+;; ?_91:(1#4)*as n*bs n+(1#4)*(cs n+j)==(1#4)*(as n*bs n+cs n+j)
+(simp "<-" "RatTimesAssoc")
+(simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_96:(1#4)*as n*bs n+(1#4)*(cs n+j)+d==(1#4)*(as n*bs n+cs n+j)+d
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
 (use "Truth")
 ;; Now we prove the formula cut in above
 (use "JKUz")
@@ -6570,7 +6549,7 @@
 (assume "n")
 (ng #t)
 (use "Truth")
-;;?_112:z2===(1#2)*((1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1)+IntN 1)* ~d1 andu 
+;;?_112:z2===(1#2)*((1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1)+IntN 1)* ~d1 andnc 
 ;;       z2===z2
 (split)
 (simpreal "ixyzProp")
@@ -6589,29 +6568,35 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_162:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)==
-;;       (1#2)*((1#4)*(as n*bs n* ~d1+cs n* ~d1+ ~(i1*d1))+IntN 1)* ~d1
+;; ?_162:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)== 
+;;       ~((1#2)*((1#4)*(~(as n*bs n*d1)+ ~(cs n*d1)+ ~(i1*d1))+IntN 1)*d1)
+(simp "<-" "RatTimes3RewRule")
+(display-pconst "RatTimes")
 (simp "<-" "RatTimesAssoc")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_165:(1#4)*(as n*bs n+cs n+i1)+d1==
-;;       ((1#4)*(as n*bs n* ~d1+cs n* ~d1+ ~(i1*d1))+IntN 1)* ~d1
+;; ?_166:(1#4)*(as n*bs n+cs n+i1)+d1==
+;;       ((1#4)*(~(as n*bs n*d1)+ ~(cs n*d1)+ ~(i1*d1))+IntN 1)* ~d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
-(simprat "RatIntNOneTimes")
+(simp "RatTimesIntNL")
 (use "RatPlusCompat")
+;; ?_170:(1#4)*(as n*bs n+cs n+i1)==
+;;       (1#4)*(~(as n*(bs n*d1))+ ~(cs n*d1)+ ~(i1*d1))* ~d1
+
 ;; ?_169:(1#4)*(as n*bs n+cs n+i1)==
 ;;       (1#4)*(as n*(bs n* ~d1)+cs n* ~d1+ ~(i1*d1))* ~d1
 (simp "<-" "RatTimesAssoc")
+(use "RatTimesCompat")
+(use "Truth")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
+(ng #t)
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (ng #t)
 (simp "<-" "RatTimesAssoc")
-(use "RatTimesCompat")
-(use "Truth")
 (simp "<-" "IntTimesAssoc")
 (assert "allnc d(Psd d -> d*d=1)")
  (assume "d" "Psdd")
@@ -6680,7 +6665,7 @@
  (use "Sdd1")
 (assume "Disj")
 (elim "Disj")
-;; 248,249
+;; 250,251
 (drop "Disj")
 (assume "d1=0") ;case small
 (intro 1)
@@ -6724,11 +6709,11 @@
 (ng #t)
 (simp "d1=0")
 (use "Truth")
-;; ?_274:z2===z2
+;; ?_276:z2===z2
 (use "RealEqRefl")
 (use "RealEqElim0" (pt "(1#4)*(x*y+z+i)"))
 (use "ixyzProp")
-;; 249
+;; 251
 (drop "Disj")
 (assume "Psdd1")
 (intro 0)
@@ -6759,7 +6744,7 @@
 (use "CoGPsdTimes")
 (use "CoGz1")
 (use "Psdd1")
-;; ?_320:(1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)===(1#4)*(x1*(y*d1)+z1*d1+i1*d1)
+;; ?_322:(1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)===(1#4)*(x1*(y*d1)+z1*d1+i1*d1)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -6773,11 +6758,11 @@
 (assume "n")
 (ng #t)
 (use "Truth")
-;; ?_303:z2===(1#2)*((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)+1)*d1 andu z2===z2
+;; ?_305:z2===(1#2)*((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)+1)*d1 andnc z2===z2
 (split)
 (simpreal "ixyzProp")
 (simpreal "Eq")
-;; ?_338:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===
+;; ?_340:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===
 ;;       (1#2)*((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)+1)*d1
 (use "RealEqSToEq")
 (realproof)
@@ -6791,16 +6776,16 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_350:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)==
+;; ?_352:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)==
 ;;       (1#2)*((1#4)*(as n*bs n*d1+cs n*d1+i1*d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_353:(1#4)*(as n*bs n+cs n+i1)+d1==((1#4)*(as n*bs n*d1+cs n*d1+i1*d1)+1)*d1
+;; ?_355:(1#4)*(as n*bs n+cs n+i1)+d1==((1#4)*(as n*bs n*d1+cs n*d1+i1*d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
 (use "RatPlusCompat")
-;; ?_356:(1#4)*(as n*bs n+cs n+i1)==(1#4)*(as n*(bs n*d1)+cs n*d1+i1*d1)*d1
+;; ?_358:(1#4)*(as n*bs n+cs n+i1)==(1#4)*(as n*(bs n*d1)+cs n*d1+i1*d1)*d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
@@ -6809,8 +6794,6 @@
 (simp "<-" "RatTimesAssoc")
 (ng #t)
 (simp "<-" "RatTimesAssoc")
-(use "RatTimesCompat")
-(use "Truth")
 (simp "<-" "IntTimesAssoc")
 (assert "allnc d(Psd d -> d*d=1)")
  (assume "d" "Psdd")
@@ -6822,12 +6805,12 @@
 (use "Truth")
 (use "Psdd1")
 (use "Truth")
-;; ?_336:z2===z2
+;; ?_338:z2===z2
 (use "RealEqRefl")
 (use "RealEqElim0" (pt "(1#4)*(x*y+z+i)"))
 (use "ixyzProp")
 
-;; ?_213:exr d,j,x0,z0(
+;; ?_215:exr d,j,x0,z0(
 ;;        Sd d andd 
 ;;        Sdtwo j andd 
 ;;        CoG x0 andd CoG z0 andl (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d))
