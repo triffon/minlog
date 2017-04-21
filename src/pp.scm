@@ -1,4 +1,4 @@
-;; $Id: pp.scm 2663 2014-01-08 09:53:10Z schwicht $
+;; 2017-04-21
 
 ;; We define token-tree-to-string and use this for all display
 ;; purposes.  For line breaks, we define token-tree-to-pp-tree .
@@ -53,11 +53,11 @@
 ;; exd-op
 ;; exl-op
 ;; exr-op
-;; exu-op
+;; exnc-op
 ;; exdt-op
 ;; exlt-op
 ;; exrt-op
-;; exut-op
+;; exnct-op
 ;; exca-op
 ;; excl-op
 ;; excu-op
@@ -118,8 +118,8 @@
        (string-append "[" comma-string "]"
 		      (token-tree-to-string kernel))))
     ((all-op ex-op allnc-op
-	     exd-op exl-op exr-op exu-op
-	     exdt-op exlt-op exrt-op exut-op)
+	     exd-op exl-op exr-op exnc-op
+	     exdt-op exlt-op exrt-op exnct-op)
      (let* ((init-string
 	     (case (token-tree-to-tag token-tree)
 	       ((all-op) "all ")
@@ -128,7 +128,7 @@
 	       ((exd-op exdt-op) "exd ")
 	       ((exl-op exlt-op) "exl ")
 	       ((exr-op exrt-op) "exr ")
-	       ((exu-op exut-op) "exu ")
+	       ((exnc-op exnct-op) "exnc ")
 	       (else (myerror "token-tree-to-string" "unexpected tag" tag))))
 	    (varstrings-and-kernel
 	     (token-tree-to-varstrings-and-kernel token-tree))
@@ -267,8 +267,8 @@
   (let ((tag1 (token-tree-to-tag token-tree)))
     (case tag1
       ((binding-op all-op ex-op allnc-op
-		   exd-op exl-op exr-op exu-op
-		   exdt-op exlt-op exrt-op exut-op)
+		   exd-op exl-op exr-op exnc-op
+		   exdt-op exlt-op exrt-op exnct-op)
        (let* ((arg (car (token-tree-to-args token-tree)))
 	      (tag2 (token-tree-to-tag arg)))
 	 (if (eq? tag1 tag2)
@@ -312,8 +312,8 @@
     ((predapp) 14)
     ((alg atomic-type atomic-term const var number if-op case-op
 	  pvar predconst idpredconst atom
-	  all-op ex-op allnc-op exd-op exl-op exr-op exu-op
-	  exdt-op exlt-op exrt-op exut-op exca-op excl-op excu-op
+	  all-op ex-op allnc-op exd-op exl-op exr-op exnc-op
+	  exdt-op exlt-op exrt-op exnct-op exca-op excl-op excu-op
 	   idpredconst-op cterm) 15)
     (else (myerror
 	   "token-tree-tag-to-precedence" "token-tree-tag expected" tttag))))
@@ -329,8 +329,8 @@
 
 (define (quant-token-tree? token-tree)
   (memq (token-tree-to-tag token-tree)
-	'(all-op ex-op allnc-op exd-op exl-op exr-op exu-op
-		 exdt-op exlt-op exrt-op exut-op exca-op excl-op excu-op)))
+	'(all-op ex-op allnc-op exd-op exl-op exr-op exnc-op
+		 exdt-op exlt-op exrt-op exnct-op exca-op excl-op excu-op)))
 
 (define (quant-prime-token-tree? token-tree)
   (or (and (quant-token-tree? token-tree)
@@ -477,8 +477,8 @@
        (make-pp-tree (+ prefix-width postfix-width) 1 'newline
 		     (list (make-pp-line prefix) postfix))))
     ((all-op ex-op allnc-op
-	     exd-op exl-op exr-op exu-op
-	     exdt-op exlt-op exrt-op exut-op
+	     exd-op exl-op exr-op exnc-op
+	     exdt-op exlt-op exrt-op exnct-op
 	     exca-op excl-op excu-op)
      (let* ((init-string
 	     (case (token-tree-to-tag token-tree)
@@ -488,7 +488,7 @@
 	       ((exd-op exdt-op) "exd ")
 	       ((exl-op exlt-op) "exl ")
 	       ((exr-op exrt-op) "exr ")
-	       ((exu-op exut-op) "exu ")
+	       ((exnc-op exnct-op) "exnc ")
 	       ((exca-op) "exca ")
 	       ((excl-op) "excl ")
 	       ((excu-op) "excu ")
