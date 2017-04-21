@@ -9,7 +9,7 @@
 ;; case id-deco? is true.
 
 (pp (formula-to-undec-formula (pf "ex boole T") #t)) ;ex boole T
-(pp (formula-to-undec-formula (pf "exd boole T") #t)) ;exu boole T
+(pp (formula-to-undec-formula (pf "exd boole T") #t)) ;exnc boole T
 
 (add-pvar-name "S" (make-arity (py "alpha") (py "alpha") (py "alpha")))
 
@@ -33,11 +33,11 @@
    (pf "exd x^1 R x^1 x^2")
    (pf "exl x^1 R x^1 x^2")
    (pf "exr x^1 R x^1 x^2")
-   (pf "exu x^1 R x^1 x^2")
+   (pf "exnc x^1 R x^1 x^2")
    (pf "exd x1 R x1 x^2")
    (pf "exl x1 R x1 x^2")
    (pf "exr x1 R x1 x^2")
-   (pf "exu x1 R x1 x^2")
+   (pf "exnc x1 R x1 x^2")
    (pf "Pvar1 ord Pvar2")
    (pf "Pvar1 orl Pvar2")
    (pf "Pvar1 orr Pvar2")
@@ -45,7 +45,7 @@
    (pf "Pvar1 andd Pvar2")
    (pf "Pvar1 andl Pvar2")
    (pf "Pvar1 andr Pvar2")
-   (pf "Pvar1 andu Pvar2")
+   (pf "Pvar1 andnc Pvar2")
    (pf "(TrCl (cterm (x^1,x^2) Q x3 -> R x^1 x^2))x^1 x^3")
    ))
 
