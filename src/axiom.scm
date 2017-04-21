@@ -1,4 +1,4 @@
-;; $Id: axiom.scm 2688 2014-01-24 09:18:17Z schwicht $
+;; 2017-04-21
 ;; 8. Assumption variables and axioms
 ;; ==================================
 ;; To be renamed into avars scheme, with the axioms section transferred
@@ -350,7 +350,7 @@
 		 (let ((info (assoc pvar tpsubst)))
 		   (if info (cadr info)
 		       (cond
-			((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+			((member name '("ExDT" "ExLT" "ExRT" "ExNcT" "ExLTMR"))
 			 (predicate-to-cterm-with-total-vars pvar))
 			((member name '("ExDTMR" "ExRTMR"))
 			 (predicate-to-cterm-with-partial-total-vars pvar))
@@ -358,7 +358,7 @@
 	       param-pvars))
 	 (param-pvar-cterms
 	  (cond
-	   ((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+	   ((member name '("ExDT" "ExLT" "ExRT" "ExNcT" "ExLTMR"))
 	    (map predicate-to-cterm-with-total-vars param-pvars))
 	   ((member name '("ExDTMR" "ExRTMR"))
 	    (map predicate-to-cterm-with-partial-total-vars param-pvars))
@@ -659,12 +659,12 @@
 		  "ExTotalIntro" "ExTotalIntroSound"
 		  "ExTotalElim" "ExTotalElimSound"
 		  "ExDTotalIntro" "ExLTotalIntro"
-		  "ExRTotalIntro" "ExUTotalIntro"
-		  "ExDTotalElim" "ExLTotalElim" "ExRTotalElim" "ExUTotalElim"
-		  "ExDTotal" "ExLTotal" "ExRTotal" "ExUTotal" ;obsolete
+		  "ExRTotalIntro" "ExNcTotalIntro"
+		  "ExDTotalElim" "ExLTotalElim" "ExRTotalElim" "ExNcTotalElim"
+		  "ExDTotal" "ExLTotal" "ExRTotal" "ExNcTotal" ;obsolete
 		  "AllTotalRev" "AllncTotalRev" "ExTotalRev" ;obsolete
 		  "ExDTotalRev" "ExLTotalRev" ;obsolete
-		  "ExRTotalRev" "ExUTotalRev" ;obsolete
+		  "ExRTotalRev" "ExNcTotalRev" ;obsolete
 		  "Constr-Total" "Constr-Total-Args" ;obsolete
 		  "Total-Pair" "Total-Proj"
 		  "AllTotalIntro" "AllTotalIntroSound"
@@ -1795,7 +1795,7 @@
 	 (param-pvars (idpredconst-name-to-param-pvars name))
 	 (param-pvar-cterms
 	  (cond
-	   ((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+	   ((member name '("ExDT" "ExLT" "ExRT" "ExNcT" "ExLTMR"))
 	    (map predicate-to-cterm-with-total-vars param-pvars))
 	   ((member name '("ExDTMR" "ExRTMR"))
 	    (map predicate-to-cterm-with-partial-total-vars param-pvars))
@@ -1879,7 +1879,7 @@
 	 (tvars (idpredconst-name-to-tvars name))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
 	 (param-pvar-cterms
-	  (cond ((member name '("ExDT" "ExLT" "ExRT" "ExUT" "ExLTMR"))
+	  (cond ((member name '("ExDT" "ExLT" "ExRT" "ExNcT" "ExLTMR"))
 		 (map predicate-to-cterm-with-total-vars param-pvars))
 		((member name '("ExRTMR" "ExDTMR"))
 		 (let*
@@ -2155,7 +2155,7 @@
 	 (tvars (idpredconst-name-to-tvars name))
 	 (param-pvars (idpredconst-name-to-param-pvars name))
 	 (param-pvar-cterms
-	  (if (member name '("CoExDT" "CoExLT" "CoExRT" "CoExUT"))
+	  (if (member name '("CoExDT" "CoExLT" "CoExRT" "CoExNcT"))
 	      (map predicate-to-cterm-with-total-vars param-pvars)
 	      (map predicate-to-cterm param-pvars)))
 	 (params (idpredconst-name-to-params name))
@@ -2220,7 +2220,7 @@
 		      ((atom-form? fla) fla)
 		      ((and (bicon-form? fla)
 			    (memq (bicon-form-to-bicon fla)
-				  '(andd andl andr andu and)))
+				  '(andd andl andr andnc and)))
 		       (if
 			(pair? (intersection (formula-to-pvars fla)
 					     irrel-pvars))
@@ -2231,7 +2231,7 @@
 				     (bicon-form-to-right fla)))))
 		      ((and (quant-form? fla)
 			    (memq (quant-form-to-quant fla)
-				  '(exd exl exr exu ex)))
+				  '(exd exl exr exnc ex)))
 		       (make-quant (quant-form-to-quant fla)
 				   (quant-form-to-vars fla) ;check syntax
 				   (and-ex-fla-to-shortened-fla
