@@ -1,4 +1,4 @@
-;; 2017-04-01.  int.scm.  Based on the former numbers.scm.
+;; 2017-04-17.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -524,6 +524,7 @@
  "NatToInt Zero" "IntZero"
  "NatToInt(Succ n)" "IntS(NatToInt n)")
 
+;; NatToIntTotal
 (set-totality-goal "NatToInt")
 (assume "n^" "Tn")
 (elim "Tn")
@@ -845,21 +846,6 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "k+IntZero" "k")
-
-;; SZeroPosPlus
-(set-goal "all p SZero p=p+p")
-(ind)
-(use "Truth")
-(assume "p" "IH")
-(ng #t)
-(use "IH")
-(assume "p" "IH")
-(ng #t)
-(simp "<-" "IH")
-(ng #t)
-(use "Truth")
-;; Proof finished.
-(save "SZeroPosPlus")
 
 ;; PosPlusIntPlus
 (set-goal "all p,q p+q=IntPlus p q")
@@ -1840,7 +1826,7 @@
 ;; Proof finished.
 (save "IntPlusOneId")
 ;; (add-rewrite-rule "One+i" "IntS i")
-
+ 
 ;; IntPlusIntPSZeroId
 (set-goal "all k,p IntP(SZero p)+k=k+IntP p+IntP p")
 (assume "k" "p")
@@ -2664,7 +2650,7 @@
 ;; 10-12
 (assume "r" "Useless")
 (ng)
-(use "PosTimesInj")
+(use "PosTimesCancelL")
 ;; 11
 (ng)
 (assume "Useless" "Absurd")
@@ -2701,7 +2687,7 @@
 ;; 32
 (assume "r" "Useless")
 (ng)
-(use "PosTimesInj")
+(use "PosTimesCancelL")
 ;; 3
 (ng)
 (assume "j" "i" "Absurd" "Useless")
@@ -2717,7 +2703,7 @@
 ;; 48-50
 (assume "r" "Useless")
 (ng)
-(use "PosTimesInj")
+(use "PosTimesCancelL")
 ;; 49
 (ng)
 (assume "Useless" "Absurd")
@@ -2754,7 +2740,7 @@
 ;; 69
 (ng)
 (assume "r" "Useless")
-(use "PosTimesInj")
+(use "PosTimesCancelL")
 ;; Proof finished.
 (save "IntTimesInj")
 
@@ -3546,15 +3532,15 @@
 (assume "p" "q" "p<q")
 (use "PosLeCases" (pt "One") (pt "p"))
 (use "Truth")
-(assume "1<p1")
+(assume "1<p")
 (assert "1<q")
 (use "PosLtTrans" (pt "p"))
-(use "1<p1")
+(use "1<p")
 (use "p<q")
 (assume "1<q")
 (assert "PosS(PosPred p)=p")
  (use "PosSPosPredId")
- (use "1<p1")
+ (use "1<p")
 (assume "PosS(PosPred p)=p")
 (simp "<-" "PosS(PosPred p)=p")
 (drop "PosS(PosPred p)=p")
@@ -3566,7 +3552,7 @@
 (drop "PosS(PosPred q)=q")
 (ng)
 (use "PosLtMonPred")
-(use "1<p1")
+(use "1<p")
 (use "p<q")
 ;; 5
 (assume "1=p")
@@ -3603,9 +3589,9 @@
 (assume "Absurd")
 (use "Absurd")
 ;; 8
-(assume "q")
-(ng)
-(use "Efq")
+(assume "q" "Absurd")
+(use "EfqAtom")
+(use "Absurd")
 ;; 3
 (cases)
 (assume "q")
@@ -3617,17 +3603,16 @@
 (assume "Absurd")
 (use "Absurd")
 ;; 18
-(assume "q")
-(ng)
-(use "Efq")
+(assume "q" "Absurd")
+(use "EfqAtom")
+(use "Absurd")
 ;; 4
 (assume "p")
 (cases)
 ;; 27-29
-(assume "q")
+(assume "q" "Useless")
 (ng)
-(assume "Useless")
-;; ?_32:IntS IntN p<PosS q
+;; ?_31:IntS IntN p<PosS q
 (use "IntLtLeTrans" (pt "IntP 1"))
 (use "Truth")
 (use "Truth")
@@ -3637,15 +3622,15 @@
 (use "Truth")
 ;; 29
 (assume "q")
-;; ?_37:IntN p<IntN q -> IntS IntN p<IntS IntN q
+;; ?_36:IntN p<IntN q -> IntS IntN p<IntS IntN q
 (ng)
-;; ?_38:q<p -> IntS IntN p<IntS IntN q
+;; ?_37:q<p -> IntS IntN p<IntS IntN q
 (simp "<-" "IntUMinus1CompRule")
 (simp "<-" "IntUMinus1CompRule")
 (simp "<-" "IntUMinus3RewRule")
 (simp "<-" "IntUMinus3RewRule")
 (simp "IntLtUMinus")
-;; ?_43:q<p -> IntPred q<IntPred p
+;; ?_42:q<p -> IntPred q<IntPred p
 (use "IntLtMonPredIntP")
 ;; Proof finished.
 (save "IntLtMonIntS")
@@ -3661,42 +3646,41 @@
 (ng)
 (use "IntLtMonPredIntP")
 ;; 7
-(ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfqAtom")
+(use "Absurd")
 ;; 8
-(assume "q")
-(ng)
-(use "Efq")
+(assume "q" "Absurd")
+(use "EfqAtom")
+(use "Absurd")
 ;; 3
 (cases)
-; 14-16
+; 15-17
 (assume "q" "Useless")
 (simp "<-" "IntLtUMinus")
 (ng)
 (use "Truth")
-;; 15
+;; 16
 (assume "Absurd")
 (use "Absurd")
-;; 16
-(assume "q")
-(ng)
-(assume "Absurd")
+;; 17
+(assume "q" "Absurd")
 (use "Absurd")
 ;; 4
 (assume "p")
 (cases)
-;; 25-27
+;; 24-25
 (assume "q" "Useless")
 (simp "<-" "IntLtUMinus")
 (ng)
 (use "IntLtTrans" (pt "IntP 1"))
 (use "Truth")
 (use "Truth")
-;; 26
+;; 25
 (ng)
 (strip)
 (use "Truth")
-;; 27
+;; 26
 (assume "q")
 (ng)
 (assume "q<p")
@@ -3704,58 +3688,93 @@
 ;; Proof finished.
 (save "IntLtMonIntPred")
 
-;; We turn this into a rewrite rule
+;; We turn these into rewrite rules for IntLt
 (set-goal "all k,j (IntS k<IntS j)=(k<j)")
 (assume "k" "j")
 (use "BooleAeqToEq")
 ;; 3,4
 (assume "IntS k<IntS j")
-(assert "IntPred(IntS k)=k")
- (use "Truth")
-(assume "IntPred(IntS k)=k")
-(simp "<-" "IntPred(IntS k)=k")
-(drop "IntPred(IntS k)=k")
-(assert "IntPred(IntS j)=j")
- (use "Truth")
-(assume "IntPred(IntS j)=j")
-(simp "<-" "IntPred(IntS j)=j")
-(drop "IntPred(IntS j)=j")
+(simp "<-" (pf "IntPred(IntS k)=k"))
+(simp "<-" (pf "IntPred(IntS j)=j"))
 (use "IntLtMonIntPred")
 (use "IntS k<IntS j")
+(use "Truth")
+(use "Truth")
 ;; 4
 (use "IntLtMonIntS")
 ;; Proof finished.
 (add-rewrite-rule "IntS k<IntS j" "k<j")
 
-;; Same for IntLe
+(set-goal "all k,j (IntPred k<IntPred j)=(k<j)")
+(assume "k" "j")
+(use "BooleAeqToEq")
+;; 3,4
+(assume "IntPred k<IntPred j")
+(simp "<-" (pf "IntS(IntPred k)=k"))
+(simp "<-" (pf "IntS(IntPred j)=j"))
+(use "IntLtMonIntS")
+(use "IntPred k<IntPred j")
+(use "Truth")
+(use "Truth")
+;; 4
+(use "IntLtMonIntPred")
+;; Proof finished.
+(add-rewrite-rule "IntPred k<IntPred j" "k<j")
+
+;; Using IntNotLtToLe and IntNotLeToLt we obtain similar rules for IntLe
 (set-goal "all k,j (IntS k<=IntS j)=(k<=j)")
 (assume "k" "j")
 (use "BooleAeqToEq")
 ;; 3,4
-(assume "Sk=Sj")
+(assume "IntS k<=IntS j")
 (use "IntNotLtToLe")
 (assume "j<k")
-(assert "IntS j<IntS k -> IntS k<IntS k")
- (use "IntLeLtTrans")
- (use "Sk=Sj")
-(assume "Assertion")
-(ng)
-(use "Assertion")
+(assert "IntS k<IntS k")
+(use "IntLeLtTrans" (pt "IntS j"))
+(use "IntS k<=IntS j")
 (use "j<k")
+(assume "Absurd")
+(use "Absurd")
 ;; 4
 (assume "k<=j")
 (use "IntNotLtToLe")
-(assume "j<k")
-(assert "j<k -> k<k")
- (use "IntLeLtTrans")
- (use "k<=j")
-(assume "Assertion")
-(ng)
-(use "Assertion")
-(use "j<k")
+(assume "IntS j<IntS k")
+(assert "k<k")
+(use "IntLeLtTrans" (pt "j"))
+(use "k<=j")
+(use "IntS j<IntS k")
+(assume "Absurd")
+(use "Absurd")
 ;; Proof finished.
 (add-rewrite-rule "IntS k<=IntS j" "k<=j")
 
+(set-goal "all k,j (IntPred k<=IntPred j)=(k<=j)")
+(assume "k" "j")
+(use "BooleAeqToEq")
+;; 3,4
+(assume "IntPred k<=IntPred j")
+(use "IntNotLtToLe")
+(assume "j<k")
+(assert "IntPred k<IntPred k")
+(use "IntLeLtTrans" (pt "IntPred j"))
+(use "IntPred k<=IntPred j")
+(use "j<k")
+(assume "Absurd")
+(use "Absurd")
+;; 4
+(assume "k<=j")
+(use "IntNotLtToLe")
+(assume "IntPred j<IntPred k")
+(assert "k<k")
+(use "IntLeLtTrans" (pt "j"))
+(use "k<=j")
+(use "IntPred j<IntPred k")
+(assume "Absurd")
+(use "Absurd")
+;; Proof finished.
+(add-rewrite-rule "IntPred k<=IntPred j" "k<=j")
+
+;; IntLeTimesIntPCancelR
 (set-goal "all k,j,p (k*p<=j*p)=(k<=j)")
 (cases)
 ;; 2-4
@@ -3796,7 +3815,19 @@
 ;; Proof finished
 (add-rewrite-rule "k*p<=j*p" "k<=j")
 
+;; IntLeTimesIntPCancelL
+(set-goal "all p,k,j (p*k<=p*j)=(k<=j)")
+(assume "p" "k" "j")
+(simp "IntTimesComm")
+(simp (pf "p*j=j*p"))
+(use "Truth")
+(use "IntTimesComm")
+;; Proof finished
+(add-rewrite-rule "p*k<=p*j" "k<=j")
+
 ;; Same for IntLt, using IntNotLeToLt
+
+;; IntLtTimesIntPCancelR
 (set-goal "all k,j,p (k*p<j*p)=(k<j)")
 (assume "k" "j" "p")
 (use "BooleAeqToEq")
@@ -3816,6 +3847,310 @@
 (use-with "IntLtLeTrans" (pt "k") (pt "j") (pt "k") "k<j")
 ;; Proof finished.
 (add-rewrite-rule "k*p<j*p" "k<j")
+
+;; IntLtTimesIntPCancelL
+(set-goal "all p,k,j (p*k<p*j)=(k<j)")
+(assume "p" "k" "j")
+(simp "IntTimesComm")
+(simp (pf "p*j=j*p"))
+(use "Truth")
+(use "IntTimesComm")
+;; Proof finished.
+(add-rewrite-rule "p*k<p*j" "k<j")
+
+;; IntTimesIntNL (supersedes IntIntNOneTimes)
+(set-goal "all p,k IntN p*k= ~(p*k)")
+(assume "p")
+(cases)
+(assume "q")
+(use "Truth")
+(use "Truth")
+(assume "q")
+(use "Truth")
+;; Proof finished.
+(save "IntTimesIntNL")
+
+;; IntTimesIntNR
+(set-goal "all k,p k*IntN p= ~(k*p)")
+(assume "k" "p")
+(simp "IntTimesComm")
+(simp (pf "k*p=p*k"))
+(use "IntTimesIntNL")
+(use "IntTimesComm")
+;; Proof finished.
+(save "IntTimesIntNR")
+
+;; IntLeTimesIntNCancelL
+(set-goal "all p,k,j (IntN p*k<=IntN p*j)=(j<=k)")
+(assume "p" "k" "j")
+(simp "IntTimesIntNL")
+(simp "IntTimesIntNL")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "IntN p*k<=IntN p*j" "j<=k")
+
+;; IntLeTimesIntNCancelR
+(set-goal "all p,k,j (k*IntN p<=j*IntN p)=(j<=k)")
+(assume "p" "k" "j")
+(simp "IntTimesIntNR")
+(simp "IntTimesIntNR")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "k*IntN p<=j*IntN p" "j<=k")
+
+;; IntLtTimesIntNCancelL
+(set-goal "all p,k,j (IntN p*k<IntN p*j)=(j<k)")
+(assume "p" "k" "j")
+(use "BooleAeqToEq")
+;; 3,4
+(assume "-pk<-jp")
+(use "IntNotLeToLt")
+(assume "k<=j")
+(assert "IntN p*j<=IntN p*k")
+ (use "k<=j")
+(assume "-pj<=~pk")
+(use-with "IntLtLeTrans" (pt "IntN p*k") (pt "IntN p*j") (pt "IntN p*k")
+	  "-pk<-jp" "-pj<=~pk")
+;; 4
+(assume "j<k")
+(use "IntNotLeToLt")
+(assume "-pj<=-pk")
+(assert "k<=j")
+ (use "-pj<=-pk")
+(use-with "IntLtLeTrans" (pt "j") (pt "k") (pt "j") "j<k")
+;; Proof finished.
+(add-rewrite-rule "IntN p*k<IntN p*j" "j<k")
+
+;; IntLtTimesIntNCancelR
+(set-goal "all p,k,j (k*IntN p<j*IntN p)=(j<k)")
+(assume "p" "k" "j")
+(simp "IntTimesComm")
+(simp (pf "j*IntN p=IntN p*j"))
+(use "Truth")
+(use "IntTimesComm")
+;; Proof finished.
+(add-rewrite-rule "k*IntN p<j*IntN p" "j<k")
+
+;; IntLeTimesCancelL
+(set-goal "all k,j,i(IntZero<k -> k*j<=k*i -> j<=i)")
+(assert "all j,i,k(IntZero<k -> k*j<=k*i -> j<=i)")
+(assume "j" "i")
+(cases)
+;; 5-7
+(assume "p" "Useless" "pj<=pi")
+(use "pj<=pi")
+;; 6
+(assume "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; 7
+(assume "p" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; Assertion proved.
+(assume "Assertion" "k" "j" "i")
+(use "Assertion")
+;; Proof finished.
+(save "IntLeTimesCancelL")
+
+;; IntLeTimesCancelR
+(set-goal "all k,j,i(IntZero<j -> k*j<=i*j -> k<=i)")
+(assume "k" "j" "i")
+(simp "IntTimesComm")
+(simp (pf "i*j=j*i"))
+(use "IntLeTimesCancelL")
+(use "IntTimesComm")
+;; Proof finished.
+(save "IntLeTimesCancelR")
+
+;; IntLtTimesCancelL
+(set-goal "all k,j,i(IntZero<k -> k*j<k*i -> j<i)")
+(assert "all j,i,k(IntZero<k -> k*j<k*i -> j<i)")
+(assume "j" "i")
+(cases)
+;; 5-7
+(assume "p" "Useless" "pj<pi")
+(use "pj<pi")
+;; 6
+(assume "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; 7
+(assume "p" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; Assertion proved.
+(assume "Assertion" "k" "j" "i")
+(use "Assertion")
+;; Proof finished.
+(save "IntLtTimesCancelL")
+
+;; IntLtTimesCancelR
+(set-goal "all k,j,i(IntZero<j -> k*j<i*j -> k<i)")
+(assume "k" "j" "i")
+(simp "IntTimesComm")
+(simp (pf "i*j=j*i"))
+(use "IntLtTimesCancelL")
+(use "IntTimesComm")
+;; Proof finished.
+(save "IntLtTimesCancelR")
+
+;; IntLeLtCases
+(set-goal "all k,j((k<=j -> Pvar) -> (j<k -> Pvar) -> Pvar)")
+(cases)
+;; 2-4
+(assume "p")
+(cases)
+;; 6-8
+(assume "q")
+(ng)
+(use "PosLeLtCases")
+;; 7
+(assume "Useless" "Hyp")
+(use-with "Hyp" "Truth")
+;; 8
+(assume "q")
+(ng)
+(assume "Useless" "Hyp")
+(use-with "Hyp" "Truth")
+;; 3
+(cases)
+;; 15-17
+(assume "p" "Hyp" "Useless")
+(use-with "Hyp" "Truth")
+;; 16
+(assume "Hyp" "Useless")
+(use-with "Hyp" "Truth")
+;; 17
+(assume "q")
+(ng)
+(assume "Useless" "Hyp")
+(use-with "Hyp" "Truth")
+; 4
+(assume "p")
+(cases)
+;; 24-26
+(assume "q")
+(ng)
+(assume "Hyp" "Useless")
+(use-with "Hyp" "Truth")
+;; 25
+(ng)
+(assume "Hyp" "Useless")
+(use-with "Hyp" "Truth")
+;; 26
+(assume "q")
+(ng)
+(use "PosLeLtCases")
+;; Proof finished.
+(save "IntLeLtCases")
+
+;; IntLeCases
+(set-goal "all k,j(k<=j -> (k<j -> Pvar) -> (k=j -> Pvar) -> Pvar)")
+(cases)
+;; 2-4
+(assume "p")
+(cases)
+;; 6-8
+(assume "q")
+(ng)
+(use "PosLeCases")
+;; 7
+(assume "Absurd" "Useless" "Hyp")
+(use-with "Hyp" "Absurd")
+;; 8
+(assume "q")
+(ng)
+(assume "Absurd" "Useless" "Hyp")
+(use-with "Hyp" "Absurd")
+;; 3
+(cases)
+;; 15-17
+(assume "p" "Useless1" "Hyp" "Useless2")
+(use-with "Hyp" "Truth")
+;; 16
+(assume "Useless1" "Useless2" "Hyp")
+(use-with "Hyp" "Truth")
+;; 17
+(assume "q")
+(ng)
+(assume "Absurd" "Useless" "Hyp")
+(use-with "Hyp" "Absurd")
+; 4
+(assume "p")
+(cases)
+;; 24-26
+(assume "q")
+(ng)
+(assume "Useless1" "Hyp" "Useless2")
+(use-with "Hyp" "Truth")
+;; 25
+(ng)
+(assume "Useless1" "Hyp" "Useless2")
+(use-with "Hyp" "Truth")
+;; 26
+(assume "q")
+(ng)
+(assume "q<=p" "<Hyp" "=Hyp")
+(use "PosLeCases" (pt "q") (pt "p"))
+(use "q<=p")
+(use "<Hyp")
+(assume "q=p")
+(use "=Hyp")
+(simp "q=p")
+(use "Truth")
+;; Proof finished.
+(save "IntLeCases")
+
+;; IntTimesCancelL
+(set-goal "all k,j,i(IntZero<abs k -> k*j=k*i -> j=i)")
+(cases)
+;; 2-4
+(assume "p" "j" "i" "Useless" "pj=pi")
+(assert "p*j<=p*i")
+ (simp "pj=pi")
+ (use "Truth")
+(ng)
+(assume "j<=i")
+(assert "p*i<=p*j")
+ (simp "pj=pi")
+ (use "Truth")
+(ng)
+(assume "i<=j")
+(use "IntLeAntiSym")
+(use "j<=i")
+(use "i<=j")
+;; 3
+(assume "j" "i" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; 4
+(assume "p" "j" "i" "Useless" "-pj=-pi")
+(assert "IntN p*j<=IntN p*i")
+ (simp "-pj=-pi")
+ (use "Truth")
+(ng)
+(assume "i<=j")
+(assert "IntN p*i<=IntN p*j")
+ (simp "-pj=-pi")
+ (use "Truth")
+(ng)
+(assume "j<=i")
+(use "IntLeAntiSym")
+(use "j<=i")
+(use "i<=j")
+;; Proof finished.
+(save "IntTimesCancelL")
+
+;; IntTimesCancelR
+(set-goal "all k,j,i(IntZero<abs j -> k*j=i*j -> k=i)")
+(assume "k" "j" "i")
+(simp "IntTimesComm")
+(simp (pf "i*j=j*i"))
+(use "IntTimesCancelL")
+(use "IntTimesComm")
+;; Proof finished.
+(save "IntTimesCancelR")
 
 ;; IntLeMonTimes
 (set-goal "all k,j,i(0<=k -> j<=i -> j*k<=i*k)")
@@ -4102,8 +4437,8 @@
 ;; 4
 (ng)
 (assume "p" "q" "r" "r<=q")
-(use "PosLeMonPlus")
-(use "Truth")
+;; (use "PosLeMonPlus")
+;; (use "Truth")
 (use "r<=q")
 ;; Subproof finished.
 (assume "IntLeMonPlusIntN")
@@ -4129,8 +4464,8 @@
 (cases)
 ;; 10-12
 (assume "r" "q<=r")
-(use "PosLeMonPlus")
-(use "Truth")
+;; (use "PosLeMonPlus")
+;; (use "Truth")
 (use "q<=r")
 ;; 11
 (ng)
@@ -4138,7 +4473,7 @@
 (use "Absurd")
 ;; 12
 (assume "r" "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 ;; 7
 (cases)
@@ -4148,7 +4483,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 ;; 8
 (assume "q")
@@ -4186,11 +4521,11 @@
 (use "q<=r")
 ;; 50
 (assume "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 ;; 51
 (assume "r" "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 ; 46
 (cases)
@@ -4208,7 +4543,7 @@
 (use "Truth")
 ;; 61
 (assume "r" "Absurd")
-(use "Efq")
+(use "EfqAtom")
 (use "Absurd")
 ;; 47
 (assume "q")
@@ -4654,27 +4989,240 @@
 ;; Proof finished.
 (save "IntPlusOneIntS")
 
-;; IntTimesIntNOne
-(set-goal "all k k*IntN 1= ~k")
+;; IntPlusIntNOneIntPred
+(set-goal "all k k+IntN 1=IntPred k")
 (cases)
+(cases)
+(use "Truth")
 (assume "p")
 (use "Truth")
+(assume "p")
+(use "Truth")
+(use "Truth")
+(cases)
+(use "Truth")
+(assume "p")
 (use "Truth")
 (assume "p")
 (use "Truth")
 ;; Proof finished.
-(save "IntTimesIntNOne")
+(save "IntPlusIntNOneIntPred")
 
-;; IntIntNOneTimes
-(set-goal "all k IntN 1*k= ~k")
+;; Code discarded 2017-04-17.  Suberseded by IntTimesIntNL IntTimesIntNR
+;; ;; IntTimesIntNOne
+;; (set-goal "all k k*IntN 1= ~k")
+;; (cases)
+;; (assume "p")
+;; (use "Truth")
+;; (use "Truth")
+;; (assume "p")
+;; (use "Truth")
+;; ;; Proof finished.
+;; (save "IntTimesIntNOne")
+
+;; ;; IntIntNOneTimes
+;; (set-goal "all k IntN 1*k= ~k")
+;; (cases)
+;; (assume "p")
+;; (use "Truth")
+;; (use "Truth")
+;; (assume "p")
+;; (use "Truth")
+;; ;; Proof finished.
+;; (save "IntIntNOneTimes")
+
+;; IntPlusCancelR
+(set-goal "all k,j,i(k+j=i+j -> k=i)")
+(assert "all j,k,i(k+j=i+j -> k=i)")
 (cases)
-(assume "p")
-(use "Truth")
-(use "Truth")
-(assume "p")
-(use "Truth")
+;; 4-6
+(ind)
+(assume "k" "i")
+(simp "IntPlusOneIntS")
+(simp "IntPlusOneIntS")
+(use "IntSInj")
+;; 8
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntPSZero")
+;; (pp "IntPlusIntPSZeroId") ;not saved
+(simp "IntPlusIdIntPSZero")
+(assume "EqHyp")
+(use "IH")
+(use "IH")
+(use "EqHyp")
+;; 9
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntPSOne")
+(simp "IntPlusIdIntPSOne")
+(simp "IntPlusIdIntPSZero")
+(simp "IntPlusIdIntPSZero")
+(assume "EqHyp")
+(use "IH")
+(use "IH")
+(use "IntSInj")
+(use "EqHyp")
+;; 5
+(assume "k" "i" "EqHyp")
+(use "EqHyp")
+;; 6
+(ind)
+(assume "k" "i")
+(simp "IntPlusIntNOneIntPred")
+(simp "IntPlusIntNOneIntPred")
+(use "IntPredInj")
+;; 30
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntNSZero")
+(simp "IntPlusIdIntNSZero")
+(assume "EqHyp")
+(use "IH")
+(use "IH")
+(use "EqHyp")
+;; 31
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntNSOne")
+(simp "IntPlusIdIntNSOne")
+(simp "IntPlusIdIntNSZero")
+(simp "IntPlusIdIntNSZero")
+(assume "EqHyp")
+(use "IH")
+(use "IH")
+(use "IntPredInj")
+(use "EqHyp")
+;; Assertion proved.
+(assume "Assertion"  "k" "j")
+(use "Assertion")
 ;; Proof finished.
-(save "IntIntNOneTimes")
+(save "IntPlusCancelR")
+
+;; IntPlusCancelL
+(set-goal "all k,j,i(k+j=k+i -> j=i)")
+(assume "k" "j" "i")
+(simp "IntPlusComm")
+(simp (pf "k+i=i+k"))
+(use "IntPlusCancelR")
+(use "IntPlusComm")
+;; Proof finished.
+(save "IntPlusCancelL")
+
+;; BooleEqTrans
+(set-goal
+ "all boole1,boole2,boole3(boole1=boole2 -> boole2=boole3 -> boole1=boole3)")
+(assume "boole1" "boole2" "boole3" "=Hyp")
+(simp "<-" "=Hyp")
+(assume "b1=b3")
+(use "b1=b3")
+;; Proof finished.
+(save "BooleEqTrans")
+
+;; IntLePlusCancelR
+(set-goal "all k,j,i (k+j<=i+j)=(k<=i)")
+(assert "all j,k,i (k+j<=i+j)=(k<=i)")
+(cases)
+;; 4-6
+(ind)
+(assume "k" "i")
+(simp "IntPlusOneIntS")
+(simp "IntPlusOneIntS")
+(use "Truth")
+;; 8
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntPSZero")
+(simp "IntPlusIdIntPSZero")
+(use "BooleEqTrans" (pt "k+p<=i+p"))
+(use "IH")
+(use "IH")
+;; 9
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntPSOne")
+(simp "IntPlusIdIntPSOne")
+(simp "IntPlusIdIntPSZero")
+(simp "IntPlusIdIntPSZero")
+(use "BooleEqTrans" (pt "k+p+p<=i+p+p"))
+(use "Truth")
+(use "BooleEqTrans" (pt "k+p<=i+p"))
+(use "IH")
+(use "IH")
+;; 5
+(assume "k" "i")
+(use "Truth")
+;; 6
+(ind)
+(assume "k" "i")
+(simp "IntPlusIntNOneIntPred")
+(simp "IntPlusIntNOneIntPred")
+(simp "<-" "IntPlusIntNOneIntPred")
+(simp "<-" "IntPlusIntNOneIntPred")
+;; ?_35:(k+IntN 1<=i+IntN 1)=(k<=i)
+(simp "IntPlusIntNOneIntPred")
+(simp "IntPlusIntNOneIntPred")
+(use "Truth")
+;; 29
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntNSZero")
+(simp "IntPlusIdIntNSZero")
+(simp "IH")
+(use "IH")
+;; 30
+(assume "p" "IH" "k" "i")
+(simp "IntPlusIdIntNSOne")
+(simp "IntPlusIdIntNSOne")
+(ng)
+(simp "IntPlusIdIntNSZero")
+(simp "IntPlusIdIntNSZero")
+(simp "IH")
+(use "IH")
+;; Assertion proved.
+(assume "Assertion" "k" "j" "i")
+(use "Assertion")
+;; Proof finished.
+(add-rewrite-rule "k+j<=i+j" "k<=i")
+
+;; IntLePlusCancelL
+(set-goal "all k,j,i (k+j<=k+i)=(j<=i)")
+(assume "k" "j" "i")
+(simp "IntPlusComm")
+(simp (pf "k+i=i+k"))
+(use "Truth")
+(use "IntPlusComm")
+;; Proof finished.
+(add-rewrite-rule "k+j<=k+i" "j<=i")
+
+;; IntLtPlusCancelR
+(set-goal "all k,j,i (k+j<i+j)=(k<i)") ;as rewrite rule
+(assume "k" "j" "i")
+(use "BooleAeqToEq")
+;; 3,4
+(assume "k+j<i+j")
+(use "IntNotLeToLt")
+(assume "i<=k")
+(assert "i+j<=k+j")
+ (use "i<=k")
+(assume "i+j<=k+j")
+(assert "k+j<k+j")
+(use "IntLtLeTrans" (pt "i+j"))
+(use "k+j<i+j")
+(use "i+j<=k+j")
+(assume "Absurd")
+(use "Absurd")
+;; 4
+(assume "k<i")
+(use "IntNotLeToLt")
+(ng)
+(assume "i<=k")
+(use-with "IntLtLeTrans" (pt "k") (pt "i") (pt "k") "k<i" "i<=k")
+;; Proof finished.
+(add-rewrite-rule "k+j<i+j" "k<i")
+
+;; IntLtPlusCancelL
+(set-goal "all k,j,i (k+j<k+i)=(j<i)") ;as rewrite rule
+(assume "k" "j" "i")
+(simp "IntPlusComm")
+(simp (pf "k+i=i+k"))
+(use "Truth")
+(use "IntPlusComm")
+;; Proof finished.
+(add-rewrite-rule "k+j<k+i" "j<i")
 
 (add-program-constant "PosQR" (py "pos=>pos=>int yprod int"))
 ;; (remove-program-constant "PosQR")
@@ -4808,7 +5356,7 @@
 ;; PosQuotRemCorr into PosQRCorr
 
 ;; PosQRCorrAux
-(set-goal "all p,q,k,j(PosQR p q=(k pair j) -> p=k*q+j andu 0<=j andu j<q)")
+(set-goal "all p,q,k,j(PosQR p q=(k pair j) -> p=k*q+j andnc 0<=j andnc j<q)")
 ;; For the induction steps it will be helpful to have IHAux
 (assert "all p,q(p=lft(PosQR p q)*q+rht(PosQR p q) ->
                  SZero p=2*lft(PosQR p q)*q+2*rht(PosQR p q))")
@@ -4972,8 +5520,8 @@
 (simp "Assertion1")
 (simp "<-" "IntPlusAssoc")
 (use "IntLtLeTrans" (pt "rht(PosQR p q)+(q+IntN q)"))
-;;   InstIH:p=lft(PosQR p q)*q+rht(PosQR p q) andu 
-;;          0<=rht(PosQR p q) andu rht(PosQR p q)<q
+;;   InstIH:p=lft(PosQR p q)*q+rht(PosQR p q) andnc 
+;;          0<=rht(PosQR p q) andnc rht(PosQR p q)<q
 ;; -----------------------------------------------------------------------------
 ;; ?_147:rht(PosQR p q)+(rht(PosQR p q)+IntN q)<rht(PosQR p q)+(q+IntN q)
 
@@ -5025,11 +5573,11 @@
 ;;   IHAux:all p,q(
 ;;          p=lft(PosQR p q)*q+rht(PosQR p q) -> 
 ;;          SZero p=2*lft(PosQR p q)*q+2*rht(PosQR p q))
-;;   p16822  p  IH:all q,k,j(PosQR p q=(k pair j) -> p=k*q+j andu 0<=j andu j<q)
+;;   p16822  p  IH:all q,k,j(PosQR p q=(k pair j) -> p=k*q+j andnc 0<=j andnc j<q)
 ;;   q  k  j  Assertion:all kj kj=(lft kj pair rht kj)
 ;;   InstAssertion:PosQR p q=(lft(PosQR p q)pair rht(PosQR p q))
-;;   InstIH:p=lft(PosQR p q)*q+rht(PosQR p q) andu 
-;;          0<=rht(PosQR p q) andu rht(PosQR p q)<q
+;;   InstIH:p=lft(PosQR p q)*q+rht(PosQR p q) andnc 
+;;          0<=rht(PosQR p q) andnc rht(PosQR p q)<q
 ;;   IntS(2*rht(PosQR p q))<q:
 ;;     IntS(2*rht(PosQR p q))<q
 ;;   2*lft(PosQR p q)=k:2*lft(PosQR p q)=k
@@ -5134,8 +5682,8 @@
 
 ;; PosQRCorr
 (set-goal "all p,q(
-     p=lft(PosQR p q)*q+rht(PosQR p q) andu 
-     0<=rht(PosQR p q) andu rht(PosQR p q)<q)")
+     p=lft(PosQR p q)*q+rht(PosQR p q) andnc 
+     0<=rht(PosQR p q) andnc rht(PosQR p q)<q)")
 (assume "p" "q")
 (use "PosQRCorrAux")
 (simp "PairConstrOneTwo")
@@ -5171,7 +5719,7 @@
 
 ;; ;; PosQRCorr
 ;; (set-goal
-;;  "all p,q(p=(PosQuot p q)*q+PosRem p q andu 0<=PosRem p q andu PosRem p q<q)")
+;;  "all p,q(p=(PosQuot p q)*q+PosRem p q andnc 0<=PosRem p q andnc PosRem p q<q)")
 ;; (assume "p" "q")
 ;; (use "PosQRCorrAux")
 ;; (cases (pt "PosQR p q"))
