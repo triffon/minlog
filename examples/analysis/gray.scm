@@ -1,4 +1,4 @@
-;; 2015-09-28.  gray.scm.  Type of reals still a tvar.
+;; 2017-04-21.  gray.scm.  Type of reals still a tvar.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -2926,11 +2926,11 @@
 (assume "ExHypLR")
 (by-assume "ExHypLR" "x^2" "x2Prop")
 (by-assume "x2Prop" "a" "x2aProp")
-(assert "exu x^3 x^3 eqd inv PRht***(x^2 av Lft)")
+(assert "exnc x^3 x^3 eqd inv PRht***(x^2 av Lft)")
  (intro 0 (pt "inv PRht***(x^2 av Lft)"))
  (use "InitEqD")
-(assume "exu x^3 x^3 eqd inv PRht***(x^2 av Lft)")
-(by-assume "exu x^3 x^3 eqd inv PRht***(x^2 av Lft)" "x^3" "x3Def")
+(assume "exnc x^3 x^3 eqd inv PRht***(x^2 av Lft)")
+(by-assume "exnc x^3 x^3 eqd inv PRht***(x^2 av Lft)" "x^3" "x3Def")
 (assert "x^ eqd inv a***(x^3 av Lft)")
  (simp "x3Def")
  (simp "x1Prop")
@@ -2991,11 +2991,11 @@
 (assume "ExHypLR")
 (by-assume "ExHypLR" "x^2" "x2Prop")
 (by-assume "x2Prop" "a" "x2aProp")
-(assert "exu x^3 x^3 eqd x^2 av Lft")
+(assert "exnc x^3 x^3 eqd x^2 av Lft")
  (intro 0 (pt "x^2 av Lft"))
  (use "InitEqD")
-(assume "exu x^3 x^3 eqd x^2 av Lft")
-(by-assume "exu x^3 x^3 eqd x^2 av Lft" "x^3" "x3Def")
+(assume "exnc x^3 x^3 eqd x^2 av Lft")
+(by-assume "exnc x^3 x^3 eqd x^2 av Lft" "x^3" "x3Def")
 (assert "x^ eqd a***(x^3 av Rht)")
  (simp "x3Def")
  (simp "x1Prop")
