@@ -1,4 +1,4 @@
-;; $Id: tutor.scm 2451 2011-03-29 21:32:09Z schwicht $
+;; tutor.scm
 
 ;; This file contains the examples of the Tutorial for Minlog version 5.0
 
@@ -562,7 +562,7 @@
 	 '("allnc n(EvenNC n -> EvenNC(n+2))" "GenEvenNC"))
 
 ;; Exercise: Prove the following statement
-(set-goal "allnc n(EvenNC n -> exu m m+m=n)")
+(set-goal "allnc n(EvenNC n -> exnc m m+m=n)")
 (assume "n" "En")
 (elim "En")
 (intro 0 (pt "0"))
