@@ -1,4 +1,4 @@
-;; 2015-02-09.  dickson.scm
+;; 2017-04-21.  dickson.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1037,7 +1037,7 @@
 
 ;; FPHDisjTwo
 (set-goal "all f,g,k(
- exu i,j(i<j & j<=k*k & f i = f j & g i = g j) ori
+ exnc i,j(i<j & j<=k*k & f i = f j & g i = g j) ori
  ex j(j<=k*k & k<=f j)  ori
  ex j(j<=k*k & k<=g j))")
 (assume "f" "g" "k")
@@ -1109,7 +1109,7 @@
 
 ;; Key
 (set-goal "all f,g,n,k(
- exu i,j(n<i & i<j & j<=Succ n+k*k & f i = f j & g i = g j) ori
+ exnc i,j(n<i & i<j & j<=Succ n+k*k & f i = f j & g i = g j) ori
  ex j(n<j & j<=Succ n+k*k & k<=f j)  ori
  ex j(n<j & j<=Succ n+k*k & k<=g j))")
 (assume "f" "g" "n" "k")
@@ -1379,7 +1379,7 @@
 
 ;; Desc
 (set-goal "all f,g,n(
- exu i,j(i<j & j<=I f g n & f i<=f j & g i<=g j) ori
+ exnc i,j(i<j & j<=I f g n & f i<=f j & g i<=g j) ori
  Phi f g(I f g n)<Phi f g n)")
 (assume "f" "g" "n")
 (inst-with-to "Key" (pt "f") (pt "g") (pt "n") (pt "Psi f g n") "KeyInst")
@@ -1509,7 +1509,7 @@
 
 ;; DL
 (set-goal "all f,g,n ex k(
- I f g n<=k & exu i,j(i<j & j<=k & f i<=f j & g i<=g j))")
+ I f g n<=k & exnc i,j(i<j & j<=k & f i<=f j & g i<=g j))")
 (assume "f" "g")
 (gind (pt "[n]Phi f g n"))
 (assume "n" "IH")
