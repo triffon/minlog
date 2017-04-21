@@ -1,4 +1,4 @@
-;; $Id: boole.scm 2665 2014-01-08 09:54:29Z schwicht $
+;; 2017-04-21
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -11,7 +11,7 @@
 (add-token "andd" 'and-jct make-andd)
 (add-token "andr" 'and-jct make-andr)
 (add-token "andl" 'and-jct make-andl)
-(add-token "andu" 'and-jct make-andu)
+(add-token "andnc" 'and-jct make-andnc)
 (add-token "andi" 'and-jct make-andi)
 
 (add-token "ord" 'or-jct make-ord)
@@ -27,7 +27,6 @@
 (add-token "exd" 'quantor (lambda (v k) (apply mk-exd (append v (list k)))))
 (add-token "exl" 'quantor (lambda (v k) (apply mk-exl (append v (list k)))))
 (add-token "exr" 'quantor (lambda (v k) (apply mk-exr (append v (list k)))))
-(add-token "exu" 'quantor (lambda (v k) (apply mk-exu (append v (list k)))))
 (add-token "exi" 'quantor (lambda (v k) (apply mk-exi (append v (list k)))))
 
 ;; We introduce a prefix display string Des for Destr
