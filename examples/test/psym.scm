@@ -23,7 +23,7 @@
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "ExR" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "ExU" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
+    "ExNc" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "ExDT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
@@ -31,7 +31,7 @@
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "ExRT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "ExUT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
+    "ExNcT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "AndD" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
@@ -39,7 +39,7 @@
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "AndR" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "AndU" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
+    "AndNc" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "OrD" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
@@ -429,10 +429,10 @@
 
 ;; allnc x^,x^0(
 ;;  (CoTrCl (cterm (x^1,x^2) R x^1 x^2))x^ x^0 ->
-;;  exr x^1,y^(R x^1 y^ andl x^ eqd x^1 andu x^0 eqd y^) ord
+;;  exr x^1,y^(R x^1 y^ andl x^ eqd x^1 andnc x^0 eqd y^) ord
 ;;  exr x^1,y^,z^(
 ;;   R x^1 y^ &
-;;   (CoTrCl (cterm (x^2,x^3) R x^2 x^3))y^ z^ andl x^ eqd x^1 andu x^0 eqd z^))
+;;   (CoTrCl (cterm (x^2,x^3) R x^2 x^3))y^ z^ andl x^ eqd x^1 andnc x^0 eqd z^))
 
 (define aconst (theorem-name-to-aconst "CoTrClClause"))
 (define proof (make-proof-in-aconst-form aconst))
