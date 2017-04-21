@@ -1,14 +1,121 @@
-;; $Id: log.txt 2704 2014-10-02 13:45:03Z schwicht $
+;; 2017-04-21.  log.txt
 
-Done in dev branch 2017-04-09
+Done in dev branch 2017-04-21
+
+In util/minlog.template.el
+
+Chez Scheme added, and order of possible scheme implementations changed.
+
+In src/Makefile
+
+Chez Scheme added, and order of possible scheme implementations changed.
+
+In nat.scm
+
+NatPlusCancelL NatPlusCancelR NatTimesCancelL NatTimesCancelR added.
+NatLtPlusCancelR NatLtPlusCancelL added as rewrite rules.
+NatLtTimesCancelL NatLtTimesCancelR added.
+NatLePlusCancelR NatLePlusCancelL added as rewrite rules.
+NatLeTimesCancelL NatLeTimesCancelR added.
+Proof of NatEqSym NatEqTrans simplified, using NatEqToEqD .
+andu exu replaced by andnc exnc
+
+In pos.scm
+
+SZeroPosPlus moved here from int.scm.
+PosTimesInj renamed into PosTimesCancelL.
+PosTimesInjLeft renamed into PosTimesCancelR.
+PosLtMonTimesInv renamed into PosLtTimesCancelL.
+PosPlusCancelL PosPlusCancelR added.
+PosLePlusCancelL PosLePlusCancelR PosLtPlusCancelL PosLtPlusCancelR
+added as rewrite rules.
+PosLeTimesCancelR PosLeTimesCancelL PosLtTimesCancelR PosLtTimesCancelL
+added as rewrite rules.
+andu exu replaced by andnc exnc
+
+In int.scm
+
+SZeroPosPlus moved to pos.scm
+IntPlusIntNOneIntPred added.
+IntIntNOneTimes IntTimesIntNOne replaced by the more general
+IntTimesIntNL IntTimesIntNR.
+IntLeLtCases IntLeCases added.
+Rewrite rules added for 
+IntS k<IntS j IntPred k<IntPred j IntS k<=IntS j IntPred k<=IntPred j
+IntPlusCancelR IntPlusCancelL added.
+IntLePlusCancelL k+j<=k+i -> j<=i added as rewrite rule.
+IntLePlusCancelR k+j<=i+j -> k<=i added as rewrite rule.
+IntLtPlusCancelL k+j<k+i -> j<i added as rewrite rule.
+IntLtPlusCancelR k+j<i+j -> k<i added as rewrite rule.
+IntLeTimesIntPCancelL p*k<=p*j -> k<=j added as rewrite rule.
+IntLeTimesIntPCancelR k*p<=j*p -> k<=j added as rewrite rule.
+IntLtTimesIntPCancelL p*k<p*j -> k<j added as rewrite rule.
+IntLtTimesIntPCancelR k*p<j*p -> k<j added as rewrite rule.
+IntLeTimesIntNCancelL IntN p*k<=IntN p*j -> j<=k added as rewrite rule.
+IntLeTimesIntNCancelR k*IntN p<=j*IntN p -> j<=k added as rewrite rule.
+IntLtTimesIntNCancelL IntN p*k<IntN p*j -> j<k added as rewrite rule.
+IntLtTimesIntNCancelR k*IntN p<j*IntN p -> j<k added as rewrite rule.
+IntTimesCancelL IntTimesCancelR added.
+andu exu replaced by andnc exnc
+
+In rat.scm
+
+RatTimesInjLeft renamed into RatEqvTimesCancelR
+RatTimesInj renamed into RatEqvTimesCancelL
+RatTimesIdZero renamed into RatTimesZeroR
+RatTimesZeroId renamed into RatTimesZeroL
+RatTimesIdIntUMinus renamed into RatTimesIntUMinusR and added as rewrite rule.
+RatTimesIntUMinusL ~k*a -> ~(k*a) added as rewrite rule.
+RatIntNOneTimes RatTimesIntNOne replaced by the more general
+RatTimesIntNL RatTimesIntNR.
+RatLePlusMinusToRatLePlus renamed into RatLePlusR
+RatLePlusToRatLePlusMinus renamed into RatLePlusRInv
+RatPlusInj renamed into RatEqvPlusCancelL and added as rewrite rule.
+RatPlusInjLeft renamed into RatEqvPlusCancelR and added as rewrite rule.
+RatLePlusCancelL a+b<=a+c -> b<=c added as rewrite rule.
+RatLePlusCancelR a+b<=c+b -> a<=c added as rewrite rule.
+RatLeTimes renamed into RatLeTimesIntPCancelR
+RatLeTimesIntPCancelR a*(p#q)<=b*(p#q) -> a<=b added as rewrite rule.
+RatLeTimesIntPCancelL (p#q)*a<=(p#q)*b -> a<=b added as rewrite rule.
+RatLeTimesIntNCancelL (IntN p#q)*a<=(IntN p#q)*b -> b<=a added as rewrite rule.
+RatLeTimesIntNCancelR a*(IntN p#q)<=b*(IntN p#q) -> b<=a added as rewrite rule.
+RatLeTimesCancelL (IntZero#One)<a -> a*b<=a*c -> b<=c added.
+RatLeTimesCancelR (IntZero#One)<b -> a*b<=c*b -> a<=c added.
+RatEqvTimesIntPCancelL (p#q)*a==(p#q)*b -> a==b added added as rewrite rule.
+RatEqvTimesIntPCancelR a*(p#q)==b*(p#q) -> a==b added added as rewrite rule.
+RatEqvUMinusInj ~a== ~b -> a==b added added as rewrite rule.
+RatEqvTimesIntNCancelL
+ (IntN p#q)*a==(IntN p#q)*b -> a==b added added as rewrite rule.
+RatEqvTimesIntNCancelR
+ a*(IntN p#q)==b*(IntN p#q) -> a==b added added as rewrite rule.
+
+In rea.scm
+
+RatLePlusMinusToRatLePlus renamed into RatLePlusR
+RatLePlusToRatLePlusMinus renamed into RatLePlusRInv
+RealUMinusCompatInv renamed into RealUMinusInj
+
+In typ.scm
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In term.scm
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In pconst.scm
+
+display-pconst now numerates the computation and rewrite rules.
+Reason: RatTimes7RewRule is easier to identify.
 
 In psym.scm
 
 clause-to-exand-formula in imp-impnc case corrected and simplified.
+In display-idpc the type of the content is shown.
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
 
 In formula.scm
 
 quant-form-to-nc-quant extended to all (was forgotten).
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
 
 In axiom.scm
 
@@ -16,22 +123,78 @@ In imp-formulas-to-uninst-elim-formulas-etc (and
 imp-formulas-to-uninst-gfp-formulas-etc) some of the xs^ in the
 premise (or conclusion) of the imp-formulas I xs^ -> A(xs^) (or
 A(xs^) -> J xs^) can be total.
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In boole.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In proof.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
 
 In pproof.scm
 
 In elim-intern (and coind-intern) some of the xs^ in I xs^ (or J xs^)
 can be total.
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
 
 In ets.scm
 
 In exrtotal-intro-aconst occurrence of make-totalmr with two identical
-arguments replaced by make-totalnc
+arguments replaced by make-totalnc .
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In pp.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
 
 In doc/tutor.tex
 
 Missing addition of the program constant In added.
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
 
-In examples/analysis/
+In doc/ref.tex
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/tutor.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/test/psym.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/test/axiom.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/test/formula.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/test/formula.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/arith/dickson.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/analysis/gray.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/analysis/ishihara.scm
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/analysis/readme-ratsds.txt
+
+AndU ExU andu exu replaced by AndNc ExNc andnc exnc.
+
+In examples/analysis/readme-ratsds.txt
 
 Files sdJK.scm sdmult.scm graymult.scm added
 
