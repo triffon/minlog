@@ -1,4 +1,4 @@
-;; 2015-09-28.  ishihara.scm.
+;; 2017-04-21.  ishihara.scm.
 
 ;; Based on seminars/semss13/ishihara.scm and temp/banach.scm.
 ;; Abstract treatment with (undefined) total program constants in type
@@ -1664,7 +1664,7 @@
 ;; ApproxSplitBoole
 (set-goal "all x1,x2,x3,k(Real x1 -> Real x2 -> Real x3 ->
                     RealLt x1 x2 k -> ex boole(
-                    (boole -> x3<<=x2) andu ((boole -> F) -> x1<<=x3)))")
+                    (boole -> x3<<=x2) andnc ((boole -> F) -> x1<<=x3)))")
 (assume "x1" "x2" "x3" "k" "Rx1" "Rx2" "Rx3" "x1<x2")
 (assert "x3<<=x2 oru x1<<=x3")
  (use "ApproxSplit" (pt "k"))
@@ -1699,7 +1699,7 @@
 
 ;; ApproxSplitBooleRat
 (set-goal "all a,b,x,k(Real x -> 1/2**k<=b-a -> ex boole(
-                    (boole -> x<<=b) andu ((boole -> F) -> a<<=x)))")
+                    (boole -> x<<=b) andnc ((boole -> F) -> a<<=x)))")
 (assume "a" "b" "x" "k" "Rx" "1/2**k<=b-a")
 (use "ApproxSplitBoole" (pt "k"))
 (use "RealRat")
@@ -1777,7 +1777,7 @@
  ex m a<<=lnorm(f(us m)) oru all m lnorm(f(us m))<<=b)")
 (assume "f" "us" "M" "a" "b" "k"
  "fLin*" "Conv" "M0" "MStrMon" "0<a" "a<b" "1/2**k<=b-a")
-(assert "ex g1 all m((g1 m -> lnorm(f(us m))<<=b) andu
+(assert "ex g1 all m((g1 m -> lnorm(f(us m))<<=b) andnc
                      ((g1 m -> F) -> a<<=lnorm(f(us m))))")
  (use "AC")
  (assume "m")
@@ -1786,7 +1786,7 @@
  (use "1/2**k<=b-a")
 (assume "g1Ex")
 (by-assume "g1Ex" "g1" "g1Prop")
-(cut "ex g all m((g m -> a<<=lnorm(f(us m))) andu
+(cut "ex g all m((g m -> a<<=lnorm(f(us m))) andnc
                  ((g m -> F) -> lnorm(f(us m))<<=b))")
 (use "Id")
 (assume "gEx")
@@ -1977,7 +1977,7 @@
 (use "MMon")
 (use "Truth")
 ;; 14 ex g all m(
-;; (g m -> a<<=lnorm(f(us m))) andu ((g m -> F) -> lnorm(f(us m))<<=b))
+;; (g m -> a<<=lnorm(f(us m))) andnc ((g m -> F) -> lnorm(f(us m))<<=b))
 (ex-intro (pt "[m]negb(g1 m)"))
 (ng #t)
 (assume "m")
@@ -2030,7 +2030,7 @@
 (pp "ApproxSplitBooleRat")
 ;; all a,b,x,k(
 ;;  Real x ->
-;;  1/2**k<=b-a -> ex boole((boole -> x<<=b) andu ((boole -> F) -> a<<=x)))
+;;  1/2**k<=b-a -> ex boole((boole -> x<<=b) andnc ((boole -> F) -> a<<=x)))
 
 (pp "AC")
 ;; all m ex boole (Pvar nat boole)^ m boole ->
@@ -2051,7 +2051,7 @@
  ex m a<<=lnorm(f(us m)) orl all m lnorm(f(us m))<<=b)")
 (assume "f" "us" "M" "a" "b" "k"
  "fLin*" "Conv" "M0" "MStrMon" "0<a" "a<b" "1/2**k<=b-a")
-(assert "ex g1 all m((g1 m -> lnorm(f(us m))<<=b) andu
+(assert "ex g1 all m((g1 m -> lnorm(f(us m))<<=b) andnc
                      ((g1 m -> F) -> a<<=lnorm(f(us m))))")
  (use "AC")
  (assume "m")
@@ -2060,7 +2060,7 @@
  (use "1/2**k<=b-a")
 (assume "g1Ex")
 (by-assume "g1Ex" "g1" "g1Prop")
-(cut "ex g all m((g m -> a<<=lnorm(f(us m))) andu
+(cut "ex g all m((g m -> a<<=lnorm(f(us m))) andnc
                  ((g m -> F) -> lnorm(f(us m))<<=b))")
 (use "Id")
 (assume "gEx")
@@ -2253,7 +2253,7 @@
 (use "NormLinNormReal")
 (use "0<a")
 ;; 14 ex g all m(
-;; (g m -> a<<=lnorm(f(us m))) andu ((g m -> F) -> lnorm(f(us m))<<=b))
+;; (g m -> a<<=lnorm(f(us m))) andnc ((g m -> F) -> lnorm(f(us m))<<=b))
 (ex-intro (pt "[m]negb(g1 m)"))
 (ng #t)
 (assume "m")
@@ -2307,7 +2307,7 @@
 (pp "ApproxSplitBooleRat")
 ;; all a,b,x,k(
 ;;  Real x ->
-;;  1/2**k<=b-a -> ex boole((boole -> x<<=b) andu ((boole -> F) -> a<<=x)))
+;;  1/2**k<=b-a -> ex boole((boole -> x<<=b) andnc ((boole -> F) -> a<<=x)))
 
 (pp "AC")
 ;; all m ex boole (Pvar nat boole)^ m boole ->
