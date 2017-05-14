@@ -1,5 +1,55 @@
-;; 2017-04-21.  log.txt
+;; 2017-05-14.  log.txt
 
+Done in dev branch 2017-05-14
+
+In lib/int.scm
+
+IntTimesInj renamed into IntTimesCancelL
+IntTimesInjLeft renamed into IntTimesCancelR
+
+In pproof.scm
+
+rateqv-term-compat extended by RatUDivCompat RatDivCompat
+
+In pos.scm
+
+p<SZero p -> True, 2<=2**p -> True and p<2**p -> True
+added as rewrite rule
+
+In rat.scm
+
+Theorem RatPlusZero added.
+RatUDiv added.
+RatEqvUDivInj with rewrite rule (RatUDiv a==RatUDiv b) -> a==b added.
+RatUDivCompat added.
+Theorems RatLeUDiv RatLeUDivInv RatUDivExpandR RatUDivExpandL added.  
+abs abs a -> abs a, abs(RatUDiv a) -> RatUDiv abs a  added as rewrite rules
+Theorems RatUDivTimes RatTimesUDivR RatUDivUDiv added.
+RatDiv redefined via RatTimes and RatUDiv
+Theorem RatDivCompat added.
+
+In rea.scm
+
+RealEqCharOne and RealEqChar2 rewritten with UMinus and exnc.
+RealEqCharOneRealConstrFree RealEqChar2RealConstrFree added.
+RealNNegS and RealLeS <+= introduced, parallel to RealEqS =+=.
+These are versions referring to members of Cauchy sequences only.
+Reason: RealNNegS r and r<+=s are often easier to prove, and we have
+RealNNegSToNNeg and RealLeSToLe.
+
+Theorems RealNNegSElim RealNNegSToNNeg RealLeSElim RealLeSChar1
+RealLeSToLe RealLeAbsInv RatNNegToRealNNeg RealNNegToRatNNeg
+RealNNegToIntNNeg RatLeToRealLe RealLeToRatLe RealLeToIntLe
+RealLeToRealPos added.
+
+RealUDiv introduced.  Theorems RealUDivReal RealUDivCompat
+RealPosAbs RealTimesUDiv RealTimesUMinusId RealLeMonTimesL
+RealEqAbs RealAbsUDiv RealPosToNNeg RealPosToNNegUDiv
+RealNNegToUDivAbs RealLeToPos added.
+
+abs abs x -> abs x added as rewrite rule
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-04-21
 
 In util/minlog.template.el
