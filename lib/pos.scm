@@ -1,4 +1,4 @@
-;; 2017-04-15.  pos.scm.  Based on the former numbers.scm.
+;; 2017-05-13.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -3553,6 +3553,20 @@
 ;; Proof finished.
 (add-rewrite-rule "p*q<r*q" "p<r")
 
+(set-goal "all p p<SZero p")
+(ind)
+(use "Truth")
+(assume "p" "IH")
+(ng)
+(use "IH")
+(assume "p" "IH")
+(ng)
+(use "PosLtTrans" (pt "SZero p"))
+(use "IH")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "p<SZero p" "True")
+
 ;; PosLeLtCases
 (set-goal "all p,q((p<=q -> Pvar) -> (q<p -> Pvar) -> Pvar)")
 (assume "p" "q" "LeHyp" "LtHyp")
@@ -5164,4 +5178,53 @@
 ;; Proof finished.
 (save "PosLeMonPosExp")
 
-;; (search-about "Pos" "Max")
+(set-goal "all p 2<=2**p")
+(ind)
+(use "Truth")
+(assume "p" "IH")
+(ng)
+(simp "<-" "NatDoublePlusEq")
+(simp "<-" "PosExpTwoNatPlus")
+(use "PosLeTrans" (pt "2*2"))
+(use "Truth")
+(use "PosLeMonTimes")
+(use "IH")
+(use "IH")
+;; 4
+(assume "p" "IH")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "2<=2**p" "True")
+
+(set-goal "all p p<2**p")
+(ind)
+;; 2-4
+(use "Truth")
+;; 3
+(assume "p" "IH")
+(ng)
+(simp "<-" "NatDoublePlusEq")
+(simp "<-" "PosExpTwoNatPlus")
+(simp (pf "SZero p=2*p"))
+(use "PosLeLtTrans" (pt "2**p*p"))
+(use "PosLeMonTimes")
+(use "Truth")
+(use "Truth")
+(use "PosLeLtMonTimes")
+(use "Truth")
+(use "IH")
+(use "Truth")
+;; 4
+(assume "p" "IH")
+(ng)
+(simp "<-" "NatDoublePlusEq")
+(simp "<-" "PosExpTwoNatPlus")
+;; ?_20:p<2**p*2**p
+(use "PosLeLtTrans" (pt "p*1"))
+(use "Truth")
+(use "PosLtLeMonTimes")
+(use "IH")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "p<2**p" "True")
+
