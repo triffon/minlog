@@ -1,4 +1,4 @@
-;; 2017-04-18.  rat.scm.  Based on numbers.scm.
+;; 2017-05-14.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -361,6 +361,7 @@
 (add-program-constant "RatUMinus" (py "rat=>rat"))
 (add-program-constant "RatMinus" (py "rat=>rat=>rat"))
 (add-program-constant "RatTimes" (py "rat=>rat=>rat"))
+(add-program-constant "RatUDiv" (py "rat=>rat"))
 (add-program-constant "RatDiv" (py "rat=>rat=>rat"))
 (add-program-constant "RatAbs" (py "rat=>rat"))
 (add-program-constant "RatHalf" (py "rat=>rat"))
@@ -789,34 +790,47 @@
 ;; (save "RatTimesUMinusId")
 (add-rewrite-rule "~a*b" "~(a*b)")
 
+;; Rules for RatUDiv.
+
+(add-computation-rules
+ "RatUDiv(IntZero#p)" "(IntZero#1)"
+ "RatUDiv(IntP p#q)" "(q#p)"
+ "RatUDiv(IntN p#q)" "(IntN q#p)")
+
+;; RatUDivTotal
+(set-totality-goal "RatUDiv")
+(use "AllTotalElim")
+(cases)
+(cases)
+;; 4-6
+(assume "p" "q")
+(ng)
+(use "RatTotalVar")
+;; 5
+(ng)
+(assume "p")
+(use "RatTotalVar")
+;; 6
+(assume "p" "q")
+(ng)
+(use "RatTotalVar")
+;; Proof finished.
+(save-totality)
+
 ;; Rules for RatDiv.  They give correct results for a/b (only) if b not 0.
 
 (add-computation-rules
- "(k#p)/(IntP r#q)" "(k*q#r*p)"
- "(k#p)/(IntZero#q)" "RatConstr IntZero One"
- "(k#p)/(IntN r#q)" "((IntZero-k)*q#r*p)")
+ "a/b" "a*RatUDiv b")
 
 ;; RatDivTotal
 (set-totality-goal "RatDiv")
 (use "AllTotalElim")
-(cases)
-(assume "k" "p")
+(assume "a")
 (use "AllTotalElim")
-(cases)
-(cases)
-;; 7-9
-(assume "r" "q")
+(assume "b")
 (ng)
 (use "RatTotalVar")
-;; 8
-(assume "q")
-(ng)
-(use "RatTotalVar")
-;; 9
-(assume "r" "q")
-(ng)
-(use "RatTotalVar")
-;; Proof finshed.
+;; Proof finished.
 (save-totality)
 
 ;; Rules for RatAbs
@@ -843,7 +857,7 @@
 (assume "p" "q")
 (ng)
 (use "RatTotalVar")
-;; Proof finshed.
+;; Proof finished.
 (save-totality)
 
 (set-goal "all a abs(~a)=abs a")
@@ -871,6 +885,33 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "abs(k#p)" "(abs k#p)")
+
+(set-goal "all a abs abs a=abs a")
+(cases)
+(cases)
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "abs abs a" "abs a")
+
+(set-goal "all a abs(RatUDiv a)=RatUDiv abs a")
+(cases)
+(cases)
+(assume "p" "q")
+(ng)
+(use "Truth")
+(assume "q")
+(ng)
+(use "Truth")
+(assume "p" "q")
+(ng)
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "abs(RatUDiv a)" "RatUDiv abs a")
 
 ;; RatAbsTimes
 (set-goal "all a,b abs(a*b)=abs a*abs b")
@@ -1025,6 +1066,19 @@
 (use "Truth")
 ;; Proof finished
 (add-rewrite-rule "a+ ~a==0" "True")
+
+;; RatPlusZero
+(set-goal "all a,q a+(0#q)==a")
+(cases)
+(ng)
+(assume "k" "p" "q")
+(simp "PosTimesComm")
+(simp (pf "q*p=IntTimes q p"))
+(simp "IntTimesAssoc")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatPlusZero")
 
 ;; RatTimesZeroR
 (set-goal "all a,p a*(0#p)==0")
@@ -2133,6 +2187,375 @@
 ;; Proof finished.
 (save "RatMinusCompat")
 
+;; RatEqvUDivInj
+(set-goal "all a,b (RatUDiv a==RatUDiv b)=(a==b)")
+(assert "all p,q (p=q)=(q=p)")
+(ind)
+;; 4-6
+(cases)
+(use "Truth")
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+;; 5
+(assume "p" "IH")
+(cases)
+(use "Truth")
+(strip)
+(use "IH")
+(strip)
+(use "Truth")
+;; 6
+(assume "p" "IH")
+(cases)
+(use "Truth")
+(strip)
+(use "Truth")
+(strip)
+(use "IH")
+;; Assertion proved.
+(assume "PosEqSym")
+(cases)
+(cases)
+;; 26-28
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 31-33
+(assume "p2" "q2")
+(ng)
+(simp (pf "q1*p2=p2*q1"))
+(simp (pf "p1*q2=q2*p1"))
+(use "PosEqSym")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; 32
+(assume "q2")
+(ng)
+(use "Truth")
+;; 33
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 27
+(assume "q1")
+(cases)
+(cases)
+;; 46-48
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 47
+(assume "q2")
+(ng)
+(use "Truth")
+;; 48
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 28
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 57-59
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 58
+(assume "q2")
+(ng)
+(use "Truth")
+;; 59
+(assume "p2" "q2")
+(ng)
+(simp (pf "q1*p2=p2*q1"))
+(simp (pf "p1*q2=q2*p1"))
+(use "PosEqSym")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; Proof finished.
+(save "RatEqvUDivInj")
+(add-rewrite-rule "RatUDiv a==RatUDiv b" "a==b")
+
+;; RatUDivCompat
+(set-goal "all a,b(a==b -> RatUDiv a==RatUDiv b)")
+(assume "a" "b" "a==b")
+(use "a==b")
+;; Proof finished.
+(save "RatUDivCompat")
+
+;; RatDivCompat
+(set-goal "all a,b,c,d(a==b -> c==d -> a/c==b/d)")
+(assume "a" "b" "c" "d" "a=b" "c=d")
+(ng)
+(use "RatTimesCompat")
+(use "a=b")
+(use "RatUDivCompat")
+(use "c=d")
+;; Proof finished.
+(save "RatDivCompat")
+
+;; RatLeUDiv
+(set-goal"all a,b(0<a -> a<=b -> RatUDiv b<=RatUDiv a)")
+(cases)
+(cases)
+;; 3-5
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 8-10
+(assume "p2" "q2")
+(ng)
+(assume "Useless")
+(simp (pf "q2*p1=p1*q2"))
+(simp (pf "q1*p2=p2*q1"))
+(assume "Hyp")
+(use "Hyp")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; 9
+(ng)
+(strip)
+(use "Truth")
+;; 10
+(assume "p2" "q2")
+(ng)
+(strip)
+(use "Truth")
+;; 4
+(assume "q1" "b" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; 5
+(assume "p1" "q1" "b" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; Proof finished.
+(save "RatLeUDiv")
+
+;; RatLeUDivInv
+(set-goal "all a,b(0<b -> RatUDiv b<=RatUDiv a -> a<=b)")
+(cases)
+(cases)
+;; 3-5
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 8-10
+(assume "p2" "q2")
+(ng)
+(assume "Useless")
+(simp (pf "q2*p1=p1*q2"))
+(simp (pf "q1*p2=p2*q1"))
+(assume "Hyp")
+(use "Hyp")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; 9
+(ng)
+(assume "p" "Absurd" "Useless")
+(use "Absurd")
+;; 10
+(assume "p2" "q2")
+(ng)
+(assume "Absurd" "Useless")
+(use "Absurd")
+;; 4
+(assume "q1")
+(cases)
+(cases)
+;; 26-28
+(strip)
+(use "Truth")
+;; 27
+(strip)
+(use "Truth")
+;; 28
+(assume "p2" "q2" "Absurd" "Useless")
+(use "Absurd")
+;; 5
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 34-36
+(strip)
+(use "Truth")
+;; 35
+(strip)
+(use "Truth")
+;; 36
+(assume "p2" "q2" "Absurd" "Useless")
+(use "EfqAtom")
+(use "Absurd")
+;; Proof finished.
+(save "RatLeUDivInv")
+
+;; RatUDivExpandR
+(set-goal "all a,b(0<abs b -> RatUDiv a==b*RatUDiv(a*b))")
+(cases)
+(cases)
+;; 3-5
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 8-10
+(assume "p2" "q2" "Useless")
+(ng)
+(simp (pf "p2*q1=q1*p2"))
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp (pf "p2*(q2*p1)=(q2*p1)*p2"))
+(use "Truth")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; 9
+(assume "p" "Absurd")
+(use "Absurd")
+;; 10
+(assume "p2" "q2" "Useless")
+(ng)
+(simp (pf "p2*q1=q1*p2"))
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp (pf "p2*(q2*p1)=(q2*p1)*p2"))
+(use "Truth")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; 4
+(assume "p")
+(cases)
+(strip)
+(use "Truth")
+;; 5
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 37-39
+(assume "p2" "q2" "Useless")
+(ng)
+(simp (pf "p2*q1=q1*p2"))
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp (pf "p2*(q2*p1)=(q2*p1)*p2"))
+(use "Truth")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; 38
+(assume "p" "Absurd")
+(use "Absurd")
+;; 39
+(assume "p2" "q2" "Useless")
+(ng)
+(simp (pf "p2*q1=q1*p2"))
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp "<-" "PosTimesAssoc")
+(simp (pf "p2*(q2*p1)=(q2*p1)*p2"))
+(use "Truth")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; Proof finished.
+(save "RatUDivExpandR")
+
+;; RatUDivExpandL
+(set-goal "all a,b(0<abs b -> RatUDiv a==b*RatUDiv(b*a))")
+(assume "a" "b")
+(simp (pf "b*a=a*b"))
+(use "RatUDivExpandR")
+(use "RatTimesComm")
+;; Proof finished.
+(save "RatUDivExpandL")
+
+;; RatUDivTimes
+(set-goal "all a,b RatUDiv(a*b)==(RatUDiv a)*(RatUDiv b)")
+(cases)
+(cases)
+;; 3-5
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 8-10
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 9
+(assume "q2")
+(ng)
+(use "Truth")
+;; 10
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 4
+(assume "q1")
+(cases)
+(cases)
+;; 19-21
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 20
+(assume "q2")
+(ng)
+(use "Truth")
+;; 21
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 5
+(assume "p1" "q1")
+(cases)
+(cases)
+;; 30-32
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; 31
+(assume "q2")
+(ng)
+(use "Truth")
+;; 32
+(assume "p2" "q2")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RatUDivTimes")
+
+;; RatTimesUDivR
+(set-goal "all a(0<abs a -> a*RatUDiv a==1)")
+(assume "a" "0<abs a")
+(inst-with-to "RatUDivExpandR" (pt "(1#1)") (pt "a") "0<abs a"
+	      "RatUDivExpandRInst")
+(ng)
+(use "RatEqvSym")
+(use "RatUDivExpandRInst")
+;; Proof finished.
+(save "RatTimesUDivR")
+
+;; RatUDivUDiv
+(set-goal "all a RatUDiv(RatUDiv a)==a")
+(cases)
+(cases)
+;; 3-5
+(assume "p" "q")
+(use "Truth")
+;; 4
+(assume "q")
+(use "Truth")
+;; 5
+(assume "p" "q")
+(use "Truth")
+;; Proof finished.
+(save "RatUDivUDiv")
+
 ;; RatAbsCompat
 (set-goal "all a,b(a==b -> abs a==abs b)")
 (cases)
@@ -2417,14 +2840,6 @@
 ;; Proof finished.
 (save "RatLeBound")
 
-;; (ppn (pf "(p#q)<=2**n"))
-;; (((IntPos p) RatConstr q)
-;;   RatLe
-;;   ((IntPos (2 PosExp n)) RatConstr 1))
-
-;; (pp (rename-variables (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeBound")))))
-;; [p,p0]Succ(PosLog p)--PosLog p0
-
 (animate "RatLeBound")
 
 ;; RatLeBoundExFree
@@ -2452,19 +2867,6 @@
 (use "RatLeBound")
 ;; Proof finished.
 (save "RatLeAbsBound")
-
-;; (pp (rename-variables (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeAbsBound")))))
-
-;; [a][if a ([k,p][if k ([p0]cRatLeBound p0 p)
-;;                      (Succ Zero)
-;;                      ([p0]cRatLeBound p0 p)])]
-
-;; (ppc (rename-variables (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeAbsBound")))))
-
-;; [a][case a (k#p -> [case k
-;;      (p0 -> cRatLeBound p0 p)
-;;      (0 -> Succ Zero)
-;;      (IntN p0 -> cRatLeBound p0 p)])]
 
 (animate "RatLeAbsBound")
 
@@ -2738,9 +3140,9 @@
 (assume "i" "r")
 (ng)
 (assume "0<abs k" "EqHyp")
-;; (inst-with-to "IntTimesInj" 
+;; (inst-with-to "IntTimesCancelL" 
 (assert "j*(p*r)=i*(p*q)")
-(use "IntTimesInj" (pt "k"))
+(use "IntTimesCancelL" (pt "k"))
 (use "0<abs k")
 (use "EqHyp")
 ;; (ppn (goal-to-formula (current-goal)))
@@ -2752,7 +3154,7 @@
 (simp (pf "i*p=p*i"))
 (simp "<-" "IntTimesAssoc")
 (simp "<-" "IntTimesAssoc")
-(use "IntTimesInj")
+(use "IntTimesCancelL")
 (use "Truth")
 (use "IntTimesComm")
 (use "IntTimesComm")
@@ -2988,9 +3390,6 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "a*(IntN p#q)==b*(IntN p#q)" "a==b")
-
-(display-pconst "RatEqv")
-
 
 ;; As examples of simprat we prove some inequalities useful later for
 ;; estimates.
