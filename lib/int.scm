@@ -1,4 +1,4 @@
-;; 2017-04-17.  int.scm.  Based on the former numbers.scm.
+;; 2017-05-13.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -2638,7 +2638,7 @@
 ;; Proof finished.
 (save-totality)
 
-;; IntTimesInj
+;; IntTimesCancelL
 (set-goal "all k,j,i(0<abs k -> k*j=k*i -> j=i)")
 (cases)
 ;; 2-4
@@ -2742,18 +2742,18 @@
 (assume "r" "Useless")
 (use "PosTimesCancelL")
 ;; Proof finished.
-(save "IntTimesInj")
+(save "IntTimesCancelL")
 
-;; IntTimesInjLeft
+;; IntTimesCancelR
 (set-goal "all k,j,i(0<abs i -> k*i=j*i -> k=j)")
 (assume "k" "j" "i" "PosHyp" "ki=ji")
-(use "IntTimesInj" (pt "i"))
+(use "IntTimesCancelL" (pt "i"))
 (use "PosHyp")
 (simp "IntTimesComm")
 (simp "ki=ji")
 (use "IntTimesComm")
 ;; Proof finished.
-(save "IntTimesInjLeft")
+(save "IntTimesCancelR")
 
 ;; Rules for IntLe
 
@@ -4101,56 +4101,6 @@
 (use "Truth")
 ;; Proof finished.
 (save "IntLeCases")
-
-;; IntTimesCancelL
-(set-goal "all k,j,i(IntZero<abs k -> k*j=k*i -> j=i)")
-(cases)
-;; 2-4
-(assume "p" "j" "i" "Useless" "pj=pi")
-(assert "p*j<=p*i")
- (simp "pj=pi")
- (use "Truth")
-(ng)
-(assume "j<=i")
-(assert "p*i<=p*j")
- (simp "pj=pi")
- (use "Truth")
-(ng)
-(assume "i<=j")
-(use "IntLeAntiSym")
-(use "j<=i")
-(use "i<=j")
-;; 3
-(assume "j" "i" "Absurd" "Useless")
-(use "EfqAtom")
-(use "Absurd")
-;; 4
-(assume "p" "j" "i" "Useless" "-pj=-pi")
-(assert "IntN p*j<=IntN p*i")
- (simp "-pj=-pi")
- (use "Truth")
-(ng)
-(assume "i<=j")
-(assert "IntN p*i<=IntN p*j")
- (simp "-pj=-pi")
- (use "Truth")
-(ng)
-(assume "j<=i")
-(use "IntLeAntiSym")
-(use "j<=i")
-(use "i<=j")
-;; Proof finished.
-(save "IntTimesCancelL")
-
-;; IntTimesCancelR
-(set-goal "all k,j,i(IntZero<abs j -> k*j=i*j -> k=i)")
-(assume "k" "j" "i")
-(simp "IntTimesComm")
-(simp (pf "i*j=j*i"))
-(use "IntTimesCancelL")
-(use "IntTimesComm")
-;; Proof finished.
-(save "IntTimesCancelR")
 
 ;; IntLeMonTimes
 (set-goal "all k,j,i(0<=k -> j<=i -> j*k<=i*k)")
