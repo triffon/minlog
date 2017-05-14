@@ -1,4 +1,4 @@
-;; 2017-04-21
+;; 2017-05-13
 ;; 11. Partial proofs
 ;; ==================
 
@@ -5150,9 +5150,11 @@
 		      (const-to-name (term-in-const-form-to-const op))
 		      "Compat")))
 	   (unary-compat-names
-	    (list "RatUMinusCompat" "RatAbsCompat" "RatHalfCompat"))
+	    (list "RatUMinusCompat" "RatAbsCompat" "RatHalfCompat"
+		  "RatUDivCompat"))
 	   (binary-compat-names
-	    (list "RatPlusCompat" "RatTimesCompat" "RatMinusCompat")))
+	    (list "RatPlusCompat" "RatTimesCompat" "RatMinusCompat"
+		  "RatDivCompat")))
       (cond
        ((member name unary-compat-names)
 	(mk-proof-in-elim-form ;of ~t(lhs)== ~t(rhs)
