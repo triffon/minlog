@@ -30,7 +30,7 @@ ELDIR=$(DESTDIR)/share/emacs/site-lisp/minlog
 ##  -- clean   the target used to clean up the source. Should also remove
 ##             all the .dep files.
 
-all: src init.scm minlog util/minlog.el doc
+all: src init.scm minlog util/minlog.el
 
 install: src init.scm minlog util/minlog.el doc
 	$(INSTALL_DIR) $(PREFIX)$(MINLOGDIR) $(PREFIX)$(BINDIR) $(PREFIX)$(ELDIR)
