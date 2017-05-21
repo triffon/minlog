@@ -27,7 +27,7 @@
 	((eq 0 (shell-command "which petite"))
 	 (setq scheme "petite"))
 	((eq 0 (shell-command "which mzscheme"))
-	 (if (string-match "v4." (shell-command-to-string "mzscheme --version"))
+	 (if (string-match "v6." (shell-command-to-string "mzscheme --version"))
 	     (setq scheme "mzscheme -l mzscheme -l r5rs -i --load")
 	   (setq scheme "mzscheme --load")))
 	((eq 0 (shell-command "which guile"))

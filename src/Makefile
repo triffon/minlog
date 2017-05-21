@@ -23,7 +23,7 @@ minitab.scm: grammar.scm lalr.scm
 		echo "Using petite to build parser..."; \
 		petite grammar.scm > grammar.log; \
 	elif which mzscheme > /dev/null; then \
-		if [ -z "`mzscheme -v | sed -e 's/.*v4.*//'`" ]; then \
+		if [ -z "`mzscheme -v | sed -e 's/.*v[456].*//'`" ]; then \
 			echo "Using mzscheme (>= v4) to build parser..."; \
 			mzscheme -l mzscheme -l r5rs -f grammar.scm > grammar.log; \
 		else \
