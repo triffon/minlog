@@ -1,4 +1,4 @@
-;; 2017-05-13
+;; 2017-06-01
 ;; 11. Partial proofs
 ;; ==================
 
@@ -1985,6 +1985,12 @@
 			  tpsubst
 			  "for proof"
 			  (if (proof-form? x) (tag x) x)))
+	     (if (not (mr-correct? psubst PVAR-TO-MR-PVAR-ALIST))
+		 (myerror "x-and-x-list-to-proof-and-new-num-goals-and-maxgoal"
+			  "mr-correct predicate substitution expected"
+			  psubst
+			  "for proof"
+			  (if (proof-form? x) (tag x) x)))
 	     (proof-substitute proof tpsubst))
 	   x))
 	 (leaf (if (formula-form? x-for-types-and-cterms)
@@ -2307,6 +2313,31 @@
 		    "x-and-x-list-to-proof-and-new-num-goals-and-maxgoal"
 		    "unexpected formula" used-formula))))))
 	((null? l) proof-and-new-num-goals-and-maxgoal))))
+
+(define (mr-correct? psubst alist)
+  (or (null? alist)
+      (let* ((item (car alist))
+	     (pvar1 (car item))
+	     (info1 (assoc pvar1 psubst)))
+	(if info1 ;else rec call
+	    (let* ((pvar2 (cadr item))
+		   (info2 (assoc pvar2 psubst)))
+	      (if info2 ;else rec call
+		  (let* ((cterm1 (cadr info1))
+			 (vars1 (cterm-to-vars cterm1))
+			 (fla1 (cterm-to-formula cterm1))
+			 (cterm2 (cadr info2))
+			 (vars2 (cterm-to-vars cterm2))
+			 (var (type-to-new-partial-var
+			       (formula-to-et-type fla1)))
+			 (mr-fla (real-and-formula-to-mr-formula
+				  (make-term-in-var-form var) fla1))
+			 (mr-cterm
+			  (apply make-cterm var (append vars1 (list mr-fla))))
+			 (test (cterm=? cterm2 mr-cterm)))
+		    (and test (mr-correct? psubst (cdr alist))))
+		  (mr-correct? psubst (cdr alist))))
+	    (mr-correct? psubst (cdr alist))))))
 
 ;; inst-with does for forward chaining the same as use-with for backward
 ;; chaining.  It replaces the present goal by a new one, with one
