@@ -1,5 +1,33 @@
-;; 2017-05-14.  log.txt
+;; 2017-07-04.  log.txt
 
+Done in dev branch 2017-07-04
+
+In psym.scm
+
+In terms-and-alist-to-eqp-formula and terms-and-alist-to-coeqp-formula
+make-allnc replaced by mk-allnc
+
+In terms-and-alist-to-eqpnc-formula terms-and-alist-to-coeqpnc-formula
+make-all replaced by mk-all
+
+In pproof.scm
+
+In x-and-x-list-to-proof-and-new-num-goals-and-maxgoal test for
+mr-correct psubst included.  mr-correct? added.
+
+In ets.scm
+
+Proofs of TotalToTotalNc and TotalNcToTotal corrected (previous ones
+were not mr-correct).  Theorems InvarExSound with invarexsound-proof
+and InvarAllSound with invarallsound-proof added.
+axiom-to-soundness-proof and theorem-to-soundness-proof adapted to
+InvarEx and InvarAll .  ALG-NAME-AND-NC-INDICATOR-TO-ALG-NAME
+renamed into ALG-NAME-AND-NC-INDICATOR-TO-ALG-NAME-ALIST .
+EqDSym EqDTrans EqDCompatApp FalseEqDTrueToEqD added.
+efqeqd-proof EfqEqD efq-atom-proof EfqAtom renamed into
+efeqd-proof EfEqD ef-atom-proof EfAtom
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-05-14
 
 In lib/int.scm
