@@ -3209,7 +3209,7 @@
 	     (val-formula
 	      (terms-and-alist-to-eqp-formula
 	       appterm1 appterm2 type-to-pred-alist)))
-	(make-allnc var1 var2 (make-imp arg-formula val-formula))))
+	(mk-allnc var1 var2 (make-imp arg-formula val-formula))))
      ((star-form? type)
       (let ((left1 (if (term-in-pair-form? term1)
 		       (term-in-pair-form-to-left term1)
@@ -3294,7 +3294,7 @@
 	     (val-formula
 	      (terms-and-alist-to-coeqp-formula
 	       appterm1 appterm2 type-to-pred-alist)))
-	(make-allnc var1 var2 (make-imp arg-formula val-formula))))
+	(mk-allnc var1 var2 (make-imp arg-formula val-formula))))
      ((star-form? type)
       (let ((left1 (if (term-in-pair-form? term1)
 		       (term-in-pair-form-to-left term1)
@@ -3457,7 +3457,7 @@
 	     (val-formula
 	      (terms-and-alist-to-eqpnc-formula
 	       appterm1 appterm2 type-to-pred-alist)))
-	(make-all var1 var2 (make-imp arg-formula val-formula))))
+	(mk-all var1 var2 (make-imp arg-formula val-formula))))
      ((star-form? type)
       (let ((left1 (if (term-in-pair-form? term1)
 		       (term-in-pair-form-to-left term1)
@@ -3542,7 +3542,7 @@
 	     (val-formula
 	      (terms-and-alist-to-coeqpnc-formula
 	       appterm1 appterm2 type-to-pred-alist)))
-	(make-all var1 var2 (make-imp arg-formula val-formula))))
+	(mk-all var1 var2 (make-imp arg-formula val-formula))))
      ((star-form? type)
       (let ((left1 (if (term-in-pair-form? term1)
 		       (term-in-pair-form-to-left term1)
