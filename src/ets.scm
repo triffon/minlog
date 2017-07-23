@@ -1901,7 +1901,7 @@
      falsity-avar var elim-proof2)))
 
 (add-theorem "EfAtom" ef-atom-proof)
-(add-theorem "EfqAtom" efq-atom-proof) ;obsolete
+(add-theorem "EfqAtom" ef-atom-proof) ;obsolete.  Kept for backwards compatib.
 
 ;; EqDSym
 (set-goal "all alpha^1,alpha^2(alpha^1 eqd alpha^2 -> alpha^2 eqd alpha^1)")
@@ -1921,25 +1921,6 @@
 (use "InitEqD")
 ;; Proof finished.
 (save "EqDTrans")
-
-;; EqDCompatApp
-(set-goal "all (alpha=>beta)^,alpha^1,alpha^2(
- alpha^1 eqd alpha^2 -> (alpha=>beta)^ alpha^1 eqd (alpha=>beta)^ alpha^2)")
-(assume "(alpha=>beta)^" "alpha^1" "alpha^2" "IdHyp")
-(elim "IdHyp")
-(assume "alpha^")
-(use "InitEqD")
-; Proof finished.
-(save "EqDCompatApp")
-
-;; FalseEqDTrueToEqD
-(set-goal "False eqd True -> all alpha^1,alpha^2 alpha^1 eqd alpha^2")
-(assume "EqDF")
-(use "EfEqD")
-(use "EqDTrueToAtom")
-(use "EqDF")
-;; Proof finished.
-(save "FalseEqDTrueToEqD")
 
 ;; extotal-elim-aconst and extotal-intro-aconst can be added only here,
 ;; because they need ExR.
@@ -2452,15 +2433,6 @@
 ;; Proof finished.
 (save "YprodIfTotal")
 
-;; PairConstrOneTwo
-(set-goal "all (alpha yprod beta)
- (lft (alpha yprod beta) pair rht (alpha yprod beta))eqd(alpha yprod beta)")
-(cases)
-(assume "alpha" "beta")
-(use "InitEqD")
-;; Proof finished.
-(save "PairConstrOneTwo")
-
 ;; Lft
 (set-goal "Pvar1 andd Pvar2 -> Pvar1")
 (assume "Andd-Hyp")
@@ -2575,6 +2547,37 @@
 	      (set! PVAR-TO-MR-PVAR-ALIST
 		    (cons (list pvar newpvar) PVAR-TO-MR-PVAR-ALIST))
 	      newpvar))))
+
+;; The following can be added only here, because PVAR-TO-MR-PVAR-ALIST
+;; is needed.
+
+;; EqDCompatApp
+(set-goal "all (alpha=>beta)^,alpha^1,alpha^2(
+ alpha^1 eqd alpha^2 -> (alpha=>beta)^ alpha^1 eqd (alpha=>beta)^ alpha^2)")
+(assume "(alpha=>beta)^" "alpha^1" "alpha^2" "IdHyp")
+(elim "IdHyp")
+(assume "alpha^")
+(use "InitEqD")
+; Proof finished.
+(save "EqDCompatApp")
+
+;; FalseEqDTrueToEqD
+(set-goal "False eqd True -> all alpha^1,alpha^2 alpha^1 eqd alpha^2")
+(assume "EqDF")
+(use "EfEqD")
+(use "EqDTrueToAtom")
+(use "EqDF")
+;; Proof finished.
+(save "FalseEqDTrueToEqD")
+
+;; PairConstrOneTwo
+(set-goal "all (alpha yprod beta)
+ (lft (alpha yprod beta) pair rht (alpha yprod beta))eqd(alpha yprod beta)")
+(cases)
+(assume "alpha" "beta")
+(use "InitEqD")
+;; Proof finished.
+(save "PairConstrOneTwo")
 
 ;; We will also need
 (add-mr-ids "ExD")
