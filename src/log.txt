@@ -1,5 +1,13 @@
-;; 2017-07-04.  log.txt
+;; 2017-07-23.  log.txt
 
+Done in dev branch 2017-07-23
+
+In ets.scm
+
+EfqAtom kept for backwards compatibitity.  EqDCompatApp and
+FalseEqDTrueToEqD relocated, since PVAR-TO-MR-PVAR-ALIST is needed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-07-04
 
 In psym.scm
