@@ -2840,9 +2840,6 @@
 	 (avar (formula-to-new-avar mr-pvar-fla)))
     (mk-proof-in-intro-form var avar (make-proof-in-avar-form avar))))
 
-(add-theorem "InvarExSound" invarexsound-proof)
-(add-theorem "InvarAllSound" invarallsound-proof)
-
 (set! COMMENT-FLAG #t)
 
 ;; We now aim at giving an internal proof of soundness.
@@ -5532,6 +5529,9 @@
    (proof-to-formula proof)))
 
 (set! COMMENT-FLAG #f)
+
+(add-theorem "InvarExSound" invarexsound-proof)
+(add-theorem "InvarAllSound" invarallsound-proof)
 
 ;; TotalVar
 (set-goal "all alpha Total alpha")
