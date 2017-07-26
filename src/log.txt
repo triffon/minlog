@@ -1,4 +1,12 @@
-;; 2017-07-23.  log.txt
+;; 2017-07-26.  log.txt
+
+Done in dev branch 2017-07-26
+
+In ets.scm
+
+InvarExSound and InvarAllSound relocated.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Done in dev branch 2017-07-23
 
