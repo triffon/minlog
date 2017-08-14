@@ -3356,16 +3356,15 @@
 	 (tvars (alg-name-to-tvars alg-name))
 	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
 	 (idpc-arities (map (lambda (alg) (make-arity alg alg)) algs))
-	 (idpc-pvars (map arity-to-new-general-pvar idpc-arities))
+	 (idpc-pvars (map arity-to-new-harrop-pvar idpc-arities))
 	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
 	 (typed-constr-names
 	  (apply append (map alg-name-to-typed-constr-names alg-names)))
 	 (constr-names (map car typed-constr-names))
 	 (constrs (map constr-name-to-constr constr-names))
 	 (clauses-with-idpc-pvars
-	  (map (lambda (constr) (term-and-alist-to-eqpnc-compatibility-formula
-				 (make-term-in-const-form constr)
-				 alg-to-idpc-pvar-alist))
+	  (map (lambda (constr) (constr-and-alist-to-eqpnc-clause
+				 constr alg-to-idpc-pvar-alist))
 	       constrs))
 	 (eqpnc-idpc-names
 	  (map alg-name-to-eqpnc-idpredconst-name alg-names))
@@ -3389,6 +3388,104 @@
 		 idpc-pvars
 		 idpc-tvars
 		 opt-names)))
+
+(define (constr-and-alist-to-eqpnc-clause constr type-to-pred-alist)
+  (let* ((constr-type (const-to-type constr))
+	 (alg (arrow-form-to-final-val-type constr-type))
+	 (arg-types (arrow-form-to-arg-types constr-type))
+	 (arg-vars1 (map type-to-new-partial-var arg-types))
+	 (applied-constr1
+	  (apply mk-term-in-app-form
+		 (make-term-in-const-form constr)
+		 (map make-term-in-var-form arg-vars1)))
+	 (arg-vars2 (map type-to-new-partial-var arg-types))
+	 (applied-constr2
+	  (apply mk-term-in-app-form
+		 (make-term-in-const-form constr)
+		 (map make-term-in-var-form arg-vars2)))
+	 (val-formula
+	  (let ((info (assoc alg type-to-pred-alist)))
+	    (if info
+		(make-predicate-formula
+		 (cadr info) applied-constr1 applied-constr2)
+		(myerror "constr-and-alist-to-eqpnc-clause"
+			 "alg-name" alg "has no assigned pvar in"
+			 type-to-pred-alist))))
+	 (arg-formulas
+	  (map
+	   (lambda (arg-type arg-var1 arg-var2)
+	     (let* ((arg-arg-types (arrow-form-to-arg-types arg-type))
+		    (vars1 (map type-to-new-partial-var arg-arg-types))
+		    (varterms1 (map make-term-in-var-form vars1))
+		    (prems (map term-to-totalnc-formula varterms1))
+		    (arg-var1-at-vars1 (apply mk-term-in-app-form
+					      (make-term-in-var-form arg-var1)
+					      varterms1))
+		    (arg-var2-at-vars1 (apply mk-term-in-app-form
+					      (make-term-in-var-form arg-var2)
+					      varterms1))
+		    (concl (let ((info (assoc alg type-to-pred-alist)))
+			     (if info
+				 (make-predicate-formula
+				  (cadr info)
+				  arg-var1-at-vars1 arg-var2-at-vars1)
+				 (terms-to-eqpnc-formula
+				  arg-var1-at-vars1 arg-var2-at-vars1))))
+		    (prems ;expressing totality of vars1
+		     (map (lambda (var)
+			    (term-to-totalnc-formula
+			     (make-term-in-var-form var)))
+			  vars1))
+		    (imp-fla (apply mk-imp (append prems (list concl)))))
+	       (apply mk-all (append vars1 (list imp-fla)))))
+	   arg-types arg-vars1 arg-vars2))
+	 (imp-formula (apply mk-imp (append arg-formulas (list val-formula))))
+	 (free (formula-to-free imp-formula)))
+    (apply mk-all (append free (list imp-formula)))))
+
+;; Code discarded 2017-08-14
+;; (define (add-eqpnc alg-name)
+;;   (if (not (assoc alg-name ALGEBRAS))
+;;       (myerror "add-eqpnc" "alg-name expected" alg-name))
+;;   (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+;;   (set! COMMENT-FLAG #f)
+;;   (let* ((alg-names (alg-name-to-simalg-names alg-name))
+;; 	 (tvars (alg-name-to-tvars alg-name))
+;; 	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+;; 	 (idpc-arities (map (lambda (alg) (make-arity alg alg)) algs))
+;; 	 (idpc-pvars (map arity-to-new-general-pvar idpc-arities))
+;; 	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+;; 	 (typed-constr-names
+;; 	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+;; 	 (constr-names (map car typed-constr-names))
+;; 	 (constrs (map constr-name-to-constr constr-names))
+;; 	 (clauses-with-idpc-pvars
+;; 	  (map (lambda (constr) (term-and-alist-to-eqpnc-compatibility-formula
+;; 				 (make-term-in-const-form constr)
+;; 				 alg-to-idpc-pvar-alist))
+;; 	       constrs))
+;; 	 (eqpnc-idpc-names
+;; 	  (map alg-name-to-eqpnc-idpredconst-name alg-names))
+;; 	 (idpc-names-with-arities-and-opt-alg-names
+;; 	  (map list eqpnc-idpc-names idpc-arities)) ;no alg-names here
+;; 	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+;; 	 (typed-constr-names-list
+;; 	  (map alg-name-to-typed-constr-names alg-names))
+;; 	 (constr-names-list (map (lambda (typed-constr-names)
+;; 	 			   (map car typed-constr-names))
+;; 	 			 typed-constr-names-list))
+;; 	 (clause-names-list
+;; 	  (map (lambda (eqpnc-idpc-name constr-names)
+;; 		 (map (lambda (constr-name)
+;; 			(string-append eqpnc-idpc-name constr-name))
+;; 		      constr-names))
+;; 	       eqpnc-idpc-names constr-names-list))
+;; 	 (opt-names (map list (apply append clause-names-list))))
+;;     (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+;; 		 clauses-with-idpc-pvars
+;; 		 idpc-pvars
+;; 		 idpc-tvars
+;; 		 opt-names)))
 
 ;; For add-eqpnc we need the following auxiliary functions
 
