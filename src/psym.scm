@@ -3425,7 +3425,9 @@
 					      (make-term-in-var-form arg-var2)
 					      varterms1))
 		    (concl (let ((info (assoc alg type-to-pred-alist)))
-			     (if info
+			     (if (and info
+				      (equal? (term-to-type arg-var1-at-vars1)
+					      alg))
 				 (make-predicate-formula
 				  (cadr info)
 				  arg-var1-at-vars1 arg-var2-at-vars1)
