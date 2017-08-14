@@ -4,6 +4,13 @@ Done in dev branch 2017-08-14
 
 In psym.scm
 
+Error in constr-and-alist-to-eqpnc-clause fixed.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done in dev branch 2017-08-14
+
+In psym.scm
+
 add-eqpnc rewritten with the new function constr-and-alist-to-eqpnc-clause .
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
