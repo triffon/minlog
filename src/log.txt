@@ -1,5 +1,12 @@
-;; 2017-07-26.  log.txt
+;; 2017-08-14.  log.txt
 
+Done in dev branch 2017-08-14
+
+In psym.scm
+
+add-eqpnc rewritten with the new function constr-and-alist-to-eqpnc-clause .
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-07-26
 
 In ets.scm
@@ -12,7 +19,7 @@ Done in dev branch 2017-07-23
 
 In ets.scm
 
-EfqAtom kept for backwards compatibitity.  EqDCompatApp and
+EfqAtom kept for backwards compatibility.  EqDCompatApp and
 FalseEqDTrueToEqD relocated, since PVAR-TO-MR-PVAR-ALIST is needed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
