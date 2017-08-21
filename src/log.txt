@@ -1,5 +1,18 @@
-;; 2017-08-14.  log.txt
+;; 2017-08-21.  log.txt
 
+Done in dev branch 2017-08-21
+
+In ets.scm
+
+In axiom-to-extracted-term cases InvarEx InvarAll aconst-to-formula
+replaced by aconst-to-inst-formula.  StabAtom StabImp StabAll
+StabAllImp added
+
+In lib/list.scm
+
+ListBarFBarPlus ListProjFBarSucc added
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-08-14
 
 In psym.scm
