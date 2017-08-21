@@ -1,4 +1,4 @@
-;; 2017-06-01
+;; 2017-08-21
 ;; 16. Extracted terms
 ;; ===================
 
@@ -756,12 +756,12 @@
      ((string=? "Ex-Elim" name)
       (apply ex-formula-and-concl-to-ex-elim-et (aconst-to-repro-data aconst)))
      ((string=? "InvarEx" name)
-      (let* ((imp-fla (aconst-to-formula aconst))
+      (let* ((imp-fla (aconst-to-inst-formula aconst))
 	     (exl-fla (imp-form-to-conclusion imp-fla))
 	     (var (exl-form-to-var exl-fla)))
 	(make-term-in-abst-form var (make-term-in-var-form var))))
      ((string=? "InvarAll" name)
-      (let* ((all-fla (aconst-to-formula aconst))
+      (let* ((all-fla (aconst-to-inst-formula aconst))
 	     (var (all-form-to-var all-fla)))
 	(make-term-in-abst-form var (make-term-in-var-form var))))
      ((member name '("ExTotalIntro" "ExTotalElim"
@@ -1902,6 +1902,62 @@
 
 (add-theorem "EfAtom" ef-atom-proof)
 (add-theorem "EfqAtom" ef-atom-proof) ;obsolete.  Kept for backwards compatib.
+
+;; StabAtom
+(set-goal "all boole(((boole -> F) -> F) -> boole)")
+(cases)
+(strip)
+(use "Truth")
+(assume "Hyp")
+(use "Hyp")
+(assume "Absurd")
+(use "Absurd")
+;; Proof finished.
+(save "StabAtom")
+
+;; StabImp
+(set-goal "(((Pvar^2 -> F) -> F) -> Pvar^2) ->
+ (((Pvar^1 -> Pvar^2) -> F) -> F) -> Pvar^1 -> Pvar^2")
+(assume "StabHyp" "NotNotImp" "P1")
+(use "StabHyp")
+(assume "NotP2")
+(use "NotNotImp")
+(assume "P1ImpP2")
+(use "NotP2")
+(use "P1ImpP2")
+(use "P1")
+;; Proof finished.
+(save "StabImp")
+
+;; StabAll
+(set-goal
+ "all alpha((((Pvar alpha)^ alpha -> F) -> F) -> (Pvar alpha)^ alpha) ->
+ ((all alpha(Pvar alpha)^ alpha -> F) -> F) -> all alpha(Pvar alpha)^ alpha")
+(assume "StabHyp" "NotNotAll" "alpha")
+(use "StabHyp")
+(assume "NotP")
+(use "NotNotAll")
+(assume "AllP")
+(use "NotP")
+(use "AllP")
+;; Proof finished.
+(save "StabAll")
+ 
+;; StabAllImp
+(set-goal
+ "all alpha((((Pvar alpha)^2 alpha -> F) -> F) -> (Pvar alpha)^2 alpha) ->
+ ((all alpha((Pvar alpha)^1 alpha -> (Pvar alpha)^2 alpha) -> F) -> F) ->
+ all alpha((Pvar alpha)^1 alpha -> (Pvar alpha)^2 alpha)")
+(assume "StabHyp" "NotNotAllImp" "alpha" "P1a")
+(use "StabHyp")
+(assume "NotP2a")
+(use "NotNotAllImp")
+(assume "AllImp")
+(use "NotP2a")
+(use "AllImp")
+(use "P1a")
+;; Proof finished.
+(save "StabAllImp")
 
 ;; EqDSym
 (set-goal "all alpha^1,alpha^2(alpha^1 eqd alpha^2 -> alpha^2 eqd alpha^1)")
