@@ -1,4 +1,4 @@
-;; $Id: list.scm 2678 2014-01-08 10:04:13Z schwicht $
+;; 2017-08-21
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -846,6 +846,34 @@
 (use "InitEqD")
 ;; Proof finished.
 (save "ListBarFBar")
+
+;; ListBarFBarPlus
+(set-goal "all n,m,(nat=>alpha)^(
+     ((nat=>alpha)^ fbar(n+m))bar n eqd((nat=>alpha)^ fbar n))")
+(ind)
+(assume "m" "(nat=>alpha)^")
+(ng)
+(use "InitEqD")
+(assume "n" "IH"  "m" "(nat=>alpha)^")
+(ng #t)
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "ListBarFBarPlus")
+
+;; ListProjFBarSucc
+(set-goal
+ "all n,(nat=>alpha)^ (n thof(nat=>alpha)^ fbar Succ n)eqd(nat=>alpha)^ n")
+(ind)
+(assume "(nat=>alpha)^")
+(ng)
+(use "InitEqD")
+(assume "n" "IH" "(nat=>alpha)^")
+(inst-with-to "IH" (pt "[n0](nat=>alpha)^(Succ n0)") "IHInst")
+(ng)
+(use "IHInst")
+;; Proof finished.
+(save "ListProjFBarSucc")
 
 (add-var-name "psi" (py "alpha1=>list alpha1=>alpha2"))
 (add-var-name "y" (py "alpha1"))
