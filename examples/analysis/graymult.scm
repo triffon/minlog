@@ -2691,7 +2691,7 @@
 ;; ?_156:(1#2)*((1#4)*(as n+bs n+i1)+d1)==
 ;;       (1#2)*((1#4)*(as n*d1+bs n*d1+RatTimes i1 d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
-(simp "RatEqv5RewRule")
+(simp "RatEqv6RewRule")
 (simprat "RatTimesPlusDistrLeft")
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
@@ -2865,7 +2865,7 @@
 ;; ?_319:(1#2)*((1#4)*(as n+bs n+i1)+d1)==
 ;;       (1#2)*((1#4)*(as n*d1+bs n*d1+i1*d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
-(simp "RatEqv5RewRule")
+(simp "RatEqv6RewRule")
 ;; ?_321:(1#4)*(as n+bs n+i1)+d1==((1#4)*(as n*d1+bs n*d1+i1*d1)+1)*d1
 (simprat "RatTimesPlusDistrLeft")
 (simp (pf "RatTimes 1 d1=(d1#1)"))
@@ -3189,7 +3189,7 @@
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
-(simp "RatEqv5RewRule")
+(simp "RatEqv6RewRule")
 ;; ?_110:(as n+IntN 1)*(d1*((bs n+IntN 1)*e1))==
 ;;       as n*d1*bs n*e1+ ~(as n*(d1*e1))+ ~(bs n*(d1*e1))+d1*e1
 (simprat "RatTimesPlusDistrLeft")
@@ -3311,7 +3311,7 @@
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
-(simp "RatEqv5RewRule")
+(simp "RatEqv6RewRule")
 ;; ?_206:(as n+IntN 1)*(d1*((bs n+IntN 1)*e1))==
 ;;       as n*d1*bs n*e1+ ~(as n*(d1*e1))+ ~(bs n*(d1*e1))+d1*e1
 (simprat "RatTimesPlusDistrLeft")
@@ -3412,7 +3412,7 @@
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimes3RewRule")
-(simp "RatEqv5RewRule")
+(simp "RatEqv6RewRule")
 (simprat "RatTimesPlusDistrLeft")
 (ng #t)
 (simp "IntTimesIntNL")
