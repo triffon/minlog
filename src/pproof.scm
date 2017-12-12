@@ -1,4 +1,4 @@
-;; 2017-06-01
+;; 2017-12-12
 ;; 11. Partial proofs
 ;; ==================
 
@@ -6049,6 +6049,45 @@
 			  (append types subst-xs))
 		  (append (list num-goals proof maxgoal "<-" x)
 			  (append types subst-xs))))))))
+
+;; It is convenient to automate (the easy cases of an) interactive
+;; proof development by iterating \texttt{realproof} as long as it is
+;; successful in finding a proof.  Then the first goal where it failed
+;; is presented as the new goal.
+
+(define (autoreal)
+  (let* ((num-goals (pproof-state-to-num-goals))
+	 (proof (pproof-state-to-proof))
+	 (maxgoal (pproof-state-to-maxgoal))
+	 (autoreal-result (autoreal-intern num-goals proof maxgoal)))
+    (set! PPROOF-STATE autoreal-result)
+    (pproof-state-history-push PPROOF-STATE)
+    (if
+     COMMENT-FLAG
+     (if (null? (pproof-state-to-num-goals))
+	 (begin (display-comment "Proof finished.") (newline))
+	 (begin (display-comment "  The active goal now is") (newline)
+		(display-num-goal (car (pproof-state-to-num-goals))))))))
+
+(define (autoreal-intern num-goals proof maxgoal)
+  (do ((prev-res (list num-goals proof maxgoal) res)
+       (res (realproof-intern num-goals proof maxgoal)
+	    (apply realproof-intern res)))
+      ((or (not res)
+	   (null? (pproof-state-to-num-goals res))
+					;or realproof not applicable
+	   (let* ((num-goals (car res))
+		  (num-goal (car num-goals))
+		  (goal (num-goal-to-goal num-goal))
+		  (formula (goal-to-formula goal)))
+	     (not (and (predicate-form? formula)
+		       (let ((pred (predicate-form-to-predicate formula)))
+			 (and (idpredconst-form? pred)
+			      (string=? "Real" (idpredconst-to-name pred))))))))
+       (display-comment)
+       (if (not res)
+	   prev-res
+	   res))))
 
 ;; fla-and-sig-tvars-and-vars-and-goal-fla-to-fst-match-data is #f if
 ;; (a) no atomic or negated atomic head of formula and also (b) no lhs
