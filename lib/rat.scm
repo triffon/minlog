@@ -1,4 +1,4 @@
-;; 2017-05-14.  rat.scm.  Based on numbers.scm.
+;; 2017-12-12.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1108,6 +1108,19 @@
 (use "Truth")
 ;; Proof finished.
 (save "RatEqvSym")
+
+;; RatEqvConstrTimes
+(set-goal "all k,p,q (k#p)==(k*q#p*q)")
+(assume "k" "p" "q")
+(ng)
+(simp (pf "p*q=IntTimes p q"))
+(simp "<-" "IntTimesAssoc")
+(simp (pf "IntTimes p q=IntTimes q p"))
+(use "Truth")
+(use "IntTimesComm")
+(use "Truth")
+;; Proof finished.
+(save "RatEqvConstrTimes")
 
 ;; Other properties of RatEqv are postponed after RatLe
 
