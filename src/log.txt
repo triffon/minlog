@@ -1,5 +1,35 @@
-;; 2017-08-21.  log.txt
+;; 2017-12-12.  log.txt
 
+Done in dev branch 2017-12-12
+
+In pproof.scm
+
+autoreal added.  It iterates realproof as long as it is successful in
+finding a proof.  Then the first goal where it failed is presented as
+the new goal.
+
+In lib/rat.scm
+
+RatEqvConstrTimes added.
+
+In lib/rea.scm
+
+RealLeToRealPos removed.  It is the same as RealLeToPos.
+RealLePlusCancelL RealLePlusCancelR RealEqPlusCancelL
+RealEqPlusCancelR RealLeTimesCancelL RealLeTimesCancelR
+RealEqTimesCancelL RealEqTimesCancelR RealLePlusL RealLePlusLInv
+RealLePlusR RealLePlusRInv RatEqvToRealEq RealEqToRatEqv
+RealTimesPlusIntNOneDistrLeft RealTimesPlusOneDistrLeft added
+
+In examples/analysis
+
+sdJK.scm removed (replaced by JK.scm)
+Added readme-sdgray.txt digits.scm JK.scm div.scm
+sdcode.scm sdavaux.scm sdav.scm sddiv.scm
+graycode.scm grayavaux.scm grayav.scm graydiv.scm
+Adapted sdmult.scm graymult.scm
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-08-21
 
 In ets.scm
