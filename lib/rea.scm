@@ -1,4 +1,4 @@
-;; 2017-05-14.  rea.scm.  Based on numbers.scm.
+;; 2017-12-12.  rea.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -3769,38 +3769,6 @@
 ;; Proof finished.
 (save "RealLeToIntLe")
 
-;; RealLeToRealPos
-(set-goal "all p,x((1#2**p)<<=x -> RealPos x(PosS p))")
-(assume "p")
-(cases)
-(ng)
-(assume "as" "M" "LeHyp")
-;; (pp "RealLeElim2")
-(inst-with-to "RealLeElim2"
-	      (pt "RealPlus 0(1#2**p)") (pt "RealConstr as M") "LeHyp"
-	      "x<=yInst")
-(ng)
-;; (pp "RealNNegElim1")
-(inst-with-to "RealNNegElim1"
-	      (pt "RealConstr([n]as n+(IntN 1#2**p))([p]M(PosS p))")
-	      "x<=yInst" (pt "PosS p") "RealNNegElim1Inst")
-(ng)
-(simp (pf "(1#2**PosS p)=0+(1#2**PosS p)"))
-(simprat (pf "as(M(PosS(PosS p)))==
-              as(M(PosS(PosS p)))+(IntN 1#2**p)+(1#2**PosS p)+(1#2**PosS p)"))
-(use "RatLeMonPlus")
-(use "RealNNegElim1Inst")
-(use "Truth")
-(simp "<-" "RatPlusAssoc")
-(simprat "RatPlusHalfExpPosS")
-(simp (pf "(IntN 1#2**p)= ~(1#2**p)"))
-(simprat "RatEqvPlusMinus")
-(use "Truth")
-(use "Truth")
-(use "Truth")
-;; Proof finished.
-(save "RealLeToRealPos")
-
 ;; RealLeAbsPlus
 (set-goal "all x,y(Real x -> Real y -> abs(x+y)<<=abs x+abs y)")
 (cases)
@@ -5080,4 +5048,335 @@
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
 ;; [alpha3697]alpha3697
+
+;; RealLePlusCancelL
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> x+y<<=x+z -> y<<=z)")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "x+y<<=x+z")
+(use "RealLeIntro")
+ (autoreal)
+(inst-with-to "RealLeElim2" (pt "x+y") (pt "x+z") "x+y<<=x+z" "NNegHyp")
+(assert "x+z+ ~(x+y)===z+ ~y")
+ (simpreal "RealUMinusPlus")
+ (simpreal (pf "x+z===z+x"))
+ (simpreal "<-" "RealPlusAssoc")
+ (use "RealPlusCompat")
+ (use "RealEqRefl")
+ (autoreal)
+ (simpreal "RealPlusComm")
+ (simpreal (pf "~x+ ~y=== ~y+ ~x"))
+ (simpreal "RealEqPlusMinus")
+ (use "RealEqRefl")
+ (autoreal)
+ (use "RealPlusComm")
+ (autoreal)
+ (use "RealPlusComm")
+ (autoreal)
+(assume "Assertion")
+(simpreal "<-" "Assertion")
+(use "NNegHyp")
+;; Proof finished.
+(save "RealLePlusCancelL")
+
+;; RealLePlusCancelR
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> x+y<<=z+y -> x<<=z)")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "x+y<<=z+y")
+(use "RealLePlusCancelL" (pt "y"))
+(autoreal)
+(simpreal (pf "y+x===x+y"))
+(simpreal (pf "y+z===z+y"))
+(use "x+y<<=z+y")
+(use "RealPlusComm")
+(autoreal)
+(use "RealPlusComm")
+(autoreal)
+;; Proof finished.
+(save "RealLePlusCancelR")
+
+;; RealEqPlusCancelL
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> x+y===x+z -> y===z)")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "x+y===x+z")
+(use "RealLeAntiSym")
+(use "RealLePlusCancelL" (pt "x"))
+(autoreal)
+(simpreal "x+y===x+z")
+(use "RealLeRefl")
+(autoreal)
+(use "RealLePlusCancelL" (pt "x"))
+(autoreal)
+(simpreal "x+y===x+z")
+(use "RealLeRefl")
+(autoreal)
+;; Proof finished.
+(save "RealEqPlusCancelL")
+
+;; RealEqPlusCancelR
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> x+z===y+z -> x===y)")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "x+z===y+z")
+(use "RealEqPlusCancelL" (pt "z"))
+(autoreal)
+(simpreal (pf "z+x===x+z"))
+(simpreal (pf "z+y===y+z"))
+(use "x+z===y+z")
+(use "RealPlusComm")
+(autoreal)
+(use "RealPlusComm")
+(autoreal)
+;; Proof finished.
+(save "RealEqPlusCancelR")
+
+;; RealLeTimesCancelL
+(set-goal "all x,y,z,p(Real x -> Real y -> Real z -> RealPos x p ->
+ x*y<<=x*z -> y<<=z)")
+(assume "x" "y" "z" "p" "Rx" "Ry" "Rz" "PosHyp" "x*y<<=x*z")
+(use "RealLeIntro")
+ (autoreal)
+(inst-with-to "RealLeElim2" (pt "x*y") (pt "x*z") "x*y<<=x*z" "NNegHyp")
+(drop "PosHyp"  "x*y<<=x*z")
+(inst-with-to "RealPosToNNegUDiv" (pt "x") (pt "p") "Rx" "PosHyp" "UDivHyp")
+(assert "z+ ~y===RealUDiv x p*(x*z+ x* ~y)")
+ (simpreal "<-" "RealTimesPlusDistr")
+ (simpreal "RealTimesAssoc")
+ (simpreal (pf "RealUDiv x p*x===x*RealUDiv x p"))
+ (simpreal "RealTimesUDiv")
+ (simpreal "RealOneTimes")
+ (use "RealEqRefl")
+ (autoreal)
+ (use "PosHyp")
+ (autoreal)
+ (use "RealTimesComm") 
+ (autoreal)
+(assume "EqHyp")
+(simpreal "EqHyp")
+(use "RealNNegTimesNNeg")
+(use "UDivHyp")
+(simpreal "RealTimesIdUMinus")
+(use "NNegHyp")
+(autoreal)
+;; Proof finished.
+(save "RealLeTimesCancelL")
+
+;; RealLeTimesCancelR
+(set-goal "all x,y,z,p(Real x -> Real y -> Real z -> RealPos y p ->
+ x*y<<=z*y -> x<<=z)")
+(assume "x" "y" "z" "p" "Rx" "Ry" "Rz" "PosHyp" "x*y<<=z*y")
+(use "RealLeTimesCancelL" (pt "y") (pt "p"))
+(autoreal)
+(use "PosHyp")
+(simpreal (pf "y*x===x*y"))
+(simpreal (pf "y*z===z*y"))
+(use  "x*y<<=z*y")
+(use "RealTimesComm")
+(autoreal)
+(use "RealTimesComm")
+(autoreal)
+;; Proof finished.
+(save "RealLeTimesCancelR")
+
+;; RealEqTimesCancelL
+(set-goal
+ "all x,y,z,p(Real x -> Real y -> Real z -> RealPos x p -> x*y===x*z -> y===z)")
+(assume "x" "y" "z" "p" "Rx" "Ry" "Rz" "PosHyp" "x*y===x*z")
+(use "RealLeAntiSym")
+(use "RealLeTimesCancelL" (pt "x") (pt "p"))
+(autoreal)
+(use "PosHyp")
+(simpreal "x*y===x*z")
+(use "RealLeRefl")
+(autoreal)
+(use "RealLeTimesCancelL" (pt "x") (pt "p"))
+(autoreal)
+(use "PosHyp")
+(simpreal "x*y===x*z")
+(use "RealLeRefl")
+(autoreal)
+;; Proof finished.
+(save "RealEqTimesCancelL")
+
+;; RealEqTimesCancelR
+(set-goal
+ "all x,y,z,p(Real x -> Real y -> Real z -> RealPos z p -> x*z===y*z -> x===y)")
+(assume "x" "y" "z" "p" "Rx" "Ry" "Rz" "PosHyp" "x*z===y*z")
+(use "RealEqTimesCancelL" (pt "z") (pt "p"))
+(autoreal)
+(use "PosHyp")
+(simpreal (pf "z*x===x*z"))
+(simpreal (pf "z*y===y*z"))
+(use "x*z===y*z")
+(use "RealTimesComm")
+(autoreal)
+(use "RealTimesComm")
+(autoreal)
+;; Proof finished.
+(save "RealEqTimesCancelR")
+
+;; Extend lib files using archive/koepp/lub_lemma.scm and lub_sqrt.scm
+
+;; RealLePlusL
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> y<<= ~x+z -> x+y<<=z)")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "y<<= ~x+z")
+(use "RealLeTrans" (pt "x+(~x+z)"))
+(use "RealLeMonPlus")
+(use "RealLeRefl")
+(autoreal)
+(use "y<<= ~x+z")
+(simpreal "RealPlusAssoc")
+(simpreal "RealPlusMinusZero")
+(simpreal "RealPlusComm")
+(simpreal "RealPlusZero")
+(use "RealLeRefl")
+(autoreal)
+;; Proof finished.
+(save "RealLePlusL")
+;; RealLePlusLInv
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> x+y<<=z -> y<<= ~x+z)")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "x+y<<=z")
+(intro 0)
+(autoreal)
+(simpreal (pf "~x+z+ ~y===z+ ~(x+y)"))
+(use "RealLeElim2")
+(use "x+y<<=z")
+(simpreal (pf "~x+z===z+ ~x"))
+(simpreal "RealUMinusPlus")
+(simpreal "RealPlusAssoc")
+(use "RealEqRefl")
+(autoreal)
+(use "RealPlusComm")
+(autoreal)
+;; Proof finished.
+(save "RealLePlusLInv")
+
+;; RealLePlusR
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> ~y+x<<=z -> x<<=y+z)")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "~y+x<<=z")
+(intro 0)
+(autoreal)
+(simpreal (pf "y+z+ ~x===z+ ~(~y+x)"))
+(use "RealLeElim2")
+(use "~y+x<<=z")
+(simpreal-with "RealPlusComm" (pt "y") (pt "z") "Ry" "Rz")
+(simpreal "<-" "RealPlusAssoc")
+(use "RealPlusCompat")
+(use "RealEqRefl")
+(autoreal)
+(simpreal "RealUMinusPlus")
+(simpreal "RealUMinusUMinus")
+(use "RealEqRefl")
+(autoreal)
+;; Proof finished.
+(save "RealLePlusR")
+
+;; RealLePlusRInv
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> x<<=y+z -> ~y+x<<=z )")
+(assume "x" "y" "z" "Rx" "Ry" "Rz" "x<<=y+z")
+(intro 0)
+(autoreal)
+(simpreal "<-" (pf "y+z+ ~x===z+ ~(~y+x)"))
+(use "RealLeElim2")
+(use "x<<=y+z")
+(simpreal-with "RealPlusComm" (pt "y") (pt "z") "Ry" "Rz")
+(simpreal "<-" "RealPlusAssoc")
+(use "RealPlusCompat")
+(use "RealEqRefl")
+(autoreal)
+(simpreal "RealUMinusPlus")
+(simpreal "RealUMinusUMinus")
+(use "RealEqRefl")
+(autoreal)
+;; Proof finished.
+(save "RealLePlusRInv")
+
+;; RealLtIntro
+(set-goal "all x,y,p(RealPos(y+ ~x)p -> RealLt x y p)")
+(cases)
+(assume "as" "M")
+(cases)
+(assume "bs" "N" "p" "Hyp")
+(simp "RealLt0CompRule")
+(use "Hyp")
+;; Proof finished.
+(save "RealLtIntro")
+
+;;RealLtElim
+(set-goal "all x,y,p(RealLt x y p -> RealPos(y+ ~x)p)")
+(cases)
+(assume "as" "M")
+(cases)
+(assume "bs" "N" "p" "Hyp")
+(ng)
+(use "Hyp")
+;; Proof finished.
+(save "RealLtElim")
+
+;; RatEqvToRealEq
+(set-goal "all a,b(a==b -> a===b)")
+(assume "a" "b" "a==b")
+(use "RealLeAntiSym")
+(use "RatLeToRealLe")
+(use "RatLeRefl")
+(use "a==b")
+(use "RatLeToRealLe")
+(use "RatLeRefl")
+(use "RatEqvSym")
+(use "a==b")
+;; Proof finished.
+(save "RatEqvToRealEq")
+
+;; RealEqToRatEqv
+(set-goal "all a,b(a===b -> a==b)")
+(assume "a" "b" "a===b")
+(use "RatLeAntiSym")
+(use "RealLeToRatLe")
+(simpreal "a===b")
+(use "RatLeToRealLe")
+(use "Truth")
+(use "RealLeToRatLe")
+(simpreal "a===b")
+(use "RatLeToRealLe")
+(use "Truth")
+;; Proof finished.
+(save "RealEqToRatEqv")
+
+;; RealTimesPlusIntNOneDistrLeft
+(set-goal "all k,x(Real x -> (x+IntN 1)* ~k===(x* ~k+k))")
+(assert "all k,x (x+IntN 1)* ~k=+=(x* ~k+k)")
+(assume "k")
+(cases)
+(assume "as" "M")
+(use "RealEqSIntro")
+(assume "n")
+(ng)
+(simprat "RatTimesPlusDistrLeft")
+(ng)
+(simp "IntTimesIntNL")
+(use "Truth")
+;; Assertion proved.
+(assume "RealTimesPlusIntNOneDistrLeftEqS" "k" "x" "Rx")
+(use "RealEqSToEq")
+(autoreal)
+(use "RealTimesPlusIntNOneDistrLeftEqS")
+;; Proof finished.
+(save "RealTimesPlusIntNOneDistrLeft")
+
+;; RealTimesPlusOneDistrLeft
+(set-goal "all k,x(Real x -> (x+1)*k===x*k+k)")
+(assert "all k,x (x+1)*k=+=x*k+k")
+(assume "k")
+(cases)
+(assume "as" "M")
+(use "RealEqSIntro")
+(assume "n")
+(ng)
+(simprat "RatTimesPlusDistrLeft")
+(use "RatPlusCompat")
+(use "Truth")
+(ng)
+(use "Truth")
+;; Assertion proved.
+(assume  "RealTimesPlusOneDistrLeftEqS" "k" "x" "Rx")
+(use "RealEqSToEq")
+(autoreal)
+(use "RealTimesPlusOneDistrLeftEqS")
+;; Proof finished.
+(save "RealTimesPlusOneDistrLeft")
+
 
