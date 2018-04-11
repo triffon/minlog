@@ -1,5 +1,22 @@
-;; 2017-12-12.  log.txt
+;; 2018-04-11.  log.txt
 
+Done in dev branch 2018-04-11
+
+In lib/pos.scm
+
+Moved from here to term.scm TOKEN-AND-TYPES-TO-NAME-ALIST
+token-and-types-to-name add-token-and-types-to-name
+add-token-and-type-to-name make-term-creator make-term-creator1
+make-term-creator-exp
+
+In term.scm
+
+Moved here from lib/pos.scm TOKEN-AND-TYPES-TO-NAME-ALIST
+token-and-types-to-name add-token-and-types-to-name
+add-token-and-type-to-name make-term-creator make-term-creator1
+make-term-creator-exp
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-12-12
 
 In pproof.scm
