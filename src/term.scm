@@ -1,4 +1,4 @@
-;; 2017-04-21
+;; 2018-01-22
 ;; 6. Terms
 ;; ========
 
@@ -594,6 +594,73 @@
 
 (define (synt-total? term)
   (t-deg-one? (term-to-t-deg term)))
+
+;; Allow overloading of tokens (like + * for nat, pos, int, rat, rea
+;; or :: ++ for list, str):
+
+(define TOKEN-AND-TYPES-TO-NAME-ALIST '())
+
+(define (token-and-types-to-name token types)
+  (let ((info (assoc token TOKEN-AND-TYPES-TO-NAME-ALIST)))
+    (if info
+        (let ((info1 (assoc types (cadr info))))
+          (if info1
+	      (cadr info1)
+	      (apply myerror
+		     (append (list "token-and-types-to-name" "token"
+				   token "not defined for types")
+			     types))))
+	(myerror "token-and-types-to-name" "not an overloaded token" token))))
+
+(define (token-and-type-to-name token type)
+  (token-and-types-to-name token (list type)))
+
+(define (add-token-and-types-to-name token types name)
+  (let ((info (assoc token TOKEN-AND-TYPES-TO-NAME-ALIST)))
+    (if info
+	(set! TOKEN-AND-TYPES-TO-NAME-ALIST
+	      (map (lambda (item)
+		     (if (equal? (car item) token)
+			 (list token (cons (list types name) (cadr item)))
+			 item))
+		   TOKEN-AND-TYPES-TO-NAME-ALIST))
+	(set! TOKEN-AND-TYPES-TO-NAME-ALIST
+	      (cons (list token (list (list types name)))
+		    TOKEN-AND-TYPES-TO-NAME-ALIST)))))
+
+(define (add-token-and-type-to-name token type name)
+  (add-token-and-types-to-name token (list type) name))
+
+;; To define the tokens that are used by the parser we provide
+
+(define (make-term-creator token min-type-string)
+  (lambda (x y)
+    (let* ((type1 (term-to-type x))
+	   (type2 (term-to-type y))
+	   (min-type (py min-type-string))
+	   (type (types-lub type1 type2 min-type))
+	   (internal-name (token-and-type-to-name token type)))
+      (mk-term-in-app-form
+       (make-term-in-const-form (pconst-name-to-pconst internal-name))
+       x y))))
+
+(define (make-term-creator1 token min-type-string)
+  (lambda (x)
+    (let* ((min-type (py min-type-string))
+           (type (types-lub (term-to-type x) min-type))
+	   (internal-name (token-and-type-to-name token type)))
+      (mk-term-in-app-form
+       (make-term-in-const-form (pconst-name-to-pconst internal-name))
+       x))))
+
+(define (make-term-creator-exp token)
+  (lambda (x y)
+    (let* ((type1 (term-to-type x))
+           (type2 (term-to-type y))
+	   (internal-name (token-and-types-to-name token (list type1 type2))))
+      (mk-term-in-app-form
+       (make-term-in-const-form (pconst-name-to-pconst internal-name))
+       x y))))
 
 ;; Initially we don't know what numerals look like
 (define is-numeric-term? (lambda (term) #f))
