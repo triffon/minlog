@@ -1,4 +1,4 @@
-;; 2017-05-13.  pos.scm.  Based on the former numbers.scm.
+;; 2018-01-22.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -28,39 +28,6 @@
 ;; token-tree-to-string) take pos as default.
 
 (set! NAT-NUMBERS #f)
-
-(define TOKEN-AND-TYPES-TO-NAME-ALIST '())
-
-(define (token-and-types-to-name token types)
-  (let ((info (assoc token TOKEN-AND-TYPES-TO-NAME-ALIST)))
-    (if info
-        (let ((info1 (assoc types (cadr info))))
-          (if info1
-	      (cadr info1)
-	      (apply myerror
-		     (append (list "token-and-types-to-name" "token"
-				   token "not defined for types")
-			     types))))
-	(myerror "token-and-types-to-name" "not an overloaded token" token))))
-
-(define (token-and-type-to-name token type)
-  (token-and-types-to-name token (list type)))
-
-(define (add-token-and-types-to-name token types name)
-  (let ((info (assoc token TOKEN-AND-TYPES-TO-NAME-ALIST)))
-    (if info
-	(set! TOKEN-AND-TYPES-TO-NAME-ALIST
-	      (map (lambda (item)
-		     (if (equal? (car item) token)
-			 (list token (cons (list types name) (cadr item)))
-			 item))
-		   TOKEN-AND-TYPES-TO-NAME-ALIST))
-	(set! TOKEN-AND-TYPES-TO-NAME-ALIST
-	      (cons (list token (list (list types name)))
-		    TOKEN-AND-TYPES-TO-NAME-ALIST)))))
-
-(define (add-token-and-type-to-name token type name)
-  (add-token-and-types-to-name token (list type) name))
 
 ;; 1.  Positive numbers
 ;; ====================
@@ -381,35 +348,6 @@
 (add-program-constant "TranslationPosPredNonOne" (py "pos=>pos"))
 
 ;; We define the tokens that are used by the parser
-
-(define (make-term-creator token min-type-string)
-  (lambda (x y)
-    (let* ((type1 (term-to-type x))
-	   (type2 (term-to-type y))
-	   (min-type (py min-type-string))
-	   (type (types-lub type1 type2 min-type))
-	   (internal-name (token-and-type-to-name token type)))
-      (mk-term-in-app-form
-       (make-term-in-const-form (pconst-name-to-pconst internal-name))
-       x y))))
-
-(define (make-term-creator1 token min-type-string)
-  (lambda (x)
-    (let* ((min-type (py min-type-string))
-           (type (types-lub (term-to-type x) min-type))
-	   (internal-name (token-and-type-to-name token type)))
-      (mk-term-in-app-form
-       (make-term-in-const-form (pconst-name-to-pconst internal-name))
-       x))))
-
-(define (make-term-creator-exp token)
-  (lambda (x y)
-    (let* ((type1 (term-to-type x))
-           (type2 (term-to-type y))
-	   (internal-name (token-and-types-to-name token (list type1 type2))))
-      (mk-term-in-app-form
-       (make-term-in-const-form (pconst-name-to-pconst internal-name))
-       x y))))
 
 (add-token "+" 'add-op (make-term-creator "+" "pos"))
 (add-token-and-type-to-name "+" (py "pos") "PosPlus")
