@@ -207,6 +207,7 @@
 ;; ()
 
 (add-var-name "f" (py "boole=>boole"))
+(add-var-name "q" (py "boole"))
 
 (define  pattern (pt "[p]f p andb f negb p"))
 (define instance (pt "[p]f p andb f negb p"))
