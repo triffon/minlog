@@ -1,4 +1,4 @@
-;; 2017-12-12.  examples/analysis/digits.scm
+;; 2018-09-08.  examples/analysis/digits.scm
 
 ;; Dependency of files
 
@@ -329,15 +329,15 @@
 (add-mr-ids "Sd")
 
 (display-idpc "SdMR")
-;; SdMR
-;; 	InitSdSdRMR:	SdMR SdR 1
-;; 	InitSdSdMMR:	SdMR SdM 0
-;; 	InitSdSdLMR:	SdMR SdL(IntN 1)
+;; SdMR	non-computational
+;; 	InitSdSdRMR:	SdMR 1 SdR
+;; 	InitSdSdMMR:	SdMR 0 SdM
+;; 	InitSdSdLMR:	SdMR(IntN 1)SdL
 
 ;; SdMRId
-(set-goal "all d,s(SdMR s d -> SdToInt s=d)")
-(assume "d" "s" "SdMRsd")
-(elim "SdMRsd")
+(set-goal "all d,s(SdMR d s -> SdToInt s=d)")
+(assume "d" "s" "SdMRds")
+(elim "SdMRds")
 (use "Truth")
 (use "Truth")
 (use "Truth")
@@ -345,7 +345,7 @@
 (save "SdMRId")
 
 ;; SdMRIntToSd
-(set-goal "all d(abs d<=1 -> SdMR(IntToSd d)d)")
+(set-goal "all d(abs d<=1 -> SdMR d(IntToSd d))")
 (cases)
 (assume "p" "pBd")
 (ng)
@@ -361,7 +361,7 @@
 (save "SdMRIntToSd")
 
 ;; SdMRIntro
-(set-goal "allnc d(Sd d -> exl s SdMR s d)")
+(set-goal "allnc d(Sd d -> exl s SdMR d s)")
 (assume "d" "Sdd")
 (elim "Sdd")
 (intro 0 (pt "SdR"))
@@ -381,7 +381,7 @@
 (animate "SdMRIntro")
 
 ;; SdMRElim
-(set-goal "allnc d all s(SdMR s d -> Sd d)")
+(set-goal "allnc d all s(SdMR d s -> Sd d)")
 (assume "d")
 (cases)
 ;; 3-5
@@ -541,17 +541,17 @@
 (add-mr-ids "Sdtwo")
 
 (display-idpc "SdtwoMR")
-;; SdtwoMR
-;; 	InitSdtwoRTMR:	SdtwoMR RT 1
-;; 	InitSdtwoRRMR:	SdtwoMR RR 2
-;; 	InitSdtwoMTMR:	SdtwoMR MT 0
-;; 	InitSdtwoLTMR:	SdtwoMR LT(IntN 1)
-;; 	InitSdtwoLLMR:	SdtwoMR LL(IntN 2)
+;; SdtwoMR	non-computational
+;; 	InitSdtwoRTMR:	SdtwoMR 1 RT
+;; 	InitSdtwoRRMR:	SdtwoMR 2 RR
+;; 	InitSdtwoMTMR:	SdtwoMR 0 MT
+;; 	InitSdtwoLTMR:	SdtwoMR(IntN 1)LT
+;; 	InitSdtwoLLMR:	SdtwoMR(IntN 2)LL
 
 ;; SdtwoMRId
-(set-goal "all i,t(SdtwoMR t i -> SdtwoToInt t=i)")
-(assume "i" "t" "SdtwoMRsdi")
-(elim "SdtwoMRsdi")
+(set-goal "all i,t(SdtwoMR i t -> SdtwoToInt t=i)")
+(assume "i" "t" "SdtwoMRsit")
+(elim "SdtwoMRsit")
 (use "Truth")
 (use "Truth")
 (use "Truth")
@@ -561,7 +561,7 @@
 (save "SdtwoMRId")
 
 ;; SdtwoMRIntro
-(set-goal "allnc i(Sdtwo i -> exl t SdtwoMR t i)")
+(set-goal "allnc i(Sdtwo i -> exl t SdtwoMR i t)")
 (assume "i" "Sdtwoi")
 (elim "Sdtwoi")
 ;; 3-7
@@ -590,7 +590,7 @@
 (animate "SdtwoMRIntro")
 
 ;; SdtwoMRElim
-(set-goal "allnc i all t(SdtwoMR t i -> Sdtwo i)")
+(set-goal "allnc i all t(SdtwoMR i t -> Sdtwo i)")
 (assume "i")
 (cases)
 ;; 3-7
@@ -629,7 +629,7 @@
 (animate "SdtwoMRElim")
 
 ;; SdtwoMRIntToSdtwo
-(set-goal "all d(abs d<=2 -> SdtwoMR(IntToSdtwo d)d)")
+(set-goal "all d(abs d<=2 -> SdtwoMR d(IntToSdtwo d))")
 (cases)
 ;; 2-4
 (cases)
@@ -672,12 +672,12 @@
 ;; IntPlusSdToSdtwo
 (set-goal "allnc d,e(Sd d -> Sd e -> Sdtwo(d+e))")
 (assume "d" "e" "Sdd" "Sde")
-(assert "exl s1 SdMR s1 d")
+(assert "exl s1 SdMR d s1")
 (use "SdMRIntro")
 (use "Sdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "s1" "s1Prop")
-(assert "exl s2 SdMR s2 e")
+(assert "exl s2 SdMR e s2")
 (use "SdMRIntro")
 (use "Sde")
 (assume "ExHyp2")
@@ -840,12 +840,12 @@
 (add-mr-ids "Psd")
 
 (display-idpc "PsdMR")
-;; PsdMR
-;; 	InitPsdTrueMR:	PsdMR True 1
-;; 	InitPsdFalseMR:	PsdMR False(IntN 1)
+;; PsdMR	non-computational
+;; 	InitPsdTrueMR:	PsdMR 1 True
+;; 	InitPsdFalseMR:	PsdMR(IntN 1)False
 
 ;; PsdMRId
-(set-goal "all d,boole(PsdMR boole d -> BooleToInt boole=d)")
+(set-goal "all d,boole(PsdMR d boole -> BooleToInt boole=d)")
 (assume "d" "boole" "PsdMRHyp")
 (elim "PsdMRHyp")
 (use "Truth")
@@ -854,7 +854,7 @@
 (save "PsdMRId")
 
 ;; PsdMRIntro
-(set-goal "allnc d(Psd d -> exl boole PsdMR boole d)")
+(set-goal "allnc d(Psd d -> exl boole PsdMR d boole)")
 (assume "d" "Psdd")
 (elim "Psdd")
 (intro 0 (pt "True"))
@@ -867,13 +867,12 @@
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
-
 ;; [boole]boole
 
 (animate "PsdMRIntro")
 
 ;; PsdMRElim
-(set-goal "allnc d all boole(PsdMR boole d -> Psd d)")
+(set-goal "allnc d all boole(PsdMR d boole -> Psd d)")
 (assume "d")
 (cases)
 ;; 3,4
@@ -892,7 +891,6 @@
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
-
 ;; [boole]boole
 
 ;; (animate "SdMRElim")
@@ -915,7 +913,7 @@
 (animate "PsdToBooleToIntValue")
 
 ;; PsdMRIntToBoole
-(set-goal "all d(abs d=1 -> PsdMR(IntToBoole d)d)")
+(set-goal "all d(abs d=1 -> PsdMR d(IntToBoole d))")
 (cases)
 (assume "p" "pProp")
 (ng)
