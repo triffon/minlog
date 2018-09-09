@@ -1,4 +1,4 @@
-;; 2017-12-12.  examples/analysis/grayavaux.scm
+;; 2018-09-08.  examples/analysis/grayavaux.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -469,17 +469,17 @@
 ;; CoGAvcSatCoIClAuxJ
 (set-goal "allnc d,e,i(Psd d -> Psd e -> Sdtwo i -> Sdtwo(J(d+e+i*2)))")
 (assume "d" "e" "i" "Psdd" "Psde" "Sdtwoi")
-(assert "exl boole1 PsdMR boole1 d")
+(assert "exl boole1 PsdMR d boole1")
 (use "PsdMRIntro")
 (use "Psdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
-(assert "exl boole2 PsdMR boole2 e")
+(assert "exl boole2 PsdMR e boole2")
 (use "PsdMRIntro")
 (use "Psde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
-(assert "exl t SdtwoMR t i")
+(assert "exl t SdtwoMR i t")
 (use "SdtwoMRIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
@@ -506,17 +506,17 @@
 ;; CoGAvcSatCoIClAuxK
 (set-goal "allnc d,e,i(Psd d -> Psd e -> Sdtwo i -> Sd(K(d+e+i*2)))")
 (assume "d" "e" "i" "Psdd" "Psde" "Sdtwoi")
-(assert "exl boole1 PsdMR boole1 d")
+(assert "exl boole1 PsdMR d boole1")
 (use "PsdMRIntro")
 (use "Psdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
-(assert "exl boole2 PsdMR boole2 e")
+(assert "exl boole2 PsdMR e boole2")
 (use "PsdMRIntro")
 (use "Psde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
-(assert "exl t SdtwoMR t i")
+(assert "exl t SdtwoMR i t")
 (use "SdtwoMRIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
