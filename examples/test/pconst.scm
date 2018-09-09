@@ -739,7 +739,7 @@
 (pp (const-to-type corec-const))
 
 ;; boole=>
-;; (boole=>uysum((tree ysum nat)@@(tlist ysum boole)))=>
+;; (boole=>uysum((tree ysum nat)yprod(tlist ysum boole)))=>
 ;; (nat=>uysum(tlist ysum boole))=>tlist
 
 ;; Next we need step terms.
@@ -747,11 +747,11 @@
 (define step0
   (pt "[boole]
  [if boole
-   (Inr((InR nat tree)0@(InR boole tlist)False))
-   (Inr((InR nat tree)1@(InR boole tlist)True))]"))
+   (Inr((InR nat tree)0 pair(InR boole tlist)False))
+   (Inr((InR nat tree)1 pair(InR boole tlist)True))]"))
 
 (pp (term-to-type step0))
-;; boole=>uysum((tree ysum nat)@@(tlist ysum boole))
+;; boole=>uysum((tree ysum nat)yprod(tlist ysum boole))
 
 (define step1
   (pt "[n]
@@ -771,8 +771,8 @@
 ;; (CoRec boole=>tlist nat=>tree)True
 ;; ([boole]
 ;;   [if boole
-;;     (Inr((InR nat tree)0@(InR boole tlist)False))
-;;     (Inr((InR nat tree)1@(InR boole tlist)True))])
+;;     (Inr((InR nat tree)0 pair(InR boole tlist)False))
+;;     (Inr((InR nat tree)1 pair(InR boole tlist)True))])
 ;; ([n][if n (Inr((InR boole tlist)False)) ([n1]Inr((InR boole tlist)True))])
 
 ;; Since normalization for CoRec is delayed, this term normalizes to
@@ -784,8 +784,8 @@
 ;; (CoRec boole=>tlist nat=>tree)True
 ;; ([p0]
 ;;   [if p0
-;;     (Inr((InR nat tree)0@(InR boole tlist)False))
-;;     (Inr((InR nat tree)1@(InR boole tlist)True))])
+;;     (Inr((InR nat tree)0 pair(InR boole tlist)False))
+;;     (Inr((InR nat tree)1 pair(InR boole tlist)True))])
 ;; ([n0][if n0 (Inr((InR boole tlist)False)) ([n1]Inr((InR boole tlist)True))])
 
 (pp (nt (undelay-delayed-corec term 1)))
@@ -845,7 +845,7 @@
 (pp (const-to-type corec-const))
 
 ;; nat=>
-;; (boole=>uysum((tree ysum nat)@@(tlist ysum boole)))=>
+;; (boole=>uysum((tree ysum nat)yprod(tlist ysum boole)))=>
 ;; (nat=>uysum(tlist ysum boole))=>tree
 
 ;; Now we apply corec-const to 0 and the (same) step terms.
@@ -856,7 +856,7 @@
 
 (pp term)
 
-;; (CoRec boole=>tlist nat=>tree)0
+;; (CoRec nat=>tree boole=>tlist)0
 ;; ([boole]
 ;;   [if boole
 ;;     (Inr((InR nat tree)0 pair(InR boole tlist)False))
@@ -872,8 +872,8 @@
 ;; (CoRec nat=>tree boole=>tlist)0
 ;; ([p0]
 ;;   [if p0
-;;     (Inr((InR nat tree)0@(InR boole tlist)False))
-;;     (Inr((InR nat tree)1@(InR boole tlist)True))])
+;;     (Inr((InR nat tree)0 pair(InR boole tlist)False))
+;;     (Inr((InR nat tree)1 pair(InR boole tlist)True))])
 ;; ([n0][if n0 (Inr((InR boole tlist)False)) ([n1]Inr((InR boole tlist)True))])
 
 (pp (nt (undelay-delayed-corec term 1)))
