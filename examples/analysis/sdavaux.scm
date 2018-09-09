@@ -1,4 +1,4 @@
-;; 2017-12-12.  examples/analysis/sdavaux.scm
+;; 2018-09-08.  examples/analysis/sdavaux.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -96,17 +96,17 @@
 ;; CoIAvcSatCoIClAuxJ
 (set-goal "allnc d,e,i(Sd d -> Sd e -> Sdtwo i -> Sdtwo(J(d+e+i*2)))")
 (assume "d" "e" "i" "Sdd" "Sde" "Sdtwoi")
-(assert "exl s1 SdMR s1 d")
+(assert "exl s1 SdMR d s1")
 (use "SdMRIntro")
 (use "Sdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "s1" "s1Prop")
-(assert "exl s2 SdMR s2 e")
+(assert "exl s2 SdMR e s2")
 (use "SdMRIntro")
 (use "Sde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "s2" "s2Prop")
-(assert "exl t SdtwoMR t i")
+(assert "exl t SdtwoMR i t")
 (use "SdtwoMRIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
@@ -139,17 +139,17 @@
 ;; CoIAvcSatCoIClAuxK
 (set-goal "allnc d,e,i(Sd d -> Sd e -> Sdtwo i -> Sd(K(d+e+i*2)))")
 (assume "d" "e" "i" "Sdd" "Sde" "Sdtwoi")
-(assert "exl s1 SdMR s1 d")
+(assert "exl s1 SdMR d s1")
 (use "SdMRIntro")
 (use "Sdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "s1" "s1Prop")
-(assert "exl s2 SdMR s2 e")
+(assert "exl s2 SdMR e s2")
 (use "SdMRIntro")
 (use "Sde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "s2" "s2Prop")
-(assert "exl t SdtwoMR t i")
+(assert "exl t SdtwoMR i t")
 (use "SdtwoMRIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
