@@ -1,5 +1,290 @@
-;; 2018-04-11.  log.txt
+;; 2018-09-09.  log.txt
 
+Done locally in dev branch 2018-09-09
+
+In typ.scm
+
+finalg? corrected.  Now list(list alpha) is not a finitary algebra.
+type-to-level added.  type-to-canonical-inhabitant rewritten (no order
+of constructor types required).  Added alg-to-canonical-inhabitant
+alg-and-excluded-simalg-names-to-inhab-or-f .
+add-item-to-algebra-edge-to-embed-term-alist and
+replace-item-in-algebra-edge-to-embed-term-alist moved here from
+lib/pos.scm and rewritten: type parameters are allowed.
+term-to-original algebras-to-embedding adapted.
+
+In lib/nat.scm
+
+TotalNatMR and CoTotalNatMR added.  TotalNatMRToEqD CoEqPNatNcToEqD
+CoEqPNatNcToCoTotalNatNc CoTotalNatNcToCoEqPNatNc TotalNatToTotalNatNc
+TotalNatMRToTotalNatNc TotalNatNcToTotalNatMR CoEqPNatNcToCoTotalNatMR
+CoTotalNatMRToCoEqPNatNc added.  AllBNatExt ExBNatExt NatLeastExt
+NatLeastUpExt added.  Global assumption TotalToTotalNc removed and
+replaced by a theorem with the same name in ets.scm.  Theorems
+EqPNatToTotal EqPNatNcToTotalNc EqPNatNcToEqD EqPNatRefl EqPNatNcRefl
+NatEqToEqPNc added.  Proof of TotalNatToTotalNatNc simplified.  For
+EqPNatNcToTotalNcLeft EqPNatNcToTotalNcRight CoEqPNatNcToCoTotalNatNc
+CoTotalNatNcToCoEqPNatNc CoEqPNatNcToCoTotalNatMR in Nc-premises Nc
+removed.  New names EqPNatToTotalNcLeft EqPNatToTotalNcRight
+CoEqPNatToCoTotalNatNc CoTotalNatToCoEqPNatNc CoEqPNatToCoTotalNatMR .
+EqPNatNcToEqD removed: EqPNatToEqD suffices.  EqPNatSym added.
+Theorems NatPlusEqP PredEqP NatMinusEqP NatMaxEqP added.
+
+In lib/list.scm
+
+list-to-first ListInitLhPartial ListLhAppdSinglePartial
+ListLhRevPartial ListLhAppdPartial ListTotalToSTotal
+ListInitPlusAppdPartial ListInitPlusAppd TotalListMRToEqD
+TotalListMRToTotalListNc TotalListNcToTotalListMR added.  Theorems
+ListFBarExt ListMapExt AllBListExt ListFilterExt FoldlExt FoldrExt
+added.  TotalListNcToTotalListMR renamed into TotalListToTotalListMR .
+Theorem ListProjFBar added.
+
+In lib/pos.scm
+
+add-item-to-algebra-edge-to-embed-term-alist and
+replace-item-in-algebra-edge-to-embed-term-alist moved to typ.scm and
+rewritten: type parameters are allowed.  Theorem EqPPosRefl added.
+Theorems PosRecTotal NatToPosTotal adapted.  Theorem NatToPosStepExt
+added.  Theorem EqPPosToTotalLeft EqPPosToTotalRight EqPPosNcToEqD
+added.  EqPPosNcToEqD removed: EqPPosToEqD suffices.  EqPPosSym added.
+Theorems PosSEqP PosPlusEqP PosTimesEqP PosLogEqP NatLeOneTwoExp
+NatLeMonTwoExp added.
+
+In lib/int.scm
+
+Theorems EqPIntToTotalLeft EqPIntToTotalRight EqPIntNcToEqD EqPIntRefl
+added.  EqPIntNcToEqD removed: EqPIntToEqD suffices.  EqPIntSym added.
+
+In lib/rat.scm
+
+Theorems EqPRatToTotalLeft EqPRatToTotalRight EqPRatNcToEqD EqPRatRefl
+EqPRatSym RatPlusEqP RatUMinusEqP RatTimesEqP RatUDivEqP RatAbsEqP
+RatLeEqP added.
+
+In examples/test/names.scm
+
+Algebra inf with no nullary constructor added.
+
+In examples/test/typ.scm
+
+Tests for finalg? added.  Tests for type-to-canonical-inhabitant added
+
+In examples/test/term.scm
+
+Missing variable name q:boole added
+
+In examples/test/psym.scm
+
+TotalNatMR and TotalListMR commented out (they are forbidden in add-mr-ids)
+Tests for add-mr-ids followed by add-co to obtain CoEvenMR added.
+
+In test/ets.scm
+
+OrDMRToDisj OrRMRToDisj AndLMRToConj added.  CoRecNat1 CoRecNat21
+CoRecNat22 added.  GfpCoTotalNatMR added: (CoRec nat nat) realizes
+the Gfp axiom for CoTotalNat.
+
+In examples/tutor.scm
+
+Superfluous closing parenthesis removed
+
+In var.scm
+
+var-and-t-deg-to-new-var added
+
+In pconst.scm
+
+In alg-or-arrow-types-to-corec-consts t-deg-one replaced by t-deg-zero.
+In const-substitute Map included (was forgotten).  In const-substitute
+in case Destr prim-prod-flag introduced.  Text for Map operators added.
+
+In term.scm
+
+make-display-creator and make-display-creator1 moved here from
+lib/pos.scm make-param-term-creator2 and make-param-term-creator1
+added.  They are used by the parser to create the correct pconsts for
+overloaded tokens, for algebras with parameters (example: ++ for list
+and str).  In match-aux abstraction case rewritten: [x]r(x) and
+[x^]r(x^) are considered equal.  Similar correction for first-match .
+match-aux rewritten: in case ignore-deco-flag it now identifies Total
+with TotalNc and I with INc
+
+In psym.scm
+
+In add-mr-ids error message added in case idpc-name is in COIDS.  For
+CoIMR first use add-mr-ids and add-co on I to obtain IMR and CoI.
+Then use add-co on IMR.  In add-mr-ids error message removed for the
+case idpc-name starts with Total.  Reason: this makes the theory
+cleaner (less exceptions), and in nat.scm we have TotalNatMRToEqD
+TotalNatMRToTotalNatNc TotalNatNcToTotalNatMR .
+real-and-formula-to-mr-formula-aux
+real-and-formula-to-mr-formula-for-mr-clauses changed back
+accordingly.  et-tvars-of-param-pvars and param-pvar-tvars restricted
+to pvars with positive content.  mr-idpredconst-name-to-tvars removed.
+idpredconst-name-to-tvars redefined to be
+orig-idpredconst-name-to-tvars .  add-mr-ids
+formula-to-et-type-for-mr-clauses real-and-formula-to-mr-formula-aux
+real-and-formula-to-mr-formula-for-mr-clauses
+terms-to-mr-totality-formula adapted to the new order of arguments
+where the realizer comes last.  add-co changed to generate CoIMR with
+the same arity as IMR (the realizer argument is the last one).  In
+clause-to-exand-formula argument mr-idpc? removed: after the change of
+the order of arguments in IMR there is no need to change the order of
+eq formulas.  predicate-to-cterm-with-partial-total-vars changed to
+make the last (not first) variable partial and the rest total.
+term-and-alist-to-totality-formula term-and-alist-to-totalnc-formula
+terms-and-alist-to-eqp-formula terms-and-alist-to-eqpnc-formula
+corrected in the arrow type case.
+term-and-alist-to-eqp-compatibility-formula
+term-to-eqp-compatibility-formula removed.
+
+In formula.scm
+
+idpredconst-equal? renamed into idpredconst=? and moved here from
+axiom.scm.  check-formula extended to include check-idpredconst .
+formula=-aux? corrected: when ignore-deco-flag is #t TotalNat n^ and
+TotalNatNc n^ should be considered equal.  Also ornc added.  In
+formula-substitute (positive or negative) content of pvars ignored.
+make-totalmr make-cototalmr changed back.  make-totalmr make-cototalmr
+make-eqpmr make-coeqpmr adapted to the new order of arguments where
+the realizer comes last.
+andl-andnc-imp-impnc-all-allnc-form-to-final-left added.
+
+In boole.scm
+
+make-left-injection and make-right-injection added.
+
+In axiom.scm
+
+In add-theorem the final stipulation that cThm is total removed.  It
+has the same t-deg as the extracted term.  Conversion equation of the
+corecursion operator added as axiom CoRec, by means of
+alg-or-arrow-types-to-corec-aconst .  check-aconst adapted to CoRec.
+In case ignore-deco-flag is #f, check-aconst at Elim for a n.c.
+idpredconst with at least two clauses usable for n.c. conclusions
+only.  check-aconst extended by TotalMRToEqD TotalMRToTotalNc
+TotalNcToTotalMR Bisim.  In coidpredconst-to-closure-aconst repro-data
+included (were forgotten).  closure-aconst-to-computed-repro-data
+corrected.  finalg-to-bisim-aconst added.  In
+imp-formulas-to-uninst-gfp-formulas-etc in case mr-coidpc? no more
+reordering of variables.  imp-formulas-to-uninst-elim-formulas-etc
+adapted in cases ExRTMR ExDTMR.  add-totality-theorems (and hence
+save-totality) adapted to totality theorems for functionals.
+allnctotal-intro-aconst allnctotal-elim-aconst rewritten with TotalNc
+rather than impnc.  TotalNcToTotalMR replaced by TotalToTotalMR.
+
+In proof.scm
+
+formula-to-efq-proof corrected in case global assumption Efq.
+proof-substitute corrected (and simplified) in aconst case.
+aconst-substitute corrected in case Closure.  proof-substitute and
+aconst-substitute now with opt-ignore-deco-flag.  In case
+ignore-deco-flag is #f, Elim for a n.c. idpredconst with at least two
+clauses can be used for n.c. conclusions only.  fold-total-variables
+adapted to the fact that the to-be-folded formula is a conjunction
+with rhs an extensionality formula.  pconst-to-totality-proof
+corrected in case unfolded-tty-fla is of andl or andnc form.
+
+In pproof-scm
+
+imp-formulas-to-coind-proof added to simplify proofs by coinduction.
+efq added.  It constructs a proof of the present goal from falsity,
+which should then be inferable from the context.  In use-intern
+special treatment in case clash-of-tvars removed.  Reason: using a
+proof of a formula with tvars for a goal with the same tvars makes
+sense.  num-goal extended by a new field ignore-deco-flag.  set-goal
+now uses formula-of-nulltype? to obtain the initial ignore-deco-flag.
+New field in make-num-goal inserted into normalize-goal-intern
+assume-intern x-and-x-list-to-proof-and-new-num-goals-and-maxgoal
+inst-with-intern strip-intern drop-intern drop-except-intern
+name-hyp-intern split-intern pproof-all-intro pproof-imp-intro
+simp-with-intern simp-with-kernel-aux simprat-with-intern
+simpreal-with-intern simphyp-with-intern simphyp-with-kernel-aux
+display-num-goal-aux modified: ?^27 rather than ?_27 used in case
+ignore-deco-flag is #t.  display-new-goals adapted.
+fla-and-sig-tvars-and-vars-and-goal-fla-to-use-data renamed into
+fla-and-ignore-deco-flag-and-sig-tovars-and-goal-fla-to-use-data since
+this fits better with the names of arguments for match .  use-intern
+adapted to the new
+fla-and-ignore-deco-flag-and-sig-tovars-and-goal-fla-to-use-data
+
+In ets.scm
+
+In imp-formulas-to-mr-gfp-proof allnc-form-to replaced by
+all-allnc-form-to In axiom-to-extracted-term case Gfp occurrence of
+prim-prod-flag removed, since corec-aconst always uses andd.
+TotalMRToEqD TotalMRToTotalNc TotalNcToTotalMR added.
+AllncTotalIntroTotalNc removed.  N.c. pvars in AndL AndR OrR OrL OrU
+et-tvars-of-param-pvars restricted to pvars with positive content.
+TotalBooleNc and TotalBooleToTotalBooleNc added.  AllncTotalIntroSound
+and AllncTotalElimSound adapted to the new order of arguments where
+the realizer comes last.  ExDMRElim ExLMRElim removed.  ExRMRElim
+ExDTMRElim ExRTMRElim AndDMRElim adapted.  Predicates CoTotalBoole
+CoTotalBooleNc TotalBooleMR CoTotalBooleMR EqPBoole EqPBooleNc added.
+Theorems TotalBooleMRToEqD TotalBooleMRToTotalBooleNc
+TotalBooleNcToTotalBooleMR added.  AndLMRElimLeft and AndLMRElimRight
+combined into AndLMRElim.  AndRMRElim added.  OrDMRElim OrLMRElim
+OrRMRElim OrUMRElim equivalently rewritten with ornc in the conclusion
+(was OrDMRToDisj).  BooleIfEqP EqPBooleToTotalLeft
+EqPBooleToTotalRight EqPBooleRefl BooleIfEqPNc EqPBooleNcToTotalNcLeft
+EqPBooleNcToTotalNcRight EqPBooleNcToEqD EqPBooleNcRefl BooleEqToEqPNc
+added.  eqp and eqpnc added for yprod ysum uysum ysumu.  This is
+needed for add-totality.  Global assumptions EqPToEqD EqPToTotalLeft
+EqPToTotalRight EqPRefl EqPNcRefl EqPDefOne (with tvars) added.
+Theorems PairOneTotal PairTwoTotal YprodIfTotal added.  TotalToTotalNc
+EqPToEqPNc added.  PairOneTotal PairTwoTotal YprodIfTotal rewritten
+with total variables.  Theorems EqPYprodPairOne EqPYprodPairTwo added.
+For BooleIfEqPNc EqPBooleNcToTotalNcLeft EqPBooleNcToTotalNcRight
+EqPBooleNcToEqD EqPBooleRefl BooleEqToEqPNc TotalBooleNcToTotalBooleMR
+in Nc-premises Nc removed.  New names EqPBooleToTotalNcLeft
+EqPBooleToTotalNcRight EqPBooleToEqD TotalBooleToTotalBooleMR .  Proof
+of TotalBooleToTotalBooleNc simplified.  TotalNcToTotalMR replaced by
+TotalToTotalMR .  Theorems AndConstEqP ImpConstEqP OrConstEqP
+NegConstEqP added.
+
+In lib/rea.scm
+
+Rules for RealTimes require the Archimedian property.  The previous
+usage of cRealBound is replaced by a pconst RealBd (reason:
+difficulties in proving cRealBoundExt).  This requires auxiliary
+pconsts ListNatMax with theorems EqPListNatMax ListNatMaxUB
+ListNatMaxFBar.  Further auxiliary concepts are cRatLeBoundEqP
+cRatLeAbsBoundEqP cRatLeBoundTotal RatLeAbsBoundSeq
+cRatLeAbsBoundSeqTotal cNatPosEqP.  Theorems RealBdProp RealBdPos
+added.  Theorems RealTimesReal RealNNegTimesNNeg RealTimesCompat
+reproved for the present setting.  Theorems EqPReaAux RealSeqExt
+RealModExt RealPosExt RealUMinusExt RealPlusExt RealMinusExt
+RealUDivExt RealLtExt RealAbsExt RealInvExt RealBdExt RealTimesExt
+added.  Theorems EqPTotalNatToRat EqPTotalPosToNat EqPReaToTotalLeft
+EqPReaToTotalRight EqPReaRefl EqPReaElimLeft EqPReaElimRight
+EqPReaElimLeftRealConstr EqPReaElimRightRealConstr added.
+
+In examples/analysis/digits.scm
+
+SdMR SdtwoMR PsdMR adapted to the new order of arguments where the realizer
+comes last.
+
+In examples/analysis/sdavaux.scm
+
+SdMR adapted to the new order of arguments where the realizer comes
+last.
+
+In examples/analysis/sdmult.scm
+
+SdMR SdtwoMR adapted to the new order of arguments where the realizer
+comes last.
+
+In examples/analysis/grayavaux.scm
+
+PsdMR SdtwoMR adapted to the new order of arguments where the realizer
+comes last.
+
+In lib/str.scm
+
+Theorem IterateExt added.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2018-04-11
 
 In lib/pos.scm
@@ -443,7 +728,7 @@ RealLeAntiSym RealLeTrans RealLeMonPlus RealLeMonTimes
 RealLeMonTimesTwo ApproxSplit RealNNegPos RealLeAbs RealAbsTimes
 RealAllncTotalIntro RealAllncTotalElim
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2017-04-01
 
 In formula.scm
@@ -487,7 +772,7 @@ In lib/rea.scm
 
 add-mr-ids for TotalRea removed.  Added (add-totalnc rea) (add-co TotalRea).. 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done  in dev branch 2017-03-30
 
 In typ.scm
@@ -624,7 +909,7 @@ Removed (add-mr-ids TotalList) (line 18) in lib/list.scm.  It
 produces the error: add-mr-ids use TotalAlgNc instead of TotalAlgMR
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done dev branch 2016-10-17
 
 In axiom.scm
@@ -668,7 +953,7 @@ RatLeAbsBoundSeqUMinusEq RealBoundUMinusEq added.  Global assumptions
 RealPlusCompat RealUMinusCompat RealAbsCompat RealTimesCompat
 RealLeCompat RealUMinusPlus added.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-08-18
 
 In psym.scm
@@ -677,7 +962,7 @@ real-and-formula-to-mr-formula-for-mr-clauses corrected in case impnc
 with idpc-pvars in the c.r. premise: proceed as in the c.r. case of
 imp, but with real instead of appterm (suggested by Kenji Miyamoto).
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-08-18
 
 In psym.scm
@@ -686,7 +971,7 @@ real-and-formula-to-mr-formula-for-mr-clauses corrected in case impnc
 with c.r. premise: proceed as in the c.r. case of imp, but with real
 instead of appterm (suggested by Kenji Miyamoto).
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-08-12
 
 In proof.scm
@@ -718,7 +1003,7 @@ In examples/test/proof.scm
 Tests for formulas-to-and-intro-proof and
 vars-and-formulas-to-exand-intro-proof added.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-08-04
 
 In psym.scm
@@ -727,7 +1012,7 @@ In add-co make-cr-or-nc-andl -r -d and make-cr-or-nc-exl -r -d
 removed.  Cases in (imp-impnc-form? fla) (all-allnc-form? fla)
 corrected and simplified.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-08-01
 
 In pproof.scm
@@ -737,7 +1022,7 @@ In simp-with-intern simprat-with-intern and simphyp-with-intern
 ((and (prime-form? used-formula) (term-in-const-form? op)
 and similarly for nop instead of op
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-07-31
 
 In lib/int.scm
@@ -758,14 +1043,14 @@ RealPosCompat RealPlusReal RealUMinusReal RealAbsReal CauchyTimes
 Added RatSeqFinBound RealBound RealNNegCompat.  Rules for RealTimes
 corrected.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-07-26
 
 In ets.scm
 
 Redefined alltotal-intro-mr-aconst etc (were erroneously commented out)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-07-24
 
 In psym.scm
@@ -808,7 +1093,7 @@ In examples/classical/fuerst.scm
 
 Soundness proof added.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-07-05
 
 In lib/rat.scm
@@ -824,7 +1109,7 @@ CauchyTimes NatPos added.  cNatPos instead of the pconst NatToPos to
 block unwanted unfoldings.  Computation rules for RealTimes added and
 proof of RealTimesReal sketched.  RealRat added.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-07-03
 
 In lib/pos.scm
@@ -840,7 +1125,7 @@ In pproof.scm
 
 In rateqv-term-compat RatHalfCompat added
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-06-29
 
 In axiom.scm
@@ -856,7 +1141,7 @@ exr-formula-and-concl-to-exr-elim-mr-proof removed.
 In axiom-to-soundness-proof exr-formula-and-concl-to-exr-elim-mr-proof
 replaced by imp-formulas-to-mr-elim-proof.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-06-28
 
 In term.scm
@@ -924,7 +1209,7 @@ IntLeTriang all k,i,j abs(k-i)<=abs(k-j)+abs(j-i) renamed into
 into IntLeAbsMinus all k,i,j abs(k+ ~i)<=abs(k+ ~j)+abs(j+ ~i).
 Rewrite rule k*p<j*p -> k<j added
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-06-16
 
 In lib/pos.scm
@@ -952,7 +1237,7 @@ In pconst.scm
 First definition of change-t-deg-to-one removed.  It is superseded by
 the following one.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-06-15
 
 In examples/analysis/gray.scm
@@ -960,7 +1245,7 @@ In examples/analysis/gray.scm
 Adapted to the split of numbers.scm into nat, pos, int, rat, rea.
 Error corrected in CoGToBAux: exr replaced by exu.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-06-14
 
 In term.scm
@@ -1019,7 +1304,7 @@ In test/ets.scm
 
 Tests for discarded functions removed.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-06-09
 
 In ets.scm
@@ -1151,7 +1436,7 @@ In doc/ref.tex
 
 Explanation of simp-with corrected.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done on dev branch 2016-04-09
 
 In examples/classical
@@ -1197,7 +1482,7 @@ In lib/int.scm
 Based on the former numbers.scm.  NatToIntDouble removed.
 PosToNatToInt renamed into PosToNatToIntId
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2016-03-30
 
 In typ.scm
@@ -1317,7 +1602,7 @@ In lib/list.scm
 EFEqD replaced by EfqEqD .  all-allpartial-aconst replaced by
 alltotal-elim-aconst etc.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2016-03-21
 
 In examples/doc/tutor.tex
@@ -1332,7 +1617,7 @@ In examples/bar/higman.scm
 
 Typo corrected in example for BSeq
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-10-21
 
 In examples/parsing/parens.scm
@@ -1344,7 +1629,7 @@ In examples/doc/tutor.tex
 
 Editorial improvements in parens.scm integrated.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-10-12
 
 In examples/test/ets.scm
@@ -1355,7 +1640,7 @@ In examples/analysis/gray.hs
 
 Updated (3 Okt 2015)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-09-28
 
 In examples/analysis/gray.scm
@@ -1382,7 +1667,7 @@ terms-to-haskell-program (work of Christian Ittner)
 
 In psym.scm
 
-In add-ids the obsolete test-for-inhabitedness resinserted but
+In add-ids the obsolete test-for-inhabitedness reinserted but
 commented out.  This is similar to what is done in add-algs
 
 In axiom.scm
@@ -1397,7 +1682,7 @@ clauses for unnested inpredconsts.
 real-mr-clause-proof-and-clause-to-clause-proof
 proof-to-allnc-impnc-proof allnc-impnc-to-exu-imp-proof removed
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-07-08
 
 In lib/nat.scm
@@ -1409,7 +1694,7 @@ In examples/deco/fib.scm
 
 Time measurement commented out.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-06-11
 
 In term.scm
@@ -1429,14 +1714,14 @@ In todo.scm
 
 Two items added (on axiom-to-soundness-proof and InhabTotal).
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-05-04
 
 In examples/analysis
 
 gray.scm simplified, together with gray.hs
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-05-03
 
 In lib/nat.scm
@@ -1487,7 +1772,7 @@ In examples/arith/quotrem.scm
 
 Added git to the (commented out) load command at the beginning.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-04-28
 
 In typ.scm
@@ -1549,7 +1834,7 @@ In examples/Makefile
 
 Directory train added.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-02-09
 
 In pconst.scm
@@ -1564,7 +1849,7 @@ term-to-external-expr in case Scheme extended to terms of type ysum.
 In examples/arith/dickson.scm
 
 Updated to fit papers/dickson12/bd.tex
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-02-23
 
 Change of startup script: src/minlog.el and src/minlog moved to util
@@ -1572,7 +1857,7 @@ with new names minlog.template.el and minlog.template.  They now
 produce two frams: one for the source file, and another one for minlog
 (running petite scheme).  minlog/Makefile changed accordingly.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2015-01-04
 
 In pconst.scm
@@ -1623,7 +1908,7 @@ In examples/bar/
 
 higman.scm added
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-12-31
 
 In pproof.scm
@@ -1646,7 +1931,7 @@ In doc/ref.tex
 simphyp-to and simphyp-to-intern added.  Examples for simp and
 simphyp-to added.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-12-28
 
 In boole.scm
@@ -1657,7 +1942,7 @@ In examples/test/formula.scm
 
 Tests for make-injection extended
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-12-27
 
 In axiom.scm
@@ -1677,7 +1962,7 @@ corrected, (2) the generation of (co)recursion operators had to be
 modified to recognize simplified corecursion operators, (3) the
 function alg-and-rel-simalgs-to-haskell-corec-const had to be adapted.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-12-19
 
 In term.scm
@@ -1705,7 +1990,7 @@ In examples/deco/maxseg.scm
 
 ijk introduced earlier as variable name.  Minor text changes.
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done 2014-10-18
 
 In formula.scm
