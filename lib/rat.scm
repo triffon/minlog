@@ -1,4 +1,4 @@
-;; 2017-12-12.  rat.scm.  Based on numbers.scm.
+;; 2018-09-08.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -302,6 +302,91 @@
 ;; Proof finished.
 (save "RatIfTotal")
 
+;; To prove extensionality of pconsts of level >=2 we will need
+;; properties of EqPRat.  There are collected here.
+
+;; EqPRatToTotalLeft
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> TotalRat a^)")
+(assume "a^" "b^" "EqPab")
+(elim "EqPab")
+;; 3
+(assume "k^1" "k^2" "EqPk1k2" "p^1" "p^2" "EqPp1p2")
+(use "TotalRatRatConstr")
+(use "EqPIntToTotalLeft" (pt "k^2"))
+(use "EqPk1k2")
+(use "EqPPosToTotalLeft" (pt "p^2"))
+(use "EqPp1p2")
+;; Proof finished.
+(save "EqPRatToTotalLeft")
+;; (cdp)
+
+;; EqPRatToTotalRight
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> TotalRat b^)")
+(assume "a^" "b^" "EqPab")
+(elim "EqPab")
+;; 3
+(assume "k^1" "k^2" "EqPk1k2" "p^1" "p^2" "EqPp1p2")
+(use "TotalRatRatConstr")
+(use "EqPIntToTotalRight" (pt "k^1"))
+(use "EqPk1k2")
+(use "EqPPosToTotalRight" (pt "p^1"))
+(use "EqPp1p2")
+;; Proof finished.
+(save "EqPRatToTotalRight")
+;; (cdp)
+
+;; EqPRatToEqD
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> a^ eqd b^)")
+(assume "a^" "b^" "EqPab")
+(elim "EqPab")
+(assume "k^1" "k^2" "EqPk1k2" "p^1" "p^2" "EqPp1p2")
+(simp (pf "k^1 eqd k^2"))
+(simp (pf "p^1 eqd p^2"))
+(use "InitEqD")
+(use "EqPPosToEqD")
+(use "EqPp1p2")
+(use "EqPIntToEqD")
+(use "EqPk1k2")
+;; Proof finished.
+(save "EqPRatToEqD")
+;; (cdp)
+
+;; EqPRatToEqPRatNc
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> EqPRatNc a^ b^)")
+(assume "a^" "b^" "EqPab")
+(use "EqPab")
+;; Proof finished.
+(save "EqPRatToEqPRatNc")
+
+;; EqPRatRefl
+(set-goal "allnc a^(TotalRat a^ -> EqPRat a^ a^)")
+(assume "a^" "Ta")
+(elim "Ta")
+;; 3
+(assume "k^" "Tk" "p^" "Tp")
+(intro 0)
+(use "EqPIntRefl")
+(use "Tk")
+(use "EqPPosRefl")
+(use "Tp")
+;; Proof finished.
+(save "EqPRatRefl")
+;; (cdp)
+
+;; EqPRatSym
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> EqPRat b^ a^)")
+(assume "a^" "b^" "EqPab")
+(elim "EqPab")
+(assume "k^1" "k^2" "EqPk1k2" "p^1" "p^2" "EqPp1p2")
+(use "EqPRatRatConstr")
+(use "EqPIntSym")
+(use "EqPk1k2")
+(use "EqPPosSym")
+(use "EqPp1p2")
+;; Proof finished.
+(save "EqPRatSym")
+;; (cdp)
+
 (add-token
  "#"
  'pair-op
@@ -501,6 +586,28 @@
 ;; ;; Proof finished.
 ;; (save "RatPlusTotalReal")
 
+;; RatPlusEqP
+(set-goal "allnc a^1,b^1(EqPRat a^1 b^1 -> allnc a^2,b^2(EqPRat a^2 b^2 ->
+ EqPRat(a^1+a^2)(b^1+b^2)))")
+(assume "a^1" "b^1" "EqPa1b1" "a^2" "b^2" "EqPa2b2")
+(simp "<-" (pf "a^1 eqd b^1"))
+(simp "<-" (pf "a^2 eqd b^2"))
+(use "EqPRatRefl")
+(use "RatPlusTotal")
+(use "EqPRatToTotalLeft" (pt "b^1"))
+(use "EqPa1b1")
+(use "EqPRatToTotalLeft" (pt "b^2"))
+(use "EqPa2b2")
+;; 6
+(use "EqPRatToEqD")
+(use "EqPa2b2")
+;; 4
+(use "EqPRatToEqD")
+(use "EqPa1b1")
+;; Proof finished.
+(save "RatPlusEqP")
+;; (cdp)
+
 (set-goal "all a a+0=a")
 (cases)
 (assume "int" "pos")
@@ -592,6 +699,34 @@
 (use "RatTotalVar")
 ;; Proof finished.
 (save-totality)
+
+;; RatUMinusEqP
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> EqPRat(~a^)(~b^))")
+(assume "a^" "b^" "EqPab")
+(elim "EqPab")
+(assume "k^1" "k^2" "EqPIntk1k2" "p^1" "p^2" "EqPp1p2")
+(elim "EqPIntk1k2")
+;; 5-7
+(assume "p^3" "p^4" "EqPp3p4")
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntNeg")
+(use "EqPp3p4")
+(use "EqPp1p2")
+;; 6
+(use "EqPRatRatConstr")
+(use "EqPIntIntZero")
+(use "EqPp1p2")
+;; 7
+(assume "p^3" "p^4" "EqPp3p4")
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntPos")
+(use "EqPp3p4")
+(use "EqPp1p2")
+;; Proof finished.
+(save "RatUMinusEqP")
+;; (cdp)
 
 (set-goal "all k,p ~(k#p)=(~k#p)")
 (cases)
@@ -723,6 +858,27 @@
 ;; ;; Proof finished.
 ;; (save "RatTimesTotalReal")
 
+;; RatTimesEqP
+(set-goal "allnc a^1,b^1(EqPRat a^1 b^1 -> allnc a^2,b^2(EqPRat a^2 b^2 ->
+ EqPRat(a^1*a^2)(b^1*b^2)))")
+(assume "a^1" "b^1" "EqPa1b1" "a^2" "b^2" "EqPa2b2")
+(simp "<-" (pf "a^1 eqd b^1"))
+(simp "<-" (pf "a^2 eqd b^2"))
+(use "EqPRatRefl")
+(use "RatTimesTotal")
+(use "EqPRatToTotalLeft" (pt "b^1"))
+(use "EqPa1b1")
+(use "EqPRatToTotalLeft" (pt "b^2"))
+(use "EqPa2b2")
+;; 6
+(use "EqPRatToEqD")
+(use "EqPa2b2")
+;; 4
+(use "EqPRatToEqD")
+(use "EqPa1b1")
+;; Proof finished.
+(save "RatTimesEqP")
+
 (set-goal "all a a*1=a")
 (cases)
 (assume "k" "p")
@@ -817,6 +973,36 @@
 ;; Proof finished.
 (save-totality)
 
+;; RatUDivEqP
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> EqPRat(RatUDiv a^)(RatUDiv b^))")
+(assume "a^" "b^" "EqPab")
+(elim "EqPab")
+(assume "k^1" "k^2" "EqPIntk1k2" "p^1" "p^2" "EqPp1p2")
+(elim "EqPIntk1k2")
+;; 5-7
+(assume "p^3" "p^4" "EqPp3p4")
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntPos")
+(use "EqPp1p2")
+(use "EqPp3p4")
+;; 6
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntZero")
+(use "EqPPosRefl")
+(use "PosTotalVar")
+;; 7
+(assume "p^3" "p^4" "EqPp3p4")
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntNeg")
+(use "EqPp1p2")
+(use "EqPp3p4")
+;; Proof finished.
+(save "RatUDivEqP")
+;; (cdp)
+
 ;; Rules for RatDiv.  They give correct results for a/b (only) if b not 0.
 
 (add-computation-rules
@@ -859,6 +1045,35 @@
 (use "RatTotalVar")
 ;; Proof finished.
 (save-totality)
+
+;; RatAbsEqP
+(set-goal "allnc a^,b^(EqPRat a^ b^ -> EqPRat(abs a^)(abs b^))")
+(assume "a^" "b^" "EqPab")
+(elim "EqPab")
+(assume "k^1" "k^2" "EqPIntk1k2" "p^1" "p^2" "EqPp1p2")
+(elim "EqPIntk1k2")
+;; 5-7
+(assume "p^3" "p^4" "EqPp3p4")
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntPos")
+(use "EqPp3p4")
+(use "EqPp1p2")
+;; 6
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntZero")
+(use "EqPp1p2")
+;; 7
+(assume "p^3" "p^4" "EqPp3p4")
+(ng #t)
+(use "EqPRatRatConstr")
+(use "EqPIntIntPos")
+(use "EqPp3p4")
+(use "EqPp1p2")
+;; Proof finished.
+(save "RatAbsEqP")
+;; (cdp)
 
 (set-goal "all a abs(~a)=abs a")
 (cases)
@@ -1141,6 +1356,28 @@
 (use "BooleTotalVar")
 ;; Proof finished.
 (save-totality)
+
+;; RatLeEqP
+(set-goal "allnc a^1,b^1(EqPRat a^1 b^1 -> allnc a^2,b^2(EqPRat a^2 b^2 ->
+ EqPBoole(a^1<=a^2)(b^1<=b^2)))")
+(assume "a^1" "b^1" "EqPa1b1" "a^2" "b^2" "EqPa2b2")
+(simp "<-" (pf "a^1 eqd b^1"))
+(simp "<-" (pf "a^2 eqd b^2"))
+(use "EqPBooleRefl")
+(use "RatLeTotal")
+(use "EqPRatToTotalLeft" (pt "b^1"))
+(use "EqPa1b1")
+(use "EqPRatToTotalLeft" (pt "b^2"))
+(use "EqPa2b2")
+;; 6
+(use "EqPRatToEqD")
+(use "EqPa2b2")
+;; 4
+(use "EqPRatToEqD")
+(use "EqPa1b1")
+;; Proof finished.
+(save "RatLeEqP")
+;; (cdp)
 
 ;; Rules for RatLt
 
