@@ -1,4 +1,4 @@
-;; $Id: var.scm 2659 2014-01-08 09:50:19Z schwicht $
+;; 2018-06-11.  var.scm
 ;; 3. Variables
 ;; ============
 
@@ -286,4 +286,15 @@
    (+ 1 MAXVARINDEX)
    t-deg-zero
    (var-to-name var)))
+
+;; var-and-t-deg-to-new-var creates a new variable with the given
+;; t-deg and the same name and type as the given one.
+
+(define (var-and-t-deg-to-new-var var t-deg)
+  (make-var
+   (var-to-type var)
+   (+ 1 MAXVARINDEX)
+   t-deg
+   (var-to-name var)))
+
 
