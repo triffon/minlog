@@ -50,12 +50,12 @@
     "OrU" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
    ;; idpcs in lib/nat.scm
    (idpredconst-name-and-types-and-cterms-to-idpredconst "TotalNat" '() '())
-   (idpredconst-name-and-types-and-cterms-to-idpredconst "TotalNatMR" '() '())
+   ;; (idpredconst-name-and-types-and-cterms-to-idpredconst "TotalNatMR" '() '())
    ;; idpcs in lib/list.scm
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "TotalList" (list (py "alpha")) '())
-   (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "TotalListMR" (list (py "alpha")) '())
+   ;; (idpredconst-name-and-types-and-cterms-to-idpredconst
+   ;;  "TotalListMR" (list (py "alpha")) '())
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "RTotalList"
     (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q1 x^"))))
@@ -335,46 +335,54 @@
 ;; Note that the two arguments must always be equal; in fact, one can
 ;; easily prove all n^1,n^(TotalNatMR n^1 n^ -> n^1 eqd n^):
 
-;; TotalNatMRToEq
-(set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> nat^1 eqd nat^)")
-(assume "nat^1" "nat^" "TMRn1n")
-(elim "TMRn1n")
-(use "InitEqD")
-(assume "nat^2" "nat^3" "Useless" "n2=n3")
-(simp "n2=n3")
-(use "InitEqD")
-;; Proof finished.
-;; (cdp)
+;; ;; TotalNatMRToEq
+;; (set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> nat^1 eqd nat^)")
+;; (assume "nat^1" "nat^" "TMRn1n")
+;; (elim "TMRn1n")
+;; (use "InitEqD")
+;; (assume "nat^2" "nat^3" "Useless" "n2=n3")
+;; (simp "n2=n3")
+;; (use "InitEqD")
+;; ;; Proof finished.
+;; ;; (cdp)
 
 ;; Therefore add-mr-ids is an overkill for totality predicates.  It
 ;; suffices to use the n.c. predicate TotalNatNc
 
-(add-ids (list (list "TotalNatNc" (make-arity (py "nat"))))
-	 '("TotalNatNc Zero" "TotalNatZeroNc")
-	 '("all nat^(TotalNatNc nat^ -> TotalNatNc(Succ nat^))"
-	   "TotalNatSuccNc"))
+;; (add-ids (list (list "TotalNatNc" (make-arity (py "nat"))))
+;; 	 '("TotalNatNc Zero" "TotalNatZeroNc")
+;; 	 '("all nat^(TotalNatNc nat^ -> TotalNatNc(Succ nat^))"
+;; 	   "TotalNatSuccNc"))
 
 ;; Then we can prove
 
-(set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> TotalNatNc nat^)")
-(assume "nat^1" "nat^" "TMRn1n")
-(elim "TMRn1n")
-(use "TotalNatZeroNc")
-(assume "nat^2" "nat^3" "Useless")
-(use "TotalNatSuccNc")
-;; Proof finished.
-;; (cdp)
+;; (set-goal "all nat^1,nat^(TotalNatMR nat^1 nat^ -> TotalNatNc nat^)")
+;; (assume "nat^1" "nat^" "TMRn1n")
+;; (elim "TMRn1n")
+;; (use "TotalNatZeroNc")
+;; (assume "nat^2" "nat^3" "Useless")
+;; (use "TotalNatSuccNc")
+;; ;; Proof finished.
+;; ;; (cdp)
 
-;; and the converse
+;; ;; and the converse
 
-(set-goal "all nat^(TotalNatNc nat^ -> TotalNatMR nat^ nat^)")
-(assume "nat^" "TNcn")
-(elim "TNcn")
-(use "TotalNatZeroMR")
-(assume "nat^1" "Useless")
-(use "TotalNatSuccMR")
-;; Proof finished.
-;; (cdp)
+;; (set-goal "all nat^(TotalNatNc nat^ -> TotalNatMR nat^ nat^)")
+;; (assume "nat^" "TNcn")
+;; (elim "TNcn")
+;; (use "TotalNatZeroMR")
+;; (assume "nat^1" "Useless")
+;; (use "TotalNatSuccMR")
+;; ;; Proof finished.
+;; ;; (cdp)
+
+;; Therefore (add-mr-ids idpc-name) rejects idpc-names starting with
+;; Total and suggests TotalAlgNc instead of TotalAlgMR
+
+;; 2018-06-16:  Redone.  In add-mr-ids error message removed for the
+;; case idpc-name starts with Total.  Reason: this makes the theory
+;; cleaner (less exceptions).  One can show TotalNatMR n^ m^ -> n^ eqd m^
+;; and also TotalNatNc n^ iff TotalNatMR n^ n^, and use this later .
 
 ;; Tests for add-totality
 
@@ -437,10 +445,12 @@
 (define aconst (theorem-name-to-aconst "CoTrClClause"))
 (define proof (make-proof-in-aconst-form aconst))
 (pp (proof-to-extracted-term proof))
-;; (Destr lnat alpha510)
+;; (cCoTrClClause alpha807)
+(pp (nt (proof-to-extracted-term proof)))
+;; (Destr lnat alpha807)
 
 (pp (formula-to-et-type (pf "R x^ y^")))
-;; alpha510
+;; alpha807
 
 (define proof (theorem-name-to-proof "CoEvenClause"))
 (define nproof (np proof))
@@ -459,6 +469,27 @@
 ;;  exr bin^0(
 ;;   CoTotalBin bin^0 &
 ;;   exr bin^1(CoTotalBin bin^1 andl bin^ eqd BinBranch bin^0 bin^1)))
+
+;; Tests for add-mr-ids followed by add-co to obtain CoEvenMR
+
+(add-mr-ids "Even")
+;; ok, inductively defined predicate constant EvenMR added
+
+(display-idpc "EvenMR")
+;; EvenMR	non-computational
+;; 	InitEvenMR:	EvenMR 0 0
+;; 	GenEvenMR:	all n^,n^0(EvenMR n^0 n^ -> EvenMR(Succ n^0)(n^ +2))
+
+(add-co "EvenMR")
+;; ok, coinductively defined predicate constant CoEvenMR added
+;; ok, CoEvenMRClause has been added as a new theorem.
+
+(pp "CoEvenMRClause")
+
+;; all n^,n^0(
+;;  CoEvenMR n^0 n^ -> 
+;;  n^ eqd 0 andnc n^0 eqd 0 ornc 
+;;  exnc n^1,n^2(CoEvenMR n^2 n^1 andnc n^ eqd n^1+2 andnc n^0 eqd Succ n^2))
 
 ;; Tests for imp-formulas-to-uninst-gfp-formulas-etc
 
