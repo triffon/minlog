@@ -118,14 +118,14 @@
 
 (add-var-name "a" "b" (py "bin"))
 (add-totality "bin")
-(add-mr-ids "TotalBin")
+;; (add-mr-ids "TotalBin")
 
 (display-idpc "TotalBin")
  ;; 	TotalBinBinNil:	TotalBin BinNil
  ;; 	TotalBinBinBranch:	allnc a^(
  ;; TotalBin a^ -> allnc a^0(TotalBin a^0 -> TotalBin(BinBranch a^ a^0)))
 
-(display-idpc "TotalBinMR")
+;; (display-idpc "TotalBinMR")
  ;; 	TotalBinBinNilMR:	TotalBinMR BinNil BinNil
  ;; 	TotalBinBinBranchMR:	allnc a^,a^0(
  ;; TotalBinMR a^0 a^ -> 
@@ -134,7 +134,8 @@
 
 (add-pvar-name "P" (make-arity (py "bin")))
 
-(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P a^")))
+;; (define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P a^")))
+;; imp-formulas-to-mr-elim-proof must be adapted to totality premises
 ;; (cdp proof)
 
 (remove-pvar-name "P")
@@ -144,7 +145,7 @@
 
 (add-pvar-name "P" (make-arity (py "nat") (py "bin")))
 
-(define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P l^ a^")))
+;; (define proof (imp-formulas-to-mr-elim-proof (pf "TotalBin a^ -> P l^ a^")))
 ;; (cdp proof)
 
 (remove-pvar-name "P")
@@ -211,7 +212,7 @@
 ;; 	  '("tlist=>tree" "Branch"))
 
 (add-totality "tlist")
-(add-mr-ids "TotalTree")
+;; (add-mr-ids "TotalTree")
 
 (add-pvar-name "S" (make-arity (py "tlist")))
 (add-pvar-name "P" (make-arity (py "tree")))
@@ -219,8 +220,8 @@
 (add-var-name "ts" (py "tlist"))
 (add-var-name "t" (py "tree"))
 
-(define proof (imp-formulas-to-mr-elim-proof
-	       (pf "TotalTree t^ -> P t^") (pf "TotalTlist ts^ -> S ts^")))
+;; (define proof (imp-formulas-to-mr-elim-proof
+;; 	       (pf "TotalTree t^ -> P t^") (pf "TotalTlist ts^ -> S ts^")))
 ;; (cdp proof)
 
 (remove-pvar-name "S" "P")
@@ -320,11 +321,11 @@
 ;;   ((alpha=>gamma=>beta)^0 left(alpha@@gamma)^ right(alpha@@gamma)^)))
 
 ;; Test of exr-formula-and-concl-to-exr-elim-mr-proof
-(define proof (exr-formula-and-concl-to-exr-elim-mr-proof
-	       (pf "exr p^ Y p^") (pf "Pvar")))
+;; (define proof (exr-formula-and-concl-to-exr-elim-mr-proof
+;; 	       (pf "exr p^ Y p^") (pf "Pvar")))
 ;; (cdp proof)
 
-(pp (rename-variables (proof-to-formula proof)))
+;; (pp (rename-variables (proof-to-formula proof)))
 
 ;; all alpha1063^(
 ;;  (ExRMR alpha1063
@@ -362,7 +363,7 @@
 
 (add-alg "pos" '("One" "pos") '("SZero" "pos=>pos") '("SOne" "pos=>pos"))
 (add-totality "pos")
-(add-mr-ids "TotalPos")
+;; (add-mr-ids "TotalPos")
 
 ;; PosTotalVar
 (set-goal "all pos TotalPos pos")
@@ -382,7 +383,7 @@
 
 (add-pvar-name "P" (make-arity (py "pos")))
 
-(define proof (imp-formulas-to-mr-elim-proof (pf "TotalPos q^ -> P q^")))
+;; (define proof (imp-formulas-to-mr-elim-proof (pf "TotalPos q^ -> P q^")))
 ;; (cdp proof)
 
 (add-program-constant "PosS" (py "pos=>pos") t-deg-zero)
@@ -414,11 +415,11 @@
 ;; Proof finished.
 (save-totality)
 
-(define sproof (proof-to-soundness-proof "PosSTotal"))
+;; (define sproof (proof-to-soundness-proof "PosSTotal"))
 ;; (cdp sproof)
 
-(define proof
-  (imp-formulas-to-mr-elim-proof (pf "TotalPos q^ -> TotalPos(PosS q^)")))
+;; (define proof
+;;   (imp-formulas-to-mr-elim-proof (pf "TotalPos q^ -> TotalPos(PosS q^)")))
 ;; (cdp proof)
 
 (remove-var-name "q")
@@ -961,67 +962,439 @@
 (use "u")
 (extraction-test-etd (current-proof))
 
+;; Tests for functions related to soundness proofs involving inductive
+;; and coinductive predicates.
+
+(add-co "Even")
+(add-mr-ids "Even")
+(add-co "EvenMR")
+
+(pp "CoEvenMRClause")
+
+;; all n^,n^0(
+;;  CoEvenMR n^0 n^ -> 
+;;  n^ eqd 0 andnc n^0 eqd 0 ornc 
+;;  exnc n^1,n^2(CoEvenMR n^2 n^1 andnc n^ eqd n^1+2 andnc n^0 eqd Succ n^2))
+
+;; OrDMRToDisj OrRMRToDisj AndLMRToConj added.  CoRecNat1 CoRecNat21
+;; CoRecNat22 added.  GfpCoTotalNatMR added: (CoRec nat nat) realizes
+;; the Gfp axiom for CoTotalNat.
+
+;; OrDMRToDisj (~ Half of Lemma on realizers for lor, case A,B cr)
+(set-goal "allnc (beta1 ysum beta2)^(
+ (OrDMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0)
+        (cterm (beta2^0) (Pvar beta2)^2 beta2^0))(beta1 ysum beta2)^ ->
+ exnc beta1^((Pvar beta1)^1 beta1^ andnc
+             (beta1 ysum beta2)^ eqd(InL beta1 beta2)beta1^)
+ ornc
+ exnc beta2^((Pvar beta2)^2 beta2^ andnc
+             (beta1 ysum beta2)^ eqd(InR beta2 beta1)beta2^))")
+(assume "(beta1 ysum beta2)^" "OrDMRHyp")
+(elim "OrDMRHyp")
+;; 3,4
+(assume "beta1^" "Pbeta1")
+(intro 0)
+(intro 0 (pt "beta1^"))
+(split)
+(use "Pbeta1")
+(use "InitEqD")
+;; 4
+(assume "beta2^" "Pbeta2")
+(intro 1)
+(intro 0 (pt "beta2^"))
+(split)
+(use "Pbeta2")
+(use "InitEqD")
+;; Proof finished.
+(save "OrDMRToDisj")
+;; (cdp)
+
+;; OrRMRToDisj (~ Half of Lemma on realizers for lor, case A nc and B cr)
+(set-goal "allnc (uysum beta2)^(
+ (OrRMR (cterm () Pvar^1) (cterm (beta2^0) (Pvar beta2)^2 beta2^0))
+  (uysum beta2)^ ->
+ (Pvar^1 andnc (uysum beta2)^ eqd(DummyL beta2)) ornc
+ exnc beta2^((Pvar beta2)^2 beta2^ andnc (uysum beta2)^ eqd Inr beta2^))")
+(assume "(uysum beta2)^" "OrRMRHyp")
+(elim "OrRMRHyp")
+(assume "P1")
+(intro 0)
+(split)
+(use "P1")
+(use "InitEqD")
+;; 4
+(assume "beta2^" "Pbeta2")
+(intro 1)
+(intro 0 (pt "beta2^"))
+(split)
+(use "Pbeta2")
+(use "InitEqD")
+;; Proof finished.
+(save "OrRMRToDisj")
+;; (cdp)
+
+;; AndLMRToConj (~ Half of Lemma on realizers for land, case A cr and B nc)
+(set-goal "allnc beta1^(
+ (AndLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar^2))beta1^ ->
+ (Pvar beta1)^1 beta1^ andnc Pvar^2)")
+(assume "beta1^" "AndLMRHyp")
+(elim "AndLMRHyp")
+(assume "beta1^1" "P1Hyp" "P2Hyp")
+(split)
+(use "P1Hyp")
+(use "P2Hyp")
+;; Proof finished.
+(save "AndLMRToConj")
+;; (cdp)
+
+(add-var-name "f" (py "nat=>uysum(nat ysum nat)"))
+(add-var-name "w" (py "nat ysum nat"))
+
+;; CoRecNat1
+(set-goal "all f^,n^(f^ n^ eqd(DummyL nat ysum nat) ->
+ (CoRec nat=>nat)n^ f^ eqd 0)")
+(assume "f^" "n^" "EqHyp")
+(simp-with (make-proof-in-aconst-form
+	    (alg-or-arrow-types-to-corec-aconst (py "nat=>nat"))))
+(ng)
+(simp-with "EqHyp")
+(ng)
+(use "InitEqD")
+;; Proof finished.
+(save "CoRecNat1")
+;; (cdp)
+
+;; CoRecNat21
+(set-goal "all f^,n^,n^1(f^ n^ eqd((Inr((InL nat nat) n^1))) ->
+ (CoRec nat=>nat)n^ f^ eqd Succ n^1)")
+(assume "f^" "n^" "n^1" "EqHyp")
+(simp-with (make-proof-in-aconst-form
+	    (alg-or-arrow-types-to-corec-aconst (py "nat=>nat"))))
+(ng)
+(simp-with "EqHyp")
+(ng)
+(use "InitEqD")
+;; Proof finished.
+(save "CoRecNat21")
+;; (cdp)
+
+;; CoRecNat22
+(set-goal "all f^,n^,n^1(f^ n^ eqd((Inr((InR nat nat) n^1))) ->
+ (CoRec nat=>nat)n^ f^ eqd Succ((CoRec nat=>nat)n^1 f^))")
+(assume "f^" "n^" "n^1" "EqHyp1")
+(assert "all n^2(Succ((CoRec nat=>nat)n^1 f^) eqd n^2 ->
+ (CoRec nat=>nat)n^ f^ eqd n^2)")
+ (assume "n^2" "EqHyp2")
+ (simp-with (make-proof-in-aconst-form
+ 	    (alg-or-arrow-types-to-corec-aconst (py "nat=>nat"))))
+ (ng)
+ (simp "EqHyp1")
+ (ng)
+ (use "EqHyp2")
+(assume "Assertion")
+(use "Assertion")
+(use "InitEqD")
+;; Proof finished.
+(save "CoRecNat22")
+;; (cdp)
+
+(add-pvar-name "X" (make-arity (py "nat")))
+(set! PVAR-TO-TVAR-ALIST
+      (cons (list (predicate-form-to-predicate (pf "X nat")) (py "nat"))
+	     PVAR-TO-TVAR-ALIST))
+(add-pvar-name "XMR" (make-arity (py "nat") (py "nat")))
+(set! PVAR-TO-MR-PVAR-ALIST
+      (cons (list (predicate-form-to-predicate (pf "X nat"))
+		  (predicate-form-to-predicate (pf "XMR^ nat nat")))
+	    PVAR-TO-MR-PVAR-ALIST))
+
+;; Caution: naming conventions require that the suffix MR of a theorem
+;; name indicates a clause name.
+
+;; CoRecGfpCoTotalNatMR (or CoRecCoTotalNatMR)
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (pt "(CoRec nat=>nat)")
+	    (aconst-to-formula
+	     (imp-formulas-to-gfp-aconst (pf "X n^ -> CoTotalNat n^"))))))
+(assume "n^" "m^" "XMRmn" "f^" "Step")
+(use-with
+ (make-proof-in-aconst-form
+  (imp-formulas-to-gfp-aconst (pf "XMR^ m^ n^ -> CoTotalNatMR m^ n^")))
+ (make-cterm
+  (pv "m^1") (pv "n^1")
+  (pf "exnc m^2(XMR^ m^2 n^1 andnc m^1 eqd((CoRec nat=>nat)m^2 f^))"))
+ (pt "n^") (pt "((CoRec nat=>nat)m^ f^)")
+ (pt "f^") "?" "?")
+;; 3,4
+(drop "Step")
+(intro 0 (pt "m^"))
+(split)
+(use "XMRmn")
+(use "InitEqD")
+;; 4
+(drop "XMRmn")
+(assume "n^1" "m^1" "ExHyp")
+(by-assume "ExHyp" "m^2" "n1m1Prop")
+(elim "n1m1Prop")
+(drop "n1m1Prop")
+(assume "XMRm2n1" "m1Def")
+(inst-with-to "Step" (pt "n^1") (pt "m^2") "XMRm2n1" "OrRMRHyp")
+(drop "Step" "XMRm2n1")
+(inst-with-to
+ "OrRMRToDisj"
+ (py "nat ysum nat")
+ (make-cterm (pf "n^1 eqd 0"))
+ (make-cterm
+  (pv "w^")
+  (real-and-formula-to-mr-formula
+   (pt "w^")
+   (pf "exr n^((CoTotalNat n^ ord X n^) andl n^1 eqd(Succ n^))")))
+ (pt "f^ m^2")
+ "OrRMRHyp"
+ "OrRMRToDisjInst")
+(drop "OrRMRHyp")
+(elim "OrRMRToDisjInst")
+;; 23,24
+(drop "OrRMRToDisjInst")
+(assume "Conj1")
+(intro 0)
+(split)
+(use "Conj1")
+(simp "m1Def")
+(use "CoRecNat1")
+(use "Conj1")
+;; 24
+(drop "OrRMRToDisjInst")
+(assume "Conj1")
+(by-assume "Conj1" "w^" "wProp")
+(intro 1)
+(elim "wProp")
+(drop "wProp")
+(assume "ExRHyp" "fm2Prop")
+(inst-with-to
+ "ExRMRElim" (py "nat ysum nat") (py "nat")
+ (make-cterm
+  (pv "w^")
+  (pv "n^")
+  (real-and-formula-to-mr-formula
+   (pt "w^")
+   (pf "(CoTotalNat n^ ord X n^) andl n^1 eqd(Succ n^)")))
+ (pt "w^") (pt "n^") "ExRHyp"
+ "Inst")
+(drop "ExRHyp")
+(by-assume "Inst" "n^2" "n2Prop")
+(inst-with-to
+ "AndLMRToConj"
+ (py "nat ysum nat")
+ (make-cterm (pv "w^") (pf "(OrDMR (cterm (n^) CoTotalNatMR n^ n^2)
+                            (cterm (n^) XMR^ n^ n^2))w^"))
+ (make-cterm (pf "n^1 eqd Succ n^2"))
+ (pt "w^")
+ "n2Prop"
+ "AndLMRToConjInst")
+(drop "n2Prop")
+(elim "AndLMRToConjInst")
+(drop "AndLMRToConjInst")
+(assume "OrDMRHyp" "n1=Sn2")
+(inst-with-to
+ "OrDMRToDisj"
+ (py "nat")
+ (py "nat")
+ (make-cterm
+  (pv "n^")
+  (real-and-formula-to-mr-formula
+   (pt "n^")
+   (pf "CoTotalNat n^2")))
+ (make-cterm
+  (pv "n^")
+  (real-and-formula-to-mr-formula
+   (pt "n^")
+   (pf "X n^2")))
+ (pt "w^")
+ "OrDMRHyp"
+ "OrDMRToDisjInst")
+(drop "OrDMRHyp")
+(elim "OrDMRToDisjInst")
+;; 56,57
+(drop "OrDMRToDisjInst")
+(assume "ExHyp1")
+(intro 0 (pt "n^2"))
+(by-assume "ExHyp1" "m^3" "m3Prop")
+(intro 0 (pt "m^3"))
+(split)
+(intro 0)
+(use "m3Prop")
+(split)
+(use "n1=Sn2")
+(simp "m1Def")
+(use "CoRecNat21")
+(simp "fm2Prop")
+(simp "m3Prop")
+(ng #t)
+(use "InitEqD")
+;; 57
+(drop "OrDMRToDisjInst")
+(assume "ExHyp2")
+(intro 0 (pt "n^2"))
+(by-assume "ExHyp2" "m^3" "m3Prop")
+(intro 0 (pt "(CoRec nat=>nat)m^3 f^"))
+(split)
+(intro 1)
+(intro 0 (pt "m^3"))
+(split)
+(use "m3Prop")
+(use "InitEqD")
+(split)
+(use "n1=Sn2")
+(simp "m1Def")
+(use "CoRecNat22")
+(simp "fm2Prop")
+(simp "m3Prop")
+(ng #t)
+(use "InitEqD")
+;; Proof finished.
+(save "CoRecGfpCoTotalNatMR")
+;; (cdp)
+
+;; We show that (Destr nat) realizes the closure aconst for the
+;; idpredconst CoTotalNat
+
+;; CoTotalNatClauseSound
+(set-goal (rename-variables
+	   (real-and-formula-to-mr-formula
+	    (pt "(Destr nat)")
+	    (proof-to-formula
+	     (theorem-name-to-proof "CoTotalNatClause")))))
+(assume "n^" "m^" "CoTMRmn")
+(assert "CoEqPNatNc m^ n^")
+ (use "CoTotalNatMRToCoEqPNatNc")
+ (use "CoTMRmn")
+(assume "m~n")
+(assert "m^ eqd n^")
+(use (make-proof-in-aconst-form (finalg-to-bisim-aconst (py "nat"))))
+ (use "m~n")
+(assume "m=n")
+(simp "m=n")
+(assert "CoTotalNatNc n^")
+ (simp "<-" "m=n")
+ (use "CoEqPNatNcToCoTotalNatNc" (pt "n^"))
+ (use "m~n")
+(assume "CoTn")
+(inst-with-to "CoTotalNatNcClause" (pt "n^") "CoTn"
+	      "CoTotalNatNcClauseInst")
+(elim "CoTotalNatNcClauseInst")
+;; 19.20
+(drop "CoTotalNatNcClauseInst")
+(assume "n=0")
+(simp "n=0")
+(ng #t)
+(use "InlOrRMR")
+(use "InitEqD")
+;; 20
+(drop "CoTotalNatNcClauseInst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^1" "n1Prop")
+(simp "n1Prop")
+(ng #t)
+(use "InrOrRMR")
+(simp "<-" "n1Prop")
+;; (pp "InitExRMR")
+(inst-with-to
+ "InitExRMR" (py "nat") (py "nat")
+ (make-cterm
+  (pv "m^5") (pv "n^5")
+  (pf "(AndLMR (cterm (n^3) CoTotalNatMR n^3 n^5) (cterm () n^ eqd Succ n^5))
+       m^5"))
+ "InitExRMRInst")
+(use "InitExRMRInst" (pt "n^1"))
+(drop "InitExRMRInst")
+;; (use "InitAndLMR")
+(inst-with-to
+ "InitAndLMR"
+ (py "nat")
+ (make-cterm (pv "n^0") (pf "CoTotalNatMR n^0 n^1"))
+ (make-cterm (pf "n^ eqd Succ n^1"))
+ (pt "n^1")
+ "InitAndLMRInst")
+(use "InitAndLMRInst")
+(drop "InitAndLMRInst")
+(use "CoEqPNatNcToCoTotalNatMR")
+(use "CoTotalNatNcToCoEqPNatNc")
+(use "n1Prop")
+(use "n1Prop")
+;; Proof finished.
+(save "CoTotalNatClauseSound")
+;; (cdp)
+
+;; The rest is obsolete.
 ;; proof-to-soundness-proof
 
-(add-co "TotalBoole")
+;; (add-co "TotalBoole")
 ;; (add-mr-ids "TotalBoole") ;already in lib/nat.scm
-(add-co "TotalBooleMR")
-(add-co "TotalNat")
-(add-co "TotalNatMR")
+;; (add-co "TotalBooleMR")
+;; (add-co "TotalNat")
+;; (add-co "TotalNatMR")
 ;; (add-totality "bin") ;already above
 ;; (add-mr-ids "TotalBin") ;already above
-(add-co "TotalBin")
-(add-co "TotalBinMR")
-(add-totality "ordl")
-(add-mr-ids "TotalOrdl")
-(add-co "TotalOrdl")
-(add-co "TotalOrdlMR")
-(add-totality "intv")
-(add-mr-ids "TotalIntv")
-(add-co "TotalIntv")
-(add-co "TotalIntvMR")
-(add-co "TotalList")
-(add-co "TotalListMR")
-;; (add-mr-ids "RTotalList") ;already above
-(add-co "RTotalList")
-(add-co "RTotalListMR")
-(add-totality "ntree")
-(add-co "TotalNtree")
-;; (add-mr-ids "TotalNtree")
-;; types-to-embedding
-;; increasing types expected
-;; alpha1492
-;; ntree
+;; (add-co "TotalBin")
+;; ;; (add-co "TotalBinMR")
+;; (add-totality "ordl")
+;; ;; (add-mr-ids "TotalOrdl")
+;; (add-co "TotalOrdl")
+;; (add-co "TotalOrdlMR")
+;; (add-totality "intv")
+;; (add-mr-ids "TotalIntv")
+;; (add-co "TotalIntv")
+;; (add-co "TotalIntvMR")
+;; (add-co "TotalList")
+;; (add-co "TotalListMR")
+;; ;; (add-mr-ids "RTotalList") ;already above
+;; (add-co "RTotalList")
+;; (add-co "RTotalListMR")
+;; (add-totality "ntree")
+;; (add-co "TotalNtree")
+;; ;; (add-mr-ids "TotalNtree")
+;; ;; types-to-embedding
+;; ;; increasing types expected
+;; ;; alpha1492
+;; ;; ntree
 
-;; (add-co "TotalNtreeMR")
-(add-totality "ltlist")
-(add-mr-ids "TotalLtlist")
-(add-co "TotalLtlist")
-(add-co "TotalLtlistMR")
-(add-mr-ids "RTotalLtlist")
-(add-co "RTotalLtlist")
-(add-co "RTotalLtlistMR")
+;; ;; (add-co "TotalNtreeMR")
+;; (add-totality "ltlist")
+;; (add-mr-ids "TotalLtlist")
+;; (add-co "TotalLtlist")
+;; (add-co "TotalLtlistMR")
+;; (add-mr-ids "RTotalLtlist")
+;; (add-co "RTotalLtlist")
+;; (add-co "RTotalLtlistMR")
 
-(set! COMMENT-FLAG #f)
+;; (set! COMMENT-FLAG #f)
 ;; closure axioms
-(define coidpc (predicate-form-to-predicate (pf "CoTotalBoole boole^")))
-(define proof (coidpredconst-to-closure-mr-proof coidpc))
-(pp (rename-variables (proof-to-formula proof)))
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalBoole boole^")))
+;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; To be tested.
+
+;; (pp (rename-variables (proof-to-formula proof)))
 
 ;; all p^,p^0(
 ;;  CoTotalBooleMR p^0 p^ -> 
 ;;  (OrUMR (cterm () p^ eqd True) (cterm () p^ eqd False))(Des p^0))
 
-(proof-to-expr-with-formulas proof)
+;; (proof-to-expr-with-formulas proof)
 
-(define coidpc (predicate-form-to-predicate (pf "CoTotalNat nat^")))
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalNat nat^")))
 ;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
+;; idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names
+;; idpredconst name expected
+;; CoTotalNatMR
+
 ;; Exception in cdr: () is not a pair
 
 ;; check coidpredconst-to-closure-mr-proof-or-elim
 
 ;; Same error in all other examples
-(define coidpc (predicate-form-to-predicate (pf "CoTotalBin bin^")))
+;; (define coidpc (predicate-form-to-predicate (pf "CoTotalBin bin^")))
 ;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
 
 ;; (cdp proof)
@@ -1075,8 +1448,8 @@
 ;; (cdp proof)
 
 ;; gfp axioms
-(define imp-formulas
-  (list (pf "(Pvar boole)boole^ -> CoTotalBoole boole^")))
+;; (define imp-formulas
+;;   (list (pf "(Pvar boole)boole^ -> CoTotalBoole boole^")))
 ;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
 ;; make-term-in-app-form
 ;; unexpected terms.  Operator:
@@ -1108,4 +1481,5 @@
 ;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
 ;; (cdp proof)
 
-(set! COMMENT-FLAG #t)
+;; (set! COMMENT-FLAG #t)
+
