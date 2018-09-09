@@ -1,4 +1,4 @@
-;; 2017-04-21
+;; 2018-08-17.  proof.scm
 ;; 10. Proofs
 ;; ==========
 
@@ -6444,7 +6444,7 @@
     (else (myerror "rename-bound-avars-aux" "proof tag expected"
 		   (tag proof)))))
 
-(define (aconst-substitute aconst topsubst)
+(define (aconst-substitute aconst topsubst . opt-ignore-deco-flag)
   (let* ((uninst-formula0 (aconst-to-uninst-formula aconst))
 	 (tpsubst0 (aconst-to-tpsubst aconst))
 	 (tsubst0 (list-transform-positive tpsubst0
@@ -6473,7 +6473,6 @@
 	    (lambda (x) (and (not (equal? (car x) (cadr x)))
 			     (member (car x) tvars0)))))
 	 (pvars (formula-to-pvars (aconst-to-inst-formula aconst)))
-
 	 (composed-psubst (map (lambda (x)
 				 (let ((pvar (car x))
 				       (cterm (cadr x)))
@@ -6516,30 +6515,63 @@
 				  (cons pair res))))
 		      (cons pair res)))))
 	      ((null? ps) (reverse res))))
-	 (new-repro-data ;better: repro-data
-	  (if (string=? "Intro" (aconst-to-name aconst))
-	      (let* ((i (car repro-data0))
-		     (idpredconst (cadr repro-data0))
-		     (name (idpredconst-to-name idpredconst))
-		     (types (idpredconst-to-types idpredconst))
-		     (cterms (idpredconst-to-cterms idpredconst))
-		     (new-idpredconst
-		      (make-idpredconst
-		       name
-		       (map (lambda (x) (type-substitute x tsubst)) types)
-		       (map (lambda (x)
-			      (cterm-substitute x (append tsubst psubst)))
-			    cterms))))
-		(list i new-idpredconst))
-	      (map (lambda (x) (formula-substitute x topsubst))
-		   repro-data0))))
+	 (repro-data
+	  (cond
+	   ((string=? "Intro" (aconst-to-name aconst))
+	    (let* ((i (car repro-data0))
+		   (idpredconst (cadr repro-data0))
+		   (name (idpredconst-to-name idpredconst))
+		   (types (idpredconst-to-types idpredconst))
+		   (cterms (idpredconst-to-cterms idpredconst))
+		   (new-idpredconst
+		    (make-idpredconst
+		     name
+		     (map (lambda (x) (type-substitute x tsubst)) types)
+		     (map (lambda (x)
+			    (cterm-substitute x (append tsubst psubst)))
+			  cterms))))
+	      (list i new-idpredconst)))
+	   ((string=? "Closure" (aconst-to-name aconst))
+	    (let* ((idpc (car repro-data0))
+		   (name (idpredconst-to-name idpc))
+		   (types (idpredconst-to-types idpc))
+		   (cterms (idpredconst-to-cterms idpc))
+		   (subst-types
+		    (map (lambda (x) (type-substitute x tsubst)) types))
+		   (subst-cterms
+		    (map (lambda (x) (cterm-substitute x topsubst))
+			 cterms))
+		   (subst-idpredconst
+		    (make-idpredconst name subst-types subst-cterms)))
+	      (list subst-idpredconst)))
+	   (else (map (lambda (x) (formula-substitute x topsubst))
+		      repro-data0)))))
+    (if (and
+	 (or ;ignore-deco-flag is #f
+	  (null? opt-ignore-deco-flag)
+	  (and (pair? opt-ignore-deco-flag) (not (car opt-ignore-deco-flag))))
+	 (string=? "Elim" (aconst-to-name aconst))
+	 (let* ((fla (aconst-to-formula aconst))
+		(kernel (all-allnc-form-to-final-kernel fla))
+		(prems (imp-impnc-form-to-premises kernel))
+		(concl (imp-impnc-form-to-final-conclusion kernel)))
+	   (and
+	    (formula-of-nulltype? (car prems)) ;n.c. idpredconst
+	    (<= 3 (length prems)) ;with at least 2 clauses
+	    (not (formula-of-nulltype? concl)))))
+	(myerror
+	 "aconst-substitute"
+	 "In case ignore-deco-flag is #f, Elim for the n.c. idpredconst"
+	 (car prems)
+	 "with at least two clauses can be used for n.c. conclusions only"
+	 concl))
     (apply make-aconst
 	   (aconst-to-name aconst)
 	   (aconst-to-kind aconst)
 	   uninst-formula0
 	   (append reduced-composed-tsubst
 		   mr-extended-reduced-composed-psubst)
-	   new-repro-data)))
+	   repro-data)))
 
 ;; In proof-substitute substitution of a pvar in an aconst can generate
 ;; new parameters, which will be generalized.  Hence the result must be
@@ -6548,7 +6580,7 @@
 ;; Recall that the Elim and Gfp aconsts are special in that their
 ;; uninst-formula may have free variables.
 
-(define (proof-substitute proof topasubst)
+(define (proof-substitute proof topasubst . opt-ignore-deco-flag)
   (let* ((tsubst (list-transform-positive topasubst
 		   (lambda (x) (tvar-form? (car x)))))
 	 (tosubst (list-transform-positive topasubst
@@ -6574,49 +6606,91 @@
 	 (if
 	  (not (proof-in-aconst-form? op))
 	  (apply mk-proof-in-elim-form
-		 (proof-substitute op topasubst)
+		 (proof-substitute op topasubst opt-ignore-deco-flag)
 		 (map (lambda (arg) (term-substitute arg topasubst))
 		      args))
 	  (let* ((aconst (proof-in-aconst-form-to-aconst op))
 		 (inst-formula (aconst-to-inst-formula aconst))
-		 (free (formula-to-free inst-formula))
-		 (k (length (formula-to-free
-			     (aconst-to-uninst-formula aconst))))
-		 (kplusn (length free))
-		 (n (- kplusn k)))
-	    (if
-	     (<= kplusn (length args))
-	     (let* ((elim-args (list-head args k))
-		    (param-and-rest-args (list-tail args k))
-		    (param-args (list-head param-and-rest-args n))
-		    (rest-args (list-tail param-and-rest-args n))
-		    (param-free (list-tail free k))
-		    (param-subst (make-substitution-wrt
-				  var-term-equal? param-free param-args))
-		    (new-topsubst (compose-substitutions param-subst topsubst))
-		    (new-aconst (aconst-substitute aconst new-topsubst))
-		    (new-free (formula-to-free
-			       (aconst-to-inst-formula new-aconst))))
-	       (apply
-		mk-proof-in-elim-form
-		(make-proof-in-aconst-form new-aconst)
-		(append
-		 (map (lambda (arg) (term-substitute arg tosubst))
-		      elim-args)
-		 (map make-term-in-var-form (list-tail new-free k))
-		 (map (lambda (arg) (term-substitute arg tosubst))
-		      rest-args))))
-					;else eta expand and recursively call
-	     (let* ((rest-free (list-tail free (length args)))
-		    (eta-expanded-proof
-		     (apply
-		      mk-proof-in-nc-intro-form
-		      (append rest-free
-			      (list (apply mk-proof-in-elim-form
-					   proof
-					   (map make-term-in-var-form
-						rest-free)))))))
-	       (proof-substitute eta-expanded-proof topasubst)))))))
+		 (orig-tpsubst (aconst-to-tpsubst aconst))
+		 (orig-tsubst (list-transform-positive orig-tpsubst
+				   (lambda (x) (tvar-form? (car x)))))
+		 (orig-psubst (list-transform-positive orig-tpsubst
+				   (lambda (x) (pvar-form? (car x))))))
+	    (if ;uninst-fla closed, i.e., not an elim or gfp aconst
+	     (null? (formula-to-free (aconst-to-uninst-formula aconst)))
+	     (let* ((new-tsubst (compose-substitutions tsubst orig-tsubst))
+		    (free (formula-to-free inst-formula))
+		    (n (length free)))
+	       (if ;enough args
+		(<= n (length args))
+		(let* ((param-args (list-head args n))
+		       (rest-args (list-tail args n))
+		       (param-subst (make-substitution-wrt
+				     var-term-equal? free param-args))
+		       (new-topsubst (compose-substitutions param-subst
+							    topsubst))
+		       (new-aconst (aconst-substitute aconst new-topsubst))
+		       (new-free (formula-to-free
+				  (aconst-to-inst-formula new-aconst))))
+		  (apply
+		   mk-proof-in-elim-form
+		   (make-proof-in-aconst-form new-aconst)
+		   (append
+		    (map make-term-in-var-form new-free)
+		    (map (lambda (arg) (term-substitute arg tosubst))
+			 rest-args))))
+	     				;else eta expand and recursive call
+		(let* ((rest-free (list-tail free (length args)))
+		       (eta-expanded-proof
+			(apply
+			 mk-proof-in-nc-intro-form
+			 (append rest-free
+				 (list (apply mk-proof-in-elim-form
+					      proof
+					      (map make-term-in-var-form
+						   rest-free)))))))
+		  (proof-substitute
+		   eta-expanded-proof topasubst opt-ignore-deco-flag))))
+					;else elim or gfp aconst
+	     (let* ((new-tsubst (compose-substitutions tsubst orig-tsubst))
+		    (free (formula-to-free inst-formula))
+		    (k (length (formula-to-free
+				(aconst-to-uninst-formula aconst)))) ;# fp-vars
+		    (fp-vars (list-head free k))
+		    (param-vars (list-tail free k))
+		    (n (length param-vars)))
+	       (if ;enough args
+		(<= (+ k n) (length args))
+		(let* ((fp-args (list-head args k))
+		       (param-and-rest-args (list-tail args k))
+		       (param-args (list-head param-and-rest-args n))
+		       (rest-args (list-tail param-and-rest-args n))
+		       (param-subst (make-substitution-wrt
+				     var-term-equal? param-vars param-args))
+		       (new-psubst
+			(compose-substitutions
+			 topsubst
+			 (compose-substitutions param-subst orig-psubst)))
+		       (new-tpsubst (append new-tsubst new-psubst))
+		       (new-aconst (aconst-substitute
+				    aconst new-tpsubst opt-ignore-deco-flag)))
+		  (apply
+		   mk-proof-in-elim-form
+		   (make-proof-in-aconst-form new-aconst)
+		   (map (lambda (arg) (term-substitute arg tosubst))
+			(append fp-args rest-args))))
+	     				;else eta expand and recursive call
+		(let* ((rest-free (list-tail free (length args)))
+		       (eta-expanded-proof
+			(apply
+			 mk-proof-in-nc-intro-form
+			 (append rest-free
+				 (list (apply mk-proof-in-elim-form
+					      proof
+					      (map make-term-in-var-form
+						   rest-free)))))))
+		  (proof-substitute
+		   eta-expanded-proof topasubst opt-ignore-deco-flag)))))))))
       ((proof-in-imp-intro-form)
        (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	      (kernel (proof-in-imp-intro-form-to-kernel proof))
@@ -6645,13 +6719,14 @@
 						new-avar))
 				    active-asubst))))
 	 (make-proof-in-imp-intro-form
-	  new-avar (proof-substitute kernel (append topsubst new-asubst)))))
+	  new-avar (proof-substitute
+		    kernel (append topsubst new-asubst) opt-ignore-deco-flag))))
       ((proof-in-imp-elim-form)
        (let ((op (proof-in-imp-elim-form-to-op proof))
 	     (arg (proof-in-imp-elim-form-to-arg proof)))
 	 (make-proof-in-imp-elim-form
-	  (proof-substitute op topasubst)
-	  (proof-substitute arg topasubst))))
+	  (proof-substitute op topasubst opt-ignore-deco-flag)
+	  (proof-substitute arg topasubst opt-ignore-deco-flag))))
       ((proof-in-impnc-intro-form)
        (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
 	      (kernel (proof-in-impnc-intro-form-to-kernel proof))
@@ -6680,27 +6755,31 @@
 						new-avar))
 				    active-asubst))))
 	 (make-proof-in-impnc-intro-form
-	  new-avar (proof-substitute kernel (append topsubst new-asubst)))))
+	  new-avar (proof-substitute
+		    kernel (append topsubst new-asubst) opt-ignore-deco-flag))))
       ((proof-in-impnc-elim-form)
        (let ((op (proof-in-impnc-elim-form-to-op proof))
 	     (arg (proof-in-impnc-elim-form-to-arg proof)))
 	 (make-proof-in-impnc-elim-form
-	  (proof-substitute op topasubst)
-	  (proof-substitute arg topasubst))))
+	  (proof-substitute op topasubst opt-ignore-deco-flag)
+	  (proof-substitute arg topasubst opt-ignore-deco-flag))))
       ((proof-in-and-intro-form)
        (make-proof-in-and-intro-form
 	(proof-substitute
-	 (proof-in-and-intro-form-to-left proof) topasubst)
+	 (proof-in-and-intro-form-to-left proof) topasubst opt-ignore-deco-flag)
 	(proof-substitute
-	 (proof-in-and-intro-form-to-right proof) topasubst)))
+	 (proof-in-and-intro-form-to-right proof)
+	 topasubst opt-ignore-deco-flag)))
       ((proof-in-and-elim-left-form)
        (make-proof-in-and-elim-left-form
 	(proof-substitute
-	 (proof-in-and-elim-left-form-to-kernel proof) topasubst)))
+	 (proof-in-and-elim-left-form-to-kernel proof)
+	 topasubst opt-ignore-deco-flag)))
       ((proof-in-and-elim-right-form)
        (make-proof-in-and-elim-right-form
 	(proof-substitute
-	 (proof-in-and-elim-right-form-to-kernel proof) topasubst)))
+	 (proof-in-and-elim-right-form-to-kernel proof)
+	 topasubst opt-ignore-deco-flag)))
       ((proof-in-all-intro-form)
        (let* ((var (proof-in-all-intro-form-to-var proof))
 	      (kernel (proof-in-all-intro-form-to-kernel proof))
@@ -6742,7 +6821,8 @@
 	 (make-proof-in-all-intro-form
 	  new-var
 	  (proof-substitute
-	   kernel (append tsubst new-subst active-psubst active-asubst)))))
+	   kernel (append tsubst new-subst active-psubst active-asubst)
+	   opt-ignore-deco-flag))))
       ((proof-in-allnc-intro-form)
        (let* ((var (proof-in-allnc-intro-form-to-var proof))
 	      (kernel (proof-in-allnc-intro-form-to-kernel proof))
@@ -6784,7 +6864,8 @@
 	 (make-proof-in-allnc-intro-form
 	  new-var
 	  (proof-substitute
-	   kernel (append tsubst new-subst active-psubst active-asubst)))))
+	   kernel (append tsubst new-subst active-psubst active-asubst)
+	   opt-ignore-deco-flag))))
       (else (myerror "proof-substitute" "proof tag expected" (tag proof))))))
 
 (define (avar-proof-equal? avar proof)
@@ -11119,9 +11200,15 @@
      (let ((pred (predicate-form-to-predicate formula))
 	   (args (predicate-form-to-args formula)))
        (cond ((or (pvar-form? pred) (predconst-form? pred)) ;use global ass. Efq
-	      (mk-proof-in-elim-form
-	       (make-proof-in-aconst-form (formula-to-efq-aconst formula))
-	       (make-proof-in-avar-form u)))
+	      (let* ((aconst (formula-to-efq-aconst formula))
+		     (fla (aconst-to-formula aconst))
+		     (vars (all-allnc-form-to-vars fla)))
+		(apply
+		 mk-proof-in-elim-form
+		 (make-proof-in-aconst-form aconst)
+		 (append
+		  (map make-term-in-var-form vars)
+		  (list (make-proof-in-avar-form u))))))
 	     ((idpredconst-form? pred)
 	      (cond
 	       ((string=? "EqD" (idpredconst-to-name pred))
@@ -11760,9 +11847,9 @@
 		      (apply fold-total-variables
 			     (imp-form-to-conclusion kernel)
 			     (cons var vars))))
-	 (else (myerror "fold-total-variables"
-			"imp or impnc form with totality premise expected"
-			kernel))))
+	 (else (make-allnc var (apply fold-total-variables kernel vars)))))
+       ((and (all-form? expr) (formula-of-nulltype? kernel))
+	(make-all var (apply fold-total-variables kernel vars)))
        ((exr-form? expr)
 	(cond
 	 ((and (andd-form? kernel)
@@ -12027,7 +12114,10 @@
 (define (pconst-to-totality-proof pconst)
   (let* ((unfolded-tty-fla
 	  (term-to-totality-formula (make-term-in-const-form pconst)))
-	 (folded-tty-fla (fold-total-variables unfolded-tty-fla))
+	 (folded-tty-fla
+	  (if (or (andl-form? unfolded-tty-fla) (andnc-form? unfolded-tty-fla))
+	      (fold-total-variables (bicon-form-to-left unfolded-tty-fla))
+	      (fold-total-variables unfolded-tty-fla)))
 	 (concl (imp-form-to-final-conclusion
 		 (all-form-to-final-kernel folded-tty-fla)))
 	 (applied-pconst-term (car (predicate-form-to-args concl)))
