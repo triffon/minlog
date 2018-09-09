@@ -1,4 +1,4 @@
-;; $Id: pconst.scm 2686 2014-01-24 09:17:14Z schwicht $
+;; 2018-06-15.  pconst.scm
 ;; 4. Constants
 ;; ============
 
@@ -1022,112 +1022,6 @@
 	      (comment "ok, rewrite rule " (term-to-string lhs) " -> "
 		       (term-to-string embedded-rhs) " added")))))))
 
-;; Code discarded 2016-06-16
-;; (define (change-t-deg-to-one name)
-;;   (let ((info (assoc name PROGRAM-CONSTANTS)))
-;;     (if
-;;      (not info)
-;;      (myerror "change-t-deg-to-one" "name of program constant expected" name))
-;;     (let* ((pconst (pconst-name-to-pconst name))
-;; 	   (comprules (pconst-name-to-comprules name))
-;; 	   (rewrules (pconst-name-to-rewrules name))
-;; 	   (code (pconst-name-to-external-code name)) ;may be #f
-;; 	   (pconsts-except-name
-;; 	    (do ((l PROGRAM-CONSTANTS (cdr l))
-;; 		 (res '() (if (string=? (caar l) name)
-;; 			      res
-;; 			      (cons (car l) res))))
-;; 		((null? l) (reverse res))))
-;; 	   (arity (const-to-object-or-arity pconst))
-;; 	   (uninst-type (const-to-uninst-type pconst))
-;; 	   (token-type (const-to-token-type pconst))
-;; 	   (new-pconst (make-const arity name 'pconst uninst-type empty-subst
-;; 				   t-deg-one token-type))
-;; 	   (obj
-;; 	    (if (zero? arity)
-;; 		(nbe-reflect
-;; 		 (nbe-make-termfam
-;; 		  uninst-type
-;; 		  (lambda (k) (make-term-in-const-form new-pconst))))
-;; 		(nbe-make-object
-;; 		 uninst-type
-;; 		 (nbe-curry
-;; 		  (lambda objs ;arity many
-;; 		    (let* ((obj1 (nbe-reflect
-;; 				  (nbe-make-termfam
-;; 				   uninst-type
-;; 				   (lambda (k)
-;; 				     (make-term-in-const-form new-pconst)))))
-;; 			   (val (nbe-object-to-value obj1)))
-;; 		      (apply (nbe-uncurry val arity) objs)))
-;; 		  uninst-type
-;; 		  arity))))
-;; 	   (inst-objs (list (list empty-subst obj))))
-;;       (set! PROGRAM-CONSTANTS
-;; 	    (cons (if code
-;; 		      (list name new-pconst '() '() inst-objs code)
-;; 		      (list name new-pconst '() '() inst-objs))
-;; 		  pconsts-except-name))
-;;       (remove-token name)
-;;       (set! THEOREMS ;remove all with names like NatPlus1...
-;; 	    (list-transform-positive THEOREMS
-;; 	      (lambda (x)
-;; 		(let* ((thm-name (car x))
-;; 		       (first-name (string-to-first-name thm-name))
-;; 		       (l (string-length first-name)))
-;; 		  (not (and (string=? name first-name)
-;; 			    (< l (string-length thm-name))
-;; 			    (char-numeric? (string-ref thm-name l))))))))
-;;       (if (null? (type-to-tvars uninst-type))
-;; 	  (add-token name
-;; 		     (const-to-token-type pconst)
-;; 		     (const-to-token-value new-pconst))
-;; 	  (add-token name
-;; 		     'constscheme
-;; 		     new-pconst))
-;;       (do ;add again the previous comprules, now using the new-pconst
-;; 	  ((lc comprules (cdr lc)))
-;; 	  ((null? lc))
-;; 	(let* ((new-lhs (term-gen-subst
-;; 			 (rule-to-lhs (car lc))
-;; 			 (make-term-in-const-form pconst)
-;; 			 (make-term-in-const-form new-pconst)))
-;; 	       (new-rhs (term-gen-subst
-;; 			 (rule-to-rhs (car lc))
-;; 			 (make-term-in-const-form pconst)
-;; 			 (make-term-in-const-form new-pconst)))
-;; 	       (type1 (term-to-type new-lhs))
-;; 	       (type2 (term-to-type new-rhs)))
-;; 	  (if (type-le? type2 type1)
-;; 	      (add-computation-rule
-;; 	       new-lhs
-;; 	       ((types-to-embedding type2 type1) new-rhs))
-;; 	      (myerror
-;; 	       "change-t-deg-to-one" "unexpected computation rule.  Lhs:"
-;; 	       new-lhs "with type" type1
-;; 	       "Rhs:" new-rhs "of type" type2))))
-;;       (do ;add again the previous rewrules, now using the new-pconst
-;; 	  ((lr rewrules (cdr lr)))
-;; 	  ((null? lr))
-;; 	(let* ((new-lhs (term-gen-subst
-;; 			 (rule-to-lhs (car lr))
-;; 			 (make-term-in-const-form pconst)
-;; 			 (make-term-in-const-form new-pconst)))
-;; 	       (new-rhs (term-gen-subst
-;; 			 (rule-to-rhs (car lr))
-;; 			 (make-term-in-const-form pconst)
-;; 			 (make-term-in-const-form new-pconst)))
-;; 	       (type1 (term-to-type new-lhs))
-;; 	       (type2 (term-to-type new-rhs)))
-;; 	  (if (type-le? type2 type1)
-;; 	      (add-rewrite-rule
-;; 	       new-lhs
-;; 	       ((types-to-embedding type2 type1) new-rhs))
-;; 	      (myerror
-;; 	       "change-t-deg-to-one" "unexpected rewrite rule.  Lhs:"
-;; 	       new-lhs "with type" type1
-;; 	       "Rhs:" new-rhs "of type" type2)))))))
-
 ;; change-t-deg-to-one takes a list of pconst-names as arguments.
 ;; This is necessary to have all these pconsts in the stored totality
 ;; theorems with t-deg one.
@@ -1558,6 +1452,10 @@
        arity)))))
 
 ;; Constants with fixed rules
+
+;; Let rho(alphas) be a type with alphas strictly positive tvars.  For
+;; gives argtypes sigmas and valtypes taus Map has type
+;; rho(sigmas)=>(sigmas=>taus)=>rho(sigmas)
 
 (define (make-map-const type tvars argtypes valtypes)
   (let* ((val-tvars (map (lambda (x) (new-tvar)) tvars))
@@ -3174,7 +3072,7 @@
     (map (lambda (uninst-corecop-type)
 	   (make-const
 	    (corec-at uninst-corecop-type tsubst)
-	    "CoRec" 'fixed-rules uninst-corecop-type tsubst t-deg-one 'const))
+	    "CoRec" 'fixed-rules uninst-corecop-type tsubst t-deg-zero 'const))
 	 uninst-corecop-types)))
 
 (define (alg-or-arrow-types-to-corec-const . alg-or-arrow-types)
@@ -3783,14 +3681,13 @@
 	  (token-type (const-to-token-type const))
 	  (repro-data (const-to-repro-data const))
 	  (composed-tsubst (compose-substitutions orig-tsubst tsubst))
-	  (tvars (const-to-tvars const))
-	  (restricted-tsubst
-	   (restrict-substitution-to-args composed-tsubst tvars)))
+	  (restricted-tsubst (restrict-substitution-to-args
+			      composed-tsubst (const-to-tvars const))))
      (case (const-to-kind const)
        ((constr)
 	(if
 	 (or (string=? "Ex-Intro" (const-to-name const))
-	     (string=? "Intro" (const-to-name const)))
+ 	     (string=? "Intro" (const-to-name const)))
 	 const
          ;else form new-constr with restricted-subst.  If not yet done,
          ;update CONSTRUCTORS, via computing for all simalgs and all of
@@ -3941,9 +3838,74 @@
 	    (car (apply alg-or-arrow-types-to-corec-consts
 			inst-alg-or-arrow-types))))
 	 ((string=? "Destr" name)
-	  (let* ((alg (destr-const-to-alg const))
+	  (let* ((val-type (arrow-form-to-val-type uninst-type))
+		 (components (ysum-without-unit-to-components val-type))
+		 (prim-prod-flag
+		  (if (pair? components)
+		      (star-form? (car components))
+		      (myerror "const-substitute"
+			       "components expected in Destr val-type"
+			       val-type)))
+		 (alg (destr-const-to-alg const))
 		 (inst-alg (type-substitute alg restricted-tsubst)))
-	    (alg-to-destr-const inst-alg)))
+	    (alg-to-destr-const inst-alg prim-prod-flag)))
+	 ;; ((string=? "Destr" name)
+	 ;;  (let* ((alg (destr-const-to-alg const))
+	 ;; 	 (inst-alg (type-substitute alg restricted-tsubst)))
+	 ;;    (alg-to-destr-const inst-alg)))
+	 ((string=? "Map" name)
+	  (let* ((inst-mapop-type ;rho(sigmas)=>(sigmas=>taus)=>rho(taus)
+	  	  (const-to-type const))
+		 (inst-arrow-types ;sigmas=>taus
+	  	  (arrow-form-to-arg-types
+	  	   (arrow-form-to-val-type inst-mapop-type)))
+		 (argtypes ;sigmas
+	  	  (map arrow-form-to-arg-type inst-arrow-types))
+		 (valtypes ;taus
+	  	  (map arrow-form-to-val-type inst-arrow-types))
+		 (subst-argtypes
+		  (map (lambda (type) (type-substitute type tsubst))
+		       argtypes))
+		 (subst-valtypes
+		  (map (lambda (type) (type-substitute type tsubst))
+		       valtypes))
+		 (uninst-mapop-type ;rho(alphas)=>(alphas=>xis)=>rho(xis)
+		  (const-to-uninst-type const))
+		 (uninst-maparg-type ;rho(alphas)
+		  (arrow-form-to-arg-type uninst-type))
+		 (uninst-arrow-types ;alphas=>xis
+		  (arrow-form-to-arg-types
+		   (arrow-form-to-val-type uninst-type)))
+		 (bound-tvars ;alphas
+		  (map arrow-form-to-arg-type uninst-arrow-types))
+		 (val-tvars ;xis
+		  (map arrow-form-to-val-type uninst-arrow-types))
+		 (no-clash?
+		  (null? (intersection
+			  (append bound-tvars val-tvars)
+			  (apply append
+				 (map car tsubst)
+				 (map type-to-tvars (map cadr tsubst)))))))
+	    (if
+	     no-clash?
+	     (make-map-const
+	      (type-substitute uninst-maparg-type tsubst)
+					;(rho(alphas))theta
+	      bound-tvars subst-argtypes subst-valtypes)
+					;else clash: use new tvars
+	     (let* ((new-bound-tvars ;betas
+		     (map (lambda (x) (new-tvar)) bound-tvars))
+		    (new-val-tvars ;zetas
+		     (map (lambda (x) (new-tvar)) val-tvars))
+		    (renaming-tsubst (make-substitution
+				      (append bound-tvars val-tvars)
+				      (append new-bound-tvars new-val-tvars)))
+		    (new-uninst-maparg-type ;(rho(betas))
+		     (type-substitute uninst-maparg-type renaming-tsubst)))
+	       (make-map-const
+		(type-substitute new-uninst-maparg-type tsubst)
+					;(rho(betas))theta
+		new-bound-tvars subst-argtypes subst-valtypes)))))
 	 ((string=? "SE" name)
 	  (let* ((inst-type (type-substitute uninst-type restricted-tsubst))
 		 (sfinalg (arrow-form-to-arg-type inst-type)))
