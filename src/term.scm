@@ -1,4 +1,4 @@
-;; 2018-01-22
+;; 2018-06-20.  term.scm
 ;; 6. Terms
 ;; ========
 
@@ -678,6 +678,83 @@
 (define (add-display-end type proc)
   (set! DISPLAY-FUNCTIONS
 	(append DISPLAY-FUNCTIONS (list (list type proc)))))
+
+;; make-display-creator and make-display-creator1 moved here from lib/pos.scm
+;; make-param-term-creator2 and make-param-term-creator1 added.  They
+;; are used by the parser to create the correct pconsts for overloaded
+;; tokens, for algebras with parameters (example: ++ for list and str)
+
+(define (make-display-creator name display-string token-type)
+	 (lambda (x)
+	   (let ((op (term-in-app-form-to-final-op x))
+		 (args (term-in-app-form-to-args x)))
+	     (if (and (term-in-const-form? op)
+		      (string=? name (const-to-name
+				      (term-in-const-form-to-const op)))
+		      (= 2 (length args)))
+		 (list token-type display-string
+		       (term-to-token-tree (term-to-original (car args)))
+		       (term-to-token-tree (term-to-original (cadr args))))
+		 #f))))
+
+(define (make-display-creator1 name display-string token-type)
+	 (lambda (x)
+	   (let ((op (term-in-app-form-to-final-op x))
+		 (args (term-in-app-form-to-args x)))
+	     (if (and (term-in-const-form? op)
+		      (string=? name (const-to-name
+				      (term-in-const-form-to-const op)))
+		      (= 1 (length args)))
+		 (list token-type display-string
+		       (term-to-token-tree (term-to-original (car args))))
+		 #f))))
+
+(define (make-param-term-creator2 token)
+  (lambda (x y)
+    (let* ((alg1 (term-to-type x))
+	   (name1 (alg-form-to-name alg1))
+	   (tvars1 (alg-name-to-tvars name1))
+	   (uninst-alg1 (apply make-alg name1 tvars1))
+	   (types1 (alg-form-to-types alg1))
+	   (alg2 (term-to-type y))
+	   (name2 (alg-form-to-name alg2))
+	   (tvars2 (alg-name-to-tvars name2))
+	   (uninst-alg2 (apply make-alg name2 tvars2))
+	   (types2 (alg-form-to-types alg2))
+	   (pconst-name
+	    (token-and-types-to-name token (list uninst-alg1 uninst-alg2)))
+	   (types
+	    (cond ((and (pair? types1) (= (length types1) (length types2)))
+		   (map (lambda (type1 type2) (types-lub type1 type2))
+			 types1 types2))
+		  ((null? types1) types2)
+		  ((null? types2) types1)
+		  (else (myerror "make-param-term-creator2"
+				 "parameter types differ in length"
+				 alg1 alg2))))
+	   (tvars (cond ((equal? tvars1 tvars2) tvars1)
+			((null? tvars1) tvars2)
+			((null? tvars2) tvars1)
+			(else (myerror "make-param-term-creator2"
+				       "tvars differ for alg-names"
+				       name1 name2))))
+	   (tsubst (make-substitution tvars types))
+	   (uninst-pconst (pconst-name-to-pconst pconst-name))
+	   (pconst (const-substitute uninst-pconst tsubst #t))) ;no update
+      (mk-term-in-app-form (make-term-in-const-form pconst) x y))))
+
+(define (make-param-term-creator1 token)
+  (lambda (x)
+    (let* ((alg (term-to-type x))
+	   (name (alg-form-to-name alg))
+	   (tvars (alg-name-to-tvars name))
+	   (uninst-alg (apply make-alg name tvars))
+	   (types (alg-form-to-types alg))
+	   (pconst-name (token-and-type-to-name token uninst-alg))
+	   (tsubst (make-substitution tvars types))
+	   (uninst-pconst (pconst-name-to-pconst pconst-name))
+	   (pconst (const-substitute uninst-pconst tsubst #t))) ;no update
+      (mk-term-in-app-form (make-term-in-const-form pconst) x))))
 
 (define (term-to-token-tree term)
   (cond
@@ -6646,36 +6723,38 @@ intDestr n | n > 0  = Left n
 	(let* ((type1 (term-to-type pattern))
 	       (type2 (term-to-type instance))
 	       (var1 (term-in-abst-form-to-var pattern))
+	       (t-deg1 (var-to-t-deg var1))
 	       (kernel1 (term-in-abst-form-to-kernel pattern))
 	       (var2 (term-in-abst-form-to-var instance))
+	       (t-deg2 (var-to-t-deg var2))
 	       (varterm2 (make-term-in-var-form var2))
-	       (kernel2 (term-in-abst-form-to-kernel instance)))
-	  (and
-	   (= (var-to-t-deg var1) (var-to-t-deg var2))
-	   (let* ((tsubst-from-types
-		   (type-match-aux
-		    (list type1) (list type2) sig-tvars tsubst))
-		  (new-var1 (var-to-new-var var1))
-		  (new-varterm1 (make-term-in-var-form new-var1))
-		  (new-kernel1 (term-subst kernel1 var1 new-varterm1))
-		  (prev (and tsubst-from-types
-			     (match-aux
-			      (cons (list sig-tvars sig-vars
-					  new-kernel1 kernel2)
-				    (cdr match-problems))
-			      ignore-deco-flag
-			      tsubst-from-types
-			      (append subst (list (list new-var1
-							varterm2)))))))
-	     (and prev
-		  (let ((prev-tsubst (list-transform-positive prev
-				       (lambda (x) (tvar-form? (car x)))))
-			(prev-subst (list-transform-positive prev
-				      (lambda (x) (var-form? (car x))))))
-		    (append prev-tsubst
-			    (list-transform-positive prev-subst
-			      (lambda (x)
-				(not (equal? new-var1 (car x)))))))))))))
+	       (kernel2 (term-in-abst-form-to-kernel instance))
+	       (tsubst-from-types
+		(type-match-aux
+		 (list type1) (list type2) sig-tvars tsubst))
+	       (new-var1 (if (= t-deg1 t-deg2)
+			     (var-to-new-var var1)
+			     (var-and-t-deg-to-new-var var1 t-deg2)))
+	       (new-varterm1 (make-term-in-var-form new-var1))
+	       (new-kernel1 (term-subst kernel1 var1 new-varterm1))
+	       (prev (and tsubst-from-types
+			  (match-aux
+			   (cons (list sig-tvars sig-vars
+				       new-kernel1 kernel2)
+				 (cdr match-problems))
+			   ignore-deco-flag
+			   tsubst-from-types
+			   (append subst (list (list new-var1
+						     varterm2)))))))
+	  (and prev
+	       (let ((prev-tsubst (list-transform-positive prev
+				    (lambda (x) (tvar-form? (car x)))))
+		     (prev-subst (list-transform-positive prev
+				   (lambda (x) (var-form? (car x))))))
+		 (append prev-tsubst
+			 (list-transform-positive prev-subst
+			   (lambda (x)
+			     (not (equal? new-var1 (car x)))))))))))
       ((term-in-app-form? pattern)
        (and (term-in-app-form? instance)
 	    (let ((op1 (term-in-app-form-to-op pattern))
@@ -6828,8 +6907,11 @@ intDestr n | n > 0  = Left n
 			  ignore-deco-flag tsubst subst))
 	      ((and (predconst-form? pred1) (predconst-form? pred2)
 		    (= (predconst-to-index pred1) (predconst-to-index pred2))
-		    (string=? (predconst-to-name pred1)
-			      (predconst-to-name pred2)))
+		    (let ((name1 (predconst-to-name pred1))
+			  (name2 (predconst-to-name pred2)))
+		      (or (string=? name1 name2)
+			  (string=? name1 (string-append name2 "Nc"))
+			  (string=? (string-append name1 "Nc") name2))))
 	       (let* ((arity1 (predconst-to-arity pred1))
 		      (arity2 (predconst-to-arity pred2))
 		      (types1 (arity-to-types arity1))
@@ -6840,8 +6922,11 @@ intDestr n | n > 0  = Left n
 		      (match-aux (append new-mps (cdr match-problems))
 				 ignore-deco-flag prev-tsubst subst))))
 	      ((and (idpredconst-form? pred1) (idpredconst-form? pred2)
-		    (string=? (idpredconst-to-name pred1)
-			      (idpredconst-to-name pred2)))
+		    (let ((name1 (idpredconst-to-name pred1))
+			  (name2 (idpredconst-to-name pred2)))
+		      (or (string=? name1 name2)
+			  (string=? name1 (string-append name2 "Nc"))
+			  (string=? (string-append name1 "Nc") name2))))
 	       (let* ((types1 (idpredconst-to-types pred1))
 		      (types2 (idpredconst-to-types pred2))
 		      (prev-tsubst
@@ -6893,13 +6978,31 @@ intDestr n | n > 0  = Left n
 	       ignore-deco-flag tsubst subst))))
       (else #f)))))
 
+;; first-match looks for a tosubst transforming pattern into the whole
+;; term-or-fla (global-match) or a part of term-or-fla.  This instance
+;; of pattern is ignored if one of its free variables is captured in
+;; term-or-fla (since term-gen-substitute and formula-gen-substitute
+;; do not work in this case).  It returns the tosubst, and #f if no
+;; tosubst is found.
+
 (define (first-match sig-tovars pattern term-or-fla)
   (or
    (apply match pattern term-or-fla sig-tovars) ;global-match
    (cond
     ((term-in-abst-form? term-or-fla)
-     (let ((kernel (term-in-abst-form-to-kernel term-or-fla)))
-       (first-match sig-tovars pattern kernel)))
+     (let* ((var (term-in-abst-form-to-var term-or-fla))
+	    (kernel (term-in-abst-form-to-kernel term-or-fla))
+	    (subst-kernel
+	     (if (t-deg-zero? (var-to-t-deg var))
+		 kernel
+		 (term-subst kernel var (make-term-in-var-form
+					 (var-to-new-partial-var var)))))
+	    (prev (first-match sig-tovars pattern subst-kernel)))
+       (if ;tosubst found and var not free in instance of pattern
+	(and prev
+	     (not (member var (term-to-free (term-substitute pattern prev)))))
+	prev
+	#f)))
     ((term-in-app-form? term-or-fla)
      (let ((op (term-in-app-form-to-op term-or-fla))
 	   (arg (term-in-app-form-to-arg term-or-fla)))
@@ -6930,8 +7033,18 @@ intDestr n | n > 0  = Left n
        (or (first-match sig-tovars pattern left)
 	   (first-match sig-tovars pattern right))))
     ((quant-form? term-or-fla) ;to be done before inductively defined predicates
-     (let ((kernel (quant-form-to-kernel term-or-fla)))
-       (first-match sig-tovars pattern kernel)))
+     (let* ((vars (quant-form-to-vars term-or-fla))
+	    (kernel (quant-form-to-kernel term-or-fla))
+	    (prev (first-match sig-tovars pattern kernel)))
+       (if ;tosubst found and none of vars free in instance of pattern
+	(and prev
+	     (null? (intersection
+		     vars (term-to-free (term-substitute pattern prev)))))
+	prev
+	#f)))
+    ;; ((quant-form? term-or-fla) ;to be done before inductively defined predicates
+    ;;  (let ((kernel (quant-form-to-kernel term-or-fla)))
+    ;;    (first-match sig-tovars pattern kernel)))
     ((predicate-form? term-or-fla) ;not an inductively defined bicon or quant
      (let ((pred (predicate-form-to-predicate term-or-fla))
 	   (args (predicate-form-to-args term-or-fla)))
