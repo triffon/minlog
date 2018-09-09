@@ -1,4 +1,4 @@
-;; 2018-01-22.  pos.scm.  Based on the former numbers.scm.
+;; 2018-09-08.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -150,36 +150,121 @@
 ;; Proof finished.
 (save "PosIfTotal")
 
+;; To prove extensionality of pconsts of level >=2 we will need
+;; properties of EqPPos.  There are collected here.
+
+;; EqPPosRefl
+(set-goal "allnc p^(TotalPos p^ -> EqPPos p^ p^)")
+(assume "p^" "Tp")
+(elim "Tp")
+(use "EqPPosOne")
+(assume "p^1" "Tp1")
+(use "EqPPosSZero")
+(assume "p^1" "Tp1")
+(use "EqPPosSOne")
+;; Proof finished.
+(save "EqPPosRefl")
+;; (cdp)
+
+;; EqPPosToTotalLeft
+(set-goal "allnc p^,q^(EqPPos p^ q^ -> TotalPos p^)")
+(assume "p^" "q^" "EqPpq")
+(elim "EqPpq")
+;; 3-5
+(use "TotalPosOne")
+;; 4
+(assume "p^1" "q^1" "EqPp1q1" "IH")
+(use "TotalPosSZero")
+(use "IH")
+;; 5
+(assume "p^1" "q^1" "EqPp1q1" "IH")
+(use "TotalPosSOne")
+(use "IH")
+;; Proof finished.
+(save "EqPPosToTotalLeft")
+;; (cdp)
+
+;; EqPPosToTotalRight
+(set-goal "allnc p^,q^(EqPPos p^ q^ -> TotalPos q^)")
+(assume "p^" "q^" "EqPpq")
+(elim "EqPpq")
+;; 3-5
+(use "TotalPosOne")
+;; 4
+(assume "p^1" "q^1" "EqPp1q1" "IH")
+(use "TotalPosSZero")
+(use "IH")
+;; 5
+(assume "p^1" "q^1" "EqPp1q1" "IH")
+(use "TotalPosSOne")
+(use "IH")
+;; Proof finished.
+(save "EqPPosToTotalRight")
+;; (cdp)
+
+;; EqPPosToEqD
+(set-goal "allnc p^,q^(EqPPos p^ q^ -> p^ eqd q^)")
+(assume "p^" "q^" "EqPpq")
+(elim "EqPpq")
+;; 3-5
+(use "InitEqD")
+;; 4
+(assume "p^1" "q^1" "Useless" "IH")
+(simp "IH")
+(use "InitEqD")
+;; 5
+(assume "p^1" "q^1" "Useless" "IH")
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+(save "EqPPosToEqD")
+;; (cdp)
+
+;; EqPPosSym
+(set-goal "allnc p^,q^(EqPPos p^ q^ -> EqPPos q^ p^)")
+(assume "p^" "q^" "EqPpq")
+(elim "EqPpq")
+(use "EqPPosOne")
+(assume "p^1" "q^1" "EqPp1q1" "EqPq1p1")
+(use "EqPPosSZero")
+(use "EqPq1p1")
+(assume "p^1" "q^1" "EqPp1q1" "EqPq1p1")
+(use "EqPPosSOne")
+(use "EqPq1p1")
+;; Proof finished.
+(save "EqPPosSym")
+;; (cdp)
+
+(add-var-name "f" (py "pos=>alpha=>alpha"))
+
 ;; PosRecTotal
 (set-goal (rename-variables (term-to-totality-formula (pt "(Rec pos=>alpha)"))))
-(assume "p^" "Tp")
-(elim "Tp") ;3-5
+(assume "p^" "Tp" "alpha^" "Talpha" "f^1" "f^2" "EqPf1f2" "f^3" "f^4" "EqPf3f4")
+(elim "Tp") 
+;;3-5
 (ng #t)
-(assume "alpha^" "Talpha")
-(strip)
+(use "EqPRefl")
 (use "Talpha")
 ;; 4
-(assume "p^1" "Tp1" "IH" "alpha^" "Talpha"
-	"(pos=>alpha=>alpha)^1" "Tf1" "(pos=>alpha=>alpha)^2" "Tf2")
+(assume "p^1" "Tp1" "IH")
 (ng #t)
-(use "Tf1")
+(use "EqPDefOne")
+(use "EqPf1f2")
+(use "EqPPosRefl")
 (use "Tp1")
 (use "IH")
-(use "Talpha")
-(use "Tf1")
-(use "Tf2")
 ;; 5
-(assume "p^1" "Tp1" "IH" "alpha^" "Talpha"
-	"(pos=>alpha=>alpha)^1" "Tf1" "(pos=>alpha=>alpha)^2" "Tf2")
+(assume "p^1" "Tp1" "IH")
 (ng #t)
-(use "Tf2")
+(use "EqPDefOne")
+(use "EqPf3f4")
+(use "EqPPosRefl")
 (use "Tp1")
 (use "IH")
-(use "Talpha")
-(use "Tf1")
-(use "Tf2")
 ;; Proof finished.
 (save "PosRecTotal")
+
+(remove-var-name "f")
 
 ;; make-numeric-term-wrt-pos produces a pos object for a positive
 ;; integer.
@@ -257,13 +342,6 @@
 
 (add-program-constant "PosToNat" (py "pos=>nat"))
 
-(define (add-item-to-algebra-edge-to-embed-term-alist
-         alg1-name alg2-name embed-term)
-  (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST
-        (cons (list (list (make-alg alg1-name) (make-alg alg2-name))
-		    embed-term)
-              ALGEBRA-EDGE-TO-EMBED-TERM-ALIST)))
-
 (add-item-to-algebra-edge-to-embed-term-alist
  "pos" "nat"
  (let ((var (make-var (make-alg "pos") -1 t-deg-one "")))
@@ -275,20 +353,6 @@
 
 ;; (alg-le? (make-alg "pos") (make-alg "nat"))
 ;; (alg-le? (make-alg "nat") (make-alg "pos"))
-
-;; When later we have proved totality of PosToNat and NatToInt we need
-;; to replace their item accordingly.
-
-(define (replace-item-in-algebra-edge-to-embed-term-alist
-         alg1-name alg2-name new-embed-term)
-  (let* ((alg1 (make-alg alg1-name))
-	 (alg2 (make-alg alg2-name))
-	 (new-alist (map (lambda (item)
-			   (if (equal? (car item) (list alg1 alg2))
-			       (list (car item) new-embed-term)
-			       item))
-			 ALGEBRA-EDGE-TO-EMBED-TERM-ALIST)))
-    (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST new-alist)))
 
 (add-program-constant "PosS" (py "pos=>pos"))
 (add-program-constant "PosPred" (py "pos=>pos"))
@@ -384,31 +448,6 @@
 (add-token "<=" 'rel-op (make-term-creator "<=" "pos"))
 (add-token-and-type-to-name "<=" (py "pos") "PosLe")
 (add-token-and-type-to-name "<=" (py "nat") "NatLe")
-
-(define (make-display-creator name display-string token-type)
-	 (lambda (x)
-	   (let ((op (term-in-app-form-to-final-op x))
-		 (args (term-in-app-form-to-args x)))
-	     (if (and (term-in-const-form? op)
-		      (string=? name (const-to-name
-				      (term-in-const-form-to-const op)))
-		      (= 2 (length args)))
-		 (list token-type display-string
-		       (term-to-token-tree (term-to-original (car args)))
-		       (term-to-token-tree (term-to-original (cadr args))))
-		 #f))))
-
-(define (make-display-creator1 name display-string token-type)
-	 (lambda (x)
-	   (let ((op (term-in-app-form-to-final-op x))
-		 (args (term-in-app-form-to-args x)))
-	     (if (and (term-in-const-form? op)
-		      (string=? name (const-to-name
-				      (term-in-const-form-to-const op)))
-		      (= 1 (length args)))
-		 (list token-type display-string
-		       (term-to-token-tree (term-to-original (car args))))
-		 #f))))
 
 (add-display (py "pos") (make-display-creator "PosPlus" "+" 'add-op))
 (add-display (py "nat") (make-display-creator "NatPlus" "+" 'add-op))
@@ -616,6 +655,21 @@
 
 ;; (pp (rename-variables (proof-to-extracted-term "PosSTotal")))
 
+;; PosSEqP
+(set-goal "allnc p^,q^(EqPPos p^ q^ -> EqPPos(PosS p^)(PosS q^))")
+(assume "p^" "q^" "EqPpq")
+(simp "<-" (pf "p^ eqd q^"))
+(use "EqPPosRefl")
+(use "PosSTotal")
+(use "EqPPosToTotalLeft" (pt "q^"))
+(use "EqPpq")
+;; 4
+(use "EqPPosToEqD")
+(use "EqPpq")
+;; Proof finished.
+(save "PosSEqP")
+;; (cdp)
+
 ;; Rules for PosPred
 
 (add-computation-rules
@@ -785,27 +839,54 @@
 
 ;; NatToPosStepTotal
 (set-totality-goal "NatToPosStep")
-(assume "n^" "Tn" "(nat=>pos)^" "Th")
+(use "AllTotalElim")
+(assume "n" "(nat=>pos)^1" "(nat=>pos)^2" "EqPf1f2")
 (ng #t)
-(use "BooleIfTotal")
-(use "NatEvenTotal")
-(use "Tn")
-(use "TotalPosSZero")
-(use "Th")
-(use "NatHalfTotal")
-(use "Tn")
-(use "BooleIfTotal")
-(use "NatEqTotal")
-(use "Tn")
-(use "TotalNatSucc")
-(use "TotalNatZero")
-(use "TotalPosOne")
-(use "TotalPosSOne")
-(use "Th")
-(use "NatHalfTotal")
-(use "Tn")
+(use "BooleIfEqP")
+;; 5-7
+(use "EqPBooleRefl")
+(use "BooleTotalVar")
+;; 6
+(use "EqPPosSZero")
+(use "EqPf1f2")
+(use "EqPNatRefl")
+(use "NatTotalVar")
+;; 7
+(use "BooleIfEqP")
+(use "EqPBooleRefl")
+(use "BooleTotalVar")
+(use "EqPPosOne")
+(use "EqPPosSOne")
+(use "EqPf1f2")
+(use "EqPNatRefl")
+(use "NatTotalVar")
 ;; Proof finished.
 (save-totality)
+
+(set-totality-goal "NatToPosStep")
+(use "AllTotalElim")
+(assume "n" "(nat=>pos)^1" "(nat=>pos)^2" "EqPf1f2")
+(ng #t)
+(use "BooleIfEqP")
+;; 5-7
+(use "EqPBooleRefl")
+(use "BooleTotalVar")
+;; 6
+(use "EqPPosSZero")
+(use "EqPf1f2")
+(use "EqPNatRefl")
+(use "NatTotalVar")
+;; 7
+(use "BooleIfEqP")
+(use "EqPBooleRefl")
+(use "BooleTotalVar")
+(use "EqPPosOne")
+(use "EqPPosSOne")
+(use "EqPf1f2")
+(use "EqPNatRefl")
+(use "NatTotalVar")
+;; Proof finished.
+(save "NatToPosStepExt")
 
 (add-program-constant "NatToPos" (py "nat=>pos"))
 
@@ -820,15 +901,11 @@
 (assume "n")
 (ng #t)
 (use "BooleIfTotal")
-(use "NatEvenTotal")
-(use "NatTotalVar")
+(use "BooleTotalVar")
 (use "TotalPosSZero")
 (use "PosTotalVar")
 (use "BooleIfTotal")
-(use "NatEqTotal")
-(use "NatTotalVar")
-(use "TotalNatSucc")
-(use "TotalNatZero")
+(use "BooleTotalVar")
 (use "TotalPosOne")
 (use "TotalPosSOne")
 (use "PosTotalVar")
@@ -994,6 +1071,28 @@
 ;; (use "TMRq10q1")
 ;; ;; Proof finished.
 ;; (save "PosPlusTotalReal")
+
+;; PosPlusEqP
+(set-goal "allnc p^1,q^1(EqPPos p^1 q^1 -> allnc p^2,q^2(EqPPos p^2 q^2 ->
+ EqPPos(p^1+p^2)(q^1+q^2)))")
+(assume "p^1" "q^1" "EqPp1q1" "p^2" "q^2" "EqPp2q2")
+(simp "<-" (pf "p^1 eqd q^1"))
+(simp "<-" (pf "p^2 eqd q^2"))
+(use "EqPPosRefl")
+(use "PosPlusTotal")
+(use "EqPPosToTotalLeft" (pt "q^1"))
+(use "EqPp1q1")
+(use "EqPPosToTotalLeft" (pt "q^2"))
+(use "EqPp2q2")
+;; 6
+(use "EqPPosToEqD")
+(use "EqPp2q2")
+;; 4
+(use "EqPPosToEqD")
+(use "EqPp1q1")
+;; Proof finished.
+(save "PosPlusEqP")
+;; (cdp)
 
 ;; NatLt0Pos
 (set-goal "all p Zero<p")
@@ -1665,6 +1764,28 @@
 ;; (use "TMRp0p")
 ;; ;; Proof finished.
 ;; (save "PosTimesTotalReal")
+
+;; PosTimesEqP
+(set-goal "allnc p^1,q^1(EqPPos p^1 q^1 -> allnc p^2,q^2(EqPPos p^2 q^2 ->
+ EqPPos(p^1*p^2)(q^1*q^2)))")
+(assume "p^1" "q^1" "EqPp1q1" "p^2" "q^2" "EqPp2q2")
+(simp "<-" (pf "p^1 eqd q^1"))
+(simp "<-" (pf "p^2 eqd q^2"))
+(use "EqPPosRefl")
+(use "PosTimesTotal")
+(use "EqPPosToTotalLeft" (pt "q^1"))
+(use "EqPp1q1")
+(use "EqPPosToTotalLeft" (pt "q^2"))
+(use "EqPp2q2")
+;; 6
+(use "EqPPosToEqD")
+(use "EqPp2q2")
+;; 4
+(use "EqPPosToEqD")
+(use "EqPp1q1")
+;; Proof finished.
+(save "PosTimesEqP")
+;; (cdp)
 
 (set-goal "all p One*p=p")
 (ind)
@@ -4929,6 +5050,40 @@
 ;; Proof finished.
 (save-totality)
 
+;; NatLeOneTwoExp
+(set-goal "all n Succ Zero<=(Succ(Succ Zero))**n")
+(ind)
+(use "Truth")
+(assume "n" "IH")
+(ng)
+(use "NatLeTrans" (pt "Succ(Succ Zero)**n+Succ Zero"))
+(use "Truth")
+(use "NatLeMonPlus")
+(use "Truth")
+(use "IH")
+;; Proof finished.
+(save "NatLeOneTwoExp")
+
+;; NatLeMonTwoExp
+(set-goal "all n,m(n<=m -> 2**n<=2**m)")
+(ind)
+;; 2,3
+(ng)
+(assume "m" "Useless")
+(use "Truth")
+;; 3
+(assume "n" "IH")
+(cases)
+(assume "Absurd")
+(use "EfAtom")
+(use "Absurd")
+(assume "m" "n<=m")
+(ng)
+(use "IH")
+(use "n<=m")
+;; Proof finished.
+(save "NatLeMonTwoExp")
+
 (set-goal "all pos,nat (PosToNat pos**nat)=PosToNat(pos**nat)")
 (assume "pos")
 (ind)
@@ -4967,6 +5122,26 @@
 
 ;; (pp (nt (pt "PosLog 8")))
 ;; Succ(Succ(Succ Zero))
+
+;; PosLogEqP
+(set-goal "allnc p^,q^(EqPPos p^ q^ -> EqPNat(PosLog p^)(PosLog q^))")
+(assume "p^" "q^" "EqPpq")
+(elim "EqPpq")
+;; 3-5
+(ng #t)
+(use "EqPNatZero")
+;; 4
+(assume "p^1" "q^1" "EqPp1q1" "IH")
+(ng #t)
+(use "EqPNatSucc")
+(use "IH")
+;; 5
+(assume "p^1" "q^1" "EqPp1q1" "IH")
+(ng #t)
+(use "EqPNatSucc")
+(use "IH")
+;; Proof finished.
+(save "PosLogEqP")
 
 ;; PosLogZero
 (set-goal "all p (PosLog p=Zero)=(p=1)")
