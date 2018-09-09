@@ -506,23 +506,24 @@
 ;; allnc alpha^,alpha^0(
 ;;  alpha^ eqd alpha^0 --> (Pvar alpha)alpha^ -> (Pvar alpha)alpha^0)
 
-;; EqDSym
-(set-goal "allnc x^1,x^2(x^1 eqd x^2 -> x^2 eqd x^1)")
-(assume "x^1" "x^2" "IdHyp")
-(elim "IdHyp")
-(use "InitEqD")
-;; Proof finished.
-(save "EqDSym")
+;; EqDSym and EqDTrans already present.
+;; ;; EqDSym
+;; (set-goal "allnc x^1,x^2(x^1 eqd x^2 -> x^2 eqd x^1)")
+;; (assume "x^1" "x^2" "IdHyp")
+;; (elim "IdHyp")
+;; (use "InitEqD")
+;; ;; Proof finished.
+;; (save "EqDSym")
 
-;; EqDTrans
-(set-goal "allnc x^1,x^2,x^3(x^1 eqd x^2 -> x^2 eqd x^3 -> x^1 eqd x^3)")
-(assume "x^1" "x^2" "x^3" "IdHyp1")
-(elim "IdHyp1")
-(assume "x^" "IdHyp2")
-(elim "IdHyp2")
-(use "InitEqD")
-;; Proof finished.
-(save "EqDTrans")
+;; ;; EqDTrans
+;; (set-goal "allnc x^1,x^2,x^3(x^1 eqd x^2 -> x^2 eqd x^3 -> x^1 eqd x^3)")
+;; (assume "x^1" "x^2" "x^3" "IdHyp1")
+;; (elim "IdHyp1")
+;; (assume "x^" "IdHyp2")
+;; (elim "IdHyp2")
+;; (use "InitEqD")
+;; ;; Proof finished.
+;; (save "EqDTrans")
 
 (pp "EfqEqD")
 ;; F -> all alpha^,alpha^0 alpha^ eqd alpha^0
