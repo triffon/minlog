@@ -1,4 +1,4 @@
-;; 2014-01-01.  names.scm
+;; 2018-06-11.  names.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -28,11 +28,8 @@
 ;; Examples for algebras.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Nullary constructors are required.
-;; (add-algs "nix" '("Gen" "nix=>nix"))
-;; add-algs
-;; nullary initial constructor type expected for
-;; nix
+;; Nullary constructors are not required.
+(add-algs "inf" '("Gen" "inf=>inf"))
 
 ;; Zero and successor labelled natural numbers.
 
@@ -218,6 +215,7 @@
    (py "nat")
    (py "list alpha")
    ;; defined algs
+   (py "inf")
    (py "zsnat alpha beta")
    (py "lnat alpha")
    (py "znat alpha")
