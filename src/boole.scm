@@ -1,4 +1,4 @@
-;; 2017-04-21
+;; 2018-06-11.  boole.scm
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -1155,5 +1155,27 @@
 ;; (pp (make-injection (py "alpha1 ysum alpha2") 1))
 ;; (InR alpha2 alpha1)
 
+(define (make-left-injection left-type right-type)
+  (let* ((inl-constr (constr-name-to-constr "InL"))
+	 (tvars (alg-name-to-tvars "ysum"))
+	 (tsubst (make-substitution tvars (list left-type right-type)))
+	 (subst-inl-constr (const-substitute inl-constr tsubst #t)))
+    (make-term-in-const-form subst-inl-constr)))
 
+;; (pp (make-left-injection (py "boole") (py "unit")))
+;; (InL boole unit)
+;; (pp (term-to-type (make-left-injection (py "boole") (py "unit"))))
+;; boole=>boole ysum unit
+
+(define (make-right-injection left-type right-type)
+  (let* ((inr-constr (constr-name-to-constr "InR"))
+	 (tvars (alg-name-to-tvars "ysum"))
+	 (tsubst (make-substitution tvars (list right-type left-type)))
+	 (subst-inr-constr (const-substitute inr-constr tsubst #t)))
+    (make-term-in-const-form subst-inr-constr)))
+
+;; (pp (make-right-injection (py "boole") (py "unit")))
+;; (InR boole unit)
+;; (pp (term-to-type (make-right-injection (py "boole") (py "unit"))))
+;; boole=>unit ysum boole
 
