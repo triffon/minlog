@@ -1,4 +1,4 @@
-;; 2017-05-13.  int.scm.  Based on the former numbers.scm.
+;; 2018-08-22.  int.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -239,6 +239,106 @@
 (use "Tp")
 ;; Proof finished.
 (save "IntIfTotal")
+
+;; To prove extensionality of pconsts of level >=2 we will need
+;; properties of EqPInt.  There are collected here.
+
+;; EqPIntToTotalLeft
+(set-goal "allnc k^,j^(EqPInt k^ j^ -> TotalInt k^)")
+(assume "k^" "j^" "EqPkj")
+(elim "EqPkj")
+;; 3-5
+(assume "p^1" "p^2" "EqPp1p2")
+(use "TotalIntIntPos")
+(use "EqPPosToTotalLeft" (pt "p^2"))
+(use "EqPp1p2")
+;; 4
+(use "TotalIntIntZero")
+;; 5
+(assume "p^1" "p^2" "EqPp1p2")
+(use "TotalIntIntNeg")
+(use "EqPPosToTotalLeft" (pt "p^2"))
+(use "EqPp1p2")
+;; Proof finished.
+(save "EqPIntToTotalLeft")
+
+;; EqPIntToTotalRight
+(set-goal "allnc k^,j^(EqPInt k^ j^ -> TotalInt j^)")
+(assume "k^" "j^" "EqPkj")
+(elim "EqPkj")
+;; 3-5
+(assume "p^1" "p^2" "EqPp1p2")
+(use "TotalIntIntPos")
+(use "EqPPosToTotalRight" (pt "p^1"))
+(use "EqPp1p2")
+;; 4
+(use "TotalIntIntZero")
+;; 5
+(assume "p^1" "p^2" "EqPp1p2")
+(use "TotalIntIntNeg")
+(use "EqPPosToTotalRight" (pt "p^1"))
+(use "EqPp1p2")
+;; Proof finished.
+(save "EqPIntToTotalRight")
+
+;; EqPIntToEqD
+(set-goal "allnc k^,j^(EqPInt k^ j^ -> k^ eqd j^)")
+(assume "k^" "j^" "EqPkj")
+(elim "EqPkj")
+;; 3-5
+(assume "p^1" "p^2" "EqPp1p2")
+(simp (pf "p^1 eqd p^2"))
+(use "InitEqD")
+(use "EqPPosToEqD")
+(use "EqPp1p2")
+;; 4
+(use "InitEqD")
+;; 5
+(assume "p^1" "p^2" "EqPp1p2")
+(simp (pf "p^1 eqd p^2"))
+(use "InitEqD")
+(use "EqPPosToEqD")
+(use "EqPp1p2")
+;; Proof finished.
+(save "EqPIntToEqD")
+;; (cdp)
+
+;; EqPIntRefl
+(set-goal "allnc k^(TotalInt k^ -> EqPInt k^ k^)")
+(assume "k^" "Tk")
+(elim "Tk")
+;; 3-5
+(assume "p^" "Tp")
+(use "EqPIntIntPos")
+(use "EqPPosRefl")
+(use "Tp")
+;; 4
+(use "EqPIntIntZero")
+;; 5
+(assume "p^" "Tp")
+(use "EqPIntIntNeg")
+(use "EqPPosRefl")
+(use "Tp")
+;; Proof finished.
+(save "EqPIntRefl")
+;; (cdp)
+
+;; EqPIntSym
+(set-goal "allnc k^,j^(EqPInt k^ j^ -> EqPInt j^ k^)")
+(assume "k^" "j^" "EqPkj")
+(elim "EqPkj")
+(assume "p^" "q^" "EqPpq")
+(use "EqPIntIntPos")
+(use "EqPPosSym")
+(use "EqPpq")
+(use "EqPIntIntZero")
+(assume "p^" "q^" "EqPpq")
+(use "EqPIntIntNeg")
+(use "EqPPosSym")
+(use "EqPpq")
+;; Proof finished.
+(save "EqPIntSym")
+;; (cdp)
 
 ;; make-numeric-term-wrt-pos produces an int object for n<=0, and a pos
 ;; object for a positive integer.
