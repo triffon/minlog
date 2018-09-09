@@ -416,7 +416,7 @@
 ;; Proof using induction on the predicate Even:
 
 (set-goal "all n(EvenI n -> ex m m+m=n)")
-(assume "n" "En"))
+(assume "n" "En")
 (elim "En")
 
 (ex-intro (pt "0"))
