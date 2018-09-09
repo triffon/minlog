@@ -38,7 +38,7 @@
 
 (define decproof
   (fully-decorate (theorem-name-to-proof "AndRLemma")
-		  (pf "A andu B -> B")))
+		  (pf "A andnc B -> B")))
 
 (pp (proof-to-formula decproof))
 ;; A andr B -> B
