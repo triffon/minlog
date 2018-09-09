@@ -1,4 +1,6 @@
-;; 2017-04-01.  todo.scm
+;; 2018-09-03.  todo.scm
+
+;; 2018-09-03.  search and auto should get an optional ignore-deco-flag
 
 ;; 2017-04-01.  Adapt the proofs of AllTotalIntroSound and
 ;; AllTotalElimSound to use CoEqPNc rather than EqD.  Add transitivity
