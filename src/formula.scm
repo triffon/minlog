@@ -1,4 +1,4 @@
-;; 2017-04-21
+;; 2018-08-09
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -124,23 +124,21 @@
 					      -1 "CoTotalNc")))
     (make-predicate-formula cototalnc-predconst term)))
 
-(define (make-totalmr real term)
+(define (make-totalmr term real)
   (let* ((type (term-to-type term))
 	 (tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-         (totalnc-predconst (make-predconst (make-arity tvar)
+         (totalmr-predconst (make-predconst (make-arity tvar tvar)
 					    (make-subst tvar type)
-					    -1 "TotalNc")))
-    (make-andnc (make-predicate-formula totalnc-predconst real)
-	       (make-eqd real term))))
+					    -1 "TotalMR")))
+    (make-predicate-formula totalmr-predconst term real)))
 
-(define (make-cototalmr real term)
+(define (make-cototalmr term real)
   (let* ((type (term-to-type term))
 	 (tvar (make-tvar -1 DEFAULT-TVAR-NAME))
-         (cototalnc-predconst (make-predconst (make-arity tvar)
+         (cototalMR-predconst (make-predconst (make-arity tvar tvar)
 					      (make-subst tvar type)
-					      -1 "CoTotalNc")))
-    (make-andnc (make-predicate-formula cototalnc-predconst real)
-	       (make-eqd real term))))
+					      -1 "CoTotalMR")))
+    (make-predicate-formula cototalMR-predconst term real)))
 
 (define (make-se term)
   (let* ((type (term-to-type term))
@@ -233,7 +231,7 @@
 	      (myerror "make-coeqpnc" "equal types expected" type1 type2))))
     (make-predicate-formula coeqp-predconst term1 term2)))
 
-(define (make-eqpmr real term1 term2)
+(define (make-eqpmr term1 term2 real)
   (let* ((type (term-to-type real))
 	 (type1 (term-to-type term1))
 	 (type2 (term-to-type term2))
@@ -244,9 +242,9 @@
 			      (make-subst tvar type)
 			      -1 "EqPMR")
 	      (myerror "make-eqpmr" "equal types expected" type type1 type2))))
-    (make-predicate-formula eqpmr-predconst real term1 term2)))
+    (make-predicate-formula eqpmr-predconst term1 term2 real)))
 
-(define (make-coeqpmr real term1 term2)
+(define (make-coeqpmr term1 term2 real)
   (let* ((type (term-to-type real))
 	 (type1 (term-to-type term1))
 	 (type2 (term-to-type term2))
@@ -258,7 +256,7 @@
 			      -1 "CoEqPMR")
 	      (myerror "make-coeqpmr"
 		       "equal types expected" type type1 type2))))
-    (make-predicate-formula coeqpmr-predconst real term1 term2)))
+    (make-predicate-formula coeqpmr-predconst term1 term2 real)))
 
 ;; Constructor and accessors for formulas:
 
@@ -2132,6 +2130,21 @@
 	((formula=? formula2 truth) formula1)
 	(else (make-andl formula1 formula2))))
 
+(define (andl-andnc-imp-impnc-all-allnc-form-to-final-left x)
+  (cond
+   ((or (andl-form? x) (andnc-form? x))
+    (andl-andnc-imp-impnc-all-allnc-form-to-final-left
+     (if (andl-form? x)
+	 (andl-form-to-left x)
+	 (andnc-form-to-left x))))
+   ((imp-impnc-form? x)
+    (andl-andnc-imp-impnc-all-allnc-form-to-final-left
+     (imp-impnc-form-to-conclusion x)))
+   ((all-allnc-form? x)
+    (andl-andnc-imp-impnc-all-allnc-form-to-final-left
+     (all-allnc-form-to-kernel x)))
+   (else x)))
+
 ;; (add-ids (list (list "EqD" (make-arity (py "alpha") (py "alpha"))))
 ;; 	 '("allnc x^ EqD x^ x^" "GenEqD"))
 
@@ -2488,8 +2501,10 @@
 		    (term-to-cototality-formula (car args)))
 		   ((string=? "CoTotalNc" (predconst-to-name pred))
 		    (term-to-cototalnc-formula (car args)))
-		   ((string=? "TotalMR" (predconst-to-name pred)) ;obsolete
+		   ((string=? "TotalMR" (predconst-to-name pred))
 		    (apply terms-to-mr-totality-formula args))
+		   ((string=? "CoTotalMR" (predconst-to-name pred))
+		    (apply terms-to-mr-cototality-formula args))
 		   ((string=? "EqP" (predconst-to-name pred))
 		    (terms-to-eqp-formula (car args) (cadr args)))
 		   ((string=? "EqPNc" (predconst-to-name pred))
@@ -2498,9 +2513,9 @@
 		    (terms-to-coeqp-formula (car args) (cadr args)))
 		   ((string=? "CoEqPNc" (predconst-to-name pred))
 		    (terms-to-coeqpnc-formula (car args) (cadr args)))
-		   ((string=? "EqPMR" (predconst-to-name pred)) ;obsolete
+		   ((string=? "EqPMR" (predconst-to-name pred))
 		    (apply terms-to-mr-eqp-formula args))
-		   ((string=? "CoEqPMR" (predconst-to-name pred)) ;obsolete
+		   ((string=? "CoEqPMR" (predconst-to-name pred))
 		    (apply terms-to-mr-coeqp-formula args))
 		   (else formula)))
 	    ((idpredconst-form? pred) formula)
@@ -3401,6 +3416,20 @@
 (define (pvar-cterm-to-pvar cterm)
   (predicate-form-to-predicate (cterm-to-formula cterm)))
 
+(define (idpredconst=? idpc1 idpc2)
+  (or (equal? idpc1 idpc2)
+      (let* ((name1 (idpredconst-to-name idpc1))
+	     (types1 (idpredconst-to-types idpc1))
+	     (cterms1 (idpredconst-to-cterms idpc1))
+	     (name2 (idpredconst-to-name idpc2))
+	     (types2 (idpredconst-to-types idpc2))
+	     (cterms2 (idpredconst-to-cterms idpc2)))
+	(and (string=? name1 name2)
+	     (equal? types1 types2)
+	     (= (length cterms1) (length cterms2))
+	     (apply and-op (map (lambda (x y) (classical-cterm=? x y))
+				cterms1 cterms2))))))
+
 ;; formula-to-undec-formula prepares for decoration.  It changes all
 ;; occurrences of imp, all into impnc, allnc, and in case id-deco? is
 ;; true, (i) every existential quantification exd, exl, exr into exnc,
@@ -4241,28 +4270,20 @@
 		(case bicon1
 		  ((imp impnc) (memq bicon2 '(imp impnc)))
 		  ((andd andl andr andnc) (memq bicon2 '(andd andl andr andnc)))
-		  ((ord orl orr oru) (memq bicon2 '(ord orl orr oru)))
+		  ((ord orl orr oru ornc) (memq bicon2 '(ord orl orr oru ornc)))
 		  (else #f)))
-	    (formula=-aux? left1 left2 alist alistrev ignore-deco-flag)
-	    (formula=-aux? right1 right2 alist alistrev ignore-deco-flag))
+	    (formula=-aux? left1 left2 alist alistrev #t)
+	    (formula=-aux? right1 right2 alist alistrev #t))
 					;ignore-deco-flag if #f
-       (cond ;impnc is a special case
-	((and (eq? bicon1 'impnc) (eq? bicon2 'impnc))
-	 (and (formula=-aux? left1 left2 alist alistrev #t) ;ignore deco left
-	      (formula=-aux? right1 right2 alist alistrev ignore-deco-flag)))
-	((and (eq? bicon1 'imp) (eq? bicon2 'impnc))
-	 (and (or (formula-of-nulltype? left1) (formula-of-nulltype? right1))
-	      (formula=-aux? left1 left2 alist alistrev #t) ;ignore deco left
-	      (formula=-aux? right1 right2 alist alistrev ignore-deco-flag)))
-	((and (eq? bicon1 'impnc) (eq? bicon2 'imp))
-	 (and (or (formula-of-nulltype? left2) (formula-of-nulltype? right2))
-	      (formula=-aux? left1 left2 alist alistrev #t) ;ignore deco left
-	      (formula=-aux? right1 right2 alist alistrev ignore-deco-flag)))
-	(else
-	 (and
-	  (eq? bicon1 bicon2)
-	  (formula=-aux? left1 left2 alist alistrev ignore-deco-flag)
-	  (formula=-aux? right1 right2 alist alistrev ignore-deco-flag)))))))
+       (if ;impnc is a special case
+	(or (and (eq? bicon1 'impnc) (eq? bicon2 'impnc))
+	    (and (eq? bicon1 'imp) (eq? bicon2 'impnc))
+	    (and (eq? bicon1 'impnc) (eq? bicon2 'imp)))
+	(and (formula=-aux? left1 left2 alist alistrev #t) ;ignore deco left
+	     (formula=-aux? right1 right2 alist alistrev #f))
+	(and (eq? bicon1 bicon2)
+	     (formula=-aux? left1 left2 alist alistrev #f)
+	     (formula=-aux? right1 right2 alist alistrev #f))))))
    ((and (quant-form? formula1) (quant-form? formula2))
     (let* ((quant1 (quant-form-to-quant formula1))
 	   (vars1 (quant-form-to-vars formula1))
@@ -4312,7 +4333,9 @@
 		(types2 (idpredconst-to-types idpc2))
 		(cterms1 (idpredconst-to-cterms idpc1))
 		(cterms2 (idpredconst-to-cterms idpc2)))
-	   (and (string=? name1 name2)
+	   (and (or (string=? name1 name2)
+		    (string=? name1 (string-append name2 "Nc"))
+		    (string=? (string-append name1 "Nc") name2))
 		(equal? types1 types2)
 		(apply and-op
 		       (map (lambda (ct1 ct2)
@@ -4334,21 +4357,15 @@
 	((and (pvar-form? pred1) (pvar-form? pred2))
 	 (equal? pred1 pred2))
 	((and (predconst-form? pred1) (predconst-form? pred2))
-	 (equal? pred1 pred2))
-	((and (predconst-form? pred1) (idpredconst-form? pred2))
-	 (let ((unfolded-formula1 (unfold-formula formula1)))
-	   (and (predicate-form? unfolded-formula1)
-		(idpredconst-form?
-		 (predicate-form-to-predicate unfolded-formula1))
-		(formula=-aux? unfolded-formula1 formula2
-			       alist alistrev ignore-deco-flag))))
-	((and (idpredconst-form? pred1) (predconst-form? pred2))
-	 (let ((unfolded-formula2 (unfold-formula formula2)))
-	   (and (predicate-form? unfolded-formula2)
-		(idpredconst-form?
-		 (predicate-form-to-predicate unfolded-formula2))
-		(formula=-aux? formula1 unfolded-formula2
-			       alist alistrev ignore-deco-flag))))
+	 (let ((name1 (predconst-to-name pred1))
+	       (name2 (predconst-to-name pred2)))
+	   (and (or (string=? name1 name2)
+		    (string=? name1 (string-append name2 "Nc"))
+		    (string=? (string-append name1 "Nc") name2))
+		(= (predconst-to-index pred1) (predconst-to-index pred2))
+		(equal? (predconst-to-tsubst pred1) (predconst-to-tsubst pred2))
+		(equal? (predconst-to-uninst-arity pred1)
+			(predconst-to-uninst-arity pred2)))))
 	(else #f)))))
    ((and (atom-form? formula1) (atom-form? formula2))
     (term=-aux? (atom-form-to-kernel formula1)
@@ -4785,6 +4802,16 @@
     (let ((pred (predicate-form-to-predicate x))
 	  (args (predicate-form-to-args x)))
       (map check-term args)
+      (cond ((pvar-form? pred)
+	     (if (not (pvar? pred))
+		 (myerror "check-formula" "pvar expected" x)))
+	    ((predconst-form? pred)
+	     (if (not (predconst? pred))
+		 (myerror "check-formula" "predconst expected" x)))
+	    ((idpredconst-form? pred)
+	     (check-idpredconst pred))
+	    (else (myerror "check-formula"
+			   "pvar, predconst or idpredconst expected" x)))
       (let ((arity (predicate-to-arity pred))
 	    (types (map term-to-type args)))
 	(if (not (equal? (arity-to-types arity) types))
@@ -4918,23 +4945,17 @@
 		       (vars (cterm-to-vars cterm))
 		       (formula (cterm-to-formula cterm)))
 		  (if
-		   (if DIALECTICA-FLAG
-		       (or (and (not (pvar-with-positive-content? pred))
-				(not (nulltype?
-				      (formula-to-etdp-type formula))))
-			   (and (not (pvar-with-negative-content? pred))
-				(not (nulltype?
-				      (formula-to-etdn-type formula)))))
-		       (and (not (pvar-with-positive-content? pred))
-			    (not (nulltype? (formula-to-et-type formula)))))
-		   (if DIALECTICA-FLAG
-		       (myerror
-			"formula-substitute" "formula" formula
-			"has not the right (positive or negative) content for"
-			pred)
-		       (myerror "formula-substitute"
-				"formula without positive content expected"
-				formula))
+		   (and	DIALECTICA-FLAG
+			(or (and (not (pvar-with-positive-content? pred))
+				 (not (nulltype?
+				       (formula-to-etdp-type formula))))
+			    (and (not (pvar-with-negative-content? pred))
+				 (not (nulltype?
+				       (formula-to-etdn-type formula))))))
+		   (myerror
+		    "formula-substitute" "formula" formula
+		    "has not the right (positive or negative) content for"
+		    pred)
 		   (formula-substitute
 		    formula (make-substitution vars subst-args))))
 		(apply make-predicate-formula pred subst-args))))
