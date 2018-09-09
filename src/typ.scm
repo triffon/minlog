@@ -1,4 +1,4 @@
-;; 2017-04-21
+;; 2018-09-09.  typ.scm
 ;; 2. Types
 ;; ========
 
@@ -492,6 +492,27 @@
     ((star) (union (star-form-to-left-type type)
 		   (star-form-to-right-type type)))
     (else (myerror "type-to-spos-tvars" "type expected" type))))
+
+(define (type-to-level type)
+  (cond
+   ((alg-form? type)
+    (let* ((types (alg-form-to-types type))
+	   (prevs (map type-to-level types)))
+      (foldr max 0 prevs)))
+   ((arrow-form? type)
+    (let* ((arg-type (arrow-form-to-arg-type type))
+	   (val-type (arrow-form-to-val-type type))
+	   (prev-arg (type-to-level arg-type))
+	   (prev-val (type-to-level val-type)))
+      (max (+ 1 prev-arg) prev-val)))
+   ((ground-type? type) ;tvar or tconst
+    0)
+   (else (myerror "type-to-level" "type expected" type))))
+
+;; Tests
+;; (type-to-level (py "nat"))
+;; (type-to-level (py "nat ysum nat"))
+;; (type-to-level (py "nat ysum (boole=>nat)"))
 
 ;; For backwards compatibility we keep
 
@@ -1372,27 +1393,30 @@
 
 (define (alg-name-to-arity alg-name) (length (alg-name-to-tvars alg-name)))
 
-(define (finalg? type . finalgs)
+(define (finalg? type . types)
   (or
-   (member type finalgs)
+   (member type types)
    (and
     (alg-form? type)
     (let* ((name (alg-form-to-name type))
+	   (param-types (alg-form-to-types type))
 	   (names (if (assoc name ALGEBRAS)
 		      (alg-name-to-simalg-names name)
 		      (myerror "finalg?" "alg name expected" name)))
-	   (typed-constr-names
+	   (typed-constr-names ;all constructors are relevant
 	    (apply union (map alg-name-to-typed-constr-names names)))
 	   (constr-types (map typed-constr-name-to-type typed-constr-names))
 	   (argtypes (apply union (map arrow-form-to-arg-types constr-types)))
-	   (tsubst (map list (alg-name-to-tvars name) (alg-form-to-types type)))
-	   (tsubst-argtypes (map (lambda (x) (type-substitute x tsubst))
-				 argtypes))
-	   (test (lambda (type1)
-		   (and (alg-form? type1)
-			(or (member (alg-form-to-name type1) names)
-			    (apply finalg? type1 (adjoin type finalgs)))))))
-      (apply and-op (map test tsubst-argtypes))))))
+	   (tvars (alg-name-to-tvars name))
+	   (tsubst (make-substitution tvars param-types))
+	   (subst-argtypes (map (lambda (argtype)
+				  (type-substitute argtype tsubst))
+				argtypes))
+	   (algs (map (lambda (name) (apply make-alg name param-types))
+		      names)))
+      (apply and-op (map (lambda (subst-argtype)
+			   (apply finalg? subst-argtype (append algs types)))
+			 subst-argtypes))))))
 
 ;; sfinalg? checks whether type is a structure-finitary algebra.
 
@@ -1909,71 +1933,264 @@
 
 (define ran remove-alg-name)
 
-;; type-to-canonical-inhabitant can be defined directly using the required
-;; order of the constructor types.
+(define (alg-and-excluded-simalg-names-to-inhab-or-f alg . excl-names)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (tsubst (make-substitution tvars types))
+	 (typed-constr-names (alg-name-to-typed-constr-names alg-name))
+	 (constr-names (map typed-constr-name-to-name typed-constr-names))
+	 (constrs (map constr-name-to-constr constr-names))
+	 (cycle-free-constrs ;for simplicity no immediate cycles
+	  (list-transform-positive constrs
+	    (lambda (constr)
+	      (let* ((type (const-to-type constr))
+		     (arg-types (arrow-form-to-arg-types type))
+		     (arg-val-types
+		      (map arrow-form-to-final-val-type arg-types))
+		     (arg-val-algs
+		      (list-transform-positive arg-val-types alg-form?)))
+		(not (member alg-name (map alg-form-to-name arg-val-algs)))))))
+	 (inst-constr-terms (map (lambda (constr)
+				   (make-term-in-const-form
+				    (const-substitute constr tsubst #t)))
+				 cycle-free-constrs)))
+    (do ((l inst-constr-terms (cdr l))
+	 (res
+	  #f
+	  (let* ((inst-constr-term (car l))
+		 (type (term-to-type inst-constr-term))
+		 (arg-types (arrow-form-to-arg-types type))
+		 ;; (arg-val-types (map arrow-form-to-final-val-type arg-types))
+		 (inhab-or-fs ;rec call for each arg-type w.r.t ext excl-names
+		  (map (lambda (x) ;x an arg-type
+			 (let* ((arg-val-type (arrow-form-to-final-val-type x))
+				(arg-arg-types (arrow-form-to-arg-types x))
+				(vars (map type-to-new-var arg-arg-types)))
+			   (cond
+			    ((tvar-form? arg-val-type)
+			     (let* ((inhab-pconst
+				     (pconst-name-to-pconst "Inhab"))
+				    (tvars (const-to-tvars inhab-pconst))
+				    (tsubst (make-substitution
+					     tvars (list arg-val-type))))
+			       (apply
+				mk-term-in-abst-form
+				(append vars
+					(list (make-term-in-const-form
+					       (const-substitute
+						inhab-pconst tsubst #f)))))))
+			    ((alg-form? arg-val-type) ;rec. call
+			     (apply
+			      mk-term-in-abst-form
+			      (append
+			       vars
+			       (list
+				(apply
+				 alg-and-excluded-simalg-names-to-inhab-or-f
+				 arg-val-type
+				 (alg-form-to-name arg-val-type)
+				 excl-names)))))
+			    (else (myerror
+				   "alg-and-excluded-simalg-names-to-inhab-or-f"
+				   "tvar or alg-from expected" arg-val-type)))))
+		       arg-types)))
+	    (if (member #f inhab-or-fs) #f
+		(apply mk-term-in-app-form inst-constr-term inhab-or-fs)))))
+	((or res (null? l)) res))))
+
+;; In alg-to-canonical-inhabitant it is assumed that alg has level
+;; zero, i.e., that all its paramter types have level zero as well.
+
+(define (alg-to-canonical-inhabitant alg)
+  (let ((inhab-or-f (alg-and-excluded-simalg-names-to-inhab-or-f alg)))
+    (if inhab-or-f
+	inhab-or-f
+	(make-term-in-const-form
+	 (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
+		(tvars (const-to-tvars inhab-pconst))
+		(tsubst (make-substitution tvars (list alg))))
+	   (const-substitute inhab-pconst tsubst #f))))))
 
 (define (type-to-canonical-inhabitant type)
   (case (tag type)
-    ((tvar tconst)
-     (make-term-in-const-form
-      (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
-	     (tvars (const-to-tvars inhab-pconst))
-	     (tsubst (make-substitution tvars (list type))))
-	(const-substitute inhab-pconst tsubst #f))))
-    ((alg)
-     (if
-      (not (alg-inhabited? (alg-form-to-name type)))
-      (make-term-in-const-form
-       (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
-	      (tvars (const-to-tvars inhab-pconst))
-	      (tsubst (make-substitution tvars (list type))))
-	 (const-substitute inhab-pconst tsubst #f)))
-      (let* ((alg-name (alg-form-to-name type))
-	     (types (alg-form-to-types type))
-	     (typed-constr-names (alg-name-to-typed-constr-names alg-name))
-	     (constr-names (map typed-constr-name-to-name typed-constr-names))
-	     (constr-types (map typed-constr-name-to-type typed-constr-names))
-	     (init-constr-name-and-constr-type
-	      (do ((l1 constr-names (cdr l1))
-		   (l2 constr-types (cdr l2))
-		   (res #f (if res res
-			       (let* ((constr-name (car l1))
-				      (constr-type (car l2)))
-				 (if (string=? (alg-form-to-name
-						(arrow-form-to-final-val-type
-						 constr-type))
-					       alg-name)
-				     (list constr-name constr-type)
-				     #f)))))
-		  ((null? l1) (if res res #f))))
-	     (constr-name (car init-constr-name-and-constr-type))
-	     (constr-type (cadr init-constr-name-and-constr-type))
-	     (arg-types (arrow-form-to-arg-types constr-type))
-	     (tvars (alg-name-to-tvars alg-name))
-	     (tsubst (make-substitution tvars types))
-	     (substituted-arg-types
-	      (map (lambda (arg-type) (type-substitute arg-type tsubst))
-		   arg-types))
-	     (ih-inhabs (map type-to-canonical-inhabitant
-			     substituted-arg-types))
-	     (constr (const-substitute (constr-name-to-constr constr-name)
-				       tsubst #t)))
-	(apply mk-term-in-app-form
-	       (make-term-in-const-form constr)
-	       ih-inhabs))))
-    ((arrow)
-     (let* ((arg-type (arrow-form-to-arg-type type))
-	    (val-type (arrow-form-to-val-type type))
-	    (var (type-to-new-var arg-type)))
-       (make-term-in-abst-form
-	var (type-to-canonical-inhabitant val-type))))
-    ((star)
-     (let ((left-type (star-form-to-left-type type))
-	   (right-type (star-form-to-right-type type)))
-       (make-term-in-pair-form
-	(type-to-canonical-inhabitant left-type)
-	(type-to-canonical-inhabitant right-type))))
+    ((tvar tconst) (make-term-in-const-form
+		    (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
+			   (tvars (const-to-tvars inhab-pconst))
+			   (tsubst (make-substitution tvars (list type))))
+		      (const-substitute inhab-pconst tsubst #f))))
+    ((alg) (alg-to-canonical-inhabitant type))
+    ((arrow) (let* ((arg-type (arrow-form-to-arg-type type))
+		    (val-type (arrow-form-to-val-type type))
+		    (var (type-to-new-var arg-type)))
+	       (make-term-in-abst-form
+		var (type-to-canonical-inhabitant val-type))))
+    ((star) (let ((left-type (star-form-to-left-type type))
+		  (right-type (star-form-to-right-type type)))
+	      (make-term-in-pair-form
+	       (type-to-canonical-inhabitant left-type)
+	       (type-to-canonical-inhabitant right-type))))
     (else (myerror "type-to-canonical-inhabitant" "type expected" type))))
+
+;; Code discarded 2018-06-10
+;; (define (cycle-free-constr? inst-constr . opt-excluded-algs)
+;;   (let* ((type (term-to-type inst-constr))
+;; 	 (alg (arrow-form-to-final-val-type type))
+;; 	 (arg-types (arrow-form-to-arg-types type))
+;; 	 (arg-val-types (map arrow-form-to-final-val-type arg-types)))
+;;     (null? (intersection arg-val-types (cons alg opt-excluded-algs)))))
+
+;; (define (alg-to-canonical-inhabitant alg . opt-excluded-algs)
+;;   (if (member alg opt-excluded-algs) #f
+;;       (let* ((alg-name (alg-form-to-name alg))
+;; 	     (tvars (alg-name-to-tvars alg-name))
+;; 	     (types (alg-form-to-types alg))
+;; 	     (tsubst (make-substitution tvars types))
+;; 	     (typed-constr-names (alg-name-to-typed-constr-names alg-name))
+;; 	     (constr-names (map typed-constr-name-to-name typed-constr-names))
+;; 	     (constrs (map constr-name-to-constr constr-names))
+;; 	     (inst-constrs (map (lambda (constr)
+;; 				  (make-term-in-const-form
+;; 				   (const-substitute constr tsubst #t)))
+;; 				constrs))
+;; 	     (cycle-free-inst-constrs
+;; 	      (list-transform-positive inst-constrs cycle-free-constr?))
+;; 	     (canonical-insts
+;; 	      (map inst-constr-to-canonical-inst-or-f cycle-free-inst-constrs)))
+;; 	(list-to-first canonical-insts))))
+
+;; ;; Assume that inst-constr is cycle-free w.r.t. the final alg and the
+;; ;; opt-excluded-algs.
+
+;; (define (inst-constr-to-canonical-inst-or-f inst-constr . opt-excluded-algs)
+;;   (let* ((type (term-to-type inst-constr))
+;; 	 (alg (arrow-form-to-final-val-type type))
+;; 	 (arg-types (arrow-form-to-arg-types type))
+;; 	 (args
+;; 	  (map (lambda (arg-type)
+;; 		 (let ((arg-val-type (arrow-form-to-final-val-type arg-type))
+;; 		       (arg-arg-types (arrow-form-to-arg-types arg-type)))
+;; 		   (cond
+;; 		    ((member arg-val-type opt-excluded-algs) #f)
+;; 		    ((or (tvar? arg-val-type) (tconst? arg-val-type))
+;; 		     (apply
+;; 		      mk-term-in-abst-form
+;; 		      (append
+;; 		       (map type-to-new-var arg-arg-types)
+;; 		       (list
+;; 			(make-term-in-const-form
+;; 			 (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
+;; 				(tvars (const-to-tvars inhab-pconst))
+;; 				(tsubst (make-substitution
+;; 					 tvars (list arg-val-type))))
+;; 			   (const-substitute inhab-pconst tsubst #f)))))))
+;; 		    ((alg-form? arg-val-type) ;recursive call
+;; 		     (let ((alg-inhab
+;; 			    (apply alg-to-canonical-inhabitant
+;; 				   arg-val-type alg opt-excluded-algs)))
+;; 		       (type-and-val-type-inhab-to-inhab
+;; 			arg-type alg-inhab)))
+;; 		    (else (myerror "inst-constr-to-canonical-inst-or-f"
+;; 				   "alg or tvar expected" arg-val-type)))))
+;; 	       arg-types)))
+;;     (if (member #f args) #f
+;; 	(apply mk-term-in-app-form inst-constr args))))
+
+;; (define (type-and-val-type-inhab-to-inhab type val-type-inhab)
+;;   (if (arrow-form? type)
+;;       (let* ((arg (arrow-form-to-arg-type type))
+;; 	     (val (arrow-form-to-val-type type))
+;; 	     (prev (type-and-val-type-inhab-to-inhab val val-type-inhab))
+;; 	     (var (type-to-new-var arg)))
+;; 	(make-term-in-abst-form var prev))
+;;       val-type-inhab))
+
+;; (define (type-to-canonical-inhabitant type)
+;;   (case (tag type)
+;;     ((tvar tconst) (make-term-in-const-form
+;; 		    (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
+;; 			   (tvars (const-to-tvars inhab-pconst))
+;; 			   (tsubst (make-substitution tvars (list type))))
+;; 		      (const-substitute inhab-pconst tsubst #f))))
+;;     ((alg) (alg-to-canonical-inhabitant type))
+;;     ((arrow) (let* ((arg-type (arrow-form-to-arg-type type))
+;; 		    (val-type (arrow-form-to-val-type type))
+;; 		    (var (type-to-new-var arg-type)))
+;; 	       (make-term-in-abst-form
+;; 		var (type-to-canonical-inhabitant val-type))))
+;;     ((star) (let ((left-type (star-form-to-left-type type))
+;; 		  (right-type (star-form-to-right-type type)))
+;; 	      (make-term-in-pair-form
+;; 	       (type-to-canonical-inhabitant left-type)
+;; 	       (type-to-canonical-inhabitant right-type))))
+;;     (else (myerror "type-to-canonical-inhabitant" "type expected" type))))
+
+;; Code discarded 2018-05-30
+;; ;; type-to-canonical-inhabitant can be defined directly using the required
+;; ;; order of the constructor types.
+
+;; (define (type-to-canonical-inhabitant type)
+;;   (case (tag type)
+;;     ((tvar tconst)
+;;      (make-term-in-const-form
+;;       (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
+;; 	     (tvars (const-to-tvars inhab-pconst))
+;; 	     (tsubst (make-substitution tvars (list type))))
+;; 	(const-substitute inhab-pconst tsubst #f))))
+;;     ((alg)
+;;      (if
+;;       (not (alg-inhabited? (alg-form-to-name type)))
+;;       (make-term-in-const-form
+;;        (let* ((inhab-pconst (pconst-name-to-pconst "Inhab"))
+;; 	      (tvars (const-to-tvars inhab-pconst))
+;; 	      (tsubst (make-substitution tvars (list type))))
+;; 	 (const-substitute inhab-pconst tsubst #f)))
+;;       (let* ((alg-name (alg-form-to-name type))
+;; 	     (types (alg-form-to-types type))
+;; 	     (typed-constr-names (alg-name-to-typed-constr-names alg-name))
+;; 	     (constr-names (map typed-constr-name-to-name typed-constr-names))
+;; 	     (constr-types (map typed-constr-name-to-type typed-constr-names))
+;; 	     (init-constr-name-and-constr-type
+;; 	      (do ((l1 constr-names (cdr l1))
+;; 		   (l2 constr-types (cdr l2))
+;; 		   (res #f (if res res
+;; 			       (let* ((constr-name (car l1))
+;; 				      (constr-type (car l2)))
+;; 				 (if (string=? (alg-form-to-name
+;; 						(arrow-form-to-final-val-type
+;; 						 constr-type))
+;; 					       alg-name)
+;; 				     (list constr-name constr-type)
+;; 				     #f)))))
+;; 		  ((null? l1) (if res res #f))))
+;; 	     (constr-name (car init-constr-name-and-constr-type))
+;; 	     (constr-type (cadr init-constr-name-and-constr-type))
+;; 	     (arg-types (arrow-form-to-arg-types constr-type))
+;; 	     (tvars (alg-name-to-tvars alg-name))
+;; 	     (tsubst (make-substitution tvars types))
+;; 	     (substituted-arg-types
+;; 	      (map (lambda (arg-type) (type-substitute arg-type tsubst))
+;; 		   arg-types))
+;; 	     (ih-inhabs (map type-to-canonical-inhabitant
+;; 			     substituted-arg-types))
+;; 	     (constr (const-substitute (constr-name-to-constr constr-name)
+;; 				       tsubst #t)))
+;; 	(apply mk-term-in-app-form
+;; 	       (make-term-in-const-form constr)
+;; 	       ih-inhabs))))
+;;     ((arrow)
+;;      (let* ((arg-type (arrow-form-to-arg-type type))
+;; 	    (val-type (arrow-form-to-val-type type))
+;; 	    (var (type-to-new-var arg-type)))
+;;        (make-term-in-abst-form
+;; 	var (type-to-canonical-inhabitant val-type))))
+;;     ((star)
+;;      (let ((left-type (star-form-to-left-type type))
+;; 	   (right-type (star-form-to-right-type type)))
+;;        (make-term-in-pair-form
+;; 	(type-to-canonical-inhabitant left-type)
+;; 	(type-to-canonical-inhabitant right-type))))
+;;     (else (myerror "type-to-canonical-inhabitant" "type expected" type))))
 
 ;; For Huets unification algorithm we need
 
@@ -2010,7 +2227,7 @@
     (else (myerror "type-to-final-groundtypes" "type expected" type))))
 
 ;; We need a subtype relation generated from pos < nat < int < rat <
-;; rea < cpx
+;; rea < cpx and (str alpha)<(list alpha)
 
 ;; View pos, nat, int, rat, rea and cpx as algebras, with constructors
 ;; pos: One SZero SOne
@@ -2020,33 +2237,80 @@
 ;; rea: RealConstr and Destructors RealSeq RealMod
 ;; cpx: CpxConstr (written ## infix) and destructors RealPart ImagPart
 
+;; View str, list as algebras with constructors
+;; str: SCons
+;; list: Nil Cons
+
 ;; We use a global variable ALGEBRA-EDGE-TO-EMBED-TERM-ALIST
 ;; initially set to '().
 
 (define ALGEBRA-EDGE-TO-EMBED-TERM-ALIST '())
 
+(define (add-item-to-algebra-edge-to-embed-term-alist
+         alg1-name alg2-name embed-term)
+  (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST
+        (cons (list
+	       (list (apply make-alg alg1-name (alg-name-to-tvars alg1-name))
+		     (apply make-alg alg2-name (alg-name-to-tvars alg2-name)))
+	       embed-term)
+              ALGEBRA-EDGE-TO-EMBED-TERM-ALIST)))
+
+(define (add-item-to-algebra-edge-to-embed-term-alist
+         alg1-name alg2-name embed-term)
+  (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST
+        (cons (list
+	       (list (apply make-alg alg1-name (alg-name-to-tvars alg1-name))
+		     (apply make-alg alg2-name (alg-name-to-tvars alg2-name)))
+	       embed-term)
+              ALGEBRA-EDGE-TO-EMBED-TERM-ALIST)))
+
+;; When later we have proved totality of e.g. PosToNat and NatToInt we
+;; need to replace their item accordingly.
+
+(define (replace-item-in-algebra-edge-to-embed-term-alist
+         alg1-name alg2-name new-embed-term)
+  (let* ((alg1 (apply make-alg alg1-name (alg-name-to-tvars alg1-name)))
+	 (alg2 (apply make-alg alg2-name (alg-name-to-tvars alg2-name)))
+	 (new-alist (map (lambda (item)
+			   (if (equal? (car item) (list alg1 alg2))
+			       (list (car item) new-embed-term)
+			       item))
+			 ALGEBRA-EDGE-TO-EMBED-TERM-ALIST)))
+    (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST new-alist)))
+
 (define (alg-le? alg1 alg2)
-  (or (equal? alg1 alg2)
-      (do ((l ALGEBRA-EDGE-TO-EMBED-TERM-ALIST (cdr l))
-	   (res #f (let* ((item (car l))
-			  (edge (car item))
-			  (lhs (car edge))
-			  (rhs (cadr edge)))
-		     (and (equal? rhs alg2)
-			  (alg-le? alg1 lhs)))))
-	  ((or res (null? l)) res))))
+  (let ((name1 (alg-form-to-name alg1))
+	(name2 (alg-form-to-name alg2)))
+    (if
+     (string=? name1 name2)
+     (let ((types1 (alg-form-to-types alg1))
+	   (types2 (alg-form-to-types alg2)))
+       (apply and-op (map type-le? types1 types2)))
+     (do ((l ALGEBRA-EDGE-TO-EMBED-TERM-ALIST (cdr l))
+	  (res #f (let* ((item (car l))
+			 (edge (car item))
+			 (lhs (car edge))
+			 (rhs (cadr edge))
+			 (embed-term (cadr item))
+			 (tsubst2 (type-match rhs alg2)))
+		    (and tsubst2
+			 (alg-le? alg1 (type-substitute lhs tsubst2))))))
+	 ((or res (null? l)) res)))))
+
+;; (alg-le? (py "pos") (py "int"))
+;; (alg-le? (py "pos") (py "rat"))
+;; (alg-le? (py "list pos") (py "list int"))
+;; (alg-le? (py "list pos") (py "list rat"))
+;; (alg-le? (py "str pos") (py "str int"))
+;; (alg-le? (py "str pos") (py "list pos"))
+;; (alg-le? (py "str pos") (py "list int"))
+;; (alg-le? (py "str pos") (py "list rat"))
+;; (alg-le? (py "list pos") (py "str pos"))
 
 (define (type-le? type1 type2)
   (or (equal? type1 type2)
       (and (alg-form? type1) (alg-form? type2)
-	   (let ((types1 (alg-form-to-types type1))
-		 (types2 (alg-form-to-types type2)))
-	     (if (and (null? types1) (null? types2))
-		 (alg-le? type1 type2)
-		 (and (= (length types1) (length types2))
-		      (string=? (alg-form-to-name type1)
-				(alg-form-to-name type2))
-		      (apply and-op (map type-le? types1 types2))))))
+	   (alg-le? type1 type2))
       (and (arrow-form? type1) (arrow-form? type2)
 	   (type-le? (arrow-form-to-arg-type type2)
 		     (arrow-form-to-arg-type type1))
@@ -2057,6 +2321,21 @@
 		     (star-form-to-left-type type2))
 	   (type-le? (star-form-to-right-type type1)
 		     (star-form-to-right-type type2)))))
+
+;; (type-le? (py "pos") (py "int"))
+;; (type-le? (py "pos") (py "rat"))
+;; (type-le? (py "list pos") (py "list int"))
+;; (type-le? (py "list pos") (py "list rat"))
+;; (type-le? (py "str pos") (py "str int"))
+;; (type-le? (py "str pos") (py "list pos"))
+;; (type-le? (py "str pos") (py "list int"))
+;; (type-le? (py "str pos") (py "list rat"))
+;; (type-le? (py "list pos") (py "str pos"))
+
+;; (type-le? (py "nat") (py "int")) ;#t
+;; (alg-le? (py "list pos") (py "list int"))
+
+;; (set! ALGEBRA-EDGE-TO-EMBED-TERM-ALIST '())
 
 ;; For compatibility we (temporarily) define
 (define type-leq? type-le?)
@@ -2069,8 +2348,9 @@
        (res #f (let* ((item (car l))
 		      (edge (car item))
 		      (lhs (car edge))
-		      (rhs (cadr edge)))
-		 (if (equal? rhs (term-to-type term))
+		      (rhs (cadr edge))
+		      (tsubst (type-match rhs (term-to-type term))))
+		 (if tsubst
 		     (let* ((embed-term (cadr item))
 			    (var (term-in-abst-form-to-var embed-term))
 			    (kernel (term-in-abst-form-to-kernel embed-term))
@@ -2085,28 +2365,68 @@
 		     #f))))
       ((or res (null? l)) (if res res term))))
 
+;; (pp (term-to-original (pt "(IntPos p):")))
+;; p:
+
 ;; The following returns #f in case alg1 not <= alg2
 
-(define (algebras-to-embedding alg1 alg2)
-  (if (equal? alg1 alg2)
-      (lambda (term) term)
-      (do ((l ALGEBRA-EDGE-TO-EMBED-TERM-ALIST (cdr l))
-	   (res #f (let* ((item (car l))
-			  (edge (car item))
-			  (lhs (car edge))
-			  (rhs (cadr edge)))
-		     (if (equal? rhs alg2)
-			 (let ((prev (algebras-to-embedding alg1 lhs)))
-			   (and prev
-				(let* ((embed-term (cadr item))
-				       (var (term-in-abst-form-to-var
-					     embed-term))
-				       (kernel (term-in-abst-form-to-kernel
-						embed-term)))
-				  (lambda (term)
-				    (term-subst kernel var (prev term))))))
-			 #f))))
-	  ((or res (null? l)) res))))
+(define (algebras-to-embedding alg1 alg2) ;alg1=str pos, alg2=list rat
+  (let ((name1 (alg-form-to-name alg1))
+	(name2 (alg-form-to-name alg2)))
+    (if
+     (string=? name1 name2)
+     (let ((types1 (alg-form-to-types alg1))
+	   (types2 (alg-form-to-types alg2)))
+       (if
+	(equal? types1 types2)
+	(lambda (term) term)
+	(let ((prevs ;of types (pos=>rat)
+	       (map types-to-embedding types1 types2)))
+	  (and (apply and-op prevs)
+	       (let* ((tvars (alg-name-to-tvars name1))
+		      (map-const ;str pos=>(pos=>rat)=>str rat
+		       (make-map-const
+			(apply make-alg name1 tvars) tvars types1 types2))
+		      (var ;str pos
+		       (make-var alg1 -1 t-deg-one (default-var-name alg1)))
+		      (xs (map (lambda (type)
+				 (make-var
+				  type -1 t-deg-one (default-var-name type)))
+			       types1))
+		      (prevs-terms
+		       (map (lambda (prev x)
+			      (make-term-in-abst-form
+			       x (prev (make-term-in-var-form x))))
+			    prevs xs)))
+		 (lambda (term)
+		   (apply mk-term-in-app-form
+			  (make-term-in-const-form map-const)
+			  term
+			  prevs-terms)))))))
+     (do ((l ALGEBRA-EDGE-TO-EMBED-TERM-ALIST (cdr l))
+	  (res #f (let* ((item (car l))
+			 (edge (car item)) ;((str alpha) (list alpha))
+			 (lhs (car edge)) ;str alpha
+			 (rhs (cadr edge)) ;list alpha
+			 (embed-term (cadr item)) ;str alpha=>list alpha
+			 (tsubst2 (type-match rhs alg2))) ;alpha=>rat
+		    (and
+		     tsubst2
+		     (let* ((subst-embed-term ;str rat=>list rat
+			     (term-substitute embed-term tsubst2))
+			    (subst-embed-var ;str rat
+			     (term-in-abst-form-to-var subst-embed-term))
+			    (subst-embed-kernel ;list rat
+			     (term-in-abst-form-to-kernel subst-embed-term))
+			    (prev ;str pos=>str rat
+			     (algebras-to-embedding ;recursive call
+			      alg1 (type-substitute lhs tsubst2))))
+		       (and prev
+			    (lambda (term)
+			      (term-subst subst-embed-kernel
+					  subst-embed-var
+					  (prev term)))))))))
+	 ((or res (null? l)) res)))))
 
 (define (types-to-embedding type1 type2)
   (if
