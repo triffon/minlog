@@ -1,4 +1,4 @@
-;; 2018-06-25.  pproof.scm
+;; 2018-11-13.  pproof.scm
 ;; 11. Partial proofs
 ;; ==================
 
@@ -5215,7 +5215,7 @@
 		  "RatUDivCompat"))
 	   (binary-compat-names
 	    (list "RatPlusCompat" "RatTimesCompat" "RatMinusCompat"
-		  "RatDivCompat")))
+		  "RatDivCompat" "RatMaxCompat" "RatMinCompat")))
       (cond
        ((member name unary-compat-names)
 	(mk-proof-in-elim-form ;of ~t(lhs)== ~t(rhs)
