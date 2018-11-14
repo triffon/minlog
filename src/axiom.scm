@@ -1,4 +1,4 @@
-;; 2018-08-23.  axiom.scm
+;; 2018-11-13.  axiom.scm
 ;; 8. Assumption variables and axioms
 ;; ==================================
 ;; To be renamed into avars scheme, with the axioms section transferred
@@ -2779,11 +2779,14 @@
     ;; Change t-deg-zero in each pconst to t-deg-one
     (apply change-t-deg-to-one pconst-names)
     (let* ((types (map term-to-type terms))
-	   (maxlev (apply max (map type-to-level types))))
+	   (maxlev (apply max (map type-to-level types)))
+	   (arg-types (apply union (map arrow-form-to-arg-types types)))
+	   (alg-arg-types (list-transform-positive arg-types alg-form?))
+	   (param-types (apply union (map alg-form-to-types alg-arg-types))))
       (if
        (and (<= maxlev 1)
-	    (not (member '(alg "rea") ;rea is a non-finitary algebra
-			 (apply append (map arrow-form-to-arg-types types)))))
+	    (apply and-op (map (lambda (type) (apply finalg? type param-types))
+			       alg-arg-types)))
        ;; (<= maxlev 1)
        (let*
 	   ((new-pconsts (map pconst-name-to-pconst pconst-names)) ;t-deg-one
@@ -2804,6 +2807,93 @@
 	   (comment "Redo totality proof for the new total pconst.")
 	   (comment "Redo totality proof for the new total pconsts."))))
     *the-non-printing-object*))
+
+;; Code discarded 2018-10-20
+;; (define (add-totality-theorems . opt-proof)
+;;   (if (and (null? opt-proof)
+;; 	   (null? PPROOF-STATE))
+;;       (myerror "add-totality-theorems"
+;; 	       "proof argument or proof under construction expected"))
+;;   (let* ((proof (if (null? opt-proof)
+;; 		    (pproof-state-to-proof)
+;; 		    (car opt-proof)))
+;; 	 (formula (proof-to-formula proof))
+;; 	 (conjuncts (and-form-to-conjuncts formula))
+;; 	 (conclusions
+;; 	  (map imp-impnc-all-allnc-form-to-final-conclusion conjuncts))
+;; 	 (pconst-names
+;; 	  (map (lambda (concl)
+;; 		 (if (and (pair? (predicate-form-to-args concl))
+;; 			  (term-in-const-form?
+;; 			   (term-in-app-form-to-final-op
+;; 			    (car (predicate-form-to-args concl))))
+;; 			  (eq? 'pconst
+;; 			       (const-to-kind
+;; 				(term-in-const-form-to-const
+;; 				 (term-in-app-form-to-final-op
+;; 				  (car (predicate-form-to-args concl)))))))
+;; 		     (const-to-name
+;; 		      (term-in-const-form-to-const
+;; 		       (term-in-app-form-to-final-op
+;; 			(car (predicate-form-to-args concl)))))
+;; 		     (myerror "add-totality-theorems"
+;; 			      "unexpected final conclusion" concl)))
+;; 	       conclusions))
+;; 	 (pconsts (map pconst-name-to-pconst pconst-names))
+;; 	 (terms (map make-term-in-const-form pconsts))
+;; 	 (t-degs (map const-to-t-deg pconsts))
+;; 	 (totality-formulas (map term-to-totality-formula terms))
+;; 	 (unfolded-totality-formulas
+;; 	  (map term-to-unfolded-totality-formula terms)))
+;;     (if (not (null? (proof-to-free-avars proof)))
+;; 	(apply myerror "unexpected free assumptions"
+;; 	       (proof-to-free-avars proof)))
+;;     (if (pair? (nc-violations proof))
+;; 	(myerror "add-totality-theorems" "allnc-intro with cvars"
+;; 		 (nc-violations proof)))
+;;     (if (pair? (h-deg-violations proof))
+;; 	(myerror "add-totality-theorems" "h-deg violations at aconsts"
+;; 		 (h-deg-violations proof)))
+;;     (if (not (or (formula=? formula (apply mk-and totality-formulas))
+;; 		 (formula=? formula (apply mk-and unfolded-totality-formulas))))
+;; 	(myerror "add-totality-theorems" "formula" formula
+;; 		 "should be equal to the conjunction of totality formulas"
+;; 		 (mk-and totality-formulas)
+;; 		 "or the conjunction of unfolded totality formulas"
+;; 		 (mk-and unfolded-totality-formulas)))
+;;     (for-each (lambda (pconst-name t-deg)
+;; 		(if (t-deg-one? t-deg)
+;; 		    (comment "Warning: pconst " pconst-name
+;; 			     " should have been added with t-deg zero")))
+;; 	      pconst-names t-degs)
+;;     ;; Change t-deg-zero in each pconst to t-deg-one
+;;     (apply change-t-deg-to-one pconst-names)
+;;     (let* ((types (map term-to-type terms))
+;; 	   (maxlev (apply max (map type-to-level types))))
+;;       (if
+;;        (and (<= maxlev 1)
+;; 	    (not (member '(alg "rea") ;rea is a non-finitary algebra
+;; 			 (apply append (map arrow-form-to-arg-types types)))))
+;;        ;; (<= maxlev 1)
+;;        (let*
+;; 	   ((new-pconsts (map pconst-name-to-pconst pconst-names)) ;t-deg-one
+;; 	    (totality-proofs (map pconst-to-totality-proof new-pconsts))
+;; 	    (formulas (map proof-to-formula totality-proofs))
+;; 	    (strings (map (lambda (pconst-name)
+;; 			    (string-append pconst-name "Total"))
+;; 			  pconst-names))
+;; 	    (aconsts (map (lambda (string formula)
+;; 			    (make-aconst string 'theorem formula empty-subst))
+;; 			  strings formulas)))
+;; 	 (for-each (lambda (string aconst totality-proof)
+;; 		     (set! THEOREMS (cons (list string aconst totality-proof)
+;; 					  THEOREMS))
+;; 		     (comment "ok, " string " added as a new theorem."))
+;; 		   strings aconsts totality-proofs))
+;;        (if (= 1 (length pconsts))
+;; 	   (comment "Redo totality proof for the new total pconst.")
+;; 	   (comment "Redo totality proof for the new total pconsts."))))
+;;     *the-non-printing-object*))
 
 (define (save-totality . opt-proof)
   (apply add-totality-theorems opt-proof))
@@ -2943,8 +3033,9 @@
 
 ;; (search-about string1 ...) searches for theorems or global
 ;; assumptions whose name contains each of the strings given,
-;; excluding Total Partial CompRule RewRule Sound.  It one wants to list
-;; all these as well, take the symbol 'all as first argument.
+;; excluding Total Partial CompRule RewRule Sound EqP Ext.  It one
+;; wants to list all these as well, take the symbol 'all as first
+;; argument.
 
 (define (search-about string-or-symbol . strings)
   (if (not (or (and (symbol? string-or-symbol) (eq? 'all string-or-symbol))
@@ -2968,7 +3059,7 @@
 			     (string-append " and " string))
 			   (cdr search-strings))))))
 	 (excluded-strings
-	  (list "Total" "Partial" "CompRule" "RewRule" "Sound"))
+	  (list "Total" "Partial" "CompRule" "RewRule" "Sound" "EqP" "Ext"))
 	 (relevant-thms
 	  (list-transform-positive THEOREMS
 	    (lambda (x)
