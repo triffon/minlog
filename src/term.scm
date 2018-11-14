@@ -1,4 +1,4 @@
-;; 2018-06-20.  term.scm
+;; 2018-10-17.  term.scm
 ;; 6. Terms
 ;; ========
 
@@ -1584,7 +1584,7 @@
          (already-done (assoc var HASKELL-VARIABLES))
          (friendlier-var
           (cond
-	   ((member var-prefix VARIABLE-NAMES) var-name) ;user-chosen var
+	   ;; ((member var-prefix VARIABLE-NAMES) var-name) ;user-chosen var
 	   (already-done (cadr already-done)) ;must be consistent
 	   ((and
 	     (< (string-length var-name) 5) ;short names are okay
@@ -1593,7 +1593,11 @@
 	      (not (string-contains var-name ")" 0)))) ;expanded to lpar)
 	    var-name)
 	   (else
-	    (let* ((chosen-var-name (assoc type HASKELL-DEFAULT-VARIABLES))
+	    (let* (;; (chosen-var-name (assoc type HASKELL-DEFAULT-VARIABLES))
+		   (chosen-var-name
+		    (if (member var-prefix VARIABLE-NAMES)
+			(list type var-prefix) ;user chosen var-prefix
+			(assoc type HASKELL-DEFAULT-VARIABLES))) ;default prefix
 		   (relevant-indices
 		    (map caddr
 			 (list-transform-positive HASKELL-VARIABLES
@@ -1947,7 +1951,9 @@
 	     (cons 'map prevs))
 	    ((haskell)
 	     (if (= l 2)
-		 (string-append "(map" (car prevs) (cadr prevs) ")")
+		 (string-append "(map " (car prevs) (cadr prevs) ")")
+		 ;; (string-append "(map" (car prevs) (cadr prevs) ")")
+		 ;; Changes 2018-10-01
 		 (apply string-append-with-sep " " (cons "map" prevs))))))
 	 ((string=? name "Inhab")
 	  (let* ((inhab-name
@@ -3381,7 +3387,8 @@ intDestr n | n > 0  = Left n
                       fun-decls
                       (if (string=? module-name "Main")
                           "\n\n---------------------------------\n\nmain :: IO ()\nmain = putStrLn \"\""
-                          "")))))
+                          "")))) 'replace)
+                          ;; "")))))
         (comment "ok, output written to file " filename)))))
 
 (define (term-to-haskell-program filename term function-name . opt-module-name)
