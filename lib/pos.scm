@@ -1,4 +1,4 @@
-;; 2018-09-08.  pos.scm.  Based on the former numbers.scm.
+;; 2018-11-13.  pos.scm.  Based on the former numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -745,6 +745,21 @@
 ;; (use "TMRq0q")
 ;; ;; Proof finished.
 ;; (save "PosPredTotalReal")
+
+;; PosPredEqP
+(set-goal "allnc p^,q^(EqPPos p^ q^ -> EqPPos(PosPred p^)(PosPred q^))")
+(assume "p^" "q^" "EqPpq")
+(simp "<-" (pf "p^ eqd q^"))
+(use "EqPPosRefl")
+(use "PosPredTotal")
+(use "EqPPosToTotalLeft" (pt "q^"))
+(use "EqPpq")
+;; 4
+(use "EqPPosToEqD")
+(use "EqPpq")
+;; Proof finished.
+(save "PosPredEqP")
+;; (cdp)
 
 ;; Rules for PosHalf
 
@@ -5340,4 +5355,32 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "p<2**p" "True")
+
+;; NatLtZeroPosToNat
+(set-goal "all p Zero<p")
+(ind)
+(use "Truth")
+(assume "p" "IH")
+(ng)
+(simp "<-" "NatDouble0CompRule")
+(simp "NatDoubleLt")
+(use "IH")
+;; 4
+(assume "p" "IH")
+(use "Truth")
+;; Proof finished.
+(save "NatLtZeroPosToNat")
+
+;; NatToPosNatPlusSucc
+(set-goal "all p,n NatToPos(p+Succ n)=PosS(NatToPos(p+n))")
+(assume "p" "n")
+(simp "NatPlus1CompRule")
+(simp "SuccPosS")
+(use "Truth")
+(use "NatLeLtTrans" (pt "Zero+n"))
+(use "Truth")
+(simp "NatLt3RewRule")
+(use "NatLtZeroPosToNat")
+;; Proof finished.
+(save "NatToPosNatPlusSucc")
 
