@@ -1,4 +1,4 @@
-;; 2018-09-09.  ets.scm
+;; 2018-09-18.  ets.scm
 ;; 16. Extracted terms
 ;; ===================
 
@@ -2686,6 +2686,29 @@
 (save "EqPBooleRefl")
 ;; (cdp)
 
+;; EqPBooleSym
+(set-goal
+ "allnc boole^1,boole^2(EqPBoole boole^1 boole^2 -> EqPBoole boole^2 boole^1)")
+(assume "boole^1" "boole^2" "EqPp1p2")
+(elim "EqPp1p2")
+(use "EqPBooleTrue")
+(use "EqPBooleFalse")
+;; Proof finished.
+(save "EqPBooleSym")
+
+;; EqPBooleTrans
+(set-goal "allnc boole^1,boole^2(
+ EqPBoole boole^1 boole^2 -> allnc boole^3(EqPBoole boole^2 boole^3 ->
+ EqPBooleNc boole^1 boole^3))")
+(assume "boole^1" "boole^2" "EqPp1p2")
+(elim "EqPp1p2")
+(assume "boole^3" "Hyp")
+(use "Hyp")
+(assume "boole^3" "Hyp")
+(use "Hyp")
+;; Proof finished.
+(save "EqPBooleTrans")
+
 ;; EqPBooleToTotalNcLeft
 (set-goal "allnc boole^1,boole^2(EqPBoole boole^1 boole^2 ->
  TotalBooleNc boole^1)")
@@ -2722,7 +2745,7 @@
 (save "EqPBooleToEqD")
 ;; (cdp)
 
-;; EqPBooleRefl
+;; EqPBooleNcRefl
 (set-goal "allnc boole^(TotalBoole boole^ -> EqPBooleNc boole^ boole^)")
 (assume "boole^" "Tb")
 (elim "Tb")
