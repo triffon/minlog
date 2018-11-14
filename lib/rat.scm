@@ -1,4 +1,4 @@
-;; 2018-09-08.  rat.scm.  Based on numbers.scm.
+;; 2018-11-10.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1207,7 +1207,12 @@
 
 (add-computation-rules
  "(k#p)max(j#q)"
- "[if (k*q<=j*p) (j#q) (k#p)]")
+ "[if (j*p<=k*q) (k#p) (j#q)]")
+
+;; Code discarded 2019-11-10
+;; (add-computation-rules
+;;  "(k#p)max(j#q)"
+;;  "[if (k*q<=j*p) (j#q) (k#p)]")
 
 ;; RatMaxTotal
 (set-totality-goal "RatMax")
@@ -1221,6 +1226,28 @@
 (use "RatTotalVar")
 ;; Proof finished.
 (save-totality)
+
+;; RatMaxEqP
+(set-goal "allnc a^1,b^1(EqPRat a^1 b^1 -> allnc a^2,b^2(EqPRat a^2 b^2 ->
+ EqPRat(a^1 max a^2)(b^1 max b^2)))")
+(assume "a^1" "b^1" "EqPa1b1" "a^2" "b^2" "EqPa2b2")
+(simp "<-" (pf "a^1 eqd b^1"))
+(simp "<-" (pf "a^2 eqd b^2"))
+(use "EqPRatRefl")
+(use "RatMaxTotal")
+(use "EqPRatToTotalLeft" (pt "b^1"))
+(use "EqPa1b1")
+(use "EqPRatToTotalLeft" (pt "b^2"))
+(use "EqPa2b2")
+;; 6
+(use "EqPRatToEqD")
+(use "EqPa2b2")
+;; 4
+(use "EqPRatToEqD")
+(use "EqPa1b1")
+;; Proof finished.
+(save "RatMaxEqP")
+;; (cdp)
 
 ;; Rules for RatMin
 
@@ -1240,6 +1267,28 @@
 (use "RatTotalVar")
 ;; Proof finished.
 (save-totality)
+
+;; RatMinEqP
+(set-goal "allnc a^1,b^1(EqPRat a^1 b^1 -> allnc a^2,b^2(EqPRat a^2 b^2 ->
+ EqPRat(a^1 min a^2)(b^1 min b^2)))")
+(assume "a^1" "b^1" "EqPa1b1" "a^2" "b^2" "EqPa2b2")
+(simp "<-" (pf "a^1 eqd b^1"))
+(simp "<-" (pf "a^2 eqd b^2"))
+(use "EqPRatRefl")
+(use "RatMinTotal")
+(use "EqPRatToTotalLeft" (pt "b^1"))
+(use "EqPa1b1")
+(use "EqPRatToTotalLeft" (pt "b^2"))
+(use "EqPa2b2")
+;; 6
+(use "EqPRatToEqD")
+(use "EqPa2b2")
+;; 4
+(use "EqPRatToEqD")
+(use "EqPa1b1")
+;; Proof finished.
+(save "RatMinEqP")
+;; (cdp)
 
 ;; Rules for RatEqv
 
@@ -3828,6 +3877,19 @@
 ;; Proof finished.
 (save "RatHalfPlus")
 
+;; RatMaxEq1
+(set-goal "all a,b(b<=a -> a max b=a)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(assume "jp<=kq")
+(simp "jp<=kq")
+(use "Truth")
+;; Proof finished.
+(save "RatMaxEq1")
+
 ;; RatMaxUB1
 (set-goal "all a,b a<=a max b")
 (cases)
@@ -3836,11 +3898,12 @@
 (assume "j" "q")
 (ng)
 (cases 'auto)
-(assume "kq<=jp")
-(ng)
-(use "kq<=jp")
-(assume "Useless")
+(strip)
 (use "Truth")
+(assume "NotLeHyp")
+(use "IntLtToLe")
+(use "IntNotLeToLt")
+(use "NotLeHyp")
 ;; Proof finished.
 (save "RatMaxUB1")
 
@@ -3852,13 +3915,10 @@
 (assume "j" "q")
 (ng)
 (cases 'auto)
+(assume "LeHyp")
+(use "LeHyp")
 (assume "Useless")
 (use "Truth")
-(assume "kq<=jp -> F")
-(ng)
-(use "IntLtToLe")
-(use "IntNotLeToLt")
-(use "kq<=jp -> F")
 ;; Proof finished.
 (save "RatMaxUB2")
 
@@ -3871,17 +3931,111 @@
 (cases)
 (assume "i" "r")
 (ng)
-(cases (pt "k*q<=j*p"))
-(assume "kq<=jp")
+(assume "kr<=ip" "jr<=iq")
+(cases (pt "j*p<=k*q"))
 (ng)
-(assume "Useless" "Hyp")
-(use "Hyp")
-(assume "kq<=jp -> F")
+(assume "Useless")
+(use "kr<=ip")
 (ng)
-(assume "Hyp" "Useless")
-(use "Hyp")
+(assume "Useless")
+(use "jr<=iq")
 ;; Proof finished.
 (save "RatMaxLUB")
+
+;; RatMaxEq2
+(set-goal "all a,b(a<=b -> a max b==b)")
+(assume "a" "b" "a<=b")
+(use "RatLeAntiSym")
+(use "RatMaxLUB")
+(use "a<=b")
+(use "Truth")
+(use "RatMaxUB2")
+;; Proof finished.
+(save "RatMaxEq2")
+
+;; RatLeMonMax
+(set-goal "all a,b,c,d(a<=b -> c<=d -> a max c<=b max d)")
+(assert "all a,b,c(a<=b -> a max c<=b max c)")
+ (assume "a" "b" "c" "a<=b")
+ (use "RatMaxLUB")
+ (use "RatLeTrans" (pt "b"))
+ (use "a<=b")
+ (use "RatMaxUB1")
+ (use "RatMaxUB2")
+(assume "Assertion1")
+(assert "all a,b,c(b<=c -> a max b<=a max c)")
+ (assume "a" "b" "c" "b<=c")
+ (use "RatMaxLUB")
+ (use "RatMaxUB1")
+ (use "RatLeTrans" (pt "c"))
+ (use "b<=c")
+ (use "RatMaxUB2")
+;; Proof finished.
+(assume "Assertion2" "a" "b" "c" "d" "a<=b" "c<=d")
+(use "RatLeTrans" (pt "b max c"))
+(use "Assertion1")
+(use "a<=b")
+(use "Assertion2")
+(use "c<=d")
+;; Proof finished.
+(save "RatLeMonMax")
+
+;; RatMaxComm
+(set-goal "all a,b a max b==b max a")
+(assume "a" "b")
+(use "RatLeAntiSym")
+(use "RatMaxLUB")
+(use "RatMaxUB2")
+(use "RatMaxUB1")
+(use "RatMaxLUB")
+(use "RatMaxUB2")
+(use "RatMaxUB1")
+;; Proof finished.
+(save "RatMaxComm")
+
+;; RatMaxAssoc
+(set-goal "all a,b,c a max(b max c)==a max b max c")
+(assume "a" "b" "c")
+(use "RatLeAntiSym")
+;; 3,4
+(use "RatMaxLUB")
+(use "RatLeTrans" (pt "a max b"))
+(use "RatMaxUB1")
+(use "RatMaxUB1")
+(use "RatLeMonMax")
+(use "RatMaxUB2")
+(use "Truth")
+;; 4
+(use "RatMaxLUB")
+(use "RatLeMonMax")
+(use "Truth")
+(use "RatMaxUB1")
+(use "RatLeTrans" (pt "b max c"))
+(use "RatMaxUB2")
+(use "RatMaxUB2")
+;; Proof finished.
+(save "RatMaxAssoc")
+
+;; RatMaxCompat
+(set-goal "all a,b,c,d(a==b -> c==d -> a max c==b max d)")
+(assume "a" "b" "c" "d" "a=b" "c=d")
+(use "RatLeAntiSym")
+;; 3,4
+(use "RatLeMonMax")
+(use "RatLeRefl")
+(use "a=b")
+(use "RatLeRefl")
+(use "c=d")
+;; 4
+(use "RatLeMonMax")
+(use "RatLeRefl")
+(use "RatEqvSym")
+(use "a=b")
+(use "RatLeRefl")
+(use "RatEqvSym")
+(use "c=d")
+;; Proof finished.
+(save "RatMaxCompat")
 
 ;; RatAbsMax
 (set-goal "all a abs a=a max ~a")
@@ -3921,6 +4075,387 @@
 (use "Truth")
 ;; Proof finished.
 (save "RatAbsCases")
+
+;; RatLeExpPos
+(set-goal "all p,q,k 0<=(p#q)**k")
+(assume "p" "q")
+(cases)
+(assume "p1")
+(use "Truth")
+(use "Truth")
+(assume "p1")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "0<=(p#q)**k" "True")
+
+;; RatLeExpPosGen
+(set-goal "all a,k(0<=a -> 0<=a**k)")
+(cases)
+(cases)
+(assume "p" "q" "k" "Useless")
+(use "Truth")
+(assume "p")
+(cases)
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+(strip)
+(use "Truth")
+;; 5
+(assume "p" "q" "k" "Absurd")
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "RatLeExpPosGen")
+
+;; RatExpSucc
+(set-goal "all n,a a**Succ n==a*a**n")
+(cases)
+(cases)
+(assume "k" "p")
+(use "Truth")
+(assume "n" "a")
+(simp "NatToInt1CompRule")
+(simp "<-" "IntPNatToPosEqNatToInt")
+(simp "IntS1CompRule")
+(simprat "RatExpPosS")
+(simp "RatTimesComm")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatExpSucc")
+
+;; RatExpNatPlus
+(set-goal "all n,m,a a**(n+m)==a**m*a**n")
+(assume "n")
+(ind)
+(assume "a")
+(use "Truth")
+(assume "m" "IH" "a")
+(simprat "RatExpSucc")
+(simp "NatPlus1CompRule")
+(simprat "RatExpSucc")
+(simprat "IH")
+(use "Truth")
+;; Proof finished.
+(save "RatExpNatPlus")
+
+;; RatExpNat
+(set-goal "all n,k,q (k#q)**n==(k**n#q**n)")
+(ind)
+(strip)
+(use "Truth")
+(assume "n" "IH" "k" "q")
+(simprat "RatExpSucc")
+(simprat "IH")
+(ng)
+(simp (pf "k*k**n=k**n*k"))
+(simp (pf "q*q**n=q**n*q"))
+(use "Truth")
+(use "PosTimesComm")
+(use "IntTimesComm")
+;; Proof finished.
+(save "RatExpNat")
+
+;; RatLeMonExp
+(set-goal "all a,n,m(1<=a -> n<=m -> a**n<=a**m)")
+(cases)
+(cases)
+;; IntP
+(assume "p" "q")
+(ind)
+(ind)
+(strip)
+(use "Truth")
+(assume "n" "IHn" "1<=(p#q)" "Useless")
+(simprat "RatExpSucc")
+(ng)
+(use "RatLeTrans" (pt "(p#q)*1"))
+(use "1<=(p#q)")
+(use "RatLeMonTimesTwo")
+(use "Truth")
+(use "Truth")
+(use "Truth")
+(use "IHn")
+(use "1<=(p#q)")
+(use "Truth")
+;; 8
+(assume "n" "IHn")
+(ind)
+(assume "Useless" "Absurd")
+(use "EfAtom")
+(use "Absurd")
+(assume "m" "IHm" "1<=(p#q)" "n<=m")
+(simprat "RatExpSucc")
+(simprat "RatExpSucc")
+(use "RatLeMonTimesTwo")
+(use "Truth")
+(use "RatLeExpPosGen")
+(use "Truth")
+(use "Truth")
+(use "IHn")
+(use "1<=(p#q)")
+(use "n<=m")
+;; 4
+(assume "p" "n" "m" "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
+;; 5
+(assume "p" "q" "n" "m" "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "RatLeMonExp")
+
+;; RatLeMonExpDecr
+(set-goal "all a,n,m(0<=a -> a<=1 -> n<=m -> a**m<=a**n)")
+(cases)
+(cases)
+(assume "p" "q" "n" "m" "Useless" "p<=q" "n<=m")
+(assert "(q#p)**n<=(q#p)**m")
+ (use "RatLeMonExp")
+ (use "p<=q")
+ (use "n<=m")
+;;   a51679  k51683  p  q  n  m  Useless:
+;;     0<=(p#q)
+;;   p<=q:(p#q)<=1
+;;   n<=m:n<=m
+;;-----------------------------------------------------------------------------
+;; ?^7:(q#p)**n<=(q#p)**m -> (p#q)**m<=(p#q)**n
+
+(assume "Hyp")
+(simprat "RatExpNat")
+(simprat "RatExpNat")
+(ng #t)
+(assert "(IntExp q n#p**n)<=(IntExp q m#p**m)")
+ (simprat "<-" "RatExpNat")
+ (simprat "<-" "RatExpNat")
+ (use "Hyp")
+(assume "Assertion")
+(ng "Assertion")
+(simp (pf "p**m*q**n=q**n*p**m"))
+(simp (pf "p**n*q**m=q**m*p**n"))
+(use "Assertion")
+(use "PosTimesComm")
+(use "PosTimesComm")
+;; 4
+(assume "p")
+(cases)
+(cases)
+(strip)
+(use "Truth")
+(strip)
+(simprat "RatExpSucc")
+(simprat "RatTimesZeroL")
+(use "Truth")
+(assume "n")
+(cases)
+(assume "Useless1" "Useless2" "Absurd")
+(use "EfAtom")
+(use "Absurd")
+(assume "m" "Useless1" "Useless2" "n<=m")
+(simprat "RatExpSucc")
+(simprat "RatExpSucc")
+(simprat "RatTimesZeroL")
+(simprat "RatTimesZeroL")
+(use "Truth")
+;; 5
+(assume "p" "q" "n" "m" "Absurd" "Useless1" "Useless2")
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "RatLeMonExpDecr")
+
+;; RatEqAbsMinus
+(set-goal "all a,b(a<=b -> abs(b+ ~a)=b+ ~a)")
+(assume "a" "b" "a<=b")
+(use "RatAbsId")
+(simprat "<-" (pf "a+ ~a==0"))
+(use "RatLeMonPlus")
+(use "a<=b")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatEqAbsMinus")
+
+;; RatEqAbsMinusCor
+(set-goal "all a,b(a<=b -> abs(a+ ~b)=b+ ~a)")
+(assume "a" "b" "a<=b")
+(simp "<-" "RatAbs0RewRule")
+(ng)
+(simp "RatPlusComm")
+(use "RatEqAbsMinus")
+(use "a<=b")
+;; Proof finished.
+(save "RatEqAbsMinusCor")
+
+;; RatMinEq1
+(set-goal "all a,b(a<=b -> a min b=a)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(assume "kq<=jp")
+(simp "kq<=jp")
+(use "Truth")
+;; Proof finished.
+(save "RatMinEq1")
+
+;; RatMinLB1
+(set-goal "all a,b a min b<=a")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(cases 'auto)
+(assume "kq<=jp")
+(ng)
+(use "Truth")
+(assume "kq<=jp -> F")
+(ng)
+(use "IntLtToLe")
+(use "IntNotLeToLt")
+(use "kq<=jp -> F")
+;; Proof finished.
+(save "RatMinLB1")
+
+;; RatMinLB2
+(set-goal "all a,b a min b<=b")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(ng)
+(cases 'auto)
+(assume "kq<=jp")
+(ng)
+(use "kq<=jp")
+(assume  "kq<=jp -> F")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RatMinLB2")
+
+;; RatMinGLB
+(set-goal "all a,b,c(c<=a -> c<=b -> c<=a min b)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(cases)
+(assume "i" "r")
+(ng)
+(cases (pt "k*q<=j*p"))
+(assume "kq<=jp")
+(ng)
+(assume "Hyp" "Useless")
+(use "Hyp")
+(assume "kq<=jp -> F")
+(ng)
+(assume "Useless" "Hyp")
+(use "Hyp")
+;; Proof finished.
+(save "RatMinGLB")
+
+;; RatMinEq2
+(set-goal "all a,b(b<=a -> a min b==b)")
+(assume "a" "b" "b<=a")
+(use "RatLeAntiSym")
+(use "RatMinLB2")
+(use "RatMinGLB")
+(use "b<=a")
+(use "Truth")
+;; Proof finished.
+(save "RatMinEq2")
+
+;; RatLeMonMin
+(set-goal "all a,b,c,d(a<=b -> c<=d -> a min c<=b min d)")
+(assert "all a,b,c(a<=b -> a min c<=b min c)")
+ (assume "a" "b" "c" "a<=b")
+ (use "RatMinGLB")
+ (use "RatLeTrans" (pt "a"))
+ (use "RatMinLB1")
+ (use "a<=b")
+ (use "RatMinLB2")
+(assume "Assertion1")
+(assert "all a,b,c(b<=c -> a min b<=a min c)")
+ (assume "a" "b" "c" "b<=c")
+ (use "RatMinGLB")
+ (use "RatMinLB1")
+ (use "RatLeTrans" (pt "b"))
+ (use "RatMinLB2")
+ (use "b<=c")
+;; Proof finished.
+(assume "Assertion2" "a" "b" "c" "d" "a<=b" "c<=d")
+(use "RatLeTrans" (pt "b min c"))
+(use "Assertion1")
+(use "a<=b")
+(use "Assertion2")
+(use "c<=d")
+;; Proof finished.
+(save "RatLeMonMin")
+
+;; RatMinComm
+(set-goal "all a,b a min b==b min a")
+(assume "a" "b")
+(use "RatLeAntiSym")
+(use "RatMinGLB")
+(use "RatMinLB2")
+(use "RatMinLB1")
+(use "RatMinGLB")
+(use "RatMinLB2")
+(use "RatMinLB1")
+;; Proof finished.
+(save "RatMinComm")
+
+;; RatMinAssoc
+(set-goal "all a,b,c a min(b min c)==a min b min c")
+(assume "a" "b" "c")
+(use "RatLeAntiSym")
+;; 3,4
+(use "RatMinGLB")
+(use "RatLeMonMin")
+(use "Truth")
+(use "RatMinLB1")
+(use "RatLeTrans" (pt "b min c"))
+(use "RatMinLB2")
+(use "RatMinLB2")
+;; 4
+(use "RatMinGLB")
+(use "RatLeTrans" (pt "a min b"))
+(use "RatMinLB1")
+(use "RatMinLB1")
+(use "RatLeTrans" (pt "b min c"))
+(use "RatLeMonMin")
+(use "RatMinLB2")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RatMinAssoc")
+
+;; RatMinCompat
+(set-goal "all a,b,c,d(a==b -> c==d -> a min c==b min d)")
+(assume "a" "b" "c" "d" "a=b" "c=d")
+(use "RatLeAntiSym")
+;; 3,4
+(use "RatLeMonMin")
+(use "RatLeRefl")
+(use "a=b")
+(use "RatLeRefl")
+(use "c=d")
+;; 4
+(use "RatLeMonMin")
+(use "RatLeRefl")
+(use "RatEqvSym")
+(use "a=b")
+(use "RatLeRefl")
+(use "RatEqvSym")
+(use "c=d")
+;; Proof finished.
+(save "RatMinCompat")
 
 ;; 4.  Adding external code
 ;; ========================
