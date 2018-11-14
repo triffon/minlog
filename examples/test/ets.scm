@@ -962,6 +962,8 @@
 (use "u")
 (extraction-test-etd (current-proof))
 
+;; End of tests for extraction with realizability and Dialectica
+
 ;; Tests for functions related to soundness proofs involving inductive
 ;; and coinductive predicates.
 
@@ -972,9 +974,46 @@
 (pp "CoEvenMRClause")
 
 ;; all n^,n^0(
-;;  CoEvenMR n^0 n^ -> 
+;;  CoEvenMR n^ n^0 -> 
 ;;  n^ eqd 0 andnc n^0 eqd 0 ornc 
-;;  exnc n^1,n^2(CoEvenMR n^2 n^1 andnc n^ eqd n^1+2 andnc n^0 eqd Succ n^2))
+;;  exnc n^1,n^2(CoEvenMR n^1 n^2 andnc n^ eqd n^1+2 andnc n^0 eqd Succ n^2))
+
+(set-goal "allnc n^,m^(EvenMR n^ m^ -> TotalNatNc m^)")
+(assume "n^" "m^" "Enm")
+(elim "Enm")
+;; 3,4
+(use "TotalNatNcZero")
+;; 4
+(assume "n^1" "m^1" "Useless")
+(use "TotalNatNcSucc")
+;; Proof finished.
+;; (cdp)
+
+(set-goal "allnc m^(exnc n^ CoEvenMR n^ m^ -> CoTotalNatNc m^)")
+(assume "n^" "ExHyp")
+(coind "ExHyp")
+(drop "ExHyp")
+(assume "m^2" "ExHyp2")
+(by-assume "ExHyp2" "n^2" "n2Prop")
+(inst-with-to "CoEvenMRClause" (pt "n^2") (pt "m^2") "n2Prop" "Inst")
+(elim "Inst")
+(drop "Inst")
+(assume "Conjnc")
+(intro 0)
+(use "Conjnc")
+;; 12
+(drop "Inst")
+(assume "ExHyp3")
+(by-assume "ExHyp3" "n^3" "n3Prop")
+(by-assume "n3Prop" "m^3" "n3m3Prop")
+(intro 1)
+(intro 0 (pt "m^3"))
+(split)
+(intro 1)
+(intro 0 (pt "n^3"))
+(use "n3m3Prop")
+(use "n3m3Prop")
+;; Proof finished.
 
 ;; OrDMRToDisj OrRMRToDisj AndLMRToConj added.  CoRecNat1 CoRecNat21
 ;; CoRecNat22 added.  GfpCoTotalNatMR added: (CoRec nat nat) realizes
@@ -1326,160 +1365,4 @@
 ;; Proof finished.
 (save "CoTotalNatClauseSound")
 ;; (cdp)
-
-;; The rest is obsolete.
-;; proof-to-soundness-proof
-
-;; (add-co "TotalBoole")
-;; (add-mr-ids "TotalBoole") ;already in lib/nat.scm
-;; (add-co "TotalBooleMR")
-;; (add-co "TotalNat")
-;; (add-co "TotalNatMR")
-;; (add-totality "bin") ;already above
-;; (add-mr-ids "TotalBin") ;already above
-;; (add-co "TotalBin")
-;; ;; (add-co "TotalBinMR")
-;; (add-totality "ordl")
-;; ;; (add-mr-ids "TotalOrdl")
-;; (add-co "TotalOrdl")
-;; (add-co "TotalOrdlMR")
-;; (add-totality "intv")
-;; (add-mr-ids "TotalIntv")
-;; (add-co "TotalIntv")
-;; (add-co "TotalIntvMR")
-;; (add-co "TotalList")
-;; (add-co "TotalListMR")
-;; ;; (add-mr-ids "RTotalList") ;already above
-;; (add-co "RTotalList")
-;; (add-co "RTotalListMR")
-;; (add-totality "ntree")
-;; (add-co "TotalNtree")
-;; ;; (add-mr-ids "TotalNtree")
-;; ;; types-to-embedding
-;; ;; increasing types expected
-;; ;; alpha1492
-;; ;; ntree
-
-;; ;; (add-co "TotalNtreeMR")
-;; (add-totality "ltlist")
-;; (add-mr-ids "TotalLtlist")
-;; (add-co "TotalLtlist")
-;; (add-co "TotalLtlistMR")
-;; (add-mr-ids "RTotalLtlist")
-;; (add-co "RTotalLtlist")
-;; (add-co "RTotalLtlistMR")
-
-;; (set! COMMENT-FLAG #f)
-;; closure axioms
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalBoole boole^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; To be tested.
-
-;; (pp (rename-variables (proof-to-formula proof)))
-
-;; all p^,p^0(
-;;  CoTotalBooleMR p^0 p^ -> 
-;;  (OrUMR (cterm () p^ eqd True) (cterm () p^ eqd False))(Des p^0))
-
-;; (proof-to-expr-with-formulas proof)
-
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalNat nat^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names
-;; idpredconst name expected
-;; CoTotalNatMR
-
-;; Exception in cdr: () is not a pair
-
-;; check coidpredconst-to-closure-mr-proof-or-elim
-
-;; Same error in all other examples
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalBin bin^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-
-;; (cdp proof)
-
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalList (list alpha)^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc
-;;   (predicate-form-to-predicate
-;;    (pf "(CoRTotalList (cterm (nat^) TotalNat nat^))(list nat)^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc
-;;   (predicate-form-to-predicate
-;;    (pf "(CoRTotalList (cterm (alpha^) (Pvar alpha)alpha^))(list alpha)^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalNtree ntree^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalIntv intv^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalOrdl ordl^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalLtlist(ltlist alpha)^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc (predicate-form-to-predicate (pf "CoTotalLtree(ltree alpha)^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc
-;;   (predicate-form-to-predicate
-;;    (pf "(CoRTotalLtlist (cterm (alpha^) (Pvar alpha)alpha^))(ltlist alpha)^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; (define coidpc
-;;   (predicate-form-to-predicate
-;;    (pf "(CoRTotalLtree (cterm (alpha^) (Pvar alpha)alpha^))(ltree alpha)^")))
-;; (define proof (coidpredconst-to-closure-mr-proof coidpc))
-;; (cdp proof)
-
-;; gfp axioms
-;; (define imp-formulas
-;;   (list (pf "(Pvar boole)boole^ -> CoTotalBoole boole^")))
-;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-;; make-term-in-app-form
-;; unexpected terms.  Operator:
-;; (CoRec alpha1572=>boole)alpha1572^9609
-;; with argument type
-;; alpha1572=>boole
-;; Argument:
-;; alpha1572^9606
-;; of type
-;; alpha1572
-
-;; (cdp proof)
-
-;; Same error in all other examples
-;; (define imp-formulas (list (pf "(Pvar nat)n^ -> CoTotalNat n^")))
-;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-;; (cdp proof)
-
-;; (define imp-formulas (list (pf "(Pvar bin)bin^ -> CoTotalBin bin^")))
-;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-;; (cdp proof)
-
-;; (define imp-formulas (list (pf "(Pvar intv)intv^ -> CoTotalIntv intv^")))
-;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-;; (cdp proof)
-
-;; (define imp-formulas
-;;   (list (pf "(Pvar (list nat))(list nat)^ -> (CoRTotalList (cterm (n^) (Pvar nat)n^))list nat^")))
-;; (define proof (apply imp-formulas-to-mr-gfp-proof imp-formulas))
-;; (cdp proof)
-
-;; (set! COMMENT-FLAG #t)
 
