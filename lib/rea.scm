@@ -1,4 +1,4 @@
-;; 2018-09-09.  rea.scm.  Based on numbers.scm.
+;; 2018-11-13.  rea.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -70,7 +70,7 @@
     TotalReaNc(RealConstr as^ M^)))"
    "TotalReaNcRealConstr"))
 
-;; EqPTotalNatToRat
+;; EqPTotalNatToRatLeft
 (set-goal "allnc as^1,as^2(
      allnc n^1,n^2(EqPNat n^1 n^2 -> EqPRat(as^1 n^1)(as^2 n^2)) -> 
      allnc n^(TotalNat n^ -> TotalRat(as^1 n^)))")
@@ -80,10 +80,23 @@
 (use "EqPNatRefl")
 (use "Tn")
 ;; Proof finished.
-(save "EqPTotalNatToRat")
+(save "EqPTotalNatToRatLeft")
 ;; (cdp)
 
-;; EqPTotalPosToNat
+;; EqPTotalNatToRatRight
+(set-goal "allnc as^1,as^2(
+     allnc n^1,n^2(EqPNat n^1 n^2 -> EqPRat(as^1 n^1)(as^2 n^2)) -> 
+     allnc n^(TotalNat n^ -> TotalRat(as^2 n^)))")
+(assume "as^1" "as^2" "EqPas1as2" "n^" "Tn")
+(use "EqPRatToTotalRight" (pt "as^1 n^"))
+(use "EqPas1as2")
+(use "EqPNatRefl")
+(use "Tn")
+;; Proof finished.
+(save "EqPTotalNatToRatRight")
+;; (cdp)
+
+;; EqPTotalPosToNatLeft
 (set-goal "allnc M^1,M^2(
      allnc p^,p^0(EqPPos p^ p^0 -> EqPNat(M^1 p^)(M^2 p^0)) -> 
      allnc p^(TotalPos p^ -> TotalNat(M^1 p^)))")
@@ -93,7 +106,20 @@
 (use "EqPPosRefl")
 (use "Tp")
 ;; Proof finished.
-(save "EqPTotalPosToNat")
+(save "EqPTotalPosToNatLeft")
+;; (cdp)
+
+;; EqPTotalPosToNatRight
+(set-goal "allnc M^1,M^2(
+     allnc p^,p^0(EqPPos p^ p^0 -> EqPNat(M^1 p^)(M^2 p^0)) -> 
+     allnc p^(TotalPos p^ -> TotalNat(M^2 p^)))")
+(assume "M^1" "M^2" "EqPM1M2" "p^" "Tp")
+(use "EqPNatToTotalRight" (pt "M^1 p^"))
+(use "EqPM1M2")
+(use "EqPPosRefl")
+(use "Tp")
+;; Proof finished.
+(save "EqPTotalPosToNatRight")
 ;; (cdp)
 
 ;; EqPReaToTotalLeft
@@ -102,9 +128,9 @@
 (elim "EqPxy")
 (assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
 (use "TotalReaRealConstr")
-(use "EqPTotalNatToRat" (pt "as^2"))
+(use "EqPTotalNatToRatLeft" (pt "as^2"))
 (use "EqPas1as2")
-(use "EqPTotalPosToNat" (pt "M^2"))
+(use "EqPTotalPosToNatLeft" (pt "M^2"))
 (use "EqPM1M2")
 ;; Proof finished.
 (save "EqPReaToTotalLeft")
@@ -116,18 +142,10 @@
 (elim "EqPxy")
 (assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
 (use "TotalReaRealConstr")
-(use "EqPTotalNatToRat" (pt "as^1"))
-(assume "n^1" "n^2" "EqPn1n2")
-(use "EqPRatSym")
+(use "EqPTotalNatToRatRight" (pt "as^1"))
 (use "EqPas1as2")
-(use "EqPNatSym")
-(use "EqPn1n2")
-(use "EqPTotalPosToNat" (pt "M^1"))
-(assume "p^1" "p^2" "EqPp1p2")
-(use "EqPNatSym")
+(use "EqPTotalPosToNatRight" (pt "M^1"))
 (use "EqPM1M2")
-(use "EqPPosSym")
-(use "EqPp1p2")
 ;; Proof finished.
 (save "EqPReaToTotalRight")
 ;; (cdp)
@@ -467,8 +485,8 @@
  "EqPReaElimRightRealConstr"
   (pt "as^1") (pt "M^1") (pt "as^2") (pt "M^2") "EqPx1x2" "InstR")
 (drop "EqPx1x2")
-(inst-with-to "EqPTotalNatToRat" (pt "as^1") (pt "as^2") "InstL" "Tas1")
-(inst-with-to "EqPTotalPosToNat" (pt "M^1") (pt "M^2") "InstR" "TM1")
+(inst-with-to "EqPTotalNatToRatLeft" (pt "as^1") (pt "as^2") "InstL" "Tas1")
+(inst-with-to "EqPTotalPosToNatLeft" (pt "M^1") (pt "M^2") "InstR" "TM1")
 (simp "<-" (pf "p^1 eqd p^2"))
 (simp "<-" (pf "M^1(PosS p^1) eqd M^2(PosS p^1)"))
 (simp "<-" (pf "as^1(M^1(PosS p^1))eqd as^2(M^1(PosS p^1))"))
@@ -520,8 +538,8 @@
  "EqPReaElimRightRealConstr"
   (pt "as^1") (pt "M^1") (pt "as^2") (pt "M^2") "EqPx1x2" "InstR")
 (drop "EqPx1x2")
-(inst-with-to "EqPTotalNatToRat" (pt "as^1") (pt "as^2") "InstL" "Tas1")
-(inst-with-to "EqPTotalPosToNat" (pt "M^1") (pt "M^2") "InstR" "TM1")
+(inst-with-to "EqPTotalNatToRatLeft" (pt "as^1") (pt "as^2") "InstL" "Tas1")
+(inst-with-to "EqPTotalPosToNatLeft" (pt "M^1") (pt "M^2") "InstR" "TM1")
 (simp "<-" (pf "p^1 eqd p^2"))
 (simp "<-" (pf "M^1(PosS p^1) eqd M^2(PosS p^1)"))
 (simp "<-" (pf "as^1(M^1(PosS p^1))eqd as^2(M^1(PosS p^1))"))
@@ -1088,6 +1106,26 @@
 ;; Proof finished.
 (save "MonElim")
 
+;; EfCauchy
+(set-goal "F -> all as,M Cauchy as M")
+(assume "Absurd" "as" "M")
+(intro 0)
+(strip)
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "EfCauchy")
+
+;; EfMon
+(set-goal "F -> all M Mon M")
+(assume "Absurd" "M")
+(intro 0)
+(strip)
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "EfMon")
+
 ;; We introduce Real as an inductively defined predicate (which in this
 ;; case may also be called a record).  Then we can prove theorems:
 
@@ -1136,6 +1174,21 @@
 (use-with "RealToMon" (pt "RealConstr as M") 1)
 ;; Proof finished.
 (save "RealConstrToMon")
+
+;; EfReal
+(set-goal "F -> all x Real x")
+(assume "Absurd")
+(cases)
+(assume "as" "M")
+(intro 0)
+(ng)
+(use "EfCauchy")
+(use "Absurd")
+(ng)
+(use "EfMon")
+(use "Absurd")
+;; Proof finished.
+(save "EfReal")
 
 ;; RealRat
 (set-goal "all a Real a")
@@ -2086,7 +2139,57 @@
 ;; Proof finished.
 (save "RealLeSElim")
 
-;; We now prove further properties of RealEq, RealEqS, RealNNe, RealLe
+;; We now prove further properties of RealEq, RealEqS, RealNNeg, RealLe
+
+;; EfRealEq
+(set-goal "F -> all x,y x===y")
+(assume "Absurd" "x" "y")
+(intro 0)
+(use "EfReal")
+(use "Absurd")
+(use "EfReal")
+(use "Absurd")
+(ng)
+(strip)
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "EfRealEq")
+
+;; EfRealEq$
+(set-goal "F -> all x,y x=+=y")
+(assume "Absurd" "x" "y")
+(intro 0)
+(assume "n")
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "EfRealEqS")
+
+;; EfRealNNeg
+(set-goal "F -> all x RealNNeg x")
+(assume "Absurd" "x")
+(intro 0)
+(use "EfReal")
+(use "Absurd")
+(assume "p")
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "EfRealNNeg")
+
+;; EfRealLe
+(set-goal "F -> all x,y x<<=y")
+(assume "Absurd" "x" "y")
+(intro 0)
+(use "EfReal")
+(use "Absurd")
+(use "EfReal")
+(use "Absurd")
+(use "EfRealNNeg")
+(use "Absurd")
+;; Proof finished.
+(save "EfRealLe")
 
 ;; RealEqRefl
 (set-goal "all x(Real x -> x===x)")
@@ -2430,6 +2533,51 @@
 ;; Proof finished.
 (save "RealEqSToEq")
 
+;; Recall that two reals are equal if their Cauchy sequences coincide
+;; from one point onwards.  We may increase moduli in Cauchy sequences
+;; and in reals.
+
+;; CauchyModIncr
+(set-goal "all M,N,as(all p M p<=N p -> Cauchy as M -> Cauchy as N)")
+(assume "M" "N" "as" "M<=N" "CasM")
+(intro 0)
+(assume "p" "n" "m" "NnBd" "NmBd")
+(use "CauchyElim" (pt "M"))
+(use "CasM")
+(use "NatLeTrans" (pt "N p"))
+(use "M<=N")
+(use "NnBd")
+(use "NatLeTrans" (pt "N p"))
+(use "M<=N")
+(use "NmBd")
+;; Proof finished.
+(save "CauchyModIncr")
+
+;; RealModIncr
+(set-goal "all as,M,N(Real(RealConstr as M) ->
+ all p M p<=N p -> Mon N -> RealConstr as M===RealConstr as N)")
+(assume "as" "M" "N" "Rx" "ModIncr" "MonN")
+(assert "Real(RealConstr as N)")
+(use "RealIntro")
+(ng)
+(use "CauchyModIncr" (pt "M"))
+(use "ModIncr")
+(inst-with-to "RealToCauchy" (pt "RealConstr as M") "Rx" "RealToCauchyInst")
+(ng)
+(use "RealToCauchyInst")
+(ng)
+(use "MonN")
+;; Assertion proved.
+(assume "Rx1")
+(use "RealSeqEqToEq" (pt "Zero"))
+(use "Rx")
+(use "Rx1")
+(ng)
+(strip)
+(use "Truth")
+;; Proof finished.
+(save "RealModIncr")
+
 ;; RealEqTrans
 (set-goal "all x,y,z(x===y -> y===z -> x===z)")
 (cases)
@@ -2550,6 +2698,26 @@
 ;; [M,p]M(PosS p)
 
 (animate "RealNNegCharOne")
+
+;; RealNNegCharOneRealConstrFree
+(set-goal
+ "all x(RealNNeg x -> all p exl n all n0(n<=n0 -> ~(1#2**p)<=x seq n0))")
+(cases)
+(assume "as" "M" "NNegx")
+(ng)
+(assume "p")
+(simp (pf "(IntN 1#2**p)= ~(1#2**p)"))
+(use "RealNNegCharOne" (pt "M"))
+(use "NNegx")
+(ng)
+(use "Truth")
+;; Proof finished.
+(save "RealNNegCharOneRealConstrFree")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (ppc neterm)
+;; [x,p][case x (RealConstr as M -> cRealNNegCharOne M p)]
 
 ;; RealNNegCharOneExFree
 (set-goal "all as,M(RealNNeg(RealConstr as M) -> 
@@ -2823,24 +2991,6 @@
 (use "Truth")
 ;; Proof finished.
 (save "RealPosChar2")
-
-;; RealPosChar2RealConstrFree
-(set-goal "all x,n,q(Real x -> all n0(n<=n0 -> (1#2**q)<=x seq n0) ->
-                     RealPos x(PosS q))")
-(cases)
-(assume "as" "M" "n" "q" "Rx" "hyp")
-(use "RealPosChar2" (pt "n"))
-(use "Rx")
-(assume "n0" "n<=n0")
-(inst-with-to "hyp" (pt "n0") "hypInst")
-(simp "RatLeCompat" (pt "(1#2**q)") (pt "(RealConstr as M)seq n0"))
-(use "hypInst")
-(use "n<=n0")
-(ng)
-(use "Truth")
-(use "Truth")
-;; Proof finished.
-(save "RealPosChar2RealConstrFree")
 
 ;; 6.  Closure properties
 ;; ======================
@@ -3585,6 +3735,129 @@
 (use "LeSxy")
 ;; Proof finished.
 (save "RealLeSToLe")
+
+;; RealPosChar2RealConstrFree
+(set-goal "all x,n,q(Real x -> all n0(n<=n0 -> (1#2**q)<=x seq n0) ->
+                     RealPos x(PosS q))")
+(cases)
+(assume "as" "M" "n" "q" "Rx" "hyp")
+(use "RealPosChar2" (pt "n"))
+(use "Rx")
+(assume "n0" "n<=n0")
+(inst-with-to "hyp" (pt "n0") "hypInst")
+(simp "RatLeCompat" (pt "(1#2**q)") (pt "(RealConstr as M)seq n0"))
+(use "hypInst")
+(use "n<=n0")
+(ng)
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "RealPosChar2RealConstrFree")
+
+;; We transfer properties of RealNNeg to RealLe
+
+;; RealLeCharOneRealConstrFree
+(set-goal "all x,y(x<<=y -> 
+ all p exl n all n0(n<=n0 -> x seq n0<=y seq n0+(1#2**p)))")
+(assume "x" "y" "x<=y")
+(assert "RealNNeg(y+ ~x)")
+ (use "RealLeElim2")
+ (use "x<=y")
+(assume "NNeg(y-x)")
+(cut "all p exl n all n0(n<=n0 -> ~(1#2**p)<=(y+ ~x)seq n0)")
+(cases (pt "x"))
+(assume "as" "M")
+(cases (pt "y"))
+(assume "bs" "N")
+(assume "yDef" "xDef")
+(ng)
+(assume "AllExHyp" "p")
+(inst-with-to "AllExHyp" (pt "p") "ExHyp")
+(by-assume "ExHyp" "n" "nProp")
+(intro 0 (pt "n"))
+(assume "n0" "n<=n0")
+(inst-with-to "nProp" (pt "n0") "n<=n0" "nPropInst")
+(simphyp-to "nPropInst" (pf "(IntN 1#2**p)= ~(1#2**p)") "nPropInstSimp")
+(assert "all a,b,c(~c<=b+ ~a -> a<=b+c)")
+(assume "a" "b" "c" "~c<=b+ ~a")
+(use "RatLePlusCancelR" (pt "~c"))
+(simprat "RatEqvPlusMinusRev")
+(simp "RatPlusComm")
+(use "RatLePlusCancelR" (pt "~a"))
+(simprat "RatEqvPlusMinusRev")
+(use "~c<=b+ ~a")
+;; Assertion proved.
+(assume "Assertion")
+(use "Assertion")
+(use "nPropInstSimp")
+(use "Truth")
+(use "RealNNegCharOneRealConstrFree")
+(use "NNeg(y-x)")
+;; Proof finished.
+(save "RealLeCharOneRealConstrFree")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (ppc neterm)
+;; [x,x0]cRealNNegCharOneRealConstrFree(x0+ ~x)
+
+;; RealLeIntroNNegFreeRealConstrFree
+(set-goal "all x,y(Real x -> Real y -> 
+ all p exnc n all n0(n<=n0 -> ~(1#2**p)<=(y+ ~x)seq n0) -> x<<=y)")
+(assume "x" "y" "Rx" "Ry" "AllExHyp")
+(use "RealLeIntro")
+(use "Rx")
+(use "Ry")
+(use "RealNNegChar2RealConstrFree")
+(realproof)
+(use "AllExHyp")
+;; Proof finished.
+(save "RealLeIntroNNegFreeRealConstrFree")
+
+;; Now we can prove RealLeChar2RealConstrFree
+
+;; RealLeChar2RealConstrFree
+(set-goal "all x,y(Real x -> Real y -> 
+ all p exnc n all n0(n<=n0 -> x seq n0<=y seq n0+(1#2**p)) -> x<<=y)")
+(assume "x" "y" "Rx" "Ry" "AllExHyp")
+(use "RealLeIntroNNegFreeRealConstrFree")
+(use "Rx")
+(use "Ry")
+(assume "p")
+(inst-with-to "AllExHyp" (pt "p") "ExHyp")
+(by-assume "ExHyp" "n" "nProp")
+(intro 0 (pt "n"))
+(assume "n0" "n<=n0")
+(inst-with-to "nProp" (pt "n0") "n<=n0" "LeHyp")
+(drop "AllExHyp" "nProp")
+(cut "x seq n0<=y seq n0+(1#2**p)")
+(cases (pt "x"))
+(assume "as" "M" "xDef")
+(cases (pt "y"))
+(assume "bs" "N" "yDef")
+(assert "all a,b,c(a<=b+c -> ~c<=b+ ~a)")
+(assume "a" "b" "c" "a<=b+c")
+(simprat (pf "~c== ~c+a+ ~a"))
+(ng #t)
+(simp "RatPlusComm")
+(simprat (pf "b==b+c+ ~c"))
+(ng #t)
+(use "a<=b+c")
+(simp "RatEqvSym")
+(use "Truth")
+(use "RatEqvPlusMinusRev")
+(simp "RatEqvSym")
+(use "Truth")
+(use "RatEqvPlusMinusRev")
+;; Assertion proved.
+(assume "Assertion")
+(ng #t)
+(simp (pf "(IntN 1#2**p)= ~(1#2**p)"))
+(use "Assertion")
+(use "Truth")
+(use "LeHyp")
+;; Proof finished.
+(save "RealLeChar2RealConstrFree")
 
 ;; 7.  Compatibilities
 ;; ===================
