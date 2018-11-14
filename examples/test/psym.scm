@@ -389,24 +389,37 @@
 (add-var-name "ts" (py "(infltlist alpha)"))
 (add-var-name "t" (py "(infltree alpha)"))
 
-(add-totality "infltlist")
+(add-eqp "infltlist")
+;; ok, inductively defined predicate constant EqPInfltlist added
+;; ok, inductively defined predicate constant EqPInfltree added
 
-;; ok, inductively defined predicate constant TotalInfltlist added
-;; ok, inductively defined predicate constant TotalInfltree added
+(display-idpc "EqPInfltlist")
 
-(display-idpc "TotalInfltlist" "TotalInfltree")
+;; EqPInfltlist	with content of type infltlist
+;; 	EqPInfltlistInfLEmpty:	EqPInfltlist(InfLEmpty alpha)(InfLEmpty alpha)
+;; 	EqPInfltlistInfLTcons:	allnc t^,t^0(
+;;  EqPInfltree t^ t^0 -> 
+;;  allnc ts^,ts^0(
+;;   EqPInfltlist ts^ ts^0 -> 
+;;   EqPInfltlist((InfLTcons alpha)t^ ts^)((InfLTcons alpha)t^0 ts^0)))
 
-;; TotalInfltlist
-;; 	TotalInfltlistInfLEmpty:	TotalInfltlist(InfLEmpty alpha)
-;; 	TotalInfltlistInfLTcons:	allnc t^(
-;;  TotalInfltree t^ -> 
-;;  allnc ts^(TotalInfltlist ts^ -> TotalInfltlist((InfLTcons alpha)t^ ts^)))
-;; TotalInfltree
-;; 	TotalInfltreeInfLLeaf:	allnc x^(Total x^ -> TotalInfltree((InfLLeaf alpha)x^))
-;; 	TotalInfltreeInfLBranch:	allnc ts^(TotalInfltlist ts^ -> TotalInfltree((InfLBranch alpha)ts^))
-;; 	TotalInfltreeInfLLim:	allnc (nat=>infltree alpha)^(
-;;  allnc n^(TotalNat n^ -> TotalInfltree((nat=>infltree alpha)^ n^)) -> 
-;;  TotalInfltree((InfLLim alpha)(nat=>infltree alpha)^))
+(display-idpc "EqPInfltree")
+
+;; EqPInfltree	with content of type infltree
+;; 	EqPInfltreeInfLLeaf:	allnc x^,x^0(
+;;  EqP x^ x^0 -> EqPInfltree((InfLLeaf alpha)x^)((InfLLeaf alpha)x^0))
+;; 	EqPInfltreeInfLBranch:	allnc ts^,ts^0(
+;;  EqPInfltlist ts^ ts^0 -> 
+;;  EqPInfltree((InfLBranch alpha)ts^)((InfLBranch alpha)ts^0))
+;; 	EqPInfltreeInfLLim:	allnc (nat=>infltree alpha)^,(nat=>infltree alpha)^0(
+;;  allnc n^,n^0(
+;;   EqPNat n^ n^0 -> 
+;;   EqPInfltree((nat=>infltree alpha)^ n^)((nat=>infltree alpha)^0 n^0)) -> 
+;;  EqPInfltree((InfLLim alpha)(nat=>infltree alpha)^)
+;;  ((InfLLim alpha)(nat=>infltree alpha)^0))
+
+;; (add-totality "infltlist")
+;; Does not work, since infltlist infltree are not finitary
 
 (remove-var-name "ts" "t")
 
