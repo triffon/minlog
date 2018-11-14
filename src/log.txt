@@ -1,6 +1,73 @@
-;; 2018-09-09.  log.txt
+;; 2018-11-14.  log.txt
 
-Done locally in dev branch 2018-09-09
+Done in dev branch 2018-11-14
+
+In term.scm
+
+term-to-external-expr corrected in case ListMap with 1 argument: space
+introduced.  In with-output-to-file replace inserted, to overwrite an
+existing output file.  haskellify-var changed to generate new, small
+indices (work of Christian Ittner),
+
+In axiom.scm
+
+add-totality-theorems corrected: whenever a non-finitary algebra (not
+only rea) is an arg-type the totality proof for the new total pconst
+has to be redone.  In search-about excluded strings EqP Ext added.
+
+In pproof.scm
+
+In rateqv-term-compat RatMaxCompat RatMinCompat added.
+
+In ets.scm
+
+Theorems EqPBooleSym EqPBooleTrans added.
+
+In examples/arith/quotrem
+
+Minor adaptions
+
+In lib/nat.scm
+
+CoEqPNatToCoTotalNatNc renamed into CoEqPNatToCoTotalNatNcLeft
+Theorems CoEqPNatToCoTotalNatNcRight NatLeMonMax added
+
+In lib/pos.scm
+
+PosPredEqP added.  Theorems NatLtZeroPosToNat NatToPosNatPlusSucc added.
+
+In lib/rat.scm
+
+Definition of RatMax changed such that a max b=a if b<=a (i.e., the
+lhs has preference).  For RatMin this already is so.  As consequence
+we have = rather than == in RatMaxEq1 (and hence do nat need to assume
+compatibility of f aaprox with ==).  Proofs of RatMaxUB1 RatMaxUB2
+RatMaxLUB RatAbsMax adapted.  RatLeExpPos added as rewrite rule:
+0<=(p#q)**k rewrites to True.  Theorems RatLeExpPosGen RatExpSucc
+RatExpNatPlus RatExpNat RatLeMonExp RatLeMonExpDecr RatEqAbsMinus
+RatEqAbsMinusCor RatLeMonMax RatMinLB1 RatMinLB2 RatMinGLB RatLeMonMin
+RatMaxEq1 RatMinEq1 (with = rather than ==) RatMaxEq2 RatMinEq2
+RatMaxComm RatMaxCompat RatMinComm RatMinCompat added.
+
+In lib/rea.scm
+
+EqPTotalPosToNat renamed into EqPTotalPosToNatLeft .
+EqPTotalNatToRat renamed into EqPTotalNatToRatLeft .
+EqPTotalPosToNatRight EqPTotalNatToRatRight added.
+EfCauchy EfMon EfReal EfRealEq EfRealEqS EfRealNNeg EfRealLe added.
+Theorems CauchyModIncr RealModIncr RealNNegCharOneRealConstrFree 
+RealLeIntroNNegFreeRealConstrFree RealLeChar2RealConstrFree added.
+
+In test/ets.scm
+
+Discarded code removed.  In CoEvenMRClause order of arguments corrected.
+
+In test/psym.scm
+
+add-totality does not work for infltlist infltree: they are not finitary
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done in dev branch 2018-09-09
 
 In typ.scm
 
