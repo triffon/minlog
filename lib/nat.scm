@@ -1,4 +1,4 @@
-;; 2018-09-09.  nat.scm
+;; 2018-11-13.  nat.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -2855,6 +2855,47 @@
 ;; Proof finished.
 (save "NatLeMonMinus")
 
+;; NatLeMonMax
+(set-goal "all n,m,l,l0(n<=m -> l<=l0 -> n max l<=m max l0)")
+(ind)
+;; 2,3
+(assume "m")
+(cases)
+(strip)
+(use "Truth")
+(assume "n" "l" "Useless" "Sn<=l")
+(ng)
+(use "NatLeTrans" (pt "l"))
+(use "Sn<=l")
+(use "NatMaxUB2")
+;; 3
+(assume "n" "IH")
+(cases)
+;; 13,14
+(assume "l" "l0" "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
+(assume "n1")
+(cases)
+(cases)
+(ng)
+(assume "n<=n1" "Useless")
+(use "n<=n1")
+(ng)
+(assume "n2" "n<=n1" "Useless")
+(use "NatLeTrans" (pt "n1"))
+(use "n<=n1")
+(use "NatMaxUB1")
+(assume "n2")
+(cases)
+(assume "Useless" "Absurd")
+(use "EfAtom")
+(use "Absurd")
+(ng)
+(use "IH")
+;; Proof finished.
+(save "NatLeMonMax")
+
 ;; NatPlusMinus
 (set-goal "all n,m,l(l<=m -> n+(m--l)=n+m--l)")
 (assume "n" "m")
@@ -3893,7 +3934,7 @@
 ;; Proof finished.
 ;; (cdp)
 
-;; CoEqPNatToCoTotalNatNc
+;; CoEqPNatToCoTotalNatNcLeft
 (set-goal "all n^,m^(CoEqPNat n^ m^ -> CoTotalNatNc n^)")
 (assume "n^" "m^" "n~m")
 (use (imp-formulas-to-coind-proof
@@ -3925,7 +3966,44 @@
 (intro 0 (pt "m^"))
 (use "n~m")
 ;; Proof finished.
-(save "CoEqPNatToCoTotalNatNc")
+(save "CoEqPNatToCoTotalNatNcLeft")
+;; (cdp)
+
+;; CoEqPNatToCoTotalNatNcRight
+(set-goal "all n^,m^(CoEqPNat n^ m^ -> CoTotalNatNc m^)")
+(assume "n^" "m^" "n~m")
+(use (imp-formulas-to-coind-proof
+      (pf "exr m^1 CoEqPNat m^1 m^ -> CoTotalNatNc m^")))
+;; 3,4
+(assume "m^1" "ExHyp1")
+(by-assume "ExHyp1" "n^1" "n1~m1")
+(inst-with-to "CoEqPNatNcClause" (pt "n^1") (pt "m^1") "n1~m1"
+	      "CoEqPNatNcClauseInst")
+(elim "CoEqPNatNcClauseInst")
+;; 11,12
+(drop "CoEqPNatNcClauseInst")
+(assume "Conj")
+(intro 0)
+(use "Conj")
+;; 12
+(drop "CoEqPNatNcClauseInst")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "m^2" "m2Prop")
+(by-assume "m2Prop" "n^2" "m2n2Prop")
+;; (by-assume "ExHyp2" "n^2" "n2Prop")
+;; (by-assume "n2Prop" "m^2" "n2m2Prop")
+(intro 1)
+(intro 0 (pt "n^2"))
+(split)
+(intro 1)
+(intro 0 (pt "m^2"))
+(use "m2n2Prop")
+(use "m2n2Prop")
+;; 4
+(intro 0 (pt "n^"))
+(use "n~m")
+;; Proof finished.
+(save "CoEqPNatToCoTotalNatNcRight")
 ;; (cdp)
 
 ;; We show reflexivity of bisimilarity on cototal natural numbers
