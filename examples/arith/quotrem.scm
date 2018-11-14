@@ -1,3 +1,4 @@
+;; 2018-09-19
 ;; $Id: quotrem.scm 2156 2008-01-25 13:25:12Z schimans $
 
 ;; (load "~/git/minlog/init.scm")
@@ -6,7 +7,7 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
-(add-var-name "l" (py "nat"))
+(add-var-name "k" (py "nat"))
 
 ;; QR
 (set-goal "all m,n ex k,l(n=(m+1)*k+l & l<m+1)")
@@ -78,7 +79,7 @@
 ;;               (cons (car p) (+ (cdr p) 1))
 ;;               (cons (+ (car p) 1) 0)))))))
 
-(((ev expr) 6) 754) 
+(((ev expr) 6) 754)
 ;; (107 . 5)
 
 (((ev expr) 682) 387688)
