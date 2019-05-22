@@ -1,0 +1,6 @@
+# Ignore generated files
+/init.scm
+/minlog
+/src/minitab.scm
+/util/minlog.el
+*~
