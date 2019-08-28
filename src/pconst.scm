@@ -1,4 +1,4 @@
-;; 2018-06-15.  pconst.scm
+;; 2019-08-23.  pconst.scm
 ;; 4. Constants
 ;; ============
 
@@ -3469,6 +3469,55 @@
 	rest)))
     (else (myerror "undelay-delayed-corec" "term expected" term))))
 
+;; Temporarily we add for instance ListCoRecRule as global assumption.
+;; It should be an axiom.
+
+(define (alg-name-to-corec-rule-ga alg-name)
+  (let* ((simalg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (cond ((= 1 (alg-name-to-arity alg-name))
+		       (list (make-tvar -1 "beta")))
+		      ((= 2 (alg-name-to-arity alg-name))
+		       (list (make-tvar -1 "beta") (make-tvar -1 "gamma")))
+		      (else (alg-name-to-tvars alg-name))))
+	 (simalgs (map (lambda (simalg-name)
+			 (apply make-alg simalg-name tvars))
+		       simalg-names))
+	 (arg-tvars (cond
+		     ((= 1 (length simalg-names))
+		      (list (make-tvar -1 "alpha")))
+		     ((= 2 (length simalg-names))
+		      (list (make-tvar -1 "alpha1") (make-tvar -1 "alpha2")))
+		     (else (map (lambda (x) (new-tvar)) simalg-names))))
+	 (arrow-types (map (lambda (arg-tvar simalg)
+			     (make-arrow arg-tvar simalg))
+			   arg-tvars simalgs))
+	 (corec-consts (apply alg-or-arrow-types-to-corec-consts
+			      arrow-types))
+	 (corec-const (car corec-consts))
+	 (bcorec-term (corec-const-and-bound-to-bcorec-term
+		       corec-const (pt "Succ Zero")))
+	 (corec-type (const-to-type corec-const))
+	 (arg-type (arrow-form-to-arg-type corec-type))
+	 (step-type (arrow-form-to-arg-type
+		     (arrow-form-to-val-type corec-type)))
+	 (arg-var (make-var arg-type -1 t-deg-zero (default-var-name arg-type)))
+	 (step-var
+	   (make-var step-type -1 t-deg-zero (default-var-name step-type)))
+	 (applied-corec-term (mk-term-in-app-form
+			      (make-term-in-const-form corec-const)
+			      (make-term-in-var-form arg-var)
+			      (make-term-in-var-form step-var)))
+	 (applied-bcorec-term (mk-term-in-app-form
+			       bcorec-term
+			       (make-term-in-var-form arg-var)
+			       (make-term-in-var-form step-var)))
+	 (eq-fla (make-eqd applied-corec-term applied-bcorec-term))
+	 (neq-fla (rename-variables (nf eq-fla)))
+	 (gen-neq-fla (mk-allnc arg-var step-var neq-fla))
+	 (ga-name (string-append (string-capitalize-first alg-name)
+				 "CoRecRule")))
+    (add-global-assumption ga-name gen-neq-fla)))
+
 ;; Now for destructors.
 
 (define (alg-to-uninst-destr-type-and-tsubst alg . opt-prim-prod-flag)
@@ -3842,17 +3891,18 @@
 		 (components (ysum-without-unit-to-components val-type))
 		 (prim-prod-flag
 		  (if (pair? components)
-		      (star-form? (car components))
+		      (cond
+		       ((alg-form? (car components)) #f)
+		       ((star-form? (car components)) #t)
+		       (else (myerror "const-substitute"
+				      "alg or star form expected at Destr"
+				      (car components))))
 		      (myerror "const-substitute"
 			       "components expected in Destr val-type"
 			       val-type)))
 		 (alg (destr-const-to-alg const))
 		 (inst-alg (type-substitute alg restricted-tsubst)))
 	    (alg-to-destr-const inst-alg prim-prod-flag)))
-	 ;; ((string=? "Destr" name)
-	 ;;  (let* ((alg (destr-const-to-alg const))
-	 ;; 	 (inst-alg (type-substitute alg restricted-tsubst)))
-	 ;;    (alg-to-destr-const inst-alg)))
 	 ((string=? "Map" name)
 	  (let* ((inst-mapop-type ;rho(sigmas)=>(sigmas=>taus)=>rho(taus)
 	  	  (const-to-type const))
@@ -3918,4 +3968,6 @@
 	 (else (myerror "const-substitute" "fixed rule name expected" name))))
        (else (myerror "const-substitute" "unknown kind"
 		      (const-to-kind const)))))))
+
+
 
