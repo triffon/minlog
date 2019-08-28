@@ -1,4 +1,4 @@
-;; 2018-11-10.  rat.scm.  Based on numbers.scm.
+;; 2019-08-24.  rat.scm.  Based on numbers.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -248,13 +248,9 @@
 
 (add-totality "rat")
 (add-totalnc "rat")
-(add-co "TotalRat")
-(add-co "TotalRatNc")
 
 (add-eqp "rat")
-(add-co "EqPRat")
 (add-eqpnc "rat")
-(add-co "EqPRatNc")
 
 ;; RatTotalVar
 (set-goal "all a TotalRat a")
@@ -2169,10 +2165,11 @@
 (use "RatEqvSym")
 (use "RatTimesZeroR")
 ;; 5
-(assume "p" "q" "b" "c" "Absurd")
-(use "Efq")
+(assume "p" "q" "b" "c" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "RatLeMonTimes")
 
 ;; RatLeUMinus
@@ -2624,11 +2621,11 @@
 (use "Truth")
 ;; 4
 (assume "q1" "b" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 5
 (assume "p1" "q1" "b" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
 (save "RatLeUDiv")
@@ -2685,7 +2682,7 @@
 (use "Truth")
 ;; 36
 (assume "p2" "q2" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
 (save "RatLeUDivInv")
@@ -2877,7 +2874,7 @@
 (assume "q" "q0")
 (ng)
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (assume "p0")
@@ -2904,7 +2901,7 @@
 (assume "q" "q0")
 (ng)
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 36
 (assume "q0")
@@ -3219,7 +3216,7 @@
 (assume "p")
 (cases)
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (assume "n" "Useless")
@@ -3553,11 +3550,11 @@
 (use "LeHyp")
 ;; 7
 (assume "q" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
 (assume "p" "q" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; Assertion proved.
 (assume "Assertion" "a" "b" "c")
