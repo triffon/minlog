@@ -1,4 +1,4 @@
-;; 2018-09-08.  examples/analysis/digits.scm
+;; 2019-08-25.  examples/analysis/digits.scm
 
 ;; Dependency of files
 
@@ -9,10 +9,15 @@
 ;;            \   |                      |   / 
 ;;  sdav <--   sdavaux <--  JK  -->  grayavaux --> grayav
 ;;                ^                      ^
-;;                |                      |
-;;                |                      |
-;;                |                      |
-;;             sdcode <--  digits --> graycode
+;;                  \                    |
+;;                     \                 |
+;;                        \              |
+;;                         sdcode --> graycode
+;;                           ^                            
+;;                           |                            
+;;                           |                            
+;;                           |                            
+;;                         digits
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -58,26 +63,26 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
@@ -89,6 +94,17 @@
  '("Sd(IntP One)" "InitSdSdR")
  '("Sd IntZero" "InitSdSdM")
  '("Sd(IntN One)" "InitSdSdL"))
+
+;; EfSd
+(set-goal "allnc d^(F -> Sd d^)")
+(assume "d^" "Absurd")
+(simp (pf "d^ eqd IntP 1"))
+(use "InitSdSdR")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfSd")
 
 ;; SdBound
 (set-goal "all d(Sd d -> abs d<=1)")
@@ -138,74 +154,74 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
@@ -219,6 +235,17 @@
  '("Sdtwo IntZero" "InitSdtwoMT")
  '("Sdtwo(IntN One)" "InitSdtwoLT")
  '("Sdtwo(IntN(SZero One))" "InitSdtwoLL"))
+
+;; EfSdtwo
+(set-goal "allnc d^(F -> Sdtwo d^)")
+(assume "d^" "Absurd")
+(simp (pf "d^ eqd IntP 1"))
+(use "InitSdtwoRT")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfSdtwo")
 
 ;; SdtwoBound
 (set-goal "all i(Sdtwo i -> abs i<=2)")
@@ -333,6 +360,20 @@
 ;; 	InitSdSdRMR:	SdMR 1 SdR
 ;; 	InitSdSdMMR:	SdMR 0 SdM
 ;; 	InitSdSdLMR:	SdMR(IntN 1)SdL
+
+;; EfSdMR
+(set-goal "allnc d^,s^(F -> SdMR d^ s^)")
+(assume "d^" "s^" "Absurd")
+(simp (pf "d^ eqd IntP 1"))
+(simp (pf "s^ eqd SdR"))
+(use "InitSdSdRMR")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfSdMR")
 
 ;; SdMRId
 (set-goal "all d,s(SdMR d s -> SdToInt s=d)")
@@ -508,13 +549,13 @@
 (assume "Useless")
 (use "Truth")
 (assume "p" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (assume "Useless")
@@ -527,13 +568,13 @@
 (assume "Useless")
 (use "Truth")
 (assume "p" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
 (save "IntToSdtwoToIntId")
@@ -547,6 +588,20 @@
 ;; 	InitSdtwoMTMR:	SdtwoMR 0 MT
 ;; 	InitSdtwoLTMR:	SdtwoMR(IntN 1)LT
 ;; 	InitSdtwoLLMR:	SdtwoMR(IntN 2)LL
+
+;; EfSdtwoMR
+(set-goal "allnc d,t(F -> SdtwoMR d t)")
+(assume "d" "t" "Absurd")
+(simp (pf "d=1"))
+(simp (pf "t=RT"))
+(use "InitSdtwoRTMR")
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfSdtwoMR")
 
 ;; SdtwoMRId
 (set-goal "all i,t(SdtwoMR i t -> SdtwoToInt t=i)")
@@ -639,13 +694,13 @@
 (assume "Useless")
 (use "InitSdtwoRRMR")
 (assume "p" "Absurd")
-(use "Efq")
+(use "EfSdtwoMR")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "Efq")
+(use "EfSdtwoMR")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "Efq")
+(use "EfSdtwoMR")
 (use "Absurd")
 ;; 3
 (assume "Useless")
@@ -658,15 +713,16 @@
 (assume "Useless")
 (use "InitSdtwoLLMR")
 (assume "p" "Absurd")
-(use "Efq")
+(use "EfSdtwoMR")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "Efq")
+(use "EfSdtwoMR")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "Efq")
+(use "EfSdtwoMR")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "SdtwoMRIntToSdtwo")
 
 ;; IntPlusSdToSdtwo
@@ -734,6 +790,17 @@
  (list (list "Psd" (make-arity (py "int")) "boole"))
  '("Psd(IntP One)" "InitPsdTrue")
  '("Psd(IntN One)" "InitPsdFalse"))
+
+;; EfPsd
+(set-goal "allnc d^(F -> Psd d^)")
+(assume "d^" "Absurd")
+(simp (pf "d^ eqd IntP 1"))
+(use "InitPsdTrue")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfPsd")
 
 ;; PsdToAbsOne
 (set-goal "all d(Psd d -> abs d=1)")
@@ -823,7 +890,7 @@
 (simp "pProp")
 (use "Truth")
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "p" "pProp")
 (ng)
@@ -843,6 +910,19 @@
 ;; PsdMR	non-computational
 ;; 	InitPsdTrueMR:	PsdMR 1 True
 ;; 	InitPsdFalseMR:	PsdMR(IntN 1)False
+
+;; EfPsdMR
+(set-goal "allnc d^,boole^(F -> PsdMR d^ boole^)")
+(assume "d^" "boole^" "Absurd")
+(simp (pf "d^ eqd IntP 1"))
+(simp (pf "boole^ eqd True"))
+(use "InitPsdTrueMR")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; (cdp)
+(save "EfPsdMR")
 
 ;; PsdMRId
 (set-goal "all d,boole(PsdMR d boole -> BooleToInt boole=d)")
@@ -920,13 +1000,14 @@
 (simp "pProp")
 (use "InitPsdTrueMR")
 (assume "Absurd")
-(use "Efq")
+(use "EfPsdMR")
 (use "Absurd")
 (assume "p" "pProp")
 (ng)
 (simp "pProp")
 (use "InitPsdFalseMR")
 ;; Proof finished.
+;; (cdp)
 (save "PsdMRIntToBoole")
 
 ;; IntTimesSdtwoPsdToSdtwo
