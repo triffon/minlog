@@ -1,4 +1,4 @@
-;; 2018-11-13.  axiom.scm
+;; 2019-08-20.  axiom.scm
 ;; 8. Assumption variables and axioms
 ;; ==================================
 ;; To be renamed into avars scheme, with the axioms section transferred
@@ -177,13 +177,10 @@
 ;; In aconst-to-formula in case Gfp the argument variables of the
 ;; idpredconst are quantified first (needed in proof-substitute).
 
-;; Code discarded 2018-06-11 and un-discarded 2018-06-14
 (define (aconst-to-formula aconst)
   (let* ((inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula)))
-    (if (formula-of-nulltype? inst-formula)
-	(apply mk-all (append free (list inst-formula)))
-	(apply mk-allnc (append free (list inst-formula))))))
+    (apply mk-allnc (append free (list inst-formula)))))
 
 (define (aconst-form? x) (and (pair? x) (eq? 'aconst (car x))))
 
@@ -565,7 +562,7 @@
 	 (tsubst (if (and (list? tpsubst) (apply and-op (map pair? tpsubst)))
 		     (list-transform-positive tpsubst
 		       (lambda (x) (tvar-form? (car x))))
-		     (myerror "check-aconst"
+		     (myerror "check-aconst" name
 			      "tpsubst as list of pairs expected"
 			      tpsubst)))
 	 (psubst (list-transform-positive tpsubst
@@ -573,28 +570,49 @@
 	 (tvars (map car tsubst))
 	 (pvars (map car psubst)))
     (if (not (string? name))
-	(myerror "check-aconst" "string expected" name))
+	(myerror "check-aconst" name "string expected" name))
     (if (not (member kind (list 'axiom 'theorem 'global-assumption)))
-	(myerror "check-aconst"
+	(myerror "check-aconst" name
 		 "kind axiom, theorem or global-assumption expected"
 		 kind))
     (if (not (formula? uninst-formula))
-	(myerror "check-aconst" "formula expected" uninst-formula))
+	(myerror "check-aconst" name "formula expected" uninst-formula))
     (if (not (tpsubst? tpsubst))
-	(apply myerror "check-aconst" "tpsubst expected" tpsubst))
+	(apply myerror "check-aconst" name "tpsubst expected" tpsubst))
     (if (not (= (+ (length tsubst) (length psubst)) (length tpsubst)))
-	(myerror "check-aconst" "tpsubst expected" tpsubst))
+	(myerror "check-aconst" name "tpsubst expected" tpsubst))
     (if (pair? (set-minus tvars (formula-to-tvars uninst-formula)))
-	(myerror "check-aconst" "tsubst has superfluous tvars"
+	(myerror "check-aconst" name "tsubst has superfluous tvars"
 		 (set-minus tvars (formula-to-tvars uninst-formula))))
     (if (pair? (set-minus pvars (formula-to-pvars uninst-formula)))
-	(myerror "check-aconst" "psubst has superfluous pvars"
+	(myerror "check-aconst" name "psubst has superfluous pvars"
 		 (set-minus pvars (formula-to-pvars uninst-formula))))
     (if (not (admissible-substitution? ;for elim-aconst generalize idpc-args
 	      tpsubst (apply mk-all (append (formula-to-free uninst-formula)
 					    (list uninst-formula)))))
-	(apply myerror "check-aconst" "admissible substitution expected"
+	(apply myerror "check-aconst" name "admissible substitution expected"
 	       (cons uninst-formula tpsubst)))
+					;check for sharp psubst if
+					;ignore-deco-flag is #f
+    (if (or ;ignore-deco-flag is #f
+	 (null? opt-ignore-deco-flag)
+	 (and (pair? opt-ignore-deco-flag) (not (car opt-ignore-deco-flag))))
+	(for-each
+	 (lambda (pvar cterm)
+	   (let ((fla (cterm-to-formula cterm)))
+	     (if (and (h-deg-zero? (pvar-to-h-deg pvar)) ;c.r. pvar
+		      (formula-of-nulltype? fla)) ;n.c. formula
+		 (myerror
+		  "check-aconst" name
+		  "not a sharp psubst: c.r. pvar" pvar
+		  "substituted by cterm with n.c. formula" fla))
+	     (if (and (h-deg-one? (pvar-to-h-deg pvar)) ;n.c.. pvar
+		      (not (formula-of-nulltype? fla))) ;c.r. formula
+		 (myerror
+		  "check-aconst" name
+		  "sharp predicate substitution expected:  n.c. pvar" pvar
+		  "substituted by cterm with c.r. formula" fla))))
+	 (map car psubst) (map cadr psubst)))
     (let ((violating-pvars
 	   (list-transform-positive (formula-to-pvars uninst-formula)
 	     (lambda (pvar)
@@ -612,7 +630,7 @@
 				  (cterm-to-formula (cadr info)))))))))))))
       (if (pair? violating-pvars)
 	  (apply myerror
-		 "check-aconst" "incorrect substitution for pvars"
+		 "check-aconst" name "incorrect substitution for pvars"
 		 (append pvars (list "in aconst" name)))))
     (if (and
 	 (or ;ignore-deco-flag is #f
@@ -628,7 +646,7 @@
 	    (<= 3 (length prems)) ;with at least 2 clauses
 	    (not (formula-of-nulltype? concl)))))
 	(myerror
-	 "check-aconst"
+	 "check-aconst" name
 	 "In case ignore-deco-flag is #f, Elim for the n.c. idpredconst"
 	 (car prems)
 	 "with at least two clauses can be used for n.c. conclusions only"
@@ -721,29 +739,29 @@
       (cond
        ((string=? "Intro" name)
 	(if (not (= 2 (length repro-data)))
-	    (myerror "check-aconst" "repro data of length 2 expected"
+	    (myerror "check-aconst" name "repro data of length 2 expected"
 		     repro-data))
 	(if (not (= (car repro-data) (car computed-repro-data)))
-	    (myerror "check-aconst" "equal clause numbers expected"
+	    (myerror "check-aconst" name "equal clause numbers expected"
 		     (car repro-data) (car computed-repro-data)))
 	(if (not (idpredconst=?
 		  (cadr repro-data) (cadr computed-repro-data)))
-	    (myerror "check-aconst" "equal idpredconsts expected"
+	    (myerror "check-aconst" name "equal idpredconsts expected"
 		     (cadr repro-data) (cadr computed-repro-data))))
        ((string=? "Closure" name)
 	(if (not (= 1 (length repro-data)))
-	    (myerror "check-aconst" "repro data of length 1 expected"
+	    (myerror "check-aconst" name "repro data of length 1 expected"
 		     repro-data))
 	(if (not (idpredconst=? (car repro-data) (car computed-repro-data)))
-	    (myerror "check-aconst" "equal idpredconsts expected"
+	    (myerror "check-aconst" name "equal idpredconsts expected"
 		     (car repro-data) (car computed-repro-data))))
        ((not (= (length repro-data) (length computed-repro-data)))
-	(myerror "check-aconst" "aconst with name" name "has"
+	(myerror "check-aconst" name "aconst with name" name "has"
 		 (length repro-data) "repro-data but"
 		 (length computed-repro-data)
 		 "computed repro-data"))
        ((not (apply and-op (map formula-form? repro-data)))
-	(apply myerror "check-aconst" "formula expected" repro-data))
+	(apply myerror "check-aconst" name "formula expected" repro-data))
        (else
 	(for-each
 	 (lambda (rfla crfla)
@@ -756,7 +774,7 @@
 				 (apply mk-all
 					(append (formula-to-free crfla)
 						(list crfla))))))))
-	     (if test (myerror "check-aconst"
+	     (if test (myerror "check-aconst" name
 			       "equal formulas expected for aconst"
 			       name
 			       "repro formula" rfla
@@ -1137,7 +1155,10 @@
 			     alg-names))
 	  (uninst-arities (map (lambda (x) (make-arity x)) uninst-types))
 	  (cterms (map (lambda (x y) (make-cterm x y)) vars kernels))
-	  (psubst (map (lambda (x y) (list (arity-to-new-general-pvar x) y))
+	  (psubst (map (lambda (arity cterm)
+			 (if (formula-of-nulltype? (cterm-to-formula cterm))
+			     (list (arity-to-new-harrop-pvar arity) cterm)
+			     (list (arity-to-new-general-pvar arity) cterm)))
 		       uninst-arities cterms))
 	  (pvars (map car psubst))
 	  (uninst-vars (map (lambda (x y) (type-to-new-var x y))
@@ -1149,9 +1170,9 @@
 		uninst-vars pvars))
 	  (uninst-kernel-formulas
 	   (map (lambda (x pvar)
-                  (make-predicate-formula
-                   pvar (make-term-in-var-form x)))
-                uninst-vars pvars))
+		  (make-predicate-formula
+		   pvar (make-term-in-var-form x)))
+		uninst-vars pvars))
 	  (alg-names-with-uninst-all-formulas
 	   (map list alg-names uninst-all-formulas))
 	  (simalg-names (alg-name-to-simalg-names alg-name)))
@@ -1179,13 +1200,13 @@
 			       x alg-names-with-uninst-all-formulas
 			       renaming-tsubst))
 		  typed-constr-names))
-            (uninst-imp-formulas
-             (map (lambda (uninst-var uninst-kernel-formula)
-                    (make-all uninst-var
-                              (apply mk-imp
-                                     (append uninst-step-formulas
-                                             (list uninst-kernel-formula)))))
-                  uninst-vars uninst-kernel-formulas)))
+	    (uninst-imp-formulas
+	     (map (lambda (uninst-var uninst-kernel-formula)
+		    (make-all uninst-var
+			      (apply mk-imp
+				     (append uninst-step-formulas
+					     (list uninst-kernel-formula)))))
+		  uninst-vars uninst-kernel-formulas)))
        (list uninst-imp-formulas (append tsubst psubst))))))
 
 (define (all-formulas-to-uninst-imp-formula-and-tpsubst . all-formulas)
@@ -1313,7 +1334,10 @@
 	 (uninst-type (apply make-alg alg-name tvars))
 	 (uninst-arity (make-arity uninst-type))
 	 (cterm (make-cterm var kernel))
-	 (psubst (list (list (arity-to-new-general-pvar uninst-arity) cterm)))
+	 (psubst
+	  (if (formula-of-nulltype? (cterm-to-formula cterm))
+	      (list (list (arity-to-new-harrop-pvar uninst-arity) cterm))
+	      (list (list (arity-to-new-general-pvar uninst-arity) cterm))))
 	 (pvar (caar psubst))
 	 (uninst-var (type-to-new-var uninst-type var))
 	 (uninst-stotal-prem
@@ -1329,7 +1353,7 @@
 			(make-predicate-formula
 			 pvar (make-term-in-var-form uninst-var)))))
 	 (uninst-kernel-formula
-          (make-predicate-formula pvar (make-term-in-var-form uninst-var)))
+	  (make-predicate-formula pvar (make-term-in-var-form uninst-var)))
 	 (orig-typed-constr-names (alg-name-to-typed-constr-names alg-name))
 	 (renaming-tsubst (make-substitution orig-tvars tvars))
 	 (typed-constr-names
@@ -1342,12 +1366,12 @@
 	       typed-constr-names))
 	 (uninst-imp-formula
 	  (make-all uninst-var
-                    (apply mk-imp (append
-                                   (if partial-flag
-                                       (list uninst-stotal-prem)
-                                       '())
-                                   uninst-step-formulas
-                                   (list uninst-kernel-formula))))))
+		    (apply mk-imp (append
+				   (if partial-flag
+				       (list uninst-stotal-prem)
+				       '())
+				   uninst-step-formulas
+				   (list uninst-kernel-formula))))))
     (list uninst-imp-formula (append tsubst psubst))))
 
 (define (typed-constr-name-to-cases-step-formula
@@ -2035,13 +2059,15 @@
 			(append sorted-simplified-strengthened-rel-clauses
 				(list pvar-formula))))
 	       rel-uninst-idpc-formulas rel-pvar-formulas))
+	 ;; Code discarded 2019-07-07
+	 ;; (uninst-elim-formulas uninst-elim-formulas-in-imp-form)
 	 (uninst-elim-formulas
 	  (if ;IMR case
 	   (apply and-op (map mr-idpredconst-name? rel-idpc-names))
 	   (map (lambda (new-var-list uninst-elim-formula-in-imp-form)
-		  (make-all (car new-var-list)
-			    uninst-elim-formula-in-imp-form))
-		new-var-lists uninst-elim-formulas-in-imp-form)
+	 	  (make-allnc (car (reverse new-var-list)) ;change only here
+	 		      uninst-elim-formula-in-imp-form))
+	 	new-var-lists uninst-elim-formulas-in-imp-form)
 	   uninst-elim-formulas-in-imp-form))
 	 (arg-lists (map predicate-form-to-args prems))
 	 (var-lists
@@ -2089,7 +2115,7 @@
 	  (apply imp-formulas-to-uninst-elim-formula-etc imp-formulas))
 	 (uninst-elim-formula (car uninst-elim-formula-etc))
 	 (tpsubst (apply append (cdr uninst-elim-formula-etc))))
-    (if (all-form? uninst-elim-formula) ;IMR case
+    (if (all-allnc-form? uninst-elim-formula) ;IMR case
 	(apply make-aconst "ElimMR" 'axiom uninst-elim-formula tpsubst
 	       imp-formulas)
 	(apply make-aconst "Elim" 'axiom uninst-elim-formula tpsubst
@@ -2398,9 +2424,65 @@
 	 ;; (coeqpncfla (make-coeqpnc varterm2 varterm1))
 	 (eqdfla (make-eqd varterm1 varterm2))
 	 (formula-of-coeqpnc-to-eqd-aconst
-	  (mk-all var1 var2 (make-imp coeqpncfla eqdfla))))
+	  (mk-allnc var1 var2 (make-imp coeqpncfla eqdfla))))
     (make-aconst "Bisim" ;CoEqPAlgNcToEqD
 		 'axiom formula-of-coeqpnc-to-eqd-aconst empty-subst)))
+
+(define (bisim-cterm-to-formula-of-bisim-aconst bisim-cterm)
+  (let* ((vars (cterm-to-vars bisim-cterm))
+	 (x (car vars))
+	 (y (cadr vars))
+	 (fla (cterm-to-formula bisim-cterm)))
+    (mk-allnc x y (make-imp fla (make-eqd (make-term-in-var-form x)
+					  (make-term-in-var-form y))))))
+
+(define (check-bisim-cterm x)
+  (let* ((vars (if (cterm-form? x)
+		   (cterm-to-vars x)
+		   (myerror "check-bisim-cterm" "cterm expected" x)))
+	 (fla (cterm-to-formula x))
+	 (pred (if (predicate-form? fla)
+		   (predicate-form-to-predicate fla)
+		   (myerror "check-bisim-cterm" "predicate form expected"fla)))
+	 (args (predicate-form-to-args fla))
+	 (idpc (if (idpredconst-form? pred)
+		   pred
+		   (myerror "check-bisim-cterm" "idpredconst-form expected"
+			    pred)))
+	 (name (if (= (length vars) (length args))
+		   (if (equal? (map make-term-in-var-form vars) args)
+		       (idpredconst-to-name idpc)
+		       (apply myerror "check-bisim-cterm"
+			      "equal terms expected"
+			      (append (map make-term-in-var-form vars) args)))
+		   (myerror "check-bisim-cterm"
+			    "equal length expected for vars" (length vars)
+			    "and args" (length args))))
+	 (cterms (idpredconst-to-cterms idpc))
+	 (rest-string
+	  (cond ((initial-substring? "EqP" name)
+		 (substring name 3 (string-length name)))
+		((initial-substring? "REqP" name)
+		 (substring name 4 (string-length name)))
+		((initial-substring? "CoEqP" name)
+		 (substring name 5 (string-length name)))
+		((initial-substring? "CoREqP" name)
+		 (substring name 6 (string-length name)))
+		(else
+		 (myerror "check-bisim-cterm"
+			  "initial substring EqP REqP CoEqP CoREqP expected in"
+			  name))))
+	 (alg-name (if (not (zero? (string-length rest-string)))
+		       (string-downcase-first rest-string)
+		       (myerror "check-bisim-cterm"
+				"capitalized alg-name missing in" name)))
+	 (n (if (= (length (alg-name-to-tvars alg-name)) (length cterms))
+		(length cterms)
+		(myerror "check-bisim-cterm" "equal lengths expected for tvars"
+			 (alg-name-to-tvars alg-name) "and cterms"
+			 (length cterms))))
+	 (prevs (map check-bisim-cterm cterms)))
+    #t))
 
 ;; Theorems
 
@@ -2778,122 +2860,52 @@
 	      pconst-names t-degs)
     ;; Change t-deg-zero in each pconst to t-deg-one
     (apply change-t-deg-to-one pconst-names)
-    (let* ((types (map term-to-type terms))
-	   (maxlev (apply max (map type-to-level types)))
-	   (arg-types (apply union (map arrow-form-to-arg-types types)))
-	   (alg-arg-types (list-transform-positive arg-types alg-form?))
-	   (param-types (apply union (map alg-form-to-types alg-arg-types))))
-      (if
-       (and (<= maxlev 1)
-	    (apply and-op (map (lambda (type) (apply finalg? type param-types))
-			       alg-arg-types)))
-       ;; (<= maxlev 1)
-       (let*
-	   ((new-pconsts (map pconst-name-to-pconst pconst-names)) ;t-deg-one
-	    (totality-proofs (map pconst-to-totality-proof new-pconsts))
-	    (formulas (map proof-to-formula totality-proofs))
-	    (strings (map (lambda (pconst-name)
-			    (string-append pconst-name "Total"))
-			  pconst-names))
-	    (aconsts (map (lambda (string formula)
-			    (make-aconst string 'theorem formula empty-subst))
-			  strings formulas)))
-	 (for-each (lambda (string aconst totality-proof)
-		     (set! THEOREMS (cons (list string aconst totality-proof)
-					  THEOREMS))
-		     (comment "ok, " string " added as a new theorem."))
-		   strings aconsts totality-proofs))
-       (if (= 1 (length pconsts))
-	   (comment "Redo totality proof for the new total pconst.")
-	   (comment "Redo totality proof for the new total pconsts."))))
-    *the-non-printing-object*))
-
-;; Code discarded 2018-10-20
-;; (define (add-totality-theorems . opt-proof)
-;;   (if (and (null? opt-proof)
-;; 	   (null? PPROOF-STATE))
-;;       (myerror "add-totality-theorems"
-;; 	       "proof argument or proof under construction expected"))
-;;   (let* ((proof (if (null? opt-proof)
-;; 		    (pproof-state-to-proof)
-;; 		    (car opt-proof)))
-;; 	 (formula (proof-to-formula proof))
-;; 	 (conjuncts (and-form-to-conjuncts formula))
-;; 	 (conclusions
-;; 	  (map imp-impnc-all-allnc-form-to-final-conclusion conjuncts))
-;; 	 (pconst-names
-;; 	  (map (lambda (concl)
-;; 		 (if (and (pair? (predicate-form-to-args concl))
-;; 			  (term-in-const-form?
-;; 			   (term-in-app-form-to-final-op
-;; 			    (car (predicate-form-to-args concl))))
-;; 			  (eq? 'pconst
-;; 			       (const-to-kind
-;; 				(term-in-const-form-to-const
-;; 				 (term-in-app-form-to-final-op
-;; 				  (car (predicate-form-to-args concl)))))))
-;; 		     (const-to-name
-;; 		      (term-in-const-form-to-const
-;; 		       (term-in-app-form-to-final-op
-;; 			(car (predicate-form-to-args concl)))))
-;; 		     (myerror "add-totality-theorems"
-;; 			      "unexpected final conclusion" concl)))
-;; 	       conclusions))
-;; 	 (pconsts (map pconst-name-to-pconst pconst-names))
-;; 	 (terms (map make-term-in-const-form pconsts))
-;; 	 (t-degs (map const-to-t-deg pconsts))
-;; 	 (totality-formulas (map term-to-totality-formula terms))
-;; 	 (unfolded-totality-formulas
-;; 	  (map term-to-unfolded-totality-formula terms)))
-;;     (if (not (null? (proof-to-free-avars proof)))
-;; 	(apply myerror "unexpected free assumptions"
-;; 	       (proof-to-free-avars proof)))
-;;     (if (pair? (nc-violations proof))
-;; 	(myerror "add-totality-theorems" "allnc-intro with cvars"
-;; 		 (nc-violations proof)))
-;;     (if (pair? (h-deg-violations proof))
-;; 	(myerror "add-totality-theorems" "h-deg violations at aconsts"
-;; 		 (h-deg-violations proof)))
-;;     (if (not (or (formula=? formula (apply mk-and totality-formulas))
-;; 		 (formula=? formula (apply mk-and unfolded-totality-formulas))))
-;; 	(myerror "add-totality-theorems" "formula" formula
-;; 		 "should be equal to the conjunction of totality formulas"
-;; 		 (mk-and totality-formulas)
-;; 		 "or the conjunction of unfolded totality formulas"
-;; 		 (mk-and unfolded-totality-formulas)))
-;;     (for-each (lambda (pconst-name t-deg)
-;; 		(if (t-deg-one? t-deg)
-;; 		    (comment "Warning: pconst " pconst-name
-;; 			     " should have been added with t-deg zero")))
-;; 	      pconst-names t-degs)
-;;     ;; Change t-deg-zero in each pconst to t-deg-one
-;;     (apply change-t-deg-to-one pconst-names)
-;;     (let* ((types (map term-to-type terms))
-;; 	   (maxlev (apply max (map type-to-level types))))
-;;       (if
-;;        (and (<= maxlev 1)
-;; 	    (not (member '(alg "rea") ;rea is a non-finitary algebra
-;; 			 (apply append (map arrow-form-to-arg-types types)))))
-;;        ;; (<= maxlev 1)
-;;        (let*
-;; 	   ((new-pconsts (map pconst-name-to-pconst pconst-names)) ;t-deg-one
-;; 	    (totality-proofs (map pconst-to-totality-proof new-pconsts))
-;; 	    (formulas (map proof-to-formula totality-proofs))
-;; 	    (strings (map (lambda (pconst-name)
-;; 			    (string-append pconst-name "Total"))
-;; 			  pconst-names))
-;; 	    (aconsts (map (lambda (string formula)
-;; 			    (make-aconst string 'theorem formula empty-subst))
-;; 			  strings formulas)))
-;; 	 (for-each (lambda (string aconst totality-proof)
-;; 		     (set! THEOREMS (cons (list string aconst totality-proof)
-;; 					  THEOREMS))
-;; 		     (comment "ok, " string " added as a new theorem."))
-;; 		   strings aconsts totality-proofs))
-;;        (if (= 1 (length pconsts))
-;; 	   (comment "Redo totality proof for the new total pconst.")
-;; 	   (comment "Redo totality proof for the new total pconsts."))))
-;;     *the-non-printing-object*))
+    (let* ((new-pconsts (map pconst-name-to-pconst pconst-names)) ;t-deg-one
+	   (totality-proofs (map pconst-to-totality-proof new-pconsts))
+	   (formulas (map proof-to-formula totality-proofs))
+	   (strings (map (lambda (pconst-name)
+			   (string-append pconst-name "Total"))
+			 pconst-names))
+	   (aconsts (map (lambda (string formula)
+			   (make-aconst string 'theorem formula empty-subst))
+			 strings formulas)))
+      (for-each (lambda (string aconst totality-proof)
+		  (set! THEOREMS (cons (list string aconst totality-proof)
+				       THEOREMS))
+		  (comment "ok, " string " added as a new theorem."))
+		strings aconsts totality-proofs)
+       ;; (if (= 1 (length pconsts))
+       ;; 	   (comment "Redo totality proof for the new total pconst.")
+       ;; 	   (comment "Redo totality proof for the new total pconsts."))))
+    ;; (let* ((types (map term-to-type terms))
+    ;; 	   (maxlev (apply max (map type-to-level types)))
+    ;; 	   (arg-types (apply union (map arrow-form-to-arg-types types)))
+    ;; 	   (alg-arg-types (list-transform-positive arg-types alg-form?))
+    ;; 	   (param-types (apply union (map alg-form-to-types alg-arg-types))))
+    ;;   (if
+    ;;    (and (<= maxlev 1)
+    ;; 	    (apply and-op (map (lambda (type) (apply finalg? type param-types))
+    ;; 			       alg-arg-types)))
+    ;;    ;; (<= maxlev 1)
+    ;;    (let*
+    ;; 	   ((new-pconsts (map pconst-name-to-pconst pconst-names)) ;t-deg-one
+    ;; 	    (totality-proofs (map pconst-to-totality-proof new-pconsts))
+    ;; 	    (formulas (map proof-to-formula totality-proofs))
+    ;; 	    (strings (map (lambda (pconst-name)
+    ;; 			    (string-append pconst-name "Total"))
+    ;; 			  pconst-names))
+    ;; 	    (aconsts (map (lambda (string formula)
+    ;; 			    (make-aconst string 'theorem formula empty-subst))
+    ;; 			  strings formulas)))
+    ;; 	 (for-each (lambda (string aconst totality-proof)
+    ;; 		     (set! THEOREMS (cons (list string aconst totality-proof)
+    ;; 					  THEOREMS))
+    ;; 		     (comment "ok, " string " added as a new theorem."))
+    ;; 		   strings aconsts totality-proofs))
+    ;;    (if (= 1 (length pconsts))
+    ;; 	   (comment "Redo totality proof for the new total pconst.")
+    ;; 	   (comment "Redo totality proof for the new total pconsts."))))
+    *the-non-printing-object*)))
 
 (define (save-totality . opt-proof)
   (apply add-totality-theorems opt-proof))
