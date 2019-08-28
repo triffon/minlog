@@ -1,4 +1,4 @@
-;; 2018-11-13.  pos.scm.  Based on the former numbers.scm.
+;; 2019-08-24.  pos.scm
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -8,14 +8,7 @@
 (if (not (assoc "nat" ALGEBRAS))
     (myerror "First execute (libload \"nat.scm\")"))
 
-;; ;; lib/list.scm needed for representing pos as list of booleans
-
-;; (if (not (assoc "list" ALGEBRAS))
-;;     (myerror "First execute (libload \"list.scm\")"))
-
 (display "loading pos.scm ...") (newline)
-
-;; (remove-var-name "k")
 
 ;; (remove-nat-tokens) removes all tokens added in nat.scm and from
 ;; DISPLAY-FUNCTIONS all items (nat proc).  The reason is that they
@@ -37,6 +30,7 @@
 ;; take its arguments, compute the lub rho of their types, raise the
 ;; type of both arguments to type rho, apply RhoPlus to the results.
 ;; Moreover, a number should be displayed at the lowest possible level.
+;; ppn (pretty print with names) displays the actually used functions.
 
 (add-algs "pos" '("One" "pos") '("SZero" "pos=>pos") '("SOne" "pos=>pos"))
 (add-var-name "p" "q" "r" (py "pos"))
@@ -57,10 +51,8 @@
 (assume "p^" "Tp")
 (use "Tp")
 ;; Proof finished.
+;; (cdp)
 (save "PosTotalVar")
-
-;; (cdp (proof-to-soundness-proof))
-;; Uses the axiom AllTotalIntroSound.
 
 ;; Alternative proof:
 ;; (set-goal "all p TotalPos p")
@@ -81,17 +73,17 @@
 (use "InitEqD")
 ;; 6
 (assume "p" "1=SZero p")
-(use "EfqEqD")
+(use "EfEqD")
 (use "1=SZero p")
 ;; 7
 (assume "p" "1=SOne p")
-(use "EfqEqD")
+(use "EfEqD")
 (use "1=SOne p")
 ;; 3
 (assume "p" "IH1")
 (cases) ;14-16
 (assume "SZero p=1")
-(use "EfqEqD")
+(use "EfEqD")
 (use "SZero p=1")
 ;; 15
 (assume "q" "SZero p=SZero q")
@@ -104,17 +96,17 @@
 (use "InitEqD")
 ;; 18
 (assume "q" "SZero p=SOne q")
-(use "EfqEqD")
+(use "EfEqD")
 (use "SZero p=SOne q")
 ;; 4
 (assume "p" "IH1")
 (cases) ;29-31
 (assume "SOne p=1")
-(use "EfqEqD")
+(use "EfEqD")
 (use "SOne p=1")
 ;; 30
 (assume "q" "SOne p=SZero q")
-(use "EfqEqD")
+(use "EfEqD")
 (use "SOne p=SZero q")
 ;; 31
 (assume "q" "SOne p=SOne q")
@@ -126,6 +118,7 @@
 (strip)
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "PosEqToEqD")
 
 ;; PosIfTotal
@@ -148,6 +141,7 @@
 (use "Tf2")
 (use "Tp1")
 ;; Proof finished.
+;; (cdp)
 (save "PosIfTotal")
 
 ;; To prove extensionality of pconsts of level >=2 we will need
@@ -163,8 +157,8 @@
 (assume "p^1" "Tp1")
 (use "EqPPosSOne")
 ;; Proof finished.
-(save "EqPPosRefl")
 ;; (cdp)
+(save "EqPPosRefl")
 
 ;; EqPPosToTotalLeft
 (set-goal "allnc p^,q^(EqPPos p^ q^ -> TotalPos p^)")
@@ -181,8 +175,8 @@
 (use "TotalPosSOne")
 (use "IH")
 ;; Proof finished.
-(save "EqPPosToTotalLeft")
 ;; (cdp)
+(save "EqPPosToTotalLeft")
 
 ;; EqPPosToTotalRight
 (set-goal "allnc p^,q^(EqPPos p^ q^ -> TotalPos q^)")
@@ -199,8 +193,8 @@
 (use "TotalPosSOne")
 (use "IH")
 ;; Proof finished.
-(save "EqPPosToTotalRight")
 ;; (cdp)
+(save "EqPPosToTotalRight")
 
 ;; EqPPosToEqD
 (set-goal "allnc p^,q^(EqPPos p^ q^ -> p^ eqd q^)")
@@ -217,8 +211,8 @@
 (simp "IH")
 (use "InitEqD")
 ;; Proof finished.
-(save "EqPPosToEqD")
 ;; (cdp)
+(save "EqPPosToEqD")
 
 ;; EqPPosSym
 (set-goal "allnc p^,q^(EqPPos p^ q^ -> EqPPos q^ p^)")
@@ -232,36 +226,32 @@
 (use "EqPPosSOne")
 (use "EqPq1p1")
 ;; Proof finished.
-(save "EqPPosSym")
 ;; (cdp)
+(save "EqPPosSym")
 
 (add-var-name "f" (py "pos=>alpha=>alpha"))
 
 ;; PosRecTotal
 (set-goal (rename-variables (term-to-totality-formula (pt "(Rec pos=>alpha)"))))
-(assume "p^" "Tp" "alpha^" "Talpha" "f^1" "f^2" "EqPf1f2" "f^3" "f^4" "EqPf3f4")
+(assume "p^" "Tp" "alpha^" "Talpha" "f^1" "Tf1" "f^2" "Tf2")
 (elim "Tp") 
 ;;3-5
 (ng #t)
-(use "EqPRefl")
 (use "Talpha")
 ;; 4
 (assume "p^1" "Tp1" "IH")
 (ng #t)
-(use "EqPDefOne")
-(use "EqPf1f2")
-(use "EqPPosRefl")
+(use "Tf1")
 (use "Tp1")
 (use "IH")
 ;; 5
 (assume "p^1" "Tp1" "IH")
 (ng #t)
-(use "EqPDefOne")
-(use "EqPf3f4")
-(use "EqPPosRefl")
+(use "Tf2")
 (use "Tp1")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosRecTotal")
 
 (remove-var-name "f")
@@ -510,66 +500,8 @@
 (use "IHp1")
 (use "Tq1")
 ;; Proof finished.
+;; (cdp)
 (save "PosEqTotal")
-
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
-
-;; Code discarded 2016-04-02.
-;; Theorems like PosEqTotalReal PosPlusTotalReal removed.  They were
-;; designed for use in proof-to-soundness-proof at theorem like
-;; PosEqTotal PosPlusTotal.  But proof-to-soundness-proof should not
-;; use soundness proofs for theorems of the form Pconst+Total and
-;; AlgEqTotal: these proofs have terms involving Rec as content, but
-;; proof-to-extracted-term assigns Pconst or identities to them.
-
-;; (display-idpc "TotalBooleMR")
-
-;; ;; PosEqTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "[p,q]p=q")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosEqTotal")))))
-;; (assume "p^" "p^0" "TMRp0p")
-;; (elim "TMRp0p")
-;; (assume "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (use "TotalBooleTrueMR")
-;; (assume "q^1" "q^10" "Useless1" "Useless2")
-;; (use "TotalBooleFalseMR")
-;; (assume "q^1" "q^10" "Useless1" "Useless2")
-;; (use "TotalBooleFalseMR")
-
-;; (assume "q^" "q^0" "Useless1" "IH" "q^1" "q^10" "TMRq10q1")
-;; (elim "TMRq10q1")
-;; (use "TotalBooleFalseMR")
-;; (assume "q^2" "q^20" "TMRq20q2" "Useless2")
-;; (use "IH")
-;; (use "TMRq20q2")
-;; (assume "q^2" "q^20" "TMRq20q2" "Useless2")
-;; (use "TotalBooleFalseMR")
-
-;; (assume "q^" "q^0" "Useless1" "IH" "q^1" "q^10" "TMRq10q1")
-;; (elim "TMRq10q1")
-;; (use "TotalBooleFalseMR")
-;; (assume "q^2" "q^20" "TMRq20q2" "Useless2")
-;; (use "TotalBooleFalseMR")
-;; (assume "q^2" "q^20" "TMRq20q2" "Useless2")
-;; (use "IH")
-;; (use "TMRq20q2")
-;; ;; Proof finished.
-;; (save "PosEqTotalReal")
-
-;; (pp (rename-variables (nt (proof-to-extracted-term "PosEqTotal"))))
-;; ;; =
-
-;; ;; Hence we are allowed to change the extracted term of PosEqTotal into
-;; ;; [n,m]n=m.  Then proof-to-soundness-proof at FinAlgEqTotal looks for
-;; ;; FinAlgEqTotalReal and uses it.  An error is raised if
-;; ;; FinAlgEqTotalReal does not exist.
-
-;; (pp (theorem-to-extracted-term (theorem-name-to-aconst "PosEqTotal")))
-;; [p^,q^]p^ =q^
 
 ;; Rules for PosS
 
@@ -599,61 +531,8 @@
 (use "TotalPosSZero")
 (use "TSq")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-;; (define sproof (proof-to-soundness-proof "PosSTotal"))
-;; (cdp sproof)
-;; (pp (rename-variables (proof-to-formula sproof)))
-;; (proof-to-expr-with-formulas sproof)
-;; (define nsproof (np sproof))
-;; (proof-to-expr-with-formulas nsproof)
-;; (pp (rename-variables (proof-to-formula nsproof)))
-;; (pp (rename-variables (nf (proof-to-formula nsproof))))
-
-;; all p^,p^0(TotalPosMR p^0 p^ -> TotalPosMR(PosS p^0)(PosS p^))
-
-;; Code discarded 2016-04-02
-;; ;; PosSTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "PosS")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosSTotal")))))
-;; (assume "p^" "p^0" "TMRp0p")
-;; (elim "TMRp0p")
-;; (use "TotalPosSZeroMR")
-;; (use "TotalPosOneMR")
-;; (assume "q^" "q^0" "TMRq0q" "IH")
-;; (use "TotalPosSOneMR")
-;; (use "TMRq0q")
-;; (assume "q^" "q^0" "TMRq0q" "IH")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save "PosSTotalReal")
-
-;; ;; (pp (theorem-to-extracted-term (theorem-name-to-aconst "PosSTotal")))
-;; ;; PosS
-
-;; ;; Both PosS and [p^0](Rec pos=>pos)p^0 2([p1,p2]SOne p1)([p1]SZero)
-;; ;; are realizers for the formula of the theorem PosSTotal.
-;; ;; theorem-to-extracted-term picks PosS, whereas extraction from the
-;; ;; proof of PosSTotal gives the latter term with Rec.
-
-;; (proof-to-expr-with-formulas "PosSTotalReal")
-;; ;; simpler than et(nsproof).
-
-;; (pp (rename-variables
-;;      (proof-to-formula (theorem-name-to-proof "PosSTotalReal"))))
-;; ;; allnc p^,p^0(TotalPosMR p^0 p^ --> TotalPosMR(PosS p^0)(PosS p^))
-;; ;; Also simpler than the formula of sproof.
-
-;; ;; Correctness of PosS as realizer for PosSTotal is verified by
-;; ;; PosSTotalReal.  Therefore proof-to-soundness-proof at theorem
-;; ;; PosSTotal should use the theorem PosSTotalReal, and similarly for
-;; ;; other pconsts.
-
-;; (pp (rename-variables (proof-to-extracted-term "PosSTotal")))
 
 ;; PosSEqP
 (set-goal "allnc p^,q^(EqPPos p^ q^ -> EqPPos(PosS p^)(PosS q^))")
@@ -667,8 +546,8 @@
 (use "EqPPosToEqD")
 (use "EqPpq")
 ;; Proof finished.
-(save "PosSEqP")
 ;; (cdp)
+(save "PosSEqP")
 
 ;; Rules for PosPred
 
@@ -714,37 +593,8 @@
 (use "TotalPosSZero")
 (use "Tq")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-;; Code discarded 2016-04-02
-;; ;; PosPredTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "PosPred")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosPredTotal")))))
-;; (assume "p^" "p^0" "TMRp0p")
-;; (elim "TMRp0p")
-;; (use "TotalPosOneMR")
-
-;; (assume "q^" "q^0" "TMRq0q" "IH")
-;; (elim "TMRq0q")
-;; (use "TotalPosOneMR")
-;; (assume "q^2" "q^20" "TMRq20q2" "IH2")
-;; (ng #t)
-;; (use "TotalPosSOneMR")
-;; (use "IH2")
-;; (assume "q^2" "q^20" "TMRq20q2" "Useless")
-;; (ng #t)
-;; (use "TotalPosSOneMR")
-;; (use "TotalPosSZeroMR")
-;; (use "TMRq20q2")
-
-;; (assume "q^" "q^0" "TMRq0q" "IH")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "TMRq0q")
-;; ;; Proof finished.
-;; (save "PosPredTotalReal")
 
 ;; PosPredEqP
 (set-goal "allnc p^,q^(EqPPos p^ q^ -> EqPPos(PosPred p^)(PosPred q^))")
@@ -758,8 +608,8 @@
 (use "EqPPosToEqD")
 (use "EqPpq")
 ;; Proof finished.
-(save "PosPredEqP")
 ;; (cdp)
+(save "PosPredEqP")
 
 ;; Rules for PosHalf
 
@@ -788,6 +638,7 @@
 (ng #t)
 (use "Tq")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; Rules for PosToNat
@@ -815,6 +666,7 @@
 (use "NatDoubleTotal")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 (replace-item-in-algebra-edge-to-embed-term-alist
@@ -825,20 +677,6 @@
 	 (make-term-in-const-form
 	  (pconst-name-to-pconst "PosToNat"))
 	 (make-term-in-var-form var)))))
-
-;; PosToNatDefSZero is obsolete.  Use PosToNat1CompRule instead.
-;; (set-goal "all p PosToNat(SZero p)=NatDouble(PosToNat p)")
-;; (assume "p")
-;; (use "Truth")
-;; ;; Proof finished.
-;; (save "PosToNatDefSZero")
-
-;; PosToNatDefSOne is obsolete.  Use PosToNat2CompRule instead.
-;; (set-goal "all p PosToNat(SOne p)=Succ(PosToNat(SZero p))")
-;; (assume "p")
-;; (use "Truth")
-;; ;; Proof finished.
-;; (save "PosToNatDefSOne")
 
 ;; We define the inverse NatToPos of PosToNat , using GRec
 
@@ -854,54 +692,28 @@
 
 ;; NatToPosStepTotal
 (set-totality-goal "NatToPosStep")
-(use "AllTotalElim")
-(assume "n" "(nat=>pos)^1" "(nat=>pos)^2" "EqPf1f2")
+(assume "nat^" "Tnat" "(nat=>pos)^" "Th")
 (ng #t)
-(use "BooleIfEqP")
-;; 5-7
-(use "EqPBooleRefl")
-(use "BooleTotalVar")
-;; 6
-(use "EqPPosSZero")
-(use "EqPf1f2")
-(use "EqPNatRefl")
-(use "NatTotalVar")
-;; 7
-(use "BooleIfEqP")
-(use "EqPBooleRefl")
-(use "BooleTotalVar")
-(use "EqPPosOne")
-(use "EqPPosSOne")
-(use "EqPf1f2")
-(use "EqPNatRefl")
-(use "NatTotalVar")
+(use "BooleIfTotal")
+(use "NatEvenTotal")
+(use "Tnat")
+(use "TotalPosSZero")
+(use "Th")
+(use "NatHalfTotal")
+(use "Tnat")
+(use "BooleIfTotal")
+(use "NatEqTotal")
+(use "Tnat")
+(use "TotalNatSucc")
+(use "TotalNatZero")
+(use "TotalPosOne")
+(use "TotalPosSOne")
+(use "Th")
+(use "NatHalfTotal")
+(use "Tnat")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-(set-totality-goal "NatToPosStep")
-(use "AllTotalElim")
-(assume "n" "(nat=>pos)^1" "(nat=>pos)^2" "EqPf1f2")
-(ng #t)
-(use "BooleIfEqP")
-;; 5-7
-(use "EqPBooleRefl")
-(use "BooleTotalVar")
-;; 6
-(use "EqPPosSZero")
-(use "EqPf1f2")
-(use "EqPNatRefl")
-(use "NatTotalVar")
-;; 7
-(use "BooleIfEqP")
-(use "EqPBooleRefl")
-(use "BooleTotalVar")
-(use "EqPPosOne")
-(use "EqPPosSOne")
-(use "EqPf1f2")
-(use "EqPNatRefl")
-(use "NatTotalVar")
-;; Proof finished.
-(save "NatToPosStepExt")
 
 (add-program-constant "NatToPos" (py "nat=>pos"))
 
@@ -916,15 +728,20 @@
 (assume "n")
 (ng #t)
 (use "BooleIfTotal")
-(use "BooleTotalVar")
+(use "NatEvenTotal")
+(use "NatTotalVar")
 (use "TotalPosSZero")
 (use "PosTotalVar")
 (use "BooleIfTotal")
-(use "BooleTotalVar")
+(use "NatEqTotal")
+(use "NatTotalVar")
+(use "TotalNatSucc")
+(use "TotalNatZero")
 (use "TotalPosOne")
 (use "TotalPosSOne")
 (use "PosTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; NatToPosDef
@@ -932,6 +749,7 @@
 (assume "n")
 (use "Truth")
 ;; Proof finished
+;; (cdp)
 (save "NatToPosDef")
 
 ;; Rules for PosPlus
@@ -1012,80 +830,8 @@
 (use "IHq")
 (use "Tq2")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-;; Code discarded 2016-04-02
-;; ;; PosPlusTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "PosPlus")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosPlusTotal")))))
-;; (assume "p^" "p^0" "TMRp0p")
-;; (elim "TMRp0p")
-;; (assume "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (use "TotalPosSZeroMR")
-;; (use "TotalPosOneMR")
-;; (assume "q^1" "q^10" "TMRq10q1" "IH")
-;; (ng #t)
-;; (use "TotalPosSOneMR")
-;; (use "TMRq10q1")
-;; (assume "q^1" "q^10" "TMRq10q1" "IH")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "PosSTotalReal")
-;; (use "TMRq10q1")
-
-;; ;; ?_4:allnc pos^,pos^0(
-;; ;;      TotalPosMR pos^0 pos^ -->
-;; ;;      allnc p^,p^0(TotalPosMR p^0 p^ --> TotalPosMR(pos^0+p^0)(pos^ +p^)) ->
-;; ;;      allnc p^,p^0(
-;; ;;       TotalPosMR p^0 p^ --> TotalPosMR(SZero pos^0+p^0)(SZero pos^ +p^)))
-;; (assume "p^1" "p^10" "TMRp10p1" "IHp1" "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (ng #t)
-;; (use "TotalPosSOneMR")
-;; (use "TMRp10p1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "TotalPosSOneMR")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-
-;; ;; ?_5:allnc pos^,pos^0(
-;; ;;      TotalPosMR pos^0 pos^ -->
-;; ;;      allnc p^,p^0(TotalPosMR p^0 p^ --> TotalPosMR(pos^0+p^0)(pos^ +p^)) ->
-;; ;;      allnc p^,p^0(
-;; ;;       TotalPosMR p^0 p^ --> TotalPosMR(SOne pos^0+p^0)(SOne pos^ +p^)))
-
-;; (assume "p^1" "p^10" "TMRp10p1" "IHp1" "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "PosSTotalReal")
-;; (use "TMRp10p1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "TotalPosSOneMR")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "PosSTotalReal")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-;; ;; Proof finished.
-;; (save "PosPlusTotalReal")
 
 ;; PosPlusEqP
 (set-goal "allnc p^1,q^1(EqPPos p^1 q^1 -> allnc p^2,q^2(EqPPos p^2 q^2 ->
@@ -1106,8 +852,8 @@
 (use "EqPPosToEqD")
 (use "EqPp1q1")
 ;; Proof finished.
-(save "PosPlusEqP")
 ;; (cdp)
+(save "PosPlusEqP")
 
 ;; NatLt0Pos
 (set-goal "all p Zero<p")
@@ -1121,6 +867,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLt0Pos")
 
 ;; SZeroPosPlus
@@ -1136,6 +883,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "SZeroPosPlus")
 
 ;; We derive some rewrite rules.  To ensure termination, we (1) decrease
@@ -1162,6 +910,7 @@
 (assume "p" "Hyp")
 (use "Hyp")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosPred(PosS p)" "p")
 
 (set-goal "all p PosPred(SZero(PosS p))=SOne p")
@@ -1174,6 +923,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosPred(SZero(PosS p))" "SOne p")
 
 (set-goal "all p PosS(PosPred(SZero p))=SZero p")
@@ -1186,12 +936,14 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosS(PosPred(SZero p))" "SZero p")
 
 (set-goal "all p One+p=PosS p")
 (cases)
 (auto)
 ;; Proof finished
+;; (cdp)
 (add-rewrite-rule "One+p" "PosS p")
 
 (set-goal "all p,q PosS p+q=PosS(p+q)")
@@ -1205,6 +957,7 @@
 (ind)
 (auto)
 ;; Proof finished
+;; (cdp)
 (add-rewrite-rule "PosS p+q" "PosS(p+q)")
 
 (set-goal "all p,q p+PosS q=PosS(p+q)")
@@ -1218,6 +971,7 @@
 (cases)
 (auto)
 ;; Proof finished
+;; (cdp)
 (add-rewrite-rule "p+PosS q" "PosS(p+q)")
 
 ;; To prove "all p,q,r p+(q+r)=p+q+r" by
@@ -1236,6 +990,7 @@
 (assume "(nat=>nat)" "nat" "(nat=>(nat=>pos)=>pos)")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "GRecDef")
 
 ;; NatToPosEqSZeroNatToPosHalf
@@ -1253,6 +1008,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosEqSZeroNatToPosHalf")
 
 ;; NatToPosEqSOneNatToPosHalf
@@ -1272,6 +1028,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosEqSOneNatToPosHalf")
 
 ;; NatHalfSuccEven
@@ -1279,7 +1036,7 @@
 (use "CVIndPvar")
 (assume "Absurd")
 (strip)
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n" "Prog" "En")
 (cases (pt "n"))
@@ -1305,6 +1062,7 @@
 (simphyp-with-to "EnSimp" "n1=Sn2" "EnSimpSimp")
 (use "EnSimpSimp")
 ;; Proof finished.
+;; (cdp)
 (save "NatHalfSuccEven")
 
 ;; PosToNatToPosId
@@ -1312,7 +1070,7 @@
 (use "CVIndPvar")
 (assume "Absurd")
 (strip)
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n" "Prog" "0<n")
 (cases (pt "NatEven n"))
@@ -1354,7 +1112,7 @@
 (simp "PosToNat2CompRule")
 (cases (pt "n"))
 (assume "n=0")
-(use "EfqAtom")
+(use "EfAtom")
 (simphyp-with-to "NatEven n -> F" "n=0" "Absurd")
 (use "Absurd")
 (use "Truth")
@@ -1404,6 +1162,7 @@
 (use "NatHalfLtSucc")
 (use "En1")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatToPosId")
 
 ;; NatToPosToNatId
@@ -1466,6 +1225,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosToNatId")
 
 ;; PosToNatInj
@@ -1479,6 +1239,7 @@
 (assume "p=q")
 (use "p=q")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatInj")
 
 ;; SuccPosS
@@ -1487,7 +1248,7 @@
 (use "CVIndPvar")
 (assume "Absurd")
 (strip)
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n" "Prog" "0<n")
 (cases (pt "NatEven n")) ;10,11
@@ -1539,6 +1300,7 @@
 (use "Truth")
 (use "0<n")
 ;; Proof finished.
+;; (cdp)
 (save "SuccPosS")
 
 ;; PosSSucc
@@ -1555,6 +1317,7 @@
 (use "Truth")
 (use "NatLt0Pos")
 ;; Proof finished.
+;; (cdp)
 (save "PosSSucc")
 
 ;; We prove that PosToNat is an isomorphism w.r.t. +
@@ -1605,6 +1368,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatPlus")
 
 ;; NatToPosPlus
@@ -1622,6 +1386,7 @@
 (simp "NatToPosToNatId")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosPlus")
 
 ;; Commutativity of + for pos
@@ -1651,6 +1416,7 @@
 (simp "EqHyp4")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosPlusComm")
 
 ;; Associativity of + for pos
@@ -1680,6 +1446,7 @@
 (simp "<-" "PosToNatPlus")
 (use "NatToPosToNatId")
 ;; Proof finished.
+;; (cdp)
 (save "PosPlusAssoc")
 (add-rewrite-rule "p+(q+r)" "p+q+r")
 
@@ -1696,6 +1463,7 @@
 (simp "EqHyp")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosPlusCancelL")
 
 ;; PosPlusCancelR
@@ -1708,6 +1476,7 @@
 (simp "EqHyp")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosPlusCancelR")
 
 ;; We postpone the treatment (as rewrite rules) of PosLePlusCancelL
@@ -1756,29 +1525,8 @@
 (use "IHq1")
 (use "Tp")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-;; Code discarded 2016-04-02
-;; ;; PosTimesTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "PosTimes")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosTimesTotal")))))
-;; (assume "p^" "p^0" "TMRp0p" "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (use "TMRp0p")
-;; (assume "q^1" "q^10" "Useless" "IHq1")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "IHq1")
-;; (assume "q^1" "q^10" "Useless" "IHq1")
-;; (ng #t)
-;; (use "PosPlusTotalReal")
-;; (use "TotalPosSZeroMR")
-;; (use "IHq1")
-;; (use "TMRp0p")
-;; ;; Proof finished.
-;; (save "PosTimesTotalReal")
 
 ;; PosTimesEqP
 (set-goal "allnc p^1,q^1(EqPPos p^1 q^1 -> allnc p^2,q^2(EqPPos p^2 q^2 ->
@@ -1799,13 +1547,14 @@
 (use "EqPPosToEqD")
 (use "EqPp1q1")
 ;; Proof finished.
-(save "PosTimesEqP")
 ;; (cdp)
+(save "PosTimesEqP")
 
 (set-goal "all p One*p=p")
 (ind)
 (auto)
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "One*p" "p")
 
 (set-goal "all p,q SZero p*q=SZero(p*q)")
@@ -1817,6 +1566,7 @@
 (simp "IHone")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "SZero p*q" "SZero(p*q)")
 
 ;; We prove that NatToPos is an isomorphism w.r.t. *
@@ -1830,6 +1580,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoublePlus")
 
 ;; NatDoublePlusEq
@@ -1840,6 +1591,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoublePlusEq")
 
 ;; NatTimesDouble
@@ -1866,6 +1618,7 @@
 (simp "EqHyp3")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatTimesDouble")
 
 ;; NatDoubleTimes2
@@ -1884,6 +1637,7 @@
 (simp "EqHyp1")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoubleTimes2")
 
 ;; PosToNatTimes
@@ -1907,6 +1661,7 @@
 (simp "NatDoubleTimes2")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatTimes")
 
 ;; NatToPosTimes
@@ -1924,6 +1679,7 @@
 (simp "NatToPosToNatId")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosTimes")
 
 ;; PosTimesPlusDistr
@@ -1947,6 +1703,7 @@
 (simp "NatTimesPlusDistr")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesPlusDistr")
 (add-rewrite-rule "p*(q+r)" "p*q+p*r")
 
@@ -1977,6 +1734,7 @@
 (simp "EqHyp4")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesComm")
 
 ;; PosTimesPlusDistrLeft
@@ -1988,6 +1746,7 @@
 (simp-with "PosTimesComm" (pt "q") (pt "r"))
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesPlusDistrLeft")
 (add-rewrite-rule "(p+q)*r" "p*r+q*r")
 
@@ -2018,6 +1777,7 @@
 (simp "<-" "PosToNatTimes")
 (use "NatToPosToNatId")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesAssoc")
 (add-rewrite-rule "p*(q*r)" "p*q*r")
 
@@ -2048,6 +1808,7 @@
 (simp "p+q=q+p")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesSOne")
 (add-rewrite-rule "SOne p*q" "SZero(p*q)+q")
 
@@ -2071,6 +1832,7 @@
 (use "IHn1")
 (use "Tp")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; PosExpOne
@@ -2081,6 +1843,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosExpOne")
 (add-rewrite-rules "1**n" "1")
 
@@ -2197,6 +1960,7 @@
 (use "IHp1")
 (use "Tq1")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtPosLeTotalLemma")
 
 ;; PosLtTotal
@@ -2211,6 +1975,7 @@
 (assume "Hyp1" "Hyp2")
 (use "Hyp1")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; PosLeTotal
@@ -2225,103 +1990,8 @@
 (assume "Hyp1" "Hyp2")
 (use "Hyp2")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeTotal")
-
-;; Code discarded 2016-04-02
-;; ;; PosLtPosLeTotalRealLemma
-;; (set-goal "allnc p^,p^0(
-;;  TotalPosMR p^0 p^ -->
-;;  allnc q^,q^0(
-;;   TotalPosMR q^0 q^ -->
-;;   TotalBooleMR(p^0<q^0)(p^ <q^) andnc TotalBooleMR(p^0<=q^0)(p^ <=q^)))")
-;; (assume "p^" "p^0" "TMRp0p")
-;; (elim "TMRp0p")
-;; (assume "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (split)
-;; (use "TotalBooleFalseMR")
-;; (use "TotalBooleTrueMR")
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (split)
-;; (use "TotalBooleTrueMR")
-;; (use "TotalBooleTrueMR")
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (split)
-;; (use "TotalBooleTrueMR")
-;; (use "TotalBooleTrueMR")
-
-;; (assume "p^1" "p^10" "TMRp10p1" "IHp1" "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (split)
-;; (use "TotalBooleFalseMR")
-;; (use "TotalBooleFalseMR")
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "IHp1")
-;; (use "TMRq10q1")
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (split)
-;; (use "IHp1")
-;; (use "TMRq10q1")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-
-;; ;; ?_5:allnc pos^,pos^0(
-;; ;;      TotalPosMR pos^0 pos^ -->
-;; ;;      allnc q^,q^0(
-;; ;;       TotalPosMR q^0 q^ -->
-;; ;;       TotalBooleMR(pos^0<q^0)(pos^ <q^) andnc
-;; ;;       TotalBooleMR(pos^0<=q^0)(pos^ <=q^)) ->
-;; ;;      allnc q^,q^0(
-;; ;;       TotalPosMR q^0 q^ -->
-;; ;;       TotalBooleMR(SOne pos^0<q^0)(SOne pos^ <q^) andnc
-;; ;;       TotalBooleMR(SOne pos^0<=q^0)(SOne pos^ <=q^)))
-;; (assume "p^1" "p^10" "TMRp10p1" "IHp1" "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (split)
-;; (use "TotalBooleFalseMR")
-;; (use "TotalBooleFalseMR")
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (split)
-;; (use "IHp1")
-;; (use "TMRq10q1")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "IHp1")
-;; (use "TMRq10q1")
-;; ;; Proof finished.
-;; (save "PosLtPosLeTotalRealLemma")
-
-;; ;; (display-pconst "PosLt")
-;; ;; (display-pconst "PosLe")
-
-;; ;; PosLtTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "PosLt")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosLtTotal")))))
-;; (assume "p^" "p^0" "TMRp0p" "q^" "q^0" "TMRq0q")
-;; (use "PosLtPosLeTotalRealLemma")
-;; (use "TMRp0p")
-;; (use "TMRq0q")
-;; ;; Proof finished.
-;; (save "PosLtTotalReal")
-
-;; ;; PosLeTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "PosLe")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosLeTotal")))))
-;; (assume "p^" "p^0" "TMRp0p" "q^" "q^0" "TMRq0q")
-;; (use "PosLtPosLeTotalRealLemma")
-;; (use "TMRp0p")
-;; (use "TMRq0q")
-;; ;; Proof finished.
-;; (save "PosLeTotalReal")
 
 ;; PosLtToLe
 (set-goal "all p,q(p<q -> p<=q)")
@@ -2355,21 +2025,24 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtToLe")
 
 ;; PosLTrans
 (set-goal "all p,q,r((p<q -> q<=r -> p<r)
-                    &(p<=q -> q<r -> p<r)
-                    &(p<=q -> q<=r -> p<=r))")
+                     andnc (p<=q -> q<r -> p<r)
+                     andnc (p<=q -> q<=r -> p<=r))")
 (ind) ;2-4
 (cases) ;5-7
 (assume "r")
 (ng #t)
 (split)
-(use "Efq")
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
 (split)
-(assume "Useless" "1<p3")
-(use "1<p3")
+(assume "Useless" "1<r")
+(use "1<r")
 (strip)
 (use "Truth")
 ;; 6
@@ -2444,13 +2117,19 @@
 (assume "q")
 (ng #t)
 (split)
-(use "Efq")
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
 (split)
-(use "Efq")
-(use "Efq")
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
 ;; 80
 (assume "q")
-(cases) ;89-91
+(cases) ;97-99
 (ng #t)
 (split)
 (assume "Useless" "Absurd")
@@ -2460,7 +2139,7 @@
 (use "Absurd")
 (assume "Useless" "Absurd")
 (use "Absurd")
-;; 90
+;; 98
 (assume "r")
 (ng #t)
 (split)
@@ -2468,7 +2147,7 @@
 (split)
 (use "IH1")
 (use "IH1")
-;; 91
+;; 99
 (assume "r")
 (ng #t)
 (split)
@@ -2478,9 +2157,9 @@
 (split)
 (use "IH1")
 (use "IH1")
-;; 81
+;; 83
 (assume "q")
-(cases) ;115-117
+(cases) ;123-25
 (ng #t)
 (split)
 (assume "Useless" "Absurd")
@@ -2490,7 +2169,7 @@
 (use "Absurd")
 (assume "Useless" "Absurd")
 (use "Absurd")
-;; 116
+;; 124
 (assume "r")
 (ng #t)
 (split)
@@ -2500,7 +2179,7 @@
 (assume "p1<=p2" "p2<p3")
 (use "PosLtToLe")
 (use-with "IH1" (pt "q") (pt "r") 'right 'left "p1<=p2" "p2<p3")
-;; 117
+;; 125
 (assume "r")
 (ng #t)
 (split)
@@ -2512,17 +2191,23 @@
 (use "IH1")
 ;; 4
 (assume "p" "IH1")
-(cases) ;143-145
+(cases) ;151-153
 (assume "q")
 (ng #t)
 (split)
-(use "Efq")
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
 (split)
-(use "Efq")
-(use "Efq")
-;; 144
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
+;; 152
 (assume "q")
-(cases) ;153-155
+(cases) ;167-169
 (ng #t)
 (split)
 (assume "Useless" "Absurd")
@@ -2532,7 +2217,7 @@
 (use "Absurd")
 (assume "Useless" "Absurd")
 (use "Absurd")
-;; 154
+;; 168
 (assume "r")
 (ng #t)
 (split)
@@ -2543,7 +2228,7 @@
 (use "PosLtToLe")
 (use "p2<p3")
 (use "IH1")
-;; 155
+;; 169
 (assume "r")
 (ng #t)
 (split)
@@ -2553,9 +2238,9 @@
 (assume "p1<p2" "p2<=p3")
 (use "PosLtToLe")
 (use-with "IH1" (pt "q") (pt "r") 'left "p1<p2" "p2<=p3")
-;; 145
+;; 153
 (assume "q")
-(cases) ;182-184
+(cases) ;196-98
 (ng #t)
 (split)
 (assume "Useless" "Absurd")
@@ -2565,7 +2250,7 @@
 (use "Absurd")
 (assume "Useless" "Absurd")
 (use "Absurd")
-;; 183
+;; 197
 (assume "r")
 (ng #t)
 (split)
@@ -2576,7 +2261,7 @@
 (split)
 (use "IH1")
 (use "IH1")
-;; 184
+;; 198
 (assume "r")
 (ng #t)
 (split)
@@ -2585,6 +2270,7 @@
 (use "IH1")
 (use "IH1")
 ;; Proof finished.
+;; (cdp)
 (save "PosLTrans")
 
 ;; Using this and PosLtToLe we can easily derive PosLeLtTrans
@@ -2595,6 +2281,7 @@
 (assume "p" "q" "r")
 (use "PosLTrans")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtLeTrans")
 
 ;; PosLeLtTrans
@@ -2602,6 +2289,7 @@
 (assume "p" "q" "r")
 (use "PosLTrans")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeLtTrans")
 
 ;; PosLeTrans
@@ -2609,6 +2297,7 @@
 (assume "p" "q" "r")
 (use "PosLTrans")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeTrans")
 
 ;; PosLtTrans
@@ -2618,6 +2307,7 @@
 (use "PosLtToLe")
 (use "p1<p2")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtTrans")
 
 ;; We add some useful rewrite rules.
@@ -2631,6 +2321,7 @@
 (assume "p")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeToEq")
 (add-rewrite-rule "p<=1" "p=1")
 
@@ -2642,6 +2333,7 @@
 (assume "p" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<p" "False")
 
 (set-goal "all p p<=p")
@@ -2652,6 +2344,7 @@
 (assume "p" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<=p" "True")
 
 (set-goal "all p p<PosS p")
@@ -2665,6 +2358,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<PosS p" "True")
 
 (set-goal "all p p<=PosS p")
@@ -2678,6 +2372,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<=PosS p" "True")
 
 (set-goal "all p (PosS p<=p)=False")
@@ -2690,6 +2385,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosS p<=p" "False")
 
 (set-goal "all p (PosS p<p)=False")
@@ -2702,6 +2398,7 @@
 (ng)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosS p<p" "False")
 
 (set-goal "all p,q p<=p+q")
@@ -2739,6 +2436,7 @@
 (use "IH1")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<=p+q" "True")
 
 (set-goal "all p,q p<p+q")
@@ -2776,6 +2474,7 @@
 (use "IH1")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<p+q" "True")
 
 (set-goal "all p,q p<=q+p")
@@ -2783,6 +2482,7 @@
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<=q+p" "True")
 
 (set-goal "all p,q p<q+p")
@@ -2790,6 +2490,7 @@
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<q+p" "True")
 
 (set-goal "all p (PosS p<=1)=False")
@@ -2800,6 +2501,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosS p<=1" "False")
 
 (set-goal "all p,q (p+q<=p)=False")
@@ -2849,6 +2551,7 @@
 (use "AtomFalse")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<=p" "False")
 
 (set-goal "all p,q (p+q<=q)=False")
@@ -2856,6 +2559,7 @@
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<=q" "False")
 
 (set-goal "all p,q (p+q<p)=False")
@@ -2899,6 +2603,7 @@
 (use "AtomFalse")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<p" "False")
 
 (set-goal "all p,q (p+q<q)=False")
@@ -2906,6 +2611,7 @@
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<q" "False")
 
 (set-goal "all p One<PosS p")
@@ -2918,6 +2624,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "One<PosS p" "True")
 
 ;; PosLtPosS
@@ -2955,6 +2662,7 @@
 (ng #t)
 (use "IH1")
 ;; Proof finished
+;; (cdp)
 (save "PosLtPosS")
 
 ;; PosLePosS
@@ -2992,6 +2700,7 @@
 (ng #t)
 (use "IH1")
 ;; Proof finished.
+;; (cdp)
 (save "PosLePosS")
 
 (set-goal "all p,q (PosS p<PosS q)=(p<q)")
@@ -3028,6 +2737,7 @@
 (ng #t)
 (use "IH1")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosS p<PosS q" "p<q")
 
 (set-goal "all p,q (PosS p<=PosS q)=(p<=q)")
@@ -3066,6 +2776,7 @@
 (ng #t)
 (use "IH1")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosS p<=PosS q" "p<=q")
 
 ;; PosSPosPredId
@@ -3083,6 +2794,7 @@
 (ng)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosSPosPredId")
 
 ;; PosLtMonPred
@@ -3100,6 +2812,7 @@
 (use "1<q")
 (use "1<p")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtMonPred")
 
 ;; PosNotLeToLt and PosNotLtToLe are proved using the isomorphic
@@ -3111,7 +2824,7 @@
 ;; and Succ(NatDouble nat) for SOne pos.
 
 ;; PosToNatLeLt
-(set-goal "all p,q((PosToNat p<=PosToNat q)=(p<=q) &
+(set-goal "all p,q((PosToNat p<=PosToNat q)=(p<=q) andnc
                    (PosToNat p<PosToNat q)=(p<q))")
 (ind) ;2-4
 (cases) ;5-7
@@ -3214,6 +2927,7 @@
 (simp "NatLtSuccDoubleSuccDouble")
 (use "IH1")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatLeLt")
 
 ;; Easy consequences
@@ -3235,6 +2949,7 @@
 (use "0<m")
 (use "0<n")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosLe")
 
 ;; PosToNatLt
@@ -3242,6 +2957,7 @@
 (assume "p" "q")
 (use "PosToNatLeLt")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatLt")
 
 ;; NatToPosLt
@@ -3254,6 +2970,7 @@
 (use "0<m")
 (use "0<n")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosLt")
 
 ;; PosNotLeToLt
@@ -3274,6 +2991,7 @@
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
+;; (cdp)
 (save "PosNotLeToLt")
 
 ;; PosNotLtToLe
@@ -3294,6 +3012,7 @@
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
+;; (cdp)
 (save "PosNotLtToLe")
 
 ;; PosLeAntiSym
@@ -3308,6 +3027,7 @@
 (use "NatLeHyp2")
 (use "PosToNatInj")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeAntiSym")
 
 ;; PosLeMonPlus
@@ -3355,6 +3075,7 @@
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeMonPlus")
 
 ;; PosLeMonTimes
@@ -3403,6 +3124,7 @@
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeMonTimes")
 
 ;; Since many properties involving PosMinus depend on <-hypotheses
@@ -3426,6 +3148,7 @@
 (use "Truth")
 (use "(p+1)r<=qr")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtLeMonTimes")
 
 ;; PosLeLtMonTimes
@@ -3446,6 +3169,7 @@
 (use "Truth")
 (use "p*(r+1)<=qr0")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeLtMonTimes")
 
 ;; PosLePlusCancelL
@@ -3470,6 +3194,7 @@
 (use "NatToPosToNatId")
 (use "NatToPosToNatId")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<=p+r" "q<=r")
 
 ;; PosLePlusCancelR
@@ -3481,6 +3206,7 @@
 (use "Truth")
 (use "PosPlusComm")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<=r+q" "p<=r")
 
 ;; PosLtPlusCancelL
@@ -3505,6 +3231,7 @@
 (use "NatToPosToNatId")
 (use "NatToPosToNatId")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<p+r" "q<r")
 
 ;; PosLtPlusCancelR
@@ -3516,6 +3243,7 @@
 (use "Truth")
 (use "PosPlusComm")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q<r+q" "p<r")
 
 ;; PosTimesCancelL
@@ -3543,6 +3271,7 @@
 (assume "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesCancelL")
 
 ;; PosTimesCancelR
@@ -3553,6 +3282,7 @@
 (simp "pr=qr")
 (use "PosTimesComm")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesCancelR")
 
 ;; PosLeTimesCancelR 
@@ -3580,7 +3310,19 @@
 (use "p<=q")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p*r<=q*r" "p<=q")
+
+;; PosLeTimesCancelL
+(set-goal  "all p,q,r(p*q<=p*r)=(q<=r)") ;as rewrite rule
+(assume "p" "q" "r")
+(simp "PosTimesComm")
+(simp (pf "p*r=r*p"))
+(use "Truth")
+(use "PosTimesComm")
+;; Proof finished.
+;; (cdp)
+(add-rewrite-rule "p*q<=p*r" "q<=r")
 
 ;; PosLeTimesCancelL
 (set-goal  "all p,q,r(p*q<=p*r)=(q<=r)") ;as rewrite rule
@@ -3615,6 +3357,7 @@
 (use "PosLeLtMonTimes")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p*q<p*r" "q<r")
 
 ;; PosLtTimesCancelR
@@ -3639,6 +3382,7 @@
 (use "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<SZero p" "True")
 
 ;; PosLeLtCases
@@ -3656,6 +3400,7 @@
 (simp "<-" "PosToNatLt")
 (use "NatLtHyp")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeLtCases")
 
 ;; PosLeCases
@@ -3675,6 +3420,7 @@
 (simp "EqPosToNatHyp")
 (use "NatToPosToNatId")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeCases")
 
 ;; PosLeMonPred
@@ -3709,6 +3455,7 @@
 (simp "<-" "1=p")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeMonPred")
 
 ;; Rules for PosMinus:  They give correct results for p--q (only) if q<p.
@@ -3796,6 +3543,7 @@
 (use "IHq")
 (use "Tq2")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 (set-goal "all p PosS p--1=p")
@@ -3810,6 +3558,7 @@
 ;; ?_8:PosPred(SZero(PosS p))=SOne p
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosS p--1" "p")
 
 ;; We consider the rules for NatMinus.  Do they hold for PosMinus?
@@ -3826,6 +3575,7 @@
 (assume "p")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinusOneEqPosPred")
 
 ;; The remaining rewrite rules for NatMinus are
@@ -3879,6 +3629,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "SuccPosPred")
 
 ;; PredPosPred
@@ -3888,6 +3639,7 @@
 (use "Truth")
 (use "1<p")
 ;; Proof finished.
+;; (cdp)
 (save "PredPosPred")
 
 (set-goal "all p PosPred p<=p")
@@ -3904,6 +3656,7 @@
 (simp "<-" "1=p")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "PosPred p<=p" "True")
 
 ;; NatDoubleSZero
@@ -3918,6 +3671,7 @@
 (ng)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoubleSZero")
 
 ;; Now we can prove that PosToNat is an isomorphism w.r.t. -
@@ -3926,15 +3680,15 @@
 (set-goal "all p,q(q<p -> PosToNat(p--q)=PosToNat p--PosToNat q)")
 (ind)
 ;; 2-4
-(assume "q")
-(ng #t)
-(use "Efq")
+(assume "q" "Absurd")
+(use "EfAtom")
+(use "Absurd")
 ;; 3
 (assume "p" "IH1")
 (ind)
 ;; 8-10
 (ng)
-;; ?_11:T -> PosToNat(PosPred(SZero p))=Pred(NatDouble(PosToNat p))
+;; ?^11:T -> PosToNat(PosPred(SZero p))=Pred(NatDouble(PosToNat p))
 (simp "NatDoubleSZero")
 (simp "PredPosPred")
 (assume "Useless")
@@ -4004,6 +3758,7 @@
 (use "Truth")
 (use "q<p")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatMinus")
 
 ;; NatToPosMinus
@@ -4030,6 +3785,7 @@
 (use "0<n")
 (use "0<m")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosMinus")
 
 ;; Now we can continue proving the nat rewrite rules for pos
@@ -4060,6 +3816,7 @@
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p+q--q" "p")
 
 (set-goal "all p,q q+p--q=p")
@@ -4067,6 +3824,7 @@
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "q+p--q" "p")
 
 ;; PosLtMonMinusLeft
@@ -4094,6 +3852,7 @@
 (use "NatLt0Pos")
 (use "NatLt0Pos")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtMonMinusLeft")
 
 ;; From NatPlusMinus we obtain PosPlusMinus using the isomorphisms
@@ -4122,6 +3881,7 @@
 (assume "Assertion")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (save "PosPlusMinus")
 
 ;; PosMinusPlus
@@ -4134,6 +3894,7 @@
 (simp "PosPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinusPlus")
 
 ;; PosMinusPlusEq
@@ -4143,6 +3904,7 @@
 (use "Truth")
 (use "q<p")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinusPlusEq")
 
 ;; From NatMinusMinus we obtain PosMinusMinus using the isomorphisms
@@ -4183,6 +3945,7 @@
 (assume "Hyp")
 (use "Hyp")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinusMinus")
 
 ;; Similarly to NatMinus5RewRule we have
@@ -4227,6 +3990,7 @@
 (use "q+r<p")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinusMinusLeft")
 
 ;; PosTimesMinusDistr
@@ -4250,6 +4014,7 @@
 (use "r<q")
 (use "r<q")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesMinusDistr")
 
 ;; PosTimesMinusDistrLeft
@@ -4273,98 +4038,8 @@
 (use "Truth")
 (use "q<p")
 ;; Proof finished.
+;; (cdp)
 (save "PosTimesMinusDistrLeft")
-
-;; Code discarded 2016-04-02
-;; ;; BooleIfTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (proof-to-extracted-term "BooleIfTotal")
-;; 	    (proof-to-formula boole-if-total-proof))))
-;; (assume "boole^" "boole^0" "TMRb0b")
-;; (ng #t)
-;; (elim "TMRb0b")
-;; (ng #t)
-;; (assume "alpha^1" "alpha^2" "alpha^10" "TMRa10a1" "alpha^20" "Useless")
-;; (use "TMRa10a1")
-;; (ng #t)
-;; (assume "alpha^1" "alpha^2" "alpha^10" "Useless" "alpha^20" "TMRa20a2")
-;; (use  "TMRa20a2")
-;; ;; Proof finished.
-;; (save "BooleIfTotalReal")
-
-;; ;; PosMinusTotalReal
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "PosMinus")
-;; 	    (proof-to-formula (theorem-name-to-proof "PosMinusTotal")))))
-;; (assume "p^" "p^0" "TMRp0p")
-;; (elim "TMRp0p")
-;; (assume "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (use "TotalPosOneMR")
-;; (assume "q^1" "q^10" "TMRq10q1" "IH")
-;; (ng #t)
-;; (use "TotalPosOneMR")
-;; (assume "q^1" "q^10" "TMRq10q1" "IH")
-;; (ng #t)
-
-;; (use "TotalPosOneMR")
-;; ;; ?_4:allnc pos^,pos^0(
-;; ;;      TotalPosMR pos^0 pos^ -->
-;; ;;      allnc p^,p^0(TotalPosMR p^0 p^ --> TotalPosMR(pos^0--p^0)(pos^ --p^)) ->
-;; ;;      allnc p^,p^0(
-;; ;;       TotalPosMR p^0 p^ --> TotalPosMR(SZero pos^0--p^0)(SZero pos^ --p^)))
-;; (assume "p^1" "p^10" "TMRp10p1" "IHp1" "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (ng #t)
-;; (use "PosPredTotalReal")
-;; (use "TotalPosSZeroMR")
-;; (use "TMRp10p1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "PosPredTotalReal")
-;; (use "TotalPosSZeroMR")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-
-;; ;; ?_5:allnc pos^,pos^0(
-;; ;;      TotalPosMR pos^0 pos^ -->
-;; ;;      allnc p^,p^0(TotalPosMR p^0 p^ --> TotalPosMR(pos^0--p^0)(pos^ --p^)) ->
-;; ;;      allnc p^,p^0(
-;; ;;       TotalPosMR p^0 p^ --> TotalPosMR(SOne pos^0--p^0)(SOne pos^ --p^)))
-
-;; (assume "p^1" "p^10" "TMRp10p1" "IHp1" "q^" "q^0" "TMRq0q")
-;; (elim "TMRq0q")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "TMRp10p1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "BooleIfTotalReal")
-;; (use "PosEqTotalReal")
-;; (use "TMRp10p1")
-;; (use "TMRq10q1")
-;; (use "TotalPosOneMR")
-;; (use "TotalPosSOneMR")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-
-;; (assume "q^1" "q^10" "TMRq10q1" "IHq1")
-;; (ng #t)
-;; (use "TotalPosSZeroMR")
-;; (use "IHp1")
-;; (use "TMRq10q1")
-;; ;; Proof finished.
-;; (save "PosMinusTotalReal")
 
 ;; Rules for PosMax
 
@@ -4427,6 +4102,7 @@
 (use "IHp1")
 (use "Tq1")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 (set-goal "all p p max One=p")
@@ -4439,6 +4115,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p max One" "p")
 
 (set-goal "all p p max p=p")
@@ -4451,6 +4128,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p max p" "p")
 
 (set-goal "all p p max Succ Zero=p")
@@ -4465,6 +4143,7 @@
 (use "Truth")
 (use "1<p")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxPosOne")
 
 (set-goal "all p Succ Zero max p=p")
@@ -4479,6 +4158,7 @@
 (use "Truth")
 (use "1<p")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxOnePos")
 
 ;; PosMaxComm
@@ -4510,6 +4190,7 @@
 ;; 15
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosMaxComm")
 
 ;; PosMaxEq1
@@ -4556,6 +4237,7 @@
 ;; 28
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosMaxEq1")
 
 ;; PosMaxEq2
@@ -4564,6 +4246,7 @@
 (simp "PosMaxComm")
 (use "PosMaxEq1")
 ;; Proof finished.
+;; (cdp)
 (save "PosMaxEq2")
 
 ;; We prove that PosToNat is an isomorphism w.r.t. max
@@ -4653,6 +4336,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatMax")
 
 ;; PosMaxUB1
@@ -4670,6 +4354,7 @@
 (assume "p<=p max q")
 (use "p<=p max q")
 ;; Proof finished.
+;; (cdp)
 (save "PosMaxUB1")
 
 ;; PosMaxUB2
@@ -4678,6 +4363,7 @@
 (simp "PosMaxComm")
 (use "PosMaxUB1")
 ;; Proof finished.
+;; (cdp)
 (save "PosMaxUB2")
 
 ;; PosMaxLUB
@@ -4705,6 +4391,7 @@
 (assume "p<=r -> q<=r -> p max q<=r")
 (use "p<=r -> q<=r -> p max q<=r")
 ;; Proof finished.
+;; (cdp)
 (save "PosMaxLUB")
 
 ;; Rules for PosMin
@@ -4766,6 +4453,7 @@
 (use "IHp1")
 (use "Tq1")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 (set-goal "all p p min One=One")
@@ -4778,6 +4466,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p min One" "One")
 
 ;; NatMinOnePos
@@ -4793,6 +4482,7 @@
 (use "Truth")
 (use "1<p")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinOnePos")
 
 ;; NatMinPosOne
@@ -4808,6 +4498,7 @@
 (use "Truth")
 (use "1<p")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinPosOne")
 
 ;; PosMinComm
@@ -4839,6 +4530,7 @@
 ;; 15
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinComm")
 
 ;; PosMinEq1
@@ -4886,6 +4578,7 @@
 ;; 29
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinEq1")
 
 ;; PosMinEq2
@@ -4894,6 +4587,7 @@
 (simp "PosMinComm")
 (use "PosMinEq1")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinEq2")
 
 ;; We prove that PosToNat is an isomorphism w.r.t. min
@@ -4983,13 +4677,8 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosToNatMin")
-
-;; (search-about "NatMin")
-;; (display-pconst "PosMax")
-;; (search-about "Pos" "Max")
-;; (display-pconst "PosMin")
-;; (search-about "Nat" "One")
 
 ;; PosMinLB1
 (set-goal "all p,q p min q<=p")
@@ -5006,6 +4695,7 @@
 (assume "p min q<=p")
 (use "p min q<=p")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinLB1")
 
 ;; PosMinLB2
@@ -5014,6 +4704,7 @@
 (simp "PosMinComm")
 (use "PosMinLB1")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinLB2")
 
 ;; PosMinGLB
@@ -5041,6 +4732,7 @@
 (assume "r<=p -> r<=q -> r<=p min q")
 (use "r<=p -> r<=q -> r<=p min q")
 ;; Proof finished.
+;; (cdp)
 (save "PosMinGLB")
 
 ;; Rules for NatExp : nat=>nat=>nat
@@ -5063,6 +4755,7 @@
 (use "IHm1")
 (use "Tn")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; NatLeOneTwoExp
@@ -5077,6 +4770,7 @@
 (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeOneTwoExp")
 
 ;; NatLeMonTwoExp
@@ -5097,6 +4791,7 @@
 (use "IH")
 (use "n<=m")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeMonTwoExp")
 
 (set-goal "all pos,nat (PosToNat pos**nat)=PosToNat(pos**nat)")
@@ -5110,6 +4805,7 @@
 (simp "PosToNatTimes")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rules
  "(PosToNat pos)**nat" "PosToNat(pos**nat)")
 
@@ -5133,6 +4829,7 @@
 (use "TotalNatSucc")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; (pp (nt (pt "PosLog 8")))
@@ -5156,6 +4853,7 @@
 (use "EqPNatSucc")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosLogEqP")
 
 ;; PosLogZero
@@ -5168,6 +4866,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosLogZero")
 
 ;; PosLeExpTwoLog
@@ -5181,6 +4880,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosLeExpTwoLog")
 
 ;; PosLtExpTwoSuccLog
@@ -5196,6 +4896,7 @@
 (assume "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosLtExpTwoSuccLog")
 
 ;; PosExpTwoNatPlus
@@ -5209,6 +4910,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "PosExpTwoNatPlus")
 
 ;; PosExpTwoPosPlus
@@ -5217,6 +4919,7 @@
 (simp "PosToNatPlus")
 (use "PosExpTwoNatPlus")
 ;; Proof finished.
+;; (cdp)
 (save "PosExpTwoPosPlus")
 
 (set-goal "all p,q p--q<=p")
@@ -5271,6 +4974,7 @@
 (use "Truth")
 (use "q<p")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p--q<=p" "True")
 
 (set-goal "all p p<=SZero p")
@@ -5285,6 +4989,7 @@
 (use "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<=SZero p" "True")
 
 ;; PosLeMonPosExp
@@ -5298,7 +5003,7 @@
 (assume "n" "IH")
 (cases)
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "m")
 (ng)
@@ -5322,6 +5027,7 @@
 (assume "p" "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "2<=2**p" "True")
 
 (set-goal "all p p<2**p")
@@ -5347,13 +5053,14 @@
 (ng)
 (simp "<-" "NatDoublePlusEq")
 (simp "<-" "PosExpTwoNatPlus")
-;; ?_20:p<2**p*2**p
+;; ?^20:p<2**p*2**p
 (use "PosLeLtTrans" (pt "p*1"))
 (use "Truth")
 (use "PosLtLeMonTimes")
 (use "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "p<2**p" "True")
 
 ;; NatLtZeroPosToNat
@@ -5369,6 +5076,7 @@
 (assume "p" "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtZeroPosToNat")
 
 ;; NatToPosNatPlusSucc
@@ -5382,5 +5090,6 @@
 (simp "NatLt3RewRule")
 (use "NatLtZeroPosToNat")
 ;; Proof finished.
+;; (cdp)
 (save "NatToPosNatPlusSucc")
 
