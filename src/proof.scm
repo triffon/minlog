@@ -1,4 +1,4 @@
-;; 2018-08-17.  proof.scm
+;; 2019-08-20.  proof.scm
 ;; 10. Proofs
 ;; ==========
 
@@ -7768,7 +7768,7 @@
 	 (check-formula aconst-fla)
 	 (if (not (classical-formula=? fla aconst-fla new-ignore-deco-flag))
 	     (myerror "equal formulas expected" fla aconst-fla))
-	 (if ;check for correct Elim in case of an invariant idpc
+	 (if ;check for correct Elim in case of an n.c. idpc
 	  (string=? "Elim" (aconst-to-name aconst))
 	  (let* ((kernel (all-allnc-form-to-final-kernel aconst-fla))
 		 (prems (imp-form-to-premises kernel))
@@ -7789,15 +7789,16 @@
 					;allowing arbitrary conclusions
 					;(to be extended to e.g. EvenMR)
 	      (not (member idpc-name '("EqD" "ExNc" "AndNc")))
-					;not a uniform one-clause defined idpc
+					;not a one-clause-nc idpc
 	      (not (and (= 1 (length clauses))
 			(predicate-form?
 			 (impnc-form-to-final-conclusion
 			  (allnc-form-to-final-kernel (car clauses))))))
 					;but with a c.r. conclusion
 	      (not (formula-of-nulltype? concl)))
-	     (myerror "invariant conclusion expected" concl
-		      "in elimination axiom for invariant formula" idpc-fla))))
+	     (myerror "n.c. conclusion expected" concl
+		      "in the elimination axiom for an n.c. idpc formula"
+		      idpc-fla))))
 	 (if CDP-COMMENT-FLAG
 	     (begin
 	       (display-comment (make-string n #\.))
@@ -7998,8 +7999,12 @@
 	   (member var (apply union (map formula-to-free
 					 (map normalize-formula formulas)))))
 	  (myerror "variable condition fails for" var)))
-       (if (not (all-form? fla))
-	   (myerror "all form expected" fla))
+       (if (and (not new-ignore-deco-flag) (not (all-form? fla)))
+	   (myerror "at all-intro: all form expected" fla))
+       (if (and new-ignore-deco-flag (not (all-allnc-form? fla)))
+	   (myerror "all or allnc form expected" fla))
+       ;; (if (not (all-form? fla))
+       ;; 	   (myerror "all form expected" fla))
        (let ((kernel-fla (proof-to-formula kernel)))
 	 (if (not (classical-formula=?
 		   (make-all var kernel-fla) fla new-ignore-deco-flag))
@@ -8019,8 +8024,12 @@
        (check-formula fla)
        (check-term arg)
        (let ((op-fla (proof-to-formula op)))
-	 (if (not (all-form? op-fla))
-	     (myerror "all form expected" op-fla))
+	 (if (and (not new-ignore-deco-flag) (not (all-form? op-fla)))
+	     (myerror "at all-elim: all form expected" op-fla))
+	 (if (and new-ignore-deco-flag (not (all-allnc-form? op-fla)))
+	     (myerror "at all-elim: all or allnc form expected" op-fla))
+	 ;; (if (not (all-form? op-fla))
+	 ;;     (myerror "at all-elim: all form expected" op-fla))
 	 (if (not (equal? (var-to-type (all-form-to-var op-fla))
 			  (term-to-type arg)))
 	     (myerror "equal types expected of variable"
@@ -8069,8 +8078,12 @@
 	       (newline)))
        (check-and-display-proof-aux kernel (+ n 1) new-ignore-deco-flag)
        (check-formula fla)
-       (if (not (allnc-form? fla))
-	   (myerror "allnc form expected" fla))
+       (if (and (not new-ignore-deco-flag) (not (allnc-form? fla)))
+	   (myerror "at allnc-intro: allnc form expected" fla))
+       (if (and new-ignore-deco-flag (not (all-allnc-form? fla)))
+	   (myerror "all or allnc form expected" fla))
+       ;; (if (not (allnc-form? fla))
+       ;; 	   (myerror "allnc form expected" fla))
        (let ((kernel-fla (proof-to-formula kernel)))
 	 (if (not (classical-formula=?
 		   (make-allnc var kernel-fla) fla new-ignore-deco-flag))
@@ -8090,8 +8103,12 @@
        (check-formula fla)
        (check-term arg)
        (let ((op-fla (proof-to-formula op)))
-	 (if (not (allnc-form? op-fla))
-	     (myerror "allnc form expected" op-fla))
+	 (if (and (not new-ignore-deco-flag) (not (allnc-form? op-fla)))
+	     (myerror "at allnc-elim: allnc form expected" op-fla))
+	 (if (and new-ignore-deco-flag (not (all-allnc-form? op-fla)))
+	     (myerror "at allnc-elim: all or allnc form expected" op-fla))
+	 ;; (if (not (allnc-form? op-fla))
+	 ;;     (myerror "allnc form expected" op-fla))
 	 (if (not (equal? (var-to-type (allnc-form-to-var op-fla))
 			  (term-to-type arg)))
 	     (myerror "equal types expected of variable"
@@ -11157,22 +11174,15 @@
 ;; is constructed, and also proofs that constructors are injective and
 ;; have disjoint ranges.
 
-;; formula-to-efq-proof proves F -> A for every A.  To make this work
-;; easily for (simultaneous) inductive definitions, we assume that
-;; taking the initial clause of each idpc produces clauses without
-;; recursive calls which are terminating.  This is checked in add-ids.
+;; For every formula A, formula-to-ef-proof returns a proof of F -> A
+;; (i.e., ex-falso-quodlibet).
 
-(define (formula-to-efq-proof formula)
+(define (formula-to-ef-proof formula)
   (let* ((u (formula-to-new-avar falsity))
-	 (efq-proof (formula-and-falsity-avar-to-efq-proof formula u)))
-    (make-proof-in-imp-intro-form u efq-proof)))
+	 (ef-proof (formula-and-falsity-avar-to-ef-proof formula u)))
+    (make-proof-in-imp-intro-form u ef-proof)))
 
-;; (cdp (formula-to-efq-proof (pf "F")))
-;; (cdp (formula-to-efq-proof (pf "T")))
-;; (cdp (formula-to-efq-proof (pf "n=0")))
-;; (cdp (formula-to-efq-proof (pf "exd n n=m")))
-
-(define (formula-and-falsity-avar-to-efq-proof formula u)
+(define (formula-and-falsity-avar-to-ef-proof formula u)
   (case (tag formula)
     ((atom)
      (cond
@@ -11189,9 +11199,9 @@
 	   (make-term-in-const-form true-const)))))
       ((formula=? formula falsity)
        (make-proof-in-avar-form u))
-      (else ;use EfqAtom: F -> all boole^ boole^
+      (else ;use EfAtom: F -> all boole^ boole^
        (let* ((kernel (atom-form-to-kernel formula))
-	      (aconst (theorem-name-to-aconst "EfqAtom")))
+	      (aconst (theorem-name-to-aconst "EfAtom")))
 	 (mk-proof-in-elim-form
 	  (make-proof-in-aconst-form aconst)
 	  (make-proof-in-avar-form u)
@@ -11212,11 +11222,11 @@
 	     ((idpredconst-form? pred)
 	      (cond
 	       ((string=? "EqD" (idpredconst-to-name pred))
-		(let* ((r (car args))
+		(let* ((t (car args))
 		       (s (cadr args))
 		       (type (term-to-type r))
-		       (aconst ;F -> all alpha^,alpha^0 alpha^ eqd alpha^0
-			(theorem-name-to-aconst "EfqEqD"))
+		       (aconst ;F -> allnc alpha^,alpha^0 alpha^ eqd alpha^0
+			(theorem-name-to-aconst "EfEqD"))
 		       (tvar (var-to-type
 			      (all-form-to-var
 			       (imp-form-to-conclusion
@@ -11224,56 +11234,37 @@
 		       (subst-aconst (aconst-substitute
 				      aconst (make-subst tvar type))))
 		  (mk-proof-in-elim-form
-		   (make-proof-in-aconst-form ;F -> all n,m n eqd m)
+		   (make-proof-in-aconst-form ;F -> allnc n,m n eqd m)
 		    subst-aconst)
-		   (make-proof-in-avar-form u) r s)))
+		   (make-proof-in-avar-form u) t s)))
 	       ((and (assoc (idpredconst-to-name pred) IDS)
 		     (not (assoc (idpredconst-to-name pred) COIDS)))
 		(let* ((init-aconst
 			(number-and-idpredconst-to-intro-aconst 0 pred))
-		       (init-aconst-formula (aconst-to-formula init-aconst))
-		       (vars (all-allnc-form-to-vars init-aconst-formula))
-		       (free (formula-to-free formula))
-		       (inhab-terms (map (lambda (var)
-					   (if (member var free)
-					       (make-term-in-var-form var)
-					       (type-to-canonical-inhabitant
-						(var-to-type var))))
-					 vars))
-		       (elim-proof1
-			(apply mk-proof-in-elim-form
-			       (make-proof-in-aconst-form init-aconst)
-			       inhab-terms))
-		       (kernel (proof-to-formula elim-proof1))
-		       (prems (imp-impnc-form-to-premises kernel))
-		       (concl ;I r1 ... rn
-			(imp-impnc-form-to-final-conclusion kernel))
-		       (concl-args (predicate-form-to-args concl))
-		       (ih-proofs
-			(map (lambda (prem)
-			       (formula-and-falsity-avar-to-efq-proof prem u))
-			     prems))
-		       (elim-proof ;of I r1 ... rn
-			(apply mk-proof-in-elim-form elim-proof1 ih-proofs))
+		       (ef-idpc-proof ;of I ts from u:F
+			(idpc-proof-and-falsity-avar-to-ef-idpc-proof
+			 (make-proof-in-aconst-form init-aconst) u))
+		       (concl-args (predicate-form-to-args
+				    (proof-to-formula ef-idpc-proof)))
 		       (eqd-proofs
 			(map
-			 (lambda (r s)
-			   (let* ((type (term-to-type r))
-				  (aconst (theorem-name-to-aconst "EfqEqD"))
+			 (lambda (t s)
+			   (let* ((type (term-to-type t))
+				  (aconst (theorem-name-to-aconst "EfEqD"))
 				  (tvar (var-to-type
-					 (all-form-to-var
+					 (all-allnc-form-to-var
 					  (imp-form-to-conclusion
 					   (aconst-to-uninst-formula aconst)))))
 				  (subst-aconst
 				   (aconst-substitute
 				    aconst (make-subst tvar type))))
 			     (mk-proof-in-elim-form
-			      (make-proof-in-aconst-form ;F -> all n,m n eqd m)
+			      (make-proof-in-aconst-form;F -> allnc n,m n eqd m)
 			       subst-aconst)
-			      (make-proof-in-avar-form u) r s)))
+			      (make-proof-in-avar-form u) t s)))
 			 concl-args args)))
 		  (eqd-proofs-and-predicate-proof-to-proof
-		   eqd-proofs elim-proof)))
+		   eqd-proofs ef-idpc-proof)))
 	       ((assoc (idpredconst-to-name pred) COIDS)
 		(let* ((coidpc-name (idpredconst-to-name pred))
 		       (sim-coidpc-names
@@ -11329,56 +11320,328 @@
 				   costep-vars
 				   (list (make-proof-in-imp-intro-form
 					  costep-prem-avar
-					  (formula-and-falsity-avar-to-efq-proof
+					  (formula-and-falsity-avar-to-ef-proof
 					   costep-concl costep-prem-avar))))))
 			 costep-vars-list costep-prem-avars costep-concls)))
 		  (apply mk-proof-in-elim-form
 			 gfp-proof
 			 (append args (cons (make-proof-in-avar-form u)
 					    costep-proofs)))))
-	       (else (myerror "formula-and-falsity-avar-to-efq-proof"
+	       (else (myerror "formula-and-falsity-avar-to-ef-proof"
 			      "idpredconst expected" pred))))
-	     (else (myerror "formula-and-falsity-avar-to-efq-proof"
+	     (else (myerror "formula-and-falsity-avar-to-ef-proof"
 			    "predicate expected" pred)))))
     ((imp)
      (let* ((prem (imp-form-to-premise formula))
 	    (concl (imp-form-to-conclusion formula))
-	    (prev (formula-and-falsity-avar-to-efq-proof concl u))
+	    (prev (formula-and-falsity-avar-to-ef-proof concl u))
 	    (v (formula-to-new-avar prem)))
        (make-proof-in-imp-intro-form v prev)))
     ((impnc)
      (let* ((prem (impnc-form-to-premise formula))
 	    (concl (impnc-form-to-conclusion formula))
-	    (prev (formula-and-falsity-avar-to-efq-proof concl u))
+	    (prev (formula-and-falsity-avar-to-ef-proof concl u))
 	    (v (formula-to-new-avar prem)))
        (make-proof-in-impnc-intro-form v prev)))
     ((and)
      (let* ((left (and-form-to-left formula))
 	    (right (and-form-to-right formula))
-	    (prev1 (formula-and-falsity-avar-to-efq-proof left u))
-	    (prev2 (formula-and-falsity-avar-to-efq-proof right u)))
+	    (prev1 (formula-and-falsity-avar-to-ef-proof left u))
+	    (prev2 (formula-and-falsity-avar-to-ef-proof right u)))
        (make-proof-in-and-intro-form prev1 prev2)))
     ((all)
      (let* ((var (all-form-to-var formula))
 	    (kernel (all-form-to-kernel formula))
-	    (prev (formula-and-falsity-avar-to-efq-proof kernel u)))
+	    (prev (formula-and-falsity-avar-to-ef-proof kernel u)))
        (make-proof-in-all-intro-form var prev)))
     ((allnc)
      (let* ((var (allnc-form-to-var formula))
 	    (kernel (allnc-form-to-kernel formula))
-	    (prev (formula-and-falsity-avar-to-efq-proof kernel u)))
+	    (prev (formula-and-falsity-avar-to-ef-proof kernel u)))
        (make-proof-in-allnc-intro-form var prev)))
     ((ex)
      (let* ((var (ex-form-to-var formula))
 	    (kernel (ex-form-to-kernel formula))
 	    (inhab (type-to-canonical-inhabitant (var-to-type var)))
 	    (subst-kernel (formula-subst kernel var inhab))
-	    (prev (formula-and-falsity-avar-to-efq-proof subst-kernel u)))
+	    (prev (formula-and-falsity-avar-to-ef-proof subst-kernel u)))
        (make-proof-in-ex-intro-form inhab formula prev)))
     ((exca excl)
-     (formula-and-falsity-avar-to-efq-proof (unfold-formula formula) u))
-    (else (myerror "formula-and-falsity-avar-to-efq-proof" "formula expected"
+     (formula-and-falsity-avar-to-ef-proof (unfold-formula formula) u))
+    (else (myerror "formula-and-falsity-avar-to-ef-proof" "formula expected"
 		   formula))))
+
+;; idpc-proof-and-falsity-avar-to-ef-idpc-proof expects an idpc-proof
+;; of ...-> I ts and u:F.  It returns a proof of I ts from u:F, using
+;; formula-and-falsity-avar-to-ef-proof
+
+(define (idpc-proof-and-falsity-avar-to-ef-idpc-proof idpc-proof u)
+  (let ((formula (proof-to-formula idpc-proof)))
+    (case (tag formula)
+      ((predicate) idpc-proof)
+      ((imp) ;A -> B -> ... -> I ts
+       (let* ((prem (imp-form-to-premise formula)) ;A
+	      (concl (imp-form-to-conclusion formula)) ;B -> ... -> I ts
+	      (final-concl (imp-impnc-all-allnc-form-to-final-conclusion concl))
+	      (pred (if (predicate-form? final-concl)
+			(predicate-form-to-predicate final-concl)
+			(myerror "idpc-proof-and-falsity-avar-to-ef-idpc-proof"
+				 "predicate expected" final-concl)))
+	      (idpc-name
+	       (if (idpredconst-form? pred)
+		   (idpredconst-to-name pred)
+		   (myerror "idpc-proof-and-falsity-avar-to-ef-idpc-proof"
+			    "idpc expected" final-concl)))
+	      (ef-prem-proof ;of A from u:F
+	       (let ((prem-final-concl
+		      (imp-impnc-all-allnc-form-to-final-conclusion prem)))
+		 (if (and (predicate-form? prem-final-concl)
+			  (idpredconst-form? (predicate-form-to-predicate
+					      prem-final-concl))
+			  (string=? idpc-name
+				    (idpredconst-to-name
+				     (predicate-form-to-predicate
+				      prem-final-concl))))
+		     (myerror "idpc-proof-and-falsity-avar-to-ef-idpc-proof"
+			      "nullary clause expected" formula)
+		     (formula-and-falsity-avar-to-ef-proof prem u))))
+	      (prev-idpc-proof ;of B -> ... -> I ts from u:F
+	       (make-proof-in-imp-elim-form idpc-proof ef-prem-proof)))
+					;return proof of I ts from u:F
+	 (idpc-proof-and-falsity-avar-to-ef-idpc-proof prev-idpc-proof u)))
+      ((allnc) ;allnc x^(... -> I ts)
+       (let* ((var (allnc-form-to-var formula)) ;x^
+	      (kernel (allnc-form-to-kernel formula)) ;... -> I ts
+	      (prev-idpc-proof ;of ... -> I ts from u:F
+	       (make-proof-in-allnc-elim-form
+		idpc-proof (make-term-in-var-form var))))
+	 (idpc-proof-and-falsity-avar-to-ef-idpc-proof prev-idpc-proof u)))
+      (else (myerror "idpc-proof-and-falsity-avar-to-ef-idpc-proof"
+		     "not implemented for" formula)))))
+
+;; Code discarded 2019-08-20.
+;; ;; formula-to-efq-proof proves F -> A for every A.  To make this work
+;; ;; easily for (simultaneous) inductive definitions, we assume that
+;; ;; taking the initial clause of each idpc produces clauses without
+;; ;; recursive calls which are terminating.  This is checked in add-ids.
+
+;; (define (formula-to-efq-proof formula)
+;;   (let* ((u (formula-to-new-avar falsity))
+;; 	 (efq-proof (formula-and-falsity-avar-to-efq-proof formula u)))
+;;     (make-proof-in-imp-intro-form u efq-proof)))
+
+;; ;; (cdp (formula-to-efq-proof (pf "F")))
+;; ;; (cdp (formula-to-efq-proof (pf "T")))
+;; ;; (cdp (formula-to-efq-proof (pf "n=0")))
+;; ;; (cdp (formula-to-efq-proof (pf "exd n n=m")))
+
+;; (define (formula-and-falsity-avar-to-efq-proof formula u)
+;;   (case (tag formula)
+;;     ((atom)
+;;      (cond
+;;       ((formula=? formula truth)
+;;        (let* ((idpc (make-idpredconst "EqD" (list (make-alg "boole")) '()))
+;; 	      (initeqd-aconst ;all p p eqd p
+;; 	       (number-and-idpredconst-to-intro-aconst 0 idpc)))
+;; 	 (mk-proof-in-elim-form
+;; 	  (make-proof-in-aconst-form ;all p(p eqd True -> p)
+;; 	   eqd-true-to-atom-aconst)
+;; 	  (make-term-in-const-form true-const)
+;; 	  (mk-proof-in-elim-form
+;; 	   (make-proof-in-aconst-form initeqd-aconst)
+;; 	   (make-term-in-const-form true-const)))))
+;;       ((formula=? formula falsity)
+;;        (make-proof-in-avar-form u))
+;;       (else ;use EfqAtom: F -> all boole^ boole^
+;;        (let* ((kernel (atom-form-to-kernel formula))
+;; 	      (aconst (theorem-name-to-aconst "EfqAtom")))
+;; 	 (mk-proof-in-elim-form
+;; 	  (make-proof-in-aconst-form aconst)
+;; 	  (make-proof-in-avar-form u)
+;; 	  kernel)))))
+;;     ((predicate)
+;;      (let ((pred (predicate-form-to-predicate formula))
+;; 	   (args (predicate-form-to-args formula)))
+;;        (cond ((or (pvar-form? pred) (predconst-form? pred)) ;use global ass. Efq
+;; 	      (let* ((aconst (formula-to-efq-aconst formula))
+;; 		     (fla (aconst-to-formula aconst))
+;; 		     (vars (all-allnc-form-to-vars fla)))
+;; 		(apply
+;; 		 mk-proof-in-elim-form
+;; 		 (make-proof-in-aconst-form aconst)
+;; 		 (append
+;; 		  (map make-term-in-var-form vars)
+;; 		  (list (make-proof-in-avar-form u))))))
+;; 	     ((idpredconst-form? pred)
+;; 	      (cond
+;; 	       ((string=? "EqD" (idpredconst-to-name pred))
+;; 		(let* ((r (car args))
+;; 		       (s (cadr args))
+;; 		       (type (term-to-type r))
+;; 		       (aconst ;F -> all alpha^,alpha^0 alpha^ eqd alpha^0
+;; 			(theorem-name-to-aconst "EfqEqD"))
+;; 		       (tvar (var-to-type
+;; 			      (all-form-to-var
+;; 			       (imp-form-to-conclusion
+;; 				(aconst-to-uninst-formula aconst)))))
+;; 		       (subst-aconst (aconst-substitute
+;; 				      aconst (make-subst tvar type))))
+;; 		  (mk-proof-in-elim-form
+;; 		   (make-proof-in-aconst-form ;F -> all n,m n eqd m)
+;; 		    subst-aconst)
+;; 		   (make-proof-in-avar-form u) r s)))
+;; 	       ((and (assoc (idpredconst-to-name pred) IDS)
+;; 		     (not (assoc (idpredconst-to-name pred) COIDS)))
+;; 		(let* ((init-aconst
+;; 			(number-and-idpredconst-to-intro-aconst 0 pred))
+;; 		       (init-aconst-formula (aconst-to-formula init-aconst))
+;; 		       (vars (all-allnc-form-to-vars init-aconst-formula))
+;; 		       (free (formula-to-free formula))
+;; 		       (inhab-terms (map (lambda (var)
+;; 					   (if (member var free)
+;; 					       (make-term-in-var-form var)
+;; 					       (type-to-canonical-inhabitant
+;; 						(var-to-type var))))
+;; 					 vars))
+;; 		       (elim-proof1
+;; 			(apply mk-proof-in-elim-form
+;; 			       (make-proof-in-aconst-form init-aconst)
+;; 			       inhab-terms))
+;; 		       (kernel (proof-to-formula elim-proof1))
+;; 		       (prems (imp-impnc-form-to-premises kernel))
+;; 		       (concl ;I r1 ... rn
+;; 			(imp-impnc-form-to-final-conclusion kernel))
+;; 		       (concl-args (predicate-form-to-args concl))
+;; 		       (ih-proofs
+;; 			(map (lambda (prem)
+;; 			       (formula-and-falsity-avar-to-efq-proof prem u))
+;; 			     prems))
+;; 		       (elim-proof ;of I r1 ... rn
+;; 			(apply mk-proof-in-elim-form elim-proof1 ih-proofs))
+;; 		       (eqd-proofs
+;; 			(map
+;; 			 (lambda (r s)
+;; 			   (let* ((type (term-to-type r))
+;; 				  (aconst (theorem-name-to-aconst "EfqEqD"))
+;; 				  (tvar (var-to-type
+;; 					 (all-form-to-var
+;; 					  (imp-form-to-conclusion
+;; 					   (aconst-to-uninst-formula aconst)))))
+;; 				  (subst-aconst
+;; 				   (aconst-substitute
+;; 				    aconst (make-subst tvar type))))
+;; 			     (mk-proof-in-elim-form
+;; 			      (make-proof-in-aconst-form ;F -> all n,m n eqd m)
+;; 			       subst-aconst)
+;; 			      (make-proof-in-avar-form u) r s)))
+;; 			 concl-args args)))
+;; 		  (eqd-proofs-and-predicate-proof-to-proof
+;; 		   eqd-proofs elim-proof)))
+;; 	       ((assoc (idpredconst-to-name pred) COIDS)
+;; 		(let* ((coidpc-name (idpredconst-to-name pred))
+;; 		       (sim-coidpc-names
+;; 			(idpredconst-name-to-simidpc-names coidpc-name))
+;; 		       (types (idpredconst-to-types pred))
+;; 		       (cterms (idpredconst-to-cterms pred))
+;; 		       (sim-coidpcs-wo-coidpc
+;; 			(map
+;; 			 (lambda (name)
+;; 			   (idpredconst-name-and-types-and-cterms-to-idpredconst
+;; 			    name types cterms))
+;; 			 (remove coidpc-name sim-coidpc-names)))
+;; 		       (sorted-sim-coidpcs (cons pred sim-coidpcs-wo-coidpc))
+;; 		       (concls
+;; 			(map
+;; 			 (lambda (coidpc)
+;; 			   (let* ((arity (idpredconst-to-arity coidpc))
+;; 				  (varterms
+;; 				   (map (lambda (type)
+;; 					  (make-term-in-var-form
+;; 					   (type-to-new-partial-var type)))
+;; 					(arity-to-types arity))))
+;; 			     (apply make-predicate-formula coidpc varterms)))
+;; 			 sorted-sim-coidpcs))
+;; 		       (imp-formulas
+;; 			(map (lambda (concl) (make-imp falsity concl))
+;; 			     concls))
+;; 		       (gfp-aconst
+;; 			(apply imp-formulas-to-gfp-aconst imp-formulas))
+;; 		       (gfp-proof (make-proof-in-aconst-form gfp-aconst))
+;; 		       (costep-formulas
+;; 			(imp-form-to-premises ;drop final conclusion
+;; 			 (imp-form-to-conclusion ;drop competitor
+;; 			  (all-allnc-form-to-final-kernel ;drop all-allnc
+;; 			   (aconst-to-inst-formula gfp-aconst)))))
+;; 		       (costep-vars-list
+;; 			(map allnc-form-to-vars costep-formulas))
+;; 		       (costep-prems ;falsities
+;; 			(map (lambda (fla) (imp-form-to-premise
+;; 					    (allnc-form-to-final-kernel fla)))
+;; 			     costep-formulas))
+;; 		       (costep-prem-avars
+;; 			(map formula-to-new-avar costep-prems))
+;; 		       (costep-concls (map (lambda (fla)
+;; 					     (imp-form-to-final-conclusion
+;; 					      (allnc-form-to-final-kernel fla)))
+;; 					   costep-formulas))
+;; 		       (costep-proofs
+;; 			(map
+;; 			 (lambda (costep-vars costep-prem-avar costep-concl)
+;; 			   (apply mk-proof-in-nc-intro-form
+;; 				  (append
+;; 				   costep-vars
+;; 				   (list (make-proof-in-imp-intro-form
+;; 					  costep-prem-avar
+;; 					  (formula-and-falsity-avar-to-efq-proof
+;; 					   costep-concl costep-prem-avar))))))
+;; 			 costep-vars-list costep-prem-avars costep-concls)))
+;; 		  (apply mk-proof-in-elim-form
+;; 			 gfp-proof
+;; 			 (append args (cons (make-proof-in-avar-form u)
+;; 					    costep-proofs)))))
+;; 	       (else (myerror "formula-and-falsity-avar-to-efq-proof"
+;; 			      "idpredconst expected" pred))))
+;; 	     (else (myerror "formula-and-falsity-avar-to-efq-proof"
+;; 			    "predicate expected" pred)))))
+;;     ((imp)
+;;      (let* ((prem (imp-form-to-premise formula))
+;; 	    (concl (imp-form-to-conclusion formula))
+;; 	    (prev (formula-and-falsity-avar-to-efq-proof concl u))
+;; 	    (v (formula-to-new-avar prem)))
+;;        (make-proof-in-imp-intro-form v prev)))
+;;     ((impnc)
+;;      (let* ((prem (impnc-form-to-premise formula))
+;; 	    (concl (impnc-form-to-conclusion formula))
+;; 	    (prev (formula-and-falsity-avar-to-efq-proof concl u))
+;; 	    (v (formula-to-new-avar prem)))
+;;        (make-proof-in-impnc-intro-form v prev)))
+;;     ((and)
+;;      (let* ((left (and-form-to-left formula))
+;; 	    (right (and-form-to-right formula))
+;; 	    (prev1 (formula-and-falsity-avar-to-efq-proof left u))
+;; 	    (prev2 (formula-and-falsity-avar-to-efq-proof right u)))
+;;        (make-proof-in-and-intro-form prev1 prev2)))
+;;     ((all)
+;;      (let* ((var (all-form-to-var formula))
+;; 	    (kernel (all-form-to-kernel formula))
+;; 	    (prev (formula-and-falsity-avar-to-efq-proof kernel u)))
+;;        (make-proof-in-all-intro-form var prev)))
+;;     ((allnc)
+;;      (let* ((var (allnc-form-to-var formula))
+;; 	    (kernel (allnc-form-to-kernel formula))
+;; 	    (prev (formula-and-falsity-avar-to-efq-proof kernel u)))
+;;        (make-proof-in-allnc-intro-form var prev)))
+;;     ((ex)
+;;      (let* ((var (ex-form-to-var formula))
+;; 	    (kernel (ex-form-to-kernel formula))
+;; 	    (inhab (type-to-canonical-inhabitant (var-to-type var)))
+;; 	    (subst-kernel (formula-subst kernel var inhab))
+;; 	    (prev (formula-and-falsity-avar-to-efq-proof subst-kernel u)))
+;;        (make-proof-in-ex-intro-form inhab formula prev)))
+;;     ((exca excl)
+;;      (formula-and-falsity-avar-to-efq-proof (unfold-formula formula) u))
+;;     (else (myerror "formula-and-falsity-avar-to-efq-proof" "formula expected"
+;; 		   formula))))
 
 (define (make-proof-in-iterated-imp-elim-form init-proof . imp-proofs)
   (if (null? imp-proofs) init-proof
