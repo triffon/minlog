@@ -1,4 +1,4 @@
-;; 2018-11-13.  nat.scm
+;; 2019-08-24.  nat.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -6,188 +6,6 @@
 
 (add-algs "nat" '("Zero" "nat") '("Succ" "nat=>nat"))
 (add-var-name "n" "m" "l" (py "nat")) ;l instead of k, which will be an int
-
-(add-totality "nat")
-
-;; This adds the c.r. predicate TotalNat with clauses
-;; TotalNatZero:	TotalNat Zero
-;; TotalNatSucc:	allnc nat^(TotalNat nat^ -> TotalNat(Succ nat^))
-
-(add-totalnc "nat")
-(add-co "TotalNat")
-(add-co "TotalNatNc")
-
-(add-mr-ids "TotalNat")
-(add-co "TotalNatMR")
-
-(add-eqp "nat")
-(add-co "EqPNat")
-(add-eqpnc "nat")
-(add-co "EqPNatNc")
-
-;; NatTotalVar
-(set-goal "all n TotalNat n")
-(use "AllTotalIntro")
-(assume "n^" "Tn")
-(use "Tn")
-;; Proof finished
-(save "NatTotalVar")
-
-;; TotalNatToTotalNatNc
-(set-goal "allnc n^(TotalNat n^ -> TotalNatNc n^)")
-(assume "n^" "Tn")
-(use "Tn")
-;; Proof finished.
-(save "TotalNatToTotalNatNc")
-
-;; (cdp (proof-to-soundness-proof))
-;; Uses the axiom AllTotalIntroSound.
-
-;; To prove extensionality of the level 2 pconst AllBNat we will need
-;; properties of EqPNat.  There are collected here.
-
-;; EqPNatToTotalLeft
-(set-goal "allnc n^,m^(EqPNat n^ m^ -> TotalNat n^)")
-(assume "n^" "m^" "EqPnm")
-(elim "EqPnm")
-;; 3,4
-(use "TotalNatZero")
-;; 4
-(assume "n^1" "m^1" "EqPn1m1" "IH")
-(use "TotalNatSucc")
-(use "IH")
-;; Proof finished.
-(save "EqPNatToTotalLeft")
-;; (cdp)
-
-;; EqPNatToTotalRight
-(set-goal "allnc n^,m^(EqPNat n^ m^ -> TotalNat m^)")
-(assume "n^" "m^" "EqPnm")
-(elim "EqPnm")
-;; 3,4
-(use "TotalNatZero")
-;; 4
-(assume "n^1" "m^1" "EqPn1m1" "IH")
-(use "TotalNatSucc")
-(use "IH")
-;; Proof finished.
-(save "EqPNatToTotalRight")
-;; (cdp)
-
-;; EqPNatToTotalNcLeft
-(set-goal "allnc n^,m^(EqPNat n^ m^ -> TotalNatNc n^)")
-(assume "n^" "m^" "EqPnm")
-(elim "EqPnm")
-;; 3,4
-(use "TotalNatNcZero")
-;; 4
-(assume "n^1" "m^1" "EqPn1m1" "IH")
-(use "TotalNatNcSucc")
-(use "IH")
-;; Proof finished.
-(save "EqPNatToTotalNcLeft")
-;; (cdp)
-
-;; EqPNatToTotalNcRight
-(set-goal "allnc n^,m^(EqPNat n^ m^ -> TotalNatNc m^)")
-(assume "n^" "m^" "EqPnm")
-(elim "EqPnm")
-;; 3,4
-(use "TotalNatNcZero")
-;; 4
-(assume "n^1" "m^1" "EqPn1m1" "IH")
-(use "TotalNatNcSucc")
-(use "IH")
-;; Proof finished.
-(save "EqPNatToTotalNcRight")
-;; (cdp)
-
-;; EqPNatToEqD
-(set-goal "allnc n^,m^(EqPNat n^ m^ -> n^ eqd m^)")
-(assume "n^" "m^" "EqPnm")
-(elim "EqPnm")
-;; 3,4
-(use "InitEqD")
-;; 4
-(assume "n^1" "m^1" "Useless" "IH")
-(simp "IH")
-(use "InitEqD")
-;; Proof finished.
-(save "EqPNatToEqD")
-;; (cdp)
-
-;; EqPNatNcRefl
-(set-goal "allnc n^(TotalNat n^ -> EqPNatNc n^ n^)")
-(assume "n^" "Tn")
-(elim "Tn")
-(use "EqPNatNcZero")
-(assume "n^1" "Tn1")
-(use "EqPNatNcSucc")
-;; Proof finished.
-(save "EqPNatNcRefl")
-;; (cdp)
-
-;; EqPNatRefl
-(set-goal "allnc n^(TotalNat n^ -> EqPNat n^ n^)")
-(assume "n^" "Tn")
-(elim "Tn")
-(use "EqPNatZero")
-(assume "n^1" "Tn1")
-(use "EqPNatSucc")
-;; Proof finished.
-(save "EqPNatRefl")
-;; (cdp)
-
-;; NatEqToEqPNc
-(set-goal "allnc n^(TotalNat n^ -> allnc m^(TotalNat m^ -> n^ =m^ ->
- EqPNatNc n^ m^))")
-(assume "n^" "Tn")
-(elim "Tn")
-;; 3,4
-(assume "m^" "Tm")
-(elim "Tm")
-;; 6,7
-(strip)
-(use "EqPNatNcZero")
-;; 7
-(assume "m^1" "Tm1" "Useless" "Absurd")
-(ng)
-(simp (pf "Succ m^1 eqd Zero"))
-(use "EqPNatNcZero")
-(use "EfEqD")
-(use "Absurd")
-;; 4
-(assume "m^" "Tm")
-(assume "IH" "m^1" "Tm1")
-(elim "Tm1")
-;; 16,17
-(ng)
-(assume "Absurd")
-(simp (pf "Succ m^ eqd Zero"))
-(use "EqPNatNcZero")
-(use "EfEqD")
-(use "Absurd")
-;; 17
-(assume "n^1" "Tn1" "Useless" "EqHyp")
-(use "EqPNatNcSucc")
-(use "IH")
-(use "Tn1")
-(use "EqHyp")
-;; Proof finished.
-(save "NatEqToEqPNc")
-;; (cdp)
-
-;; EqPNatSym
-(set-goal "allnc n^,m^(EqPNat n^ m^ -> EqPNat m^ n^)")
-(assume "n^" "m^" "EqPnm")
-(elim "EqPnm")
-(use "EqPNatZero")
-(assume "n^1" "m^1" "EqPn1m1" "EqPm1n1")
-(use "EqPNatSucc")
-(use "EqPm1n1")
-;; Proof finished.
-(save "EqPNatSym")
-;; (cdp)
 
 (define (make-numeric-term-wrt-nat n)
   (if (= n 0)
@@ -233,6 +51,1540 @@
   (if NAT-NUMBERS
       (numeric-term-wrt-nat-to-number x)
       (numeric-term-wrt-pos-to-number x)))
+
+(add-totality "nat")
+
+;; This adds the c.r. predicate TotalNat with clauses
+;; TotalNatZero:	TotalNat Zero
+;; TotalNatSucc:	allnc nat^(TotalNat nat^ -> TotalNat(Succ nat^))
+
+(add-totalnc "nat")
+(add-co "TotalNat")
+(add-co "TotalNatNc")
+
+(add-mr-ids "TotalNat")
+(add-co "TotalNatMR")
+
+(add-eqp "nat")
+(add-eqpnc "nat")
+(add-co "EqPNat")
+(add-co "EqPNatNc")
+
+(add-mr-ids "EqPNat")
+(add-co "EqPNatMR")
+
+;; Code discarded 2019-05-14
+;; (add-ext "nat")
+;; (add-extnc "nat")
+
+;; NatTotalVar
+(set-goal "all n TotalNat n")
+(use "AllTotalIntro")
+(assume "n^" "Tn")
+(use "Tn")
+;; Proof finished
+;; (cdp)
+(save "NatTotalVar")
+
+;; We collect properties of TotalNat and EqPNat, including the Nc, Co
+;; and MR variants.  These are
+
+;; EfTotalNat
+;; EfTotalNatNc
+;; TotalNatToCoTotal
+;; TotalNatNcToCoTotalNc
+;; EfCoTotalNat
+;; EfCoTotalNatNc
+;; EfCoTotalNatMR
+;; TotalNatMRToEqD
+;; TotalNatMRToTotalNcLeft
+;; TotalNatMRToTotalNcRight
+;; TotalNatMRRefl
+;; EfCoTotalNatMR
+;; TotalNatMRToCoTotalMR
+
+;; EfEqPNat
+;; EfEqPNatNc
+;; EqPNatNcToEqD
+;; EqPNatSym
+;; EqPNatNcSym
+;; EqPNatRefl
+;; EqPNatNcRefl
+;; EqPNatToTotalLeft
+;; EqPNatNcToTotalNcLeft
+;; EqPNatToTotalRight
+;; EqPNatNcToTotalNcRight
+;; EqPNatNcTrans
+;; EqPNatNcToEq
+;; EqNatToEqPNc
+
+;; EfCoEqPNat
+;; EfCoEqPNatNc
+;; CoEqPNatNcToEqD
+;; CoEqPNatSym
+;; CoEqPNatNcSym
+;; CoEqPNatRefl
+;; CoEqPNatNcRefl
+;; CoEqPNatToCoTotalLeft
+;; CoEqPNatNcToCoTotalNcLeft
+;; CoEqPNatToCoTotalRight
+;; CoEqPNatNcToCoTotalNcRight
+;; CoEqPNatNcTrans
+;; EqPNatToCoEqP
+;; EqPNatNcToCoEqPNc
+;; EfEqPNatMR
+;; EqPNatMRToEqDLeft
+;; EqPNatMRToEqDRight
+;; EqPNatNcToTotalMR
+;; TotalNatMRToEqPNc
+;; EqPNatMRToTotalNc
+;; EqPNatMRRefl
+;; EqPNatNcToEqPMR
+;; EqPNatMRToEqPNcLeft
+;; EqPNatMRToEqPNcRight
+;; EfCoEqPNatMR
+;; EqPNatMRToCoEqPMR
+;; CoEqPNatNcToCoTotalMR
+;; CoTotalNatMRToCoEqPNc
+;; CoEqPNatMRRefl
+;; CoEqPNatNcToCoEqPMR
+;; CoEqPNatMRToCoEqPNcLeft
+;; CoEqPNatMRToCoEqPNcRight
+
+;; EfTotalNat
+(set-goal "allnc n^(F -> TotalNat n^)")
+(assume "n^" "Absurd")
+(simp (pf "n^ eqd 0"))
+(use "TotalNatZero")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfTotalNat")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; 0
+
+;; EfTotalNatNc
+(set-goal "allnc n^(F -> TotalNatNc n^)")
+(assume "n^" "Absurd")
+(simp (pf "n^ eqd 0"))
+(use "TotalNatNcZero")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfTotalNatNc")
+
+;; TotalNatToCoTotal
+(set-goal "allnc n^(TotalNat n^ -> CoTotalNat n^)")
+(assume "n^" "Tn")
+(coind "Tn")
+(assume "n^1" "Tn1")
+(assert "n^1 eqd 0 ori exr n^2(TotalNat n^2 andi n^1 eqd Succ n^2)")
+ (elim "Tn1")
+ (intro 0)
+ (use "InitEqD")
+ (assume "n^2" "Tn2" "Useless")
+ (intro 1)
+ (intro 0 (pt "n^2"))
+ (split)
+ (use "Tn2")
+ (use "InitEqD")
+;; Assertion proved.
+(assume "Disj")
+(elim "Disj")
+(assume "n1=0")
+(intro 0)
+(use "n1=0")
+(assume "ExHyp")
+(intro 1)
+(by-assume "ExHyp" "n^2" "n2Prop")
+(intro 0 (pt "n^2"))
+(split)
+(intro 1)
+(use "n2Prop")
+(use "n2Prop")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatToCoTotal")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n0]
+;;  (CoRec nat=>nat)n0
+;;  ([n1][if n1 (DummyL nat ysum nat) ([n2]Inr((InR nat nat)n2))])
+
+;; TotalNatNcToCoTotalNc
+(set-goal "allnc n^(TotalNatNc n^ -> CoTotalNatNc n^)")
+(assume "n^" "Tn")
+(coind "Tn")
+(assume "n^1" "Tn1")
+(assert "n^1 eqd 0 ornc exnc n^2(TotalNatNc n^2 andi n^1 eqd Succ n^2)")
+ (elim "Tn1")
+ (intro 0)
+ (use "InitEqD")
+ (assume "n^2" "Tn2" "Useless")
+ (intro 1)
+ (intro 0 (pt "n^2"))
+ (split)
+ (use "Tn2")
+ (use "InitEqD")
+;; Assertion proved.
+(assume "Disj")
+(elim "Disj")
+(assume "n1=0")
+(intro 0)
+(use "n1=0")
+(assume "ExHyp")
+(intro 1)
+(by-assume "ExHyp" "n^2" "n2Prop")
+(intro 0 (pt "n^2"))
+(split)
+(intro 1)
+(use "n2Prop")
+(use "n2Prop")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatNcToCoTotalNc")
+
+;; EfCoTotalNat
+(set-goal "allnc n^(F -> CoTotalNat n^)")
+(assume "n^" "Absurd")
+(coind "Absurd")
+(assume "n^1" "Useless")
+(intro 0)
+(simp (pf "n^1 eqd 0"))
+(use "InitEqD")
+(simp (pf "n^1 eqd 0"))
+(use "InitEqD")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfCoTotalNat")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; (CoRec nat)(DummyL nat ysumu)
+
+;; EfCoTotalNatNc
+(set-goal "allnc n^(F -> CoTotalNatNc n^)")
+(assume "n^" "Absurd")
+(coind "Absurd")
+(assume "n^1" "Useless")
+(intro 0)
+(simp (pf "n^1 eqd 0"))
+(use "InitEqD")
+(simp (pf "n^1 eqd 0"))
+(use "InitEqD")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfCoTotalNatNc")
+
+;; TotalNatMRToEqD
+(set-goal "allnc n^1,n^2(TotalNatMR n^1 n^2 -> n^1 eqd n^2)")
+(assume "n^1" "n^2" "TMRn1n2")
+(elim "TMRn1n2")
+;; 3,4
+(use "InitEqD")
+;; 4
+(assume "n^3" "n^4" "Useless" "EqHyp")
+(simp "EqHyp")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatMRToEqD")
+
+;; TotalNatMRToTotalNcLeft
+(set-goal "allnc n^1,n^2(TotalNatMR n^1 n^2 -> TotalNatNc n^1)")
+(assume "n^1" "n^2" "TMRHyp")
+(elim "TMRHyp")
+;; 3,4
+(use "TotalNatNcZero")
+;; 4
+(assume "n^3" "n^4" "Useless")
+(use "TotalNatNcSucc")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatMRToTotalNcLeft")
+
+;; TotalNatMRToTotalNcRight
+(set-goal "allnc n^1,n^2(TotalNatMR n^1 n^2 -> TotalNatNc n^2)")
+(assume "n^1" "n^2" "TMRHyp")
+(elim "TMRHyp")
+;; 3,4
+(use "TotalNatNcZero")
+;; 4
+(assume "n^3" "n^4" "Useless")
+(use "TotalNatNcSucc")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatMRToTotalNcRight")
+
+;; TotalNatMRRefl
+(set-goal "allnc n^(TotalNat n^ -> TotalNatMR n^ n^)")
+(assume "n^" "TMRHyp")
+(elim "TMRHyp")
+;; 3,4
+(use "TotalNatZeroMR")
+;; 4
+(assume "n^1" "n^1" "TMRn1n1")
+(use "TotalNatSuccMR")
+(use "TMRn1n1")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatMRRefl")
+
+;; EfCoTotalNatMR
+(set-goal "allnc n^1,n^2(F -> CoTotalNatMR n^1 n^2)")
+(assume "n^1" "n^2" "Absurd")
+(coind "Absurd")
+(assume "n^3" "n^4" "Useless")
+(intro 0)
+(simp (pf "n^3 eqd 0"))
+(simp (pf "n^4 eqd 0"))
+(split)
+(use "InitEqD")
+(use "InitEqD")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfCoTotalNatMR")
+
+;; TotalNatMRToCoTotalMR
+(set-goal "allnc n^1,n^2(TotalNatMR n^1 n^2 -> CoTotalNatMR n^1 n^2)")
+(assume "n^1" "n^2" "Tn1n2")
+(coind "Tn1n2")
+(assume "n^3" "n^4" "Tn3n4")
+(assert "n^3 eqd 0 andnc n^4 eqd0 ornc
+         exr n^5,n^6(TotalNatMR n^5 n^6 andnc 
+        n^3 eqd Succ n^5 andnc
+        n^4 eqd Succ n^6)")
+ (elim "Tn3n4")
+;; 7,8
+ (intro 0)
+ (split)
+ (use "InitEqD")
+ (use "InitEqD")
+;; 8
+ (assume "n^5" "n^6" "Tn5n6" "Useless")
+ (drop "Useless")
+ (intro 1)
+ (intro 0 (pt "n^5"))
+ (intro 0 (pt "n^6"))
+ (split)
+ (use "Tn5n6")
+ (split)
+ (use "InitEqD")
+ (use "InitEqD")
+;; Assertion proved.
+(assume "Disj")
+(elim "Disj")
+;; 22,23
+(assume "Conj")
+(intro 0)
+(use "Conj")
+;; 23
+(drop "Disj")
+(assume "ExHyp")
+(intro 1)
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatMRToCoTotalMR")
+
+;; EfEqPNat
+(set-goal "allnc n^1,n^2(F -> EqPNat n^1 n^2)")
+(assume "n^1" "n^2" "Absurd")
+(simp (pf "n^1 eqd 0"))
+(simp (pf "n^2 eqd 0"))
+(use "EqPNatZero")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfEqPNat")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; 0
+
+;; EfEqPNatNc
+(set-goal "allnc n^1,n^2(F -> EqPNatNc n^1 n^2)")
+(assume "n^1" "n^2" "Absurd")
+(simp (pf "n^1 eqd 0"))
+(simp (pf "n^2 eqd 0"))
+(use "EqPNatNcZero")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfEqPNatNc")
+
+;; EqPNatNcToEqD
+(set-goal "allnc n^1,n^2(EqPNatNc n^1 n^2 -> n^1 eqd n^2)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+;; 3,4
+(use "InitEqD")
+;; 4
+(assume "n^3" "n^4" "Useless" "IH")
+(simp "IH")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcToEqD")
+
+;; EqPNatSym
+(set-goal "allnc n^1,n^2(EqPNat n^1 n^2 -> EqPNat n^2 n^1)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+(use "EqPNatZero")
+(assume "n^3" "n^4" "Useless" "EqPn4n3")
+(use "EqPNatSucc")
+(use "EqPn4n3")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatSym")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp (rename-variables neterm))
+;; [n](Rec nat=>nat)n Zero([n0]Succ)
+
+;; EqPNatNcSym
+(set-goal "allnc n^1,n^2(EqPNatNc n^1 n^2 -> EqPNatNc n^2 n^1)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+(use "EqPNatNcZero")
+(assume "n^3" "n^4" "Useless" "EqPn4n3")
+(use "EqPNatNcSucc")
+(use "EqPn4n3")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcSym")
+
+;; EqPNatRefl
+(set-goal "allnc n^(TotalNat n^ -> EqPNat n^ n^)")
+(assume "n^" "Tn")
+(elim "Tn")
+(use "EqPNatZero")
+(assume "n^1" "Tn1")
+(use "EqPNatSucc")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatRefl")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp (rename-variables neterm))
+;; [n](Rec nat=>nat)n Zero([n0]Succ)
+
+;; EqPNatNcRefl
+(set-goal "allnc n^(TotalNatNc n^ -> EqPNatNc n^ n^)")
+(assume "n^" "Tn")
+(elim "Tn")
+(use "EqPNatNcZero")
+(assume "n^1" "Tn1" "EqPHyp")
+(use "EqPNatNcSucc")
+(use "EqPHyp")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcRefl")
+
+;; EqPNatToTotalLeft
+(set-goal "allnc n^1,n^2(EqPNat n^1 n^2 -> TotalNat n^1)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+;; 3,4
+(use "TotalNatZero")
+;; 4
+(assume "n^3" "n^4" "Useless" "IH")
+(use "TotalNatSucc")
+(use "IH")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatToTotalLeft")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n](Rec nat=>nat)n Zero([n0]Succ)
+
+;; EqPNatNcToTotalNcLeft
+(set-goal "allnc n^1,n^2(EqPNatNc n^1 n^2 -> TotalNatNc n^1)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+;; 3,4
+(use "TotalNatNcZero")
+;; 4
+(assume "n^3" "n^4" "EqPn3n4" "IH")
+(use "TotalNatNcSucc")
+(use "IH")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcToTotalNcLeft")
+
+;; EqPNatToTotalRight
+(set-goal "allnc n^1,n^2(EqPNat n^1 n^2 -> TotalNat n^2)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+;; 3,4
+(use "TotalNatZero")
+;; 4
+(assume "n^3" "n^4" "Useless" "IH")
+(use "TotalNatSucc")
+(use "IH")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatToTotalRight")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n](Rec nat=>nat)n Zero([n0]Succ)
+
+;; EqPNatNcToTotalNcRight
+(set-goal "allnc n^1,n^2(EqPNatNc n^1 n^2 -> TotalNatNc n^2)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+;; 3,4
+(use "TotalNatNcZero")
+;; 4
+(assume "n^3" "n^4" "EqPn3n4" "IH")
+(use "TotalNatNcSucc")
+(use "IH")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcToTotalNcRight")
+
+;; EqPNatNcTrans
+(set-goal
+ "allnc n^1,n^2,n^3(EqPNatNc n^1 n^2 -> EqPNatNc n^2 n^3 -> EqPNatNc n^1 n^3)")
+(assume "n^1" "n^2" "n^3" "EqPn1n2" "EqPn2n3")
+(simp (pf "n^1 eqd n^2"))
+(simp (pf "n^2 eqd n^3"))
+(use "EqPNatNcRefl")
+(use "EqPNatNcToTotalNcRight" (pt "n^2"))
+(use "EqPn2n3")
+(use "EqPNatNcToEqD")
+(use "EqPn2n3")
+(use "EqPNatNcToEqD")
+(use "EqPn1n2")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcTrans")
+
+;; EqPNatNcToEq
+(set-goal "allnc n^1,n^2(EqPNatNc n^1 n^2 -> n^1=n^2)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+(use "Truth")
+(assume "n^13" "n^4" "Useless" "IH")
+(use "IH")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcToEq")
+
+;; EqNatToEqPNc
+(set-goal "allnc n^1(TotalNatNc n^1 -> allnc n^2(TotalNatNc n^2 ->
+ n^1=n^2 -> EqPNatNc n^1 n^2))")
+(assume "n^1" "Tn1")
+(elim "Tn1")
+;; 3,4
+(assume "n^2" "Tn2")
+(elim "Tn2")
+(assume "Useless")
+(use "EqPNatNcZero")
+;; 7
+(assume "n^3" "Tn3" "Useless" "Absurd")
+(use "EfEqPNatNc")
+(use "Absurd")
+;; 4
+(assume "n^2" "Tn2" "IH" "n^3" "Tn3")
+(elim "Tn3")
+(assume "Absurd")
+(use "EfEqPNatNc")
+(use "Absurd")
+;; 13
+(assume "n^4" "Tn4" "Useless" "n2=n4")
+(use "EqPNatNcSucc")
+(use "IH")
+(use "Tn4")
+(use "n2=n4")
+;; Proof finished.
+;; (cdp)
+(save "EqNatToEqPNc")
+
+;; EfCoEqPNat
+(set-goal "allnc n^1,n^2(F -> CoEqPNat n^1 n^2)")
+(assume "n^1" "n^2" "Absurd")
+(coind "Absurd")
+(assume "n^3" "n^4" "Useless")
+(intro 0)
+(simp (pf "n^3 eqd 0"))
+(simp (pf "n^4 eqd 0"))
+(split)
+(use "InitEqD")
+(use "InitEqD")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfCoEqPNat")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; (CoRec nat)(DummyL nat ysumu)
+(pp (nt (undelay-delayed-corec neterm 1)))
+;; 0
+
+;; EfCoEqPNatNc
+(set-goal "allnc n^1,n^2(F -> CoEqPNatNc n^1 n^2)")
+(assume "n^1" "n^2" "Absurd")
+(coind "Absurd")
+(assume "n^3" "n^4" "Useless")
+(intro 0)
+(simp (pf "n^3 eqd 0"))
+(simp (pf "n^4 eqd 0"))
+(split)
+(use "InitEqD")
+(use "InitEqD")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfCoEqPNatNc")
+
+;; CoEqPNatNcToEqD
+(set-goal "allnc n^1,n^2(CoEqPNatNc n^1 n^2 -> n^1 eqd n^2)")
+(use (make-proof-in-aconst-form (finalg-to-bisim-aconst (py "nat"))))
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcToEqD")
+
+;; CoEqPNatSym
+(set-goal "allnc n^1,n^2(CoEqPNat n^1 n^2 -> CoEqPNat n^2 n^1)")
+(assume "n^1" "n^2" "n1~n2")
+(coind "n1~n2")
+(assume "n^3" "n^4" "n4~n3")
+(inst-with-to
+ (make-proof-in-aconst-form
+  (coidpredconst-to-closure-aconst
+   (predicate-form-to-predicate (pf "CoEqPNat n^2 n^1"))))
+ (pt "n^4") (pt "n^3") "n4~n3" "Inst")
+(elim "Inst")
+;; 8,9
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(split)
+(use "Conj")
+(use "Conj")
+;; 9
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^6"))
+(intro 0 (pt "n^5"))
+(split)
+(intro 1)
+(use "n5n6Prop")
+(split)
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatSym")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n]
+;;  (CoRec nat=>nat)n
+;;  ([n0][if (Des n0) (DummyL nat ysum nat) ([n1]Inr((InR nat nat)n1))])
+
+;; CoEqPNatNcSym
+(set-goal "allnc n^1,n^2(CoEqPNatNc n^1 n^2 -> CoEqPNatNc n^2 n^1)")
+(assume "n^1" "n^2" "n1~n2")
+(coind "n1~n2")
+(assume "n^3" "n^4" "n4~n3")
+(inst-with-to
+ (make-proof-in-aconst-form
+  (coidpredconst-to-closure-aconst
+   (predicate-form-to-predicate (pf "CoEqPNatNc n^2 n^1"))))
+ (pt "n^4") (pt "n^3") "n4~n3" "Inst")
+(elim "Inst")
+;; 8,9
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(split)
+(use "Conj")
+(use "Conj")
+;; 9
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^6"))
+(intro 0 (pt "n^5"))
+(split)
+(intro 1)
+(use "n5n6Prop")
+(split)
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcSym")
+
+;; CoEqPNatRefl
+(set-goal "allnc n^(CoTotalNat n^ -> CoEqPNat n^ n^)")
+(assert "allnc n^1,n^2(CoTotalNat n^1 andi n^1 eqd n^2 -> CoEqPNat n^1 n^2)")
+(assume "n^1" "n^2")
+(coind)
+(assume "n^3" "n^4" "Conj")
+(inst-with-to "Conj" 'left "CoTn3")
+(inst-with-to "Conj" 'right "n3=n4")
+(drop "Conj")
+(simp "<-" "n3=n4")
+(drop "n3=n4")
+(inst-with-to "CoTotalNatClause" (pt "n^3") "CoTn3" "Inst")
+(elim "Inst")
+;; 16,17
+(drop "Inst")
+(assume "n3=0")
+(intro 0)
+(split)
+(use "n3=0")
+(use "n3=0")
+;; 17
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^5"))
+(split)
+(intro 1)
+(split)
+(use "n5Prop")
+(use "InitEqD")
+(split)
+(use "n5Prop")
+(use "n5Prop")
+;; 2
+(assume "Assertion" "n^" "CoTn")
+(use "Assertion")
+(split)
+(use "CoTn")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatRefl")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n]
+;;  (CoRec nat=>nat)n
+;;  ([n0][if (Des n0) (DummyL nat ysum nat) ([n1]Inr((InR nat nat)n1))])
+
+;; CoEqPNatNcRefl
+(set-goal "allnc n^(CoTotalNatNc n^ -> CoEqPNatNc n^ n^)")
+(assert
+ "allnc n^1,n^2(CoTotalNatNc n^1 andi n^1 eqd n^2 -> CoEqPNatNc n^1 n^2)")
+(assume "n^1" "n^2")
+(coind)
+(assume "n^3" "n^4" "Conj")
+(inst-with-to "Conj" 'left "CoTn3")
+(inst-with-to "Conj" 'right "n3=n4")
+(drop "Conj")
+(simp "<-" "n3=n4")
+(drop "n3=n4")
+(inst-with-to "CoTotalNatClause" (pt "n^3") "CoTn3" "Inst")
+(elim "Inst")
+;; 16,17
+(drop "Inst")
+(assume "n3=0")
+(intro 0)
+(split)
+(use "n3=0")
+(use "n3=0")
+;; 17
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^5"))
+(split)
+(intro 1)
+(split)
+(use "n5Prop")
+(use "InitEqD")
+(split)
+(use "n5Prop")
+(use "n5Prop")
+;; 2
+(assume "Assertion" "n^" "CoTn")
+(use "Assertion")
+(split)
+(use "CoTn")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcRefl")
+
+;; CoEqPNatToCoTotalLeft
+(set-goal "allnc n^1,n^2(CoEqPNat n^1 n^2 -> CoTotalNat n^1)")
+(assume "n^1" "n^2" "n1~n2")
+(use (imp-formulas-to-coind-proof
+      (pf "exr n^3 CoEqPNat n^1 n^3 -> CoTotalNat n^1")))
+;; 3,4
+(assume "n^3" "ExHyp3")
+(by-assume "ExHyp3" "n^4" "n3~n4")
+(inst-with-to "CoEqPNatClause" (pt "n^3") (pt "n^4") "n3~n4" "Inst")
+(elim "Inst")
+;; 11,12
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(use "Conj")
+;; 12
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(split)
+(intro 1)
+(intro 0 (pt "n^6"))
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; 4
+(intro 0 (pt "n^2"))
+(use "n1~n2")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatToCoTotalLeft")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n]
+;;  (CoRec nat=>nat)n
+;;  ([n0][if (Des n0) (DummyL nat ysum nat) ([n1]Inr((InR nat nat)n1))])
+
+;; CoEqPNatNcToCoTotalNcLeft
+(set-goal "allnc n^1,n^2(CoEqPNatNc n^1 n^2 -> CoTotalNatNc n^1)")
+(assume "n^1" "n^2" "n1~n2")
+(use (imp-formulas-to-coind-proof
+      (pf "exr n^3 CoEqPNatNc n^1 n^3 -> CoTotalNatNc n^1")))
+;; 3,4
+(assume "n^3" "ExHyp3")
+(by-assume "ExHyp3" "n^4" "n3~n4")
+(inst-with-to "CoEqPNatNcClause" (pt "n^3") (pt "n^4") "n3~n4" "Inst")
+(elim "Inst")
+;; 11,12
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(use "Conj")
+;; 12
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(split)
+(intro 1)
+(intro 0 (pt "n^6"))
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; 4
+(intro 0 (pt "n^2"))
+(use "n1~n2")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcToCoTotalNcLeft")
+
+;; CoEqPNatToCoTotalRight
+(set-goal "allnc n^1,n^2(CoEqPNat n^1 n^2 -> CoTotalNat n^2)")
+(assume "n^1" "n^2" "n1~n2")
+(use (imp-formulas-to-coind-proof
+      (pf "exr n^3 CoEqPNat n^3 n^2 -> CoTotalNat n^2")))
+;; 3,4
+(assume "n^3" "ExHyp3")
+(by-assume "ExHyp3" "n^4" "n4~n3")
+(inst-with-to "CoEqPNatClause" (pt "n^4") (pt "n^3") "n4~n3" "Inst")
+(elim "Inst")
+;; 11,12
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(use "Conj")
+;; 12
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(intro 0 (pt "n^5"))
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; 4
+(intro 0 (pt "n^1"))
+(use "n1~n2")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatToCoTotalRight")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n]
+;;  (CoRec nat=>nat)n
+;;  ([n0][if (Des n0) (DummyL nat ysum nat) ([n1]Inr((InR nat nat)n1))])
+
+;; CoEqPNatNcToCoTotalNcRight
+(set-goal "allnc n^1,n^2(CoEqPNatNc n^1 n^2 -> CoTotalNatNc n^2)")
+(assume "n^1" "n^2" "n1~n2")
+(use (imp-formulas-to-coind-proof
+      (pf "exr n^3 CoEqPNatNc n^3 n^2 -> CoTotalNatNc n^2")))
+;; 3,4
+(assume "n^4" "ExHyp3")
+(by-assume "ExHyp3" "n^3" "n3~n4")
+(inst-with-to "CoEqPNatNcClause" (pt "n^3") (pt "n^4") "n3~n4" "Inst")
+(elim "Inst")
+;; 11,12
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(use "Conj")
+;; 12
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(intro 0 (pt "n^5"))
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; 4
+(intro 0 (pt "n^1"))
+(use "n1~n2")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcToCoTotalNcRight")
+
+;; CoEqPNatNcTrans
+(set-goal "allnc n^1,n^2,n^3(CoEqPNatNc n^1 n^2 -> CoEqPNatNc n^2 n^3 ->
+                             CoEqPNatNc n^1 n^3)")
+(assume "n^1" "n^2" "n^3" "CoEqPn1n2" "CoEqPn2n3")
+(simp (pf "n^1 eqd n^2"))
+(simp (pf "n^2 eqd n^3"))
+(use "CoEqPNatNcRefl")
+(use "CoEqPNatNcToCoTotalNcRight" (pt "n^2"))
+(use "CoEqPn2n3")
+(use "CoEqPNatNcToEqD")
+(use "CoEqPn2n3")
+(use "CoEqPNatNcToEqD")
+(use "CoEqPn1n2")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcTrans")
+
+;; EqPNatToCoEqP
+(set-goal "allnc n^1,n^2(EqPNat n^1 n^2 -> CoEqPNat n^1 n^2)")
+(assume "n^1" "n^2" "EqPn1n2")
+(coind "EqPn1n2")
+(assume "n^3" "n^4" "EqPn3n4")
+(elim "EqPn3n4")
+;; 5,6
+(intro 0)
+(split)
+(use "InitEqD")
+(use "InitEqD")
+;; 6
+(assume "n^5" "n^6" "EqPn5n6" "Disj")
+(elim "Disj")
+;; 11,12
+(drop "Disj")
+(assume "Conj")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(use "EqPn5n6")
+(split)
+(use "InitEqD")
+(use "InitEqD")
+;; 12
+(drop "Disj")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^7" "n7Prop")
+(by-assume "n7Prop" "n^8" "n7n8Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(use "EqPn5n6")
+(split)
+(use "InitEqD")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatToCoEqP")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n]
+;;  (CoRec nat=>nat)n
+;;  ([n0]
+;;    (Rec nat=>uysum(nat ysum nat))n0(DummyL nat ysum nat)
+;;    ([n1,(uysum(nat ysum nat))]Inr((InR nat nat)n1)))
+
+;; EqPNatNcToCoEqPNc
+(set-goal "allnc n^1,n^2(EqPNatNc n^1 n^2 -> CoEqPNatNc n^1 n^2)")
+(assume "n^1" "n^2" "EqPn1n2")
+(coind "EqPn1n2")
+(assume "n^3" "n^4" "EqPn3n4")
+(elim "EqPn3n4")
+;; 5,6
+(intro 0)
+(split)
+(use "InitEqD")
+(use "InitEqD")
+;; 6
+(assume "n^5" "n^6" "EqPn5n6" "Disj")
+(elim "Disj")
+;; 11,12
+(drop "Disj")
+(assume "Conj")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(use "EqPn5n6")
+(split)
+(use "InitEqD")
+(use "InitEqD")
+;; 12
+(drop "Disj")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^7" "n7Prop")
+(by-assume "n7Prop" "n^8" "n7n8Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(use "EqPn5n6")
+(split)
+(use "InitEqD")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcToCoEqPNc")
+
+;; EfEqPNatMR
+(set-goal "allnc n^1,n^2,n^3(F -> EqPNatMR n^1 n^2 n^3)")
+(assume "n^1" "n^2" "n^3" "Absurd")
+(simp (pf "n^1 eqd 0"))
+(simp (pf "n^2 eqd 0"))
+(simp (pf "n^3 eqd 0"))
+(use "EqPNatZeroMR")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfEqPNatMR")
+
+;; EqPNatMRToEqDLeft
+(set-goal "allnc n^1,n^2,n^3(EqPNatMR n^1 n^2 n^3 -> n^1 eqd n^2)")
+(assume "n^1" "n^2" "n^3" "EqPHyp")
+(elim "EqPHyp")
+(use "InitEqD")
+(assume "n^4" "n^5" "n^6" "Useless" "EqDHyp")
+(simp "EqDHyp")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatMRToEqDLeft")
+
+;; EqPNatMRToEqDRight
+(set-goal "allnc n^1,n^2,n^3(EqPNatMR n^1 n^2 n^3 -> n^2 eqd n^3)")
+(assume "n^1" "n^2" "n^3" "EqPHyp")
+(elim "EqPHyp")
+(use "InitEqD")
+(assume "n^4" "n^5" "n^6" "Useless" "EqDHyp")
+(simp "EqDHyp")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatMRToEqDRight")
+
+;; EqPNatNcToTotalMR
+(set-goal "allnc n^1,n^2(EqPNatNc n^1 n^2 -> TotalNatMR n^1 n^2)")
+(assume "n^1" "n^2" "EqPn1n2")
+(elim "EqPn1n2")
+(use "TotalNatZeroMR")
+(assume "n^3" "n^4" "Useless")
+(use "TotalNatSuccMR")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcToTotalMR")
+
+;; TotalNatMRToEqPNc
+(set-goal "allnc n^1,n^2(TotalNatMR n^1 n^2 -> EqPNatNc n^1 n^2)")
+(assume "n^1" "n^2" "TMRn1n2")
+(elim "TMRn1n2")
+(use "EqPNatNcZero")
+(assume "n^3" "n^4" "Useless")
+(use "EqPNatNcSucc")
+;; Proof finished.
+;; (cdp)
+(save "TotalNatMRToEqPNc")
+
+;; EqPNatMRToTotalNc
+(set-goal "allnc n^1,n^2,n^3(EqPNatMR n^1 n^2 n^3 -> TotalNatNc n^3)")
+(assume "n^1" "n^2" "n^3" "EqPHyp")
+(elim "EqPHyp")
+(use "TotalNatNcZero")
+(assume "n^4" "n^5" "n^6" "Useless")
+(use "TotalNatNcSucc")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatMRToTotalNc")
+
+;; EqPNatMRRefl
+(set-goal "allnc n^(TotalNatNc n^ -> EqPNatMR n^ n^ n^)")
+(assume "n^" "Tn")
+(elim "Tn")
+(use "EqPNatZeroMR")
+(assume "n^1" "IH")
+(use "EqPNatSuccMR")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatMRRefl")
+
+;; EqPNatNcToEqPMR
+(set-goal "allnc n^1,n^2,n^3(EqPNatNc n^1 n^2 -> EqPNatNc n^2 n^3 ->
+                             EqPNatMR n^1 n^2 n^3)")
+(assume "n^1" "n^2" "n^3" "EqPn1n2" "EqPn2n3")
+(simp (pf "n^1 eqd n^2"))
+(simp (pf "n^2 eqd n^3"))
+(use "EqPNatMRRefl")
+(use "EqPNatNcToTotalNcRight" (pt "n^2"))
+(use "EqPn2n3")
+(use "EqPNatNcToEqD")
+(use "EqPn2n3")
+(use "EqPNatNcToEqD")
+(use "EqPn1n2")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatNcToEqPMR")
+
+;; EqPNatMRToEqPNcLeft
+(set-goal "allnc n^1,n^2,n^3(EqPNatMR n^1 n^2 n^3 -> EqPNatNc n^1 n^2)")
+(assume "n^1" "n^2" "n^3" "EqPMRHyp")
+(elim "EqPMRHyp")
+(use "EqPNatNcZero")
+(assume "n^4" "n^5" "n^6" "Useless" "EqPn4n5")
+(use "EqPNatNcSucc")
+(use "EqPn4n5")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatMRToEqPNcLeft")
+
+;; EqPNatMRToEqPNcRight
+(set-goal "allnc n^1,n^2,n^3(EqPNatMR n^1 n^2 n^3 -> EqPNatNc n^2 n^3)")
+(assume "n^1" "n^2" "n^3" "EqPMRHyp")
+(elim "EqPMRHyp")
+(use "EqPNatNcZero")
+(assume "n^4" "n^5" "n^6" "Useless" "EqPn5n6")
+(use "EqPNatNcSucc")
+(use "EqPn5n6")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatMRToEqPNcRight")
+
+;; EfCoEqPNatMR
+(set-goal "allnc n^1,n^2,n^3(F -> CoEqPNatMR n^1 n^2 n^3)")
+(assume "n^1" "n^2" "n^3" "Absurd")
+(coind "Absurd")
+(assume "n^4" "n^5" "n^6" "Useless")
+(intro 0)
+(simp (pf "n^4 eqd 0"))
+(simp (pf "n^5 eqd 0"))
+(simp (pf "n^6 eqd 0"))
+(split)
+(use "InitEqD")
+(split)
+(use "InitEqD")
+(use "InitEqD")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "EfCoEqPNatMR")
+
+;; EqPNatMRToCoEqPMR
+(set-goal "allnc n^1,n^2,n^3(
+ EqPNatMR n^1 n^2 n^3 -> CoEqPNatMR n^1 n^2 n^3)")
+(assume "n^1" "n^2" "n^3" "Tn1n2n3")
+(coind "Tn1n2n3")
+(assume "n^4" "n^5" "n^6" "Tn4n5n6")
+(assert "n^4 eqd 0 andnc n^5 eqd 0 andnc n^6 eqd 0 ornc
+         exr n^7,n^8,n^9(EqPNatMR n^7 n^8 n^9 andnc 
+         n^4 eqd Succ n^7 andnc
+         n^5 eqd Succ n^8 andnc
+         n^6 eqd Succ n^9)")
+ (elim "Tn4n5n6")
+;; 7,8
+ (intro 0)
+ (split)
+ (use "InitEqD")
+ (split)
+ (use "InitEqD")
+ (use "InitEqD")
+;; 8
+ (assume "n^7" "n^8" "n^9" "Tn7n8n9" "Useless")
+ (drop "Useless")
+ (intro 1)
+ (intro 0 (pt "n^7"))
+ (intro 0 (pt "n^8"))
+ (intro 0 (pt "n^9"))
+ (split)
+ (use "Tn7n8n9")
+ (split)
+ (use "InitEqD")
+ (split)
+ (use "InitEqD")
+ (use "InitEqD")
+;; Assertion proved.
+(assume "Disj")
+(elim "Disj")
+;; 27,28
+(assume "Conj")
+(intro 0)
+(use "Conj")
+;; 28
+(drop "Disj")
+(assume "ExHyp")
+(intro 1)
+(by-assume "ExHyp" "n^7" "n7Prop")
+(by-assume "n7Prop" "n^8" "n7n8Prop")
+(by-assume "n7n8Prop" "n^9" "n7n8n9Prop")
+(intro 0 (pt "n^7"))
+(intro 0 (pt "n^8"))
+(intro 0 (pt "n^9"))
+(split)
+(intro 1)
+(use "n7n8n9Prop")
+(use "n7n8n9Prop")
+;; Proof finished.
+;; (cdp)
+(save "EqPNatMRToCoEqPMR")
+
+;; CoEqPNatNcToCoTotalMR
+(set-goal "allnc n^1,n^2(CoEqPNatNc n^1 n^2 -> CoTotalNatMR n^1 n^2)")
+(assume "n^1" "n^2" "n1~n2")
+(use (make-proof-in-aconst-form
+      (imp-formulas-to-gfp-aconst
+       (pf "CoEqPNatNc n^1 n^2 -> CoTotalNatMR n^1 n^2"))))
+;; 3,4
+(use "n1~n2")
+;; 4
+(assume "n^3" "n^4" "n3~n4")
+;; use the closure axiom for CoEqPNat
+;; (pp "CoEqPNatNcClause")
+(inst-with-to "CoEqPNatNcClause" (pt "n^3") (pt "n^4") "n3~n4"
+	      "CoEqPNatNcClauseInst")
+(elim "CoEqPNatNcClauseInst")
+;; 8,9
+(drop "CoEqPNatNcClauseInst")
+(assume "Conj")
+(intro 0)
+(split)
+(use "Conj")
+(use "Conj")
+;; 9
+(drop "CoEqPNatNcClauseInst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(use "n5n6Prop")
+(split)
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcToCoTotalMR")
+
+;; CoTotalNatMRToCoEqPNc
+(set-goal "allnc n^1,n^2(CoTotalNatMR n^1 n^2 -> CoEqPNatNc n^1 n^2)")
+(assume "n^1" "n^2" "CoTn1n2")
+(use (make-proof-in-aconst-form
+      (imp-formulas-to-gfp-aconst
+       (pf "CoTotalNatMR n^1 n^2 -> CoEqPNatNc n^1 n^2"))))
+;; 3,4
+(use "CoTn1n2")
+;; 4
+(assume "n^3" "n^4" "CoTn3n4")
+;; use the closure axiom for CoTotalNatMR
+(inst-with-to "CoTotalNatMRClause" (pt "n^3") (pt "n^4") "CoTn3n4"
+	      "CoTotalNatMRClauseInst")
+(elim "CoTotalNatMRClauseInst")
+;; 8,9
+(drop "CoTotalNatMRClauseInst")
+(assume "EqConj")
+(intro 0)
+(split)
+(use "EqConj")
+(use "EqConj")
+;; 9
+(drop "CoTotalNatMRClauseInst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(intro 1)
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 1)
+(use "n5n6Prop")
+(split)
+(use "n5n6Prop")
+(use "n5n6Prop")
+;; Proof finished.
+;; (cdp)
+(save "CoTotalNatMRToCoEqPNc")
+
+;; CoEqPNatMRRefl
+(set-goal "allnc n^(CoTotalNatNc n^ -> CoEqPNatMR n^ n^ n^)")
+(assert
+ "allnc n^1,n^2,n^3(CoTotalNatNc n^1 andnc n^1 eqd n^2 andnc n^2 eqd n^3 ->
+                    CoEqPNatMR n^1 n^2 n^3)")
+(assume "n^1" "n^2" "n^3")
+(coind)
+(assume "n^4" "n^5" "n^6" "Conj")
+(inst-with-to "Conj" 'left "CoTn4")
+(inst-with-to "Conj" 'right "Conj34")
+(inst-with-to "Conj34" 'left "n4=n5")
+(inst-with-to "Conj34" 'right "n5=n6")
+(drop "Conj" "Conj34")
+(simp "<-" "n5=n6")
+(simp "<-" "n4=n5")
+(drop "n5=n6" "n4=n5")
+(inst-with-to "CoTotalNatClause" (pt "n^4") "CoTn4" "Inst")
+(elim "Inst")
+;; 20,21
+(drop "Inst")
+(assume "n4=0")
+(intro 0)
+(split)
+(use "n4=0")
+(split)
+(use "n4=0")
+(use "n4=0")
+;; 21
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^7" "n7Prop")
+(intro 1)
+(intro 0 (pt "n^7"))
+(intro 0 (pt "n^7"))
+(intro 0 (pt "n^7"))
+(split)
+(intro 1)
+(split)
+(use "n7Prop")
+(split)
+(use "InitEqD")
+(use "InitEqD")
+(split)
+(use "n7Prop")
+(split)
+(use "n7Prop")
+(use "n7Prop")
+;; 2
+(assume "Assertion" "n^" "CoTn")
+(use "Assertion")
+(split)
+(use "CoTn")
+(split)
+(use "InitEqD")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatMRRefl")
+
+;; CoEqPNatNcToCoEqPMR
+(set-goal "allnc n^1,n^2,n^3(CoEqPNatNc n^1 n^2 -> CoEqPNatNc n^2 n^3 ->
+                             CoEqPNatMR n^1 n^2 n^3)")
+(assume "n^1" "n^2" "n^3" "CoEqPn1n2" "CoEqPn2n3")
+(simp (pf "n^1 eqd n^2"))
+(simp (pf "n^2 eqd n^3"))
+(use "CoEqPNatMRRefl")
+(use "CoEqPNatNcToCoTotalNcRight" (pt "n^2"))
+(use "CoEqPn2n3")
+(use "CoEqPNatNcToEqD")
+(use "CoEqPn2n3")
+(use "CoEqPNatNcToEqD")
+(use "CoEqPn1n2")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatNcToCoEqPMR")
+
+;; CoEqPNatMRToCoEqPNcLeft
+(set-goal "allnc n^1,n^2,n^3(CoEqPNatMR n^1 n^2 n^3 -> CoEqPNatNc n^1 n^2)")
+(assume "n^1" "n^2" "n^3" "CoEqPMRn1n2n3")
+(use (imp-formulas-to-coind-proof
+      (pf "exr n^3 CoEqPNatMR n^1 n^2 n^3 -> CoEqPNatNc n^1 n^2")))
+;; 3,4
+(assume "n^4" "n^5" "ExHyp45")
+(by-assume "ExHyp45" "n^6" "CoEqPMRn4n5n6")
+;; (pp "CoEqPNatMRClause")
+(inst-with-to "CoEqPNatMRClause"
+	      (pt "n^4") (pt "n^5") (pt "n^6") "CoEqPMRn4n5n6" "Inst")
+(elim "Inst")
+;; 11,12
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(split)
+(use "Conj")
+(use "Conj")
+;; 12
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^7" "n7Prop")
+(by-assume "n7Prop" "n^8" "n7n8Prop")
+(by-assume "n7n8Prop" "n^9" "n7n8n9Prop")
+(intro 1)
+(intro 0 (pt "n^7"))
+(intro 0 (pt "n^8"))
+(split)
+(intro 1)
+(intro 0 (pt "n^9"))
+(use "n7n8n9Prop")
+(split)
+(use "n7n8n9Prop")
+(use "n7n8n9Prop")
+;; 4
+(intro 0 (pt "n^3"))
+(use "CoEqPMRn1n2n3")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatMRToCoEqPNcLeft")
+
+;; CoEqPNatMRToCoEqPNcRight
+(set-goal "allnc n^1,n^2,n^3(CoEqPNatMR n^1 n^2 n^3 -> CoEqPNatNc n^2 n^3)")
+(assume "n^1" "n^2" "n^3" "CoEqPMRn1n2n3")
+(use (imp-formulas-to-coind-proof
+      (pf "exr n^1 CoEqPNatMR n^1 n^2 n^3 -> CoEqPNatNc n^2 n^3")))
+;; 3,4
+(assume "n^5" "n^6" "ExHyp56")
+(by-assume "ExHyp56" "n^4" "CoEqPMRn4n5n6")
+;; (pp "CoEqPNatMRClause")
+(inst-with-to "CoEqPNatMRClause"
+	      (pt "n^4") (pt "n^5") (pt "n^6") "CoEqPMRn4n5n6" "Inst")
+(elim "Inst")
+;; 11,12
+(drop "Inst")
+(assume "Conj")
+(intro 0)
+(split)
+(use "Conj")
+(use "Conj")
+;; 12
+(drop "Inst")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^7" "n7Prop")
+(by-assume "n7Prop" "n^8" "n7n8Prop")
+(by-assume "n7n8Prop" "n^9" "n7n8n9Prop")
+(intro 1)
+(intro 0 (pt "n^8"))
+(intro 0 (pt "n^9"))
+(split)
+(intro 1)
+(intro 0 (pt "n^7"))
+(use "n7n8n9Prop")
+(split)
+(use "n7n8n9Prop")
+(use "n7n8n9Prop")
+;; 4
+(intro 0 (pt "n^1"))
+(use "CoEqPMRn1n2n3")
+;; Proof finished.
+;; (cdp)
+(save "CoEqPNatMRToCoEqPNcRight")
+
+;; This concludes the coeection of properties of TotalNat and EqPNat.
 
 ;; Program constants.
 
@@ -330,12 +1682,12 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "n" "0=Sn")
-(use "EfqEqD")
+(use "EfEqD")
 (use "0=Sn")
 (assume "n" "IH")
 (cases)
 (assume "Sn=0")
-(use "EfqEqD")
+(use "EfEqD")
 (use "Sn=0")
 (assume "m" "Sn=Sm")
 (assert "n eqd m")
@@ -346,6 +1698,7 @@
 (strip)
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "NatEqToEqD")
 
 ;; BooleEqToEqD
@@ -355,15 +1708,16 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "T=F")
-(use "EfqEqD")
+(use "EfEqD")
 (use "T=F")
 (cases)
 (assume "F=T")
-(use "EfqEqD")
+(use "EfEqD")
 (use "F=T")
 (assume "Useless")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "BooleEqToEqD")
 
 ;; Computation rules for the program constants.
@@ -412,42 +1766,44 @@
  "0 min Succ n" "0"
  "Succ n min Succ m" "Succ(n min m)")
 
+(add-var-name "pf" (py "nat=>boole"))
+
 ;; For AllBNat
 (add-computation-rules
- "AllBNat 0 nat=>boole" "True"
- "AllBNat(Succ n)nat=>boole"
- "[if (AllBNat n nat=>boole) ((nat=>boole)n) False]")
+ "AllBNat 0 pf" "True"
+ "AllBNat(Succ n)pf" "[if (AllBNat n pf) (pf n) False]")
 
 ;; (add-computation-rules
 ;;  "AllBNat 0 nat=>boole" "True"
-;;  "AllBNat(Succ n)nat=>boole" "AllBNat n nat=>boole andb (nat=>boole)n")
+;;  "AllBNat(Succ n)nat=>boole" "AllBNat n nat=>boole andb pf n")
 
 ;; For ExBNat
 (add-computation-rules
  "ExBNat 0 nat=>boole" "False"
- "ExBNat(Succ n)nat=>boole" "[if ((nat=>boole)n)
-                                   True
-                                   (ExBNat n nat=>boole)]")
+ "ExBNat(Succ n)pf" "[if (pf n) True (ExBNat n pf)]")
 
 ;; For efficiency reasons if is preferred over orb (i.e., over the
-;; term (ExBNat n nat=>boole orb (nat=>boole)n), since it computes
+;; term (ExBNat n nat=>boole orb pf n), since it computes
 ;; its arguments only when necessary.
 
 ;; For NatLeast
 (add-computation-rules
- "NatLeast 0(nat=>boole)" "0"
- "NatLeast(Succ n)(nat=>boole)"
- "[if ((nat=>boole)0) 0 (Succ(NatLeast n([m](nat=>boole)(Succ m))))]")
+ "NatLeast 0 pf" "0"
+ "NatLeast(Succ n)pf"
+ "[if (pf 0) 0 (Succ(NatLeast n([m]pf (Succ m))))]")
 
 ;; For NatLeastUp
 (add-computation-rules
- "NatLeastUp n0 n(nat=>boole)"
- "[if (n0<=n) (NatLeast(n--n0)([m](nat=>boole)(m+n0))+n0) 0]")
+ "NatLeastUp n0 n pf"
+ "[if (n0<=n) (NatLeast(n--n0)([m]pf (m+n0))+n0) 0]")
 
 ;; We prove and add some properties of the program constants introduced,
 ;; either as rewrite rules or as theorems.
 
 ;; Properties of NatPlus
+
+;; (term-to-t-deg (pt "NatPlus"))
+;; 0
 
 (set-totality-goal "NatPlus")
 (assume "n^" "Tn" "m^" "Tm")
@@ -459,36 +1815,16 @@
 (use "TotalNatSucc")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
-;; (set-totality-goal "NatPlus")
-;; (assume "n^" "Tn" "m^" "Tm")
-;; (elim "Tm")
-;; (ng #t)
-;; (use "Tn")
-;; (assume "l^" "Tl" "IH")
-;; (ng #t)
-;; (use "TotalNatSucc")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save-totality)
-
 ;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
-
-;; Alternative, with AllTotalElim
-;; (set-totality-goal "NatPlus")
-;; (use "AllTotalElim")
-;; (assume "n")
-;; (use "AllTotalElim")
-;; (ind)
-;; (use "NatTotalVar")
-;; (assume "m" "IH")
-;; (ng #t)
-;; (use "TotalNatSucc")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save-totality)
+;; (pp (rename-variables (proof-to-formula (proof-to-soundness-proof))))
+;; allnc n^,n^0(
+;;  TotalNatMR n^ n^0 -> 
+;;  allnc m^,n^1(
+;;   TotalNatMR m^ n^1 -> 
+;;   TotalNatMR(n^ +m^)((Rec nat=>nat)n^1 n^0([n^2,n^3]Succ n^3))))
 
 ;; NatPlusEqP
 (set-goal "allnc n^1,n^2(EqPNat n^1 n^2 -> allnc m^1,m^2(EqPNat m^1 m^2 ->
@@ -504,8 +1840,8 @@
 (use "EqPNatSucc")
 (use "IH")
 ;; Proof finished.
-(save "NatPlusEqP")
 ;; (cdp)
+(save "NatPlusEqP")
 
 (set-goal "all n 0+n=n")
 (ind)
@@ -513,6 +1849,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "0+n" "n")
 
 (set-goal "all n,m Succ n+m=Succ(n+m)")
@@ -522,6 +1859,7 @@
 (assume "m" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Succ n+m" "Succ(n+m)")
 
 (set-goal "all n,m,l n+(m+l)=n+m+l")
@@ -531,6 +1869,7 @@
 (assume "l" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n+(m+l)" "n+m+l")
 
 ;; NatPlusComm
@@ -541,6 +1880,7 @@
 (assume "m" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatPlusComm")
 
 ;; NatPlusCancelL
@@ -554,6 +1894,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatPlusCancelL")
 
 ;; NatPlusCancelR
@@ -570,6 +1911,7 @@
 (assume "Assertion" "n" "m")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (save "NatPlusCancelR")
 
 ;; Properties of NatTimes
@@ -585,6 +1927,7 @@
 (use "IH")
 (use "Tn")
 ;; Proof finished
+;; (cdp)
 (save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
@@ -611,44 +1954,49 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "0*n" "0")
 
 ;; NatCompat
-(set-goal "all n,m(n=m -> all (nat=>boole)^((nat=>boole)^n -> (nat=>boole)^m))")
+(set-goal "all n,m(n=m -> all pf^(pf^ n -> pf^ m))")
 (ind)
   (cases)
-    (assume "0=0" "(nat=>boole)^" "H1")
+    (assume "0=0" "pf^" "H1")
     (use "H1")
-  (assume "nat" "Absurd" "(nat=>boole)^" "H1")
-  (use "EfqAtom")
+  (assume "nat" "Absurd" "pf^" "H1")
+  (use "EfAtom")
   (use "Absurd")
 (assume "n" "IH")
 (cases)
-  (assume "Absurd" "(nat=>boole)^" "H1")
-  (use "EfqAtom")
+  (assume "Absurd" "pf^" "H1")
+  (use "EfAtom")
   (use "Absurd")
-(assume "m" "n=m" "(nat=>boole)^")
-(use-with "IH" (pt "m") "n=m" (pt "[nat](nat=>boole)^(Succ nat)"))
+(assume "m" "n=m" "pf^")
+(use-with "IH" (pt "m") "n=m" (pt "[n]pf^(Succ n)"))
 ;; Proof finished.
+;; (cdp)
 (save "NatCompat")
 
+(add-var-name "nf" (py "nat=>nat"))
+
 ;; NatEqCompat
-(set-goal "all n,m(n=m -> all (nat=>nat)((nat=>nat) n=(nat=>nat) m))")
+(set-goal "all n,m(n=m -> allnc nf(nf n=nf m))")
 (ind)
   (cases)
-    (assume "Useless" "(nat=>nat)")
+    (assume "Useless" "nf")
     (use "Truth")
-  (assume "m" "Absurd" "(nat=>nat)")
-  (use "EfqAtom")
+  (assume "m" "Absurd" "nf")
+  (use "EfAtom")
   (use "Absurd")
 (assume "n" "IH")
 (cases)
-  (assume "Absurd" "(nat=>nat)")
-  (use "EfqAtom")
+  (assume "Absurd" "nf")
+  (use "EfAtom")
   (use "Absurd")
-(assume "m" "n=m" "(nat=>nat)")
-(use-with "IH" (pt "m") "n=m" (pt "[nat](nat=>nat)(Succ nat)"))
+(assume "m" "n=m" "nf")
+(use-with "IH" (pt "m") "n=m" (pt "[n]nf(Succ n)"))
 ;; Proof finished.
+;; (cdp)
 (save "NatEqCompat")
 
 ;; NatEqSym
@@ -657,6 +2005,7 @@
 (simp "n=m")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatEqSym")
 
 ;; NatEqTrans
@@ -666,6 +2015,7 @@
 (assume "n=l")
 (use "n=l")
 ;; Proof finished.
+;; (cdp)
 (save "NatEqTrans")
 
 (set-goal "all n,m Succ n*m=(n*m)+m")
@@ -681,6 +2031,7 @@
 	  (pt "[nat]n*m+nat"))
 (use "NatPlusComm")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Succ n*m" "(n*m)+m")
 
 ;; NatTimesPlusDistr
@@ -693,6 +2044,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatTimesPlusDistr")
 (add-rewrite-rule "n*(m+l)" "n*m+n*l")
 
@@ -708,6 +2060,7 @@
 	  (pt "[nat]nat+n"))
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatTimesComm")
 
 ;; NatTimesPlusDistrLeft
@@ -719,6 +2072,7 @@
 (simp-with "NatTimesComm" (pt "m") (pt "l"))
 (use-with "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatTimesPlusDistrLeft")
 (add-rewrite-rule "(n+m)*l" "n*l+m*l")
 
@@ -731,6 +2085,7 @@
 (simp-with "IH1" (pt "m") (pt "l"))
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n*(m*l)" "n*m*l")
 
 ;; NatTimesCancelL
@@ -756,11 +2111,12 @@
 (assume "Assertion")
 (cases)
 (assume "m" "l" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n" "m" "l" "Useless")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (save "NatTimesCancelL")
 
 ;; NatTimesCancelR
@@ -771,6 +2127,7 @@
 (use "NatTimesCancelL")
 (use "NatTimesComm")
 ;; Proof finished.
+;; (cdp)
 (save "NatTimesCancelR")
 
 ;; Properties of NatLt
@@ -798,6 +2155,7 @@
 (use "IH")
 (use "Tl0")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
@@ -831,6 +2189,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n<Succ n" "True")
 
 (set-goal "all n (n<n)=False")
@@ -839,6 +2198,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n<n" "False")
 
 (set-goal "all n(Succ n<n)=False")
@@ -847,6 +2207,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Succ n<n" "False")
 
 ;; NatLtTrans
@@ -864,7 +2225,7 @@
 (assume "n" "IH1")
 (cases)
   (assume "l" "Absurd" "0<l")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
 (assume "m")
 (cases)
@@ -872,6 +2233,7 @@
 (use "Absurd")
 (use "IH1")
 ;; Proof finished
+;; (cdp)
 (save "NatLtTrans")
 
 ;; NatNotLeToLt
@@ -885,6 +2247,7 @@
 (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatNotLeToLt")
 
 ;; NatNotLtToLe
@@ -901,6 +2264,7 @@
 (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatNotLtToLe")
 
 ;; NatLtToLe
@@ -914,6 +2278,7 @@
 (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtToLe")
 
 ;; NatLeAntiSym
@@ -923,16 +2288,17 @@
 (assume "Useless1" "Useless2")
 (use "Truth")
 (assume "n" "Useless" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n" "IHn")
 (cases)
 (assume "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "m")
 (use "IHn")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeAntiSym")
 
 ;; NatLtPlusCancelR as rewrite rule
@@ -948,6 +2314,7 @@
 (assume "Assertion" "n" "m" "l")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n+m<l+m" "n<l")
 
 ;; NatLtPlusCancelL
@@ -958,6 +2325,7 @@
 (use "Truth")
 (use "NatPlusComm")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n+m<n+l" "m<l")
 
 ;; NatLtTimesCancelL
@@ -984,11 +2352,12 @@
 (assume "Assertion")
 (cases)
 (assume "m" "l" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n" "m" "l" "Useless")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtTimesCancelL")
 
 ;; NatLtTimesCancelR
@@ -999,6 +2368,7 @@
 (use "NatLtTimesCancelL")
 (use "NatTimesComm")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtTimesCancelR")
 
 ;; Properties of NatLe
@@ -1022,6 +2392,7 @@
 (use "IH")
 (use "Tl0")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
@@ -1049,6 +2420,7 @@
 (assume "n")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeToEq")
 (add-rewrite-rule "n<=0" "n=0")
 
@@ -1058,6 +2430,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n<=n" "True")
 
 (set-goal "all n,m n<=n+m")
@@ -1067,6 +2440,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n<=n+m" "True")
 
 (set-goal "all n(Succ n<=n)=False")
@@ -1075,6 +2449,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Succ n<=n" "False")
 
 (set-goal "all n n<=Succ n")
@@ -1083,6 +2458,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n<=Succ n" "True")
 
 ;; NatLeTrans
@@ -1093,7 +2469,7 @@
 (assume "n" "IH")
 (cases)
   (assume "l" "Absurd" "H1")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
 (assume "m")
 (cases)
@@ -1101,6 +2477,7 @@
   (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeTrans")
 
 ;; NatLtLeTrans
@@ -1108,7 +2485,7 @@
 (ind)
 (cases)
   (assume "l" "Absurd" "H1")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
 (assume "m")
 (cases)
@@ -1119,7 +2496,7 @@
 (assume "n" "IH")
 (cases)
   (assume "l" "Absurd" "H1")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
 (assume "m")
 (cases)
@@ -1127,6 +2504,7 @@
   (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtLeTrans")
 
 ;; NatLeLtTrans
@@ -1143,7 +2521,7 @@
 (assume "n" "IH")
 (cases)
   (assume "l" "Absurd" "H1")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
 (assume "m")
 (cases)
@@ -1151,6 +2529,7 @@
   (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeLtTrans")
 
 ;; NatLtSuccToLe
@@ -1164,6 +2543,7 @@
   (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtSuccToLe")
 
 ;; NatLtLtSuccTrans
@@ -1174,6 +2554,7 @@
 (use "NatLtSuccToLe")
 (use "m<Succ l")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtLtSuccTrans")
 
 ;; NatLeToLtSucc
@@ -1187,6 +2568,7 @@
   (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeToLtSucc")
 
 ;; NatLtToSuccLe
@@ -1194,17 +2576,18 @@
 (ind)
   (cases)
   (assume "Absurd")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
   (assume "m" "Useless")
   (use "Truth")
 (assume "n" "IH")
   (cases)
   (assume "Absurd")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtToSuccLe")
 
 ;; NatSuccLeToLt
@@ -1212,17 +2595,18 @@
 (ind)
   (cases)
   (assume "Absurd")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
   (assume "m" "Useless")
   (use "Truth")
 (assume "n" "IH")
   (cases)
   (assume "Absurd")
-  (use "EfqAtom")
+  (use "EfAtom")
   (use "Absurd")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatSuccLeToLt")
 
 ;; NatLtSuccCases
@@ -1241,12 +2625,13 @@
 (use "NatNotLtToLe")
 (use "n<m -> F")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtSuccCases")
 
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<n0) alpha34 alpha34_0]
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,beta,beta_0][if (n<n0) beta beta_0]
 
 (animate "NatLtSuccCases")
 
@@ -1254,13 +2639,12 @@
 ;; (cdp sproof)
 ;; (pp (rename-variables (nf (proof-to-formula sproof))))
 
-;; all n,m(
+;; allnc n,m(
 ;;  n<Succ m -> 
-;;  all alpha34^(
-;;   (n<m -> (Pvar alpha34)^49 alpha34^) -> 
-;;   all alpha34^0(
-;;    (n=m -> (Pvar alpha34)^49 alpha34^0) -> 
-;;    (Pvar alpha34)^49[if (n<m) alpha34^ alpha34^0])))
+;;  allnc beta^(
+;;   (n<m -> (Pvar beta)^ beta^) -> 
+;;   allnc beta^0(
+;;    (n=m -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<m) beta^ beta^0])))
 
 ;; (define nsproof (np sproof))
 ;; (cdp nsproof)
@@ -1269,17 +2653,17 @@
 (set-goal (rename-variables (nf (proof-to-formula sproof))))
 (use-with sproof)
 ;; Proof finished.
+;; (cdp)
 (save "NatLtSuccCasesSound")
 
 ;; (pp "NatLtSuccCasesSound")
 
-;; all n,m(
+;; allnc n,m(
 ;;  n<Succ m -> 
-;;  all alpha34^(
-;;   (n<m -> (Pvar alpha34)^49 alpha34^) -> 
-;;   all alpha34^0(
-;;    (n=m -> (Pvar alpha34)^49 alpha34^0) -> 
-;;    (Pvar alpha34)^49[if (n<m) alpha34^ alpha34^0])))
+;;  allnc beta^(
+;;   (n<m -> (Pvar beta)^ beta^) -> 
+;;   allnc beta^0(
+;;    (n=m -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<m) beta^ beta^0])))
 
 ;; Remark.  (use sproof) does not work:
 ;; use2-closed-proof-intern
@@ -1304,27 +2688,26 @@
 (use "NatNotLtToLe")
 (use "n<m -> F")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeCases")
 
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<n0) alpha34 alpha34_0]
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,beta,beta_0][if (n<n0) beta beta_0]
 
 (animate "NatLeCases")
 
-;; (define sproof (proof-to-soundness-proof))
+(define sproof (proof-to-soundness-proof))
 ;; (cdp sproof)
-;; (pp (rename-variables (proof-to-formula sproof)))
-;; (pp (rename-variables (nf (proof-to-formula sproof))))
+(pp (rename-variables (nf (proof-to-formula sproof))))
 
-;; all n,m(
+;; allnc n,m(
 ;;  n<=m -> 
-;;  all alpha34^(
-;;   (n<m -> (Pvar alpha34)^49 alpha34^) -> 
-;;   all alpha34^0(
-;;    (n=m -> (Pvar alpha34)^49 alpha34^0) -> 
-;;    (Pvar alpha34)^49[if (n<m) alpha34^ alpha34^0])))
+;;  allnc beta^(
+;;   (n<m -> (Pvar beta)^ beta^) -> 
+;;   allnc beta^0(
+;;    (n=m -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<m) beta^ beta^0])))
 
 ;; NatLeLtCases
 (set-goal "all n,m((n<=m -> Pvar) -> (m<n -> Pvar) -> Pvar)")
@@ -1339,12 +2722,13 @@
 (use "NatNotLeToLt")
 (use "n<=m -> F")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeLtCases")
 
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<=n0) alpha34 alpha34_0]
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,beta,beta_0][if (n<=n0) beta beta_0]
 
 (animate "NatLeLtCases")
 
@@ -1352,11 +2736,10 @@
 ;; (cdp sproof)
 ;; (pp (rename-variables (nf (proof-to-formula sproof))))
 
-;; all n,m,alpha34^(
-;;  (n<=m -> (Pvar alpha34)^49 alpha34^) -> 
-;;  all alpha34^0(
-;;   (m<n -> (Pvar alpha34)^49 alpha34^0) -> 
-;;   (Pvar alpha34)^49[if (n<=m) alpha34^ alpha34^0]))
+;; allnc n,m,beta^(
+;;  (n<=m -> (Pvar beta)^ beta^) -> 
+;;  allnc beta^0(
+;;   (m<n -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<=m) beta^ beta^0]))
 
 ;; (define nsproof (np sproof))
 ;; (cdp nsproof)
@@ -1376,12 +2759,13 @@
 (use "NatNotLeToLt")
 (use "n<=m -> F")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeLin")
 
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (pp neterm)
-;; [n,n0,alpha34,alpha34_0][if (n<=n0) alpha34 alpha34_0]
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,beta,beta_0][if (n<=n0) beta beta_0]
 
 (animate "NatLeLin")
 
@@ -1389,11 +2773,10 @@
 ;; (cdp sproof)
 ;; (pp (rename-variables (nf (proof-to-formula sproof))))
 
-;; all n,m,alpha34^(
-;;  (n<=m -> (Pvar alpha34)^49 alpha34^) -> 
-;;  all alpha34^0(
-;;   (m<=n -> (Pvar alpha34)^49 alpha34^0) -> 
-;;   (Pvar alpha34)^49[if (n<=m) alpha34^ alpha34^0]))
+;; allnc n,m,beta^(
+;;  (n<=m -> (Pvar beta)^ beta^) -> 
+;;  allnc beta^0(
+;;   (m<=n -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<=m) beta^ beta^0]))
 
 ;; (define nsproof (np sproof))
 ;; (cdp nsproof)
@@ -1404,12 +2787,13 @@
 (assume "n")
 (cases)
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "m" "n<Succ m")
 (use "NatLtSuccToLe")
 (use "n<Succ m")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtToLePred")
 
 ;; NatLePred
@@ -1420,22 +2804,24 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLePred")
 
 ;; NatLtMonPred
 (set-goal "all n,m(0<n -> n<m -> Pred n<Pred m)")
 (cases)
 (assume "m" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n")
 (cases)
 (assume "Useless" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "m" "Useless" "n<m")
 (use "n<m")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtMonPred")
 
 ;; NatLePlusCancelR
@@ -1449,6 +2835,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n+m<=l+m" "n<=l")
 
 ;; NatLePlusCancelL
@@ -1459,6 +2846,7 @@
 (use "Truth")
 (use "NatPlusComm")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n+m<=n+l" "m<=l")
 
 ;; NatLeTimesCancelL
@@ -1485,11 +2873,12 @@
 (assume "Assertion")
 (cases)
 (assume "m" "l" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 (assume "n" "m" "l" "Useless")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeTimesCancelL")
 
 ;; NatLeTimesCancelR
@@ -1500,6 +2889,7 @@
 (use "NatLeTimesCancelL")
 (use "NatTimesComm")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeTimesCancelR")
 
 ;; Properties of NatMinus and Pred
@@ -1513,6 +2903,7 @@
 (ng #t)
 (use "Tm")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
@@ -1539,6 +2930,7 @@
 (ng)
 (use "EqPn1m1")
 ;; Proof finished.
+;; (cdp)
 (save "PredEqP")
 
 (set-totality-goal "NatMinus")
@@ -1551,6 +2943,7 @@
 (use "PredTotal")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
@@ -1584,8 +2977,8 @@
 (use "PredEqP")
 (use "IH")
 ;; Proof finished.
-(save "NatMinusEqP")
 ;; (cdp)
+(save "NatMinusEqP")
 
 (set-goal "all n,m Pred(Succ n--m)=n--m")
 (assume "n")
@@ -1596,6 +2989,7 @@
 (simp-with "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Pred(Succ n--m)" "n--m")
 
 (set-goal "all n n--n=0")
@@ -1604,6 +2998,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n--n" "0")
 
 (set-goal "all n Succ n--n=1")
@@ -1612,6 +3007,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Succ n--n" "1")
 
 ;; Properties of NatMax
@@ -1638,6 +3034,7 @@
 (use "IH")
 (use "Tl0")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
@@ -1682,14 +3079,14 @@
 (use "EqPNatToTotalLeft" (pt "m^2"))
 (use "EqPn2m2")
 ;; 6
-(use "EqPNatToEqD")
+(use "EqPNatNcToEqD")
 (use "EqPn2m2")
 ;; 4
-(use "EqPNatToEqD")
+(use "EqPNatNcToEqD")
 (use "EqPn1m1")
 ;; Proof finished.
-(save "NatMaxEqP")
 ;; (cdp)
+(save "NatMaxEqP")
 
 (set-goal "all n 0 max n=n")
 (cases)
@@ -1697,6 +3094,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "0 max n" "n")
 
 (set-goal "all n n max n = n")
@@ -1705,6 +3103,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n max n" "n")
 
 (set-goal "all n,m,l(n max (m max l)=n max m max l)")
@@ -1720,6 +3119,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule
  "n max (m max l)" "n max m max l")
 
@@ -1733,6 +3133,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxComm")
 
 ;; NatMaxUB1
@@ -1745,6 +3146,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxUB1")
 
 ;; NatMaxUB2
@@ -1757,6 +3159,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxUB2")
 
 ;; NatMaxLUB
@@ -1782,6 +3185,7 @@
 (ng #t)
 (use "IHn")
 ;; Proof finished
+;; (cdp)
 (save "NatMaxLUB")
 
 ;; NatMaxEq1
@@ -1793,6 +3197,7 @@
 (use "m<=n")
 (use "NatMaxUB1")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxEq1")
 
 ;; NatMaxEq2
@@ -1804,6 +3209,7 @@
 (use "Truth")
 (use "NatMaxUB2")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxEq2")
 
 ;; Properties of NatMin
@@ -1828,6 +3234,7 @@
 (use "IH")
 (use "Tl0")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; (cdp (proof-to-soundness-proof))
@@ -1857,7 +3264,7 @@
 ;; (use "Tm")
 ;; (use "Tn")
 ;; ;; Proof finished.
-;; (save-totality)nat
+;; (save-totality)
  
 (set-goal "all n 0 min n=0")
 (cases)
@@ -1865,6 +3272,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "0 min n" "0")
 
 (set-goal "all n n min n = n")
@@ -1873,6 +3281,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n min n" "n")
 
 (set-goal "all n,m,l(n min (m min l)=n min m min l)")
@@ -1888,6 +3297,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n min (m min l)" "n min m min l")
 
 ;; NatMinComm
@@ -1900,6 +3310,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinComm")
 
 ;; NatMinLB1
@@ -1912,6 +3323,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinLB1")
 
 ;; NatMinLB2
@@ -1924,6 +3336,7 @@
   (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinLB2")
 
 ;; NatMinGLB
@@ -1941,6 +3354,7 @@
 (use "Truth")
 (use "IH")
 ;; Proof finished
+;; (cdp)
 (save "NatMinGLB")
 
 ;; NatMinEq1
@@ -1952,6 +3366,7 @@
 (use "Truth")
 (use "n<=m")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinEq1")
 
 ;; NatMinEq2
@@ -1963,6 +3378,7 @@
 (use "m<=n")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinEq2")
 
 ;; NatIfTotal
@@ -1978,20 +3394,21 @@
 (use "Tf")
 (use "Tm")
 ;; Proof finished.
+;; (cdp)
 (save "NatIfTotal")
 
 ;; (define sproof (proof-to-soundness-proof))
 ;; (cdp sproof)
 ;; (pp (rename-variables (nf (proof-to-formula sproof))))
 
-;; all n^,n^0(
-;;  TotalNatMR n^0 n^ -> 
-;;  all alpha^,(nat=>alpha)^0,alpha^1(
-;;   TotalMR alpha^1 alpha^ -> 
-;;   all (nat=>alpha)^2(
-;;    all m^,n^1(
-;;     TotalNatMR n^1 m^ -> TotalMR((nat=>alpha)^2 n^1)((nat=>alpha)^0 m^)) -> 
-;;    TotalMR[if n^0 alpha^1 (nat=>alpha)^2][if n^ alpha^ (nat=>alpha)^0])))
+;; allnc n^,n^0(
+;;  TotalNatMR n^ n^0 -> 
+;;  allnc alpha^,(nat=>alpha)^0,x^(
+;;   TotalMR alpha^ x^ -> 
+;;   allnc (nat=>alpha)^1(
+;;    allnc m^,n^1(
+;;     TotalNatMR m^ n^1 -> TotalMR((nat=>alpha)^0 m^)((nat=>alpha)^1 n^1)) -> 
+;;    TotalMR[if n^ alpha^ (nat=>alpha)^0][if n^0 x^ (nat=>alpha)^1])))
 
 ;; (define nsproof (np sproof))
 ;; (cdp nsproof)
@@ -2014,6 +3431,7 @@
 (use "IHl")
 (use "Tl1")
 ;; Proof finished.
+;; (cdp)
 (save "NatEqTotal")
 
 ;; (cdp (proof-to-soundness-proof))
@@ -2051,6 +3469,7 @@
 (assume "Useless" "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "EqFalseToNeg")
 
 ;; NegToEqFalse
@@ -2061,6 +3480,7 @@
 (assume "Useless")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NegToEqFalse")
 
 ;; BooleAeqToEq
@@ -2078,6 +3498,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "BooleAeqToEq")
 
 ;; BooleEqToAeqLeft
@@ -2094,6 +3515,7 @@
 (assume "Useless" "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "BooleEqToAeqLeft")
 
 ;; BooleEqToAeqRight
@@ -2107,6 +3529,7 @@
 (assume "Useless" "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "BooleEqToAeqRight")
 
 ;; OrIntroLeft
@@ -2120,6 +3543,7 @@
 (assume "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "OrIntroLeft")
 
 ;; OrIntroRight
@@ -2133,6 +3557,7 @@
 (assume "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "OrIntroRight")
 
 ;; OrElim
@@ -2148,6 +3573,7 @@
 (assume "Absurd" "Hyp1" "Hyp2")
 (use-with "Hyp1" "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "OrElim")
 
 (define sproof (proof-to-soundness-proof))
@@ -2159,6 +3585,7 @@
 (set-goal (rename-variables (nf (proof-to-formula sproof))))
 (use-with sproof)
 ;; Proof finished.
+;; (cdp)
 (save "OrElimSound")
 
 ;; IfAndb
@@ -2169,6 +3596,7 @@
 (assume "boole1")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "IfAndb")
 
 ;; IfOrb
@@ -2179,270 +3607,284 @@
 (assume "boole1")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "IfOrb")
 
 ;; Properties of AllBNat
 
-(set-totality-goal "AllBNat")
-(assume "n^" "Tn")
-(elim "Tn")
-;; 3,4
-(assume "(nat=>boole)^1" "(nat=>boole)^2" "Useless")
-(ng #t)
-(use "EqPBooleTrue")
-;; 4
-(assume "m^" "Tm" "IH" "(nat=>boole)^1" "(nat=>boole)^2" "Hyp")
-(ng #t)
-(use "BooleIfEqP")
-(use "IH")
-(use "Hyp")
-(use "Hyp")
-(use "EqPNatRefl")
-(use "Tm")
-(use "EqPBooleFalse")
-;; Proof finished.
-(save-totality)
-;; (cdp)
+;; AllBNatTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "AllBNat"))))
 
-(set-totality-goal "AllBNat")
-(assume "n^" "Tn")
+;; allnc n^(
+;;  TotalNat n^ -> 
+;;  allnc pf^(
+;;   allnc n^0(TotalNat n^0 -> TotalBoole(pf^ n^0)) -> 
+;;   TotalBoole(AllBNat n^ pf^)))
+
+(assume "n^" "Tn" "pf^" "Tpf")
 (elim "Tn")
 ;; 3,4
-(assume "(nat=>boole)^1" "(nat=>boole)^2" "Useless")
+(ng #t)
+(use "TotalBooleTrue")
+;; 4
+(assume "n^1" "Tn1" "IH")
+(ng #t)
+(use "BooleIfTotal")
+(use "IH")
+(use "Tpf")
+(use "Tn1")
+(use "TotalBooleFalse")
+;; Proof finished.
+;; (cdp)
+(save-totality)
+
+;; AllBNatTotal has been added as a new theorem.
+;; ok, computation rule AllBNat 0 nat=>boole -> True added
+;; ok, computation rule AllBNat(Succ n)nat=>boole ->
+;;  [if (AllBNat n nat=>boole) (nat=>boole n) False] added
+
+;; (term-to-t-deg (pt "AllBNat"))
+;; 1
+
+;; (define pconst (term-in-const-form-to-const (pt "AllBNat")))
+;; (cdp (pconst-to-totality-proof pconst))
+;; ok
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,pf](Rec nat=>boole)n True([n0,boole][if boole (pf n0) False])
+
+;; Moreover we have extensionality of AllBNat:
+
+;; AllBNatExt
+(set-goal
+ (rename-variables (terms-to-eqp-formula (pt "AllBNat") (pt "AllBNat"))))
+
+;; allnc n^(
+;;  TotalNat n^ -> 
+;;  allnc pf^,pf^0(
+;;   allnc n^0(TotalNat n^0 -> EqPBoole(pf^ n^0)(pf^0 n^0)) -> 
+;;   EqPBoole(AllBNat n^ pf^)(AllBNat n^ pf^0)))
+
+;; Code discarded 2019-07-11.  Change of changesmlfin.scm taken back.
+;; Implicit use of theorems has been done before (e.g., rewrite rules)
+
+;; ;; 2019-07-10.  After change of changesmlfin.scm
+
+;; ;; ?_1:allnc n^,n^0(
+;; ;;      EqPNat n^ n^0 -> 
+;; ;;      allnc pf^,pf^0(
+;; ;;       allnc n^1,n^2(EqPNat n^1 n^2 -> EqPBoole(pf^ n^1)(pf^0 n^2)) -> 
+;; ;;       EqPBoole(AllBNat n^ pf^)(AllBNat n^0 pf^0)))
+
+;; ;; Idea: Use AllEqPNatIntro
+
+;; (pp (pf "allnc n^(TotalNat n^ -> (Pvar nat nat)n^ n^) ->
+;;          allnc n^1,n^2(EqPNat n^1 n^2 -> (Pvar nat nat)n^1 n^2)"))
+
+;; ;; and its inverse AllEqPNatElim
+
+(assume "n^" "Tn" "pf^1" "pf^2" "ExtHyp")
+(elim "Tn")
+;; 3,4
 (ng #t)
 (use "EqPBooleTrue")
 ;; 4
-(assume "m^" "Tm" "IH" "(nat=>boole)^1" "(nat=>boole)^2" "Hyp")
+(assume "n^1" "Tn1" "IH")
 (ng #t)
-(use "BooleIfEqP")
+(assert "AllBNat n^1 pf^1 eqd AllBNat n^1 pf^2")
+ (use "EqPBooleToEqD")
+ (use "IH")
+(assume "EqDAllBNatHyp")
+(simp "EqDAllBNatHyp")
+(assert "pf^1 n^1 eqd pf^2 n^1")
+ (use "EqPBooleToEqD")
+ (use "ExtHyp")
+ (use "Tn1")
+(assume "EqDpfHyp")
+(simp "EqDpfHyp")
+(use "EqPBooleRefl")
+(use "BooleIfTotal")
+(use "EqPBooleToTotalRight" (pt "AllBNat n^1 pf^1"))
 (use "IH")
-(use "Hyp")
-(use "Hyp")
-(use "EqPNatRefl")
-(use "Tm")
-(use "EqPBooleFalse")
+(use "EqPBooleToTotalRight" (pt "pf^1 n^1"))
+(use "ExtHyp")
+(use "Tn1")
+(use "TotalBooleFalse")
 ;; Proof finished.
+;; (cdp)
 (save "AllBNatExt")
 
-;; Here is the reason why the rules for AllBNat were changed.
-;; Problem: [if t r False] and (t andb r) are not considered equal if
-;; t,r are not total.  Hence we change the computation rules for
-;; AllBNat using [if (AllBNat nat nat=>boole) ((nat=>boole)nat) False]
-;; instead of andb.  if arises via rec-to-if when normalizing Rec for
-;; a boolean.  fan/fanwklu then needs to be adapted.
+(animate "EqPBooleRefl")
+;; ok, computation rule cEqPBooleRefl -> [boole0]boole0 added
+(animate "EqPBooleToTotalRight")
+;; ok, computation rule cEqPBooleToTotalRight -> [boole0]boole0 added
 
-;; AllBNatIntro
-(set-goal "all (nat=>boole),m(
-      all n(n<m -> (nat=>boole)n) ->
-      AllBNat m([n](nat=>boole)n))")
-(assume "(nat=>boole)")
-(ind)
-  (strip)
-  (use "Truth")
-(assume "m" "IH" "H")
-(ng)
-(inst-with-to "H" (pt "m") "Truth" "HInst")
-(simp "HInst")
-(ng #t)
-(use "IH")
-(assume "n" "n1<n2")
-(use "H")
-(use "NatLtTrans" (pt "m"))
-(use "n1<n2")
-(use "Truth")
-;; Proof finished.
-(save "AllBNatIntro")
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
 
-;; AllBNatElim
-(set-goal "all (nat=>boole),m(
-      AllBNat m(nat=>boole) ->
-      all n(n<m -> (nat=>boole)n))")
-(assume "(nat=>boole)")
-(ind)
-  (assume "H1" "n" "Absurd")
-  (use "EfqAtom")
-  (use "Absurd")
-(assume "m" "IH")
-(ng)
-(assume "AllBHyp" "n" "n<Succ m")
-(assert "AllBNat m(nat=>boole)andb(nat=>boole)m")
- (simp "<-" "IfAndb")
- (use "AllBHyp")
-(assume "Conj")
-(use "NatLtSuccCases" (pt "n") (pt "m"))
-;; 14-16
-(use "n<Succ m")
-;; 16
-(use "IH")
-(use "Conj")
-;; 16
-(assume "n=m")
-(simp "n=m")
-(use "Conj")
-;; Proof finished.
-(save "AllBNatElim")
+;; [n,pf](Rec nat=>boole)n True([n0,boole][if boole (pf n0) False])
 
-;; Properties of ExBNat
+;; Todo: reformulate n.c. theorems on EqPBoole with n.c. premises.  Done
+;; (search-about 'all "EqPBoole")
 
-(set-totality-goal "ExBNat")
-(assume "n^" "Tn")
+;; AllBNatExtEqD
+(set-goal "allnc n^(TotalNatNc n^ -> 
+ allnc pf^,pf^0(
+  allnc n^0(TotalNatNc n^0 -> pf^ n^0 eqd pf^0 n^0) ->
+  AllBNat n^ pf^ eqd AllBNat n^ pf^0))")
+(assume "n^" "Tn" "pf^1" "pf^2" "ExtHyp")
 (elim "Tn")
 ;; 3,4
 (ng #t)
-(strip)
-(use "EqPBooleFalse")
+(use "InitEqD")
 ;; 4
-(assume "n^1" "Tn1" "IH" "(nat=>boole)^" "(nat=>boole)^1" "Hyp1")
+(assume "n^1" "Tn1" "IH")
 (ng #t)
-(use "BooleIfEqP")
-(use "Hyp1")
-(use "EqPNatRefl")
+(simp "IH")
+(simp "ExtHyp")
+(use "InitEqD")
 (use "Tn1")
-(use "EqPBooleTrue")
-(use "IH")
-(use "Hyp1")
 ;; Proof finished.
-(save-totality)
 ;; (cdp)
+(save "AllBNatExtEqD")
 
-(set-totality-goal "ExBNat")
-(assume "n^" "Tn")
+;; Same for nc
+
+;; AllBNatTotalNc
+(set-goal (rename-variables (term-to-totalnc-formula (pt "AllBNat"))))
+
+;; allnc n^(
+;;      TotalNatNc n^ -> 
+;;      allnc pf^(
+;;       allnc n^0(TotalNatNc n^0 -> TotalBooleNc(pf^ n^0)) -> 
+;;       TotalBooleNc(AllBNat n^ pf^)))
+
+(assume "n^" "Tn" "pf^" "Tpf")
 (elim "Tn")
 ;; 3,4
 (ng #t)
-(strip)
-(use "EqPBooleFalse")
+(use "TotalBooleNcTrue")
 ;; 4
-(assume "n^1" "Tn1" "IH" "(nat=>boole)^" "(nat=>boole)^1" "Hyp1")
+(assume "n^1" "Tn1" "IH")
 (ng #t)
-(use "BooleIfEqP")
-(use "Hyp1")
-(use "EqPNatRefl")
+(elim "IH")
+(ng #t)
+(use "Tpf")
 (use "Tn1")
-(use "EqPBooleTrue")
-(use "IH")
-(use "Hyp1")
+(ng #t)
+(use "TotalBooleNcFalse")
 ;; Proof finished.
-(save "ExBNatExt")
+;; (cdp)
+(save "AllBNatTotalNc")
 
-;; ExBNatIntro
-(set-goal "all (nat=>boole),m,n(n<m -> (nat=>boole)n ->
-      ExBNat m([n](nat=>boole)n))")
-(assume "(nat=>boole)")
-(ind)
+;; Moreover we have extensionality of AllBNatNc:
+
+;; AllBNatExtNc
+(set-goal
+ (rename-variables (terms-to-eqpnc-formula (pt "AllBNat") (pt "AllBNat"))))
+
+;; allnc n^(
+;;      TotalNatNc n^ -> 
+;;      allnc pf^,pf^0(
+;;       allnc n^0(TotalNatNc n^0 -> EqPBooleNc(pf^ n^0)(pf^0 n^0)) -> 
+;;       EqPBooleNc(AllBNat n^ pf^)(AllBNat n^ pf^0)))
+
+(assume "n^" "Tn" "pf^1" "pf^2" "ExtHyp")
+(elim "Tn")
 ;; 3,4
-(ng)
-(assume "n" "Absurd" "Useless")
-(use "Absurd")
+(ng #t)
+(use "EqPBooleNcTrue")
 ;; 4
-(assume "m" "IH" "n" "n<Sm")
-(use "NatLtSuccCases" (pt "n") (pt "m"))
-(use "n<Sm")
-(assume "n<m" "fn1")
+(assume "n^1" "Tn1" "IH")
 (ng #t)
-(cases (pt "(nat=>boole)m"))
-(strip)
-(use "Truth")
-(assume "Useless")
+(assert "AllBNat n^1 pf^1 eqd AllBNat n^1 pf^2")
+ (use "EqPBooleNcToEqD")
+ (use "IH")
+(assume "EqDAllBNatHyp")
+(simp "EqDAllBNatHyp")
+(assert "pf^1 n^1 eqd pf^2 n^1")
+ (use "EqPBooleNcToEqD")
+ (use "ExtHyp")
+ (use "Tn1")
+(assume "EqDpfHyp")
+(simp "EqDpfHyp")
+(use "EqPBooleNcRefl")
+(elim "IH")
 (ng #t)
-(use "IH" (pt "n"))
-(use "n<m")
-(use "fn1")
-;; 10
-(assume "n=m")
-(simp "n=m")
-(assume "fn2")
-(simp "fn2")
-(use "Truth")
+(use "EqPBooleNcToTotalNcRight" (pt "pf^1 n^1"))
+(use "ExtHyp")
+(use "Tn1")
+(ng #t)
+(use "TotalBooleNcFalse")
 ;; Proof finished.
-(save "ExBNatIntro")
+;; (cdp)
+(save "AllBNatExtNc")
 
-;; ExBNatElim
-(set-goal "all (nat=>boole),m(
-      ExBNat m(nat=>boole) ->
-      exnc n(n<m andnc (nat=>boole)n))")
-(assume "(nat=>boole)")
-(ind)
-(ng)
-;; (use "Efq")
-;; use2-closed-proof-intern
-;; unusable formula
-;; F -> all boole^325 boole^325
-;; for goal formula
-;; F -> exnc n(F andnc (nat=>boole)n)
-(assume "Absurd")
-(intro 0 (pt "0"))
-(split)
-(use "Absurd")
-(use "EfqAtom")
-(use "Absurd")
-(assume "m" "IH")
-(ng)
-(cases (pt "(nat=>boole)m"))
-(assume "(nat=>boole)m" "Useless")
-(intro 0 (pt "m"))
-(split)
-(use "Truth")
-(use "(nat=>boole)m")
-(ng)
-(assume "Useless" "ExBNatHyp")
-(inst-with-to "IH" "ExBNatHyp" "IHInst")
-(drop "IH")
-(by-assume "IHInst" "n" "nProp")
-(intro 0 (pt "n"))
-(split)
-(use "NatLtTrans" (pt "m"))
-(use "nProp")
-(use "Truth")
-(use "nProp")
-;; Proof finished.
-(save "ExBNatElim")
+;; NatLeastTotal
+(set-goal (rename-variables (term-to-totality-formula (pt "NatLeast"))))
 
-;; AllBNatExBNat
-(set-goal "all nat=>boole,n(
- negb(ExBNat n([m](nat=>boole)m))=
- AllBNat n([m]negb((nat=>boole)m)))")
-(assume "nat=>boole")
-(ind)
-(ng)
-(use "Truth")
-(assume "n" "IH")
-(ng)
-(simp "<-" "IH")
-(cases (pt "(nat=>boole)n"))
-(ng)
-(strip)
-(use "Truth")
-(ng)
-(strip)
-(use "Truth")
-;; Proof finished.
-(save "AllBNatExBNat")
+;; allnc n^(
+;;      TotalNat n^ -> 
+;;      allnc pf^(
+;;       allnc n^0(TotalNat n^0 -> TotalBoole(pf^ n^0)) -> 
+;;       TotalNat(NatLeast n^ pf^)))
 
-(set-totality-goal "NatLeast")
 (assume "n^" "Tn")
 (elim "Tn")
 ;; 3,4
 (ng #t)
 (strip)
-(use "EqPNatZero")
+(use "TotalNatZero")
 ;; 4
-(assume "m^" "Tm" "IH" "(nat=>boole)^1" "(nat=>boole)^2" "Hyp")
+(assume "n^1" "Tn1" "IH" "pf^" "Tpf")
 (ng #t)
-(use "BooleIfEqP")
-(use "Hyp")
-(use "EqPNatZero")
-(use "EqPNatZero")
-(use "EqPNatSucc")
+(use "BooleIfTotal")
+(use "Tpf")
+(use "TotalNatZero")
+(use "TotalNatZero")
+(use "TotalNatSucc")
 (use "IH")
-(assume "n^1" "n^2" "EqPn1n2")
-(use "Hyp")
-(use "EqPNatSucc")
-(use "EqPn1n2")
+(assume "n^2" "Tn2")
+(ng #t)
+(use "Tpf")
+(use "TotalNatSucc")
+(use "Tn2")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
-(set-totality-goal "NatLeast")
+;; ok, NatLeastTotal has been added as a new theorem.
+;; ok, computation rule NatLeast 0 nat=>boole -> 0 added
+;; ok, computation rule NatLeast(Succ n)nat=>boole ->
+;;  [if (nat=>boole 0) 0 (Succ(NatLeast n([m]nat=>boole(Succ m))))] added
+
+;; (term-to-t-deg (pt "NatLeast"))
+;; 1
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n]
+;;  (Rec nat=>(nat=>boole)=>nat)n([pf]0)
+;;  ([n0,((nat=>boole)=>nat),pf]
+;;    [if (pf 0) 0 (Succ(((nat=>boole)=>nat)([n1]pf(Succ n1))))])
+
+;; Moreover we have extensionality of NatLeast:
+
+;; NatLeastExt
+(set-goal
+ (rename-variables (terms-to-eqp-formula (pt "NatLeast") (pt "NatLeast"))))
+
+;; allnc n^(
+;;      TotalNat n^ -> 
+;;      allnc pf^,pf^0(
+;;       allnc n^0(TotalNat n^0 -> EqPBoole(pf^ n^0)(pf^0 n^0)) -> 
+;;       EqPNat(NatLeast n^ pf^)(NatLeast n^ pf^0)))
+
 (assume "n^" "Tn")
 (elim "Tn")
 ;; 3,4
@@ -2450,79 +3892,214 @@
 (strip)
 (use "EqPNatZero")
 ;; 4
-(assume "m^" "Tm" "IH" "(nat=>boole)^1" "(nat=>boole)^2" "Hyp")
+(assume "n^1" "Tn1" "IH" "pf^1" "pf^2" "EqPHyp")
 (ng #t)
 (use "BooleIfEqP")
-(use "Hyp")
-(use "EqPNatZero")
+(use "EqPHyp")
+(use "TotalNatZero")
 (use "EqPNatZero")
 (use "EqPNatSucc")
 (use "IH")
-(assume "n^1" "n^2" "EqPn1n2")
-(use "Hyp")
-(use "EqPNatSucc")
-(use "EqPn1n2")
+(ng #t)
+(assume "n^2" "Tn2")
+(use "EqPHyp")
+(use "TotalNatSucc")
+(use "Tn2")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastExt")
 
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n0]
+;;  (Rec nat=>(nat=>boole)=>nat)n0([pf2]0)
+;;  ([n2,((nat=>boole)=>nat)_3,pf4]
+;;    (cBooleIfEqP nat)(pf4 0)0(Succ(((nat=>boole)=>nat)_3([n5]pf4(Succ n5)))))
+
+(animate "BooleIfEqP")
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n]
+;;  (Rec nat=>(nat=>boole)=>nat)n([pf]0)
+;;  ([n0,((nat=>boole)=>nat),pf]
+;;    [if (pf 0) 0 (Succ(((nat=>boole)=>nat)([n1]pf(Succ n1))))])
+
+;; NatLeastExtEqD
+(set-goal "allnc n^(TotalNatNc n^ -> 
+ allnc pf^,pf^0(
+  allnc n^0(TotalNatNc n^0 -> pf^ n^0 eqd pf^0 n^0) ->
+  NatLeast n^ pf^ eqd NatLeast n^ pf^0))")
+(assume "n^" "Tn")
+(elim "Tn")
+;; 3,4
+(ng #t)
+(strip)
+(use "InitEqD")
+;; 4
+(assume "n^1" "Tn1" "IH" "pf^1" "pf^2" "EqDHyp")
+(ng #t)
+(simp "EqDHyp")
+(inst-with-to "IH" (pt "[n]pf^1(Succ n)") (pt "[n]pf^2(Succ n)") "Inst")
+(simp "Inst")
+(use "InitEqD")
+(assume "n^2" "Tn2")
+(use "EqDHyp")
+(use "TotalNatSucc")
+(use "Tn2")
+(use "TotalNatNcZero")
+;; Proof finished.
+;; (cdp)
+(save "NatLeastExtEqD")
+
+;; Same for nc
+
+;; Need BooleIfTotalNc (to be added to ets.scm)
+
+;; BooleIfTotalNc
+(set-goal "allnc boole^(
+ TotalBooleNc boole^ -> 
+ allnc alpha^0,alpha^1(
+  TotalNc alpha^0 -> TotalNc alpha^1 -> TotalNc[if boole^ alpha^0 alpha^1]))")
+(assume "boole^" "Tb" "alpha^1" "alpha^2" "Tx1" "Tx2")
+(elim "Tb")
+(use "Tx1")
+(use "Tx2")
+;; Proof finished.
+;; (cdp)
+(save "BooleIfTotalNc")
+
+;; NatLeastTotalNc
+(set-goal (rename-variables (term-to-totalnc-formula (pt "NatLeast"))))
+
+;; allnc n^(
+;;      TotalNatNc n^ -> 
+;;      allnc pf^(
+;;       allnc n^0(TotalNatNc n^0 -> TotalBooleNc(pf^ n^0)) -> 
+;;       TotalNatNc(NatLeast n^ pf^)))
+
+(assume "n^" "Tn")
+(elim "Tn")
+;; 3,4
+(ng #t)
+(strip)
+(use "TotalNatNcZero")
+;; 4
+(assume "n^1" "Tn1" "IH" "pf^" "Tpf")
+(ng #t)
+(use "BooleIfTotalNc")
+(use "Tpf")
+(use "TotalNatNcZero")
+(use "TotalNatNcZero")
+(use "TotalNatNcSucc")
+(use "IH")
+(ng #t)
+(assume "n^2" "Tn2")
+(use "Tpf")
+(use "TotalNatSucc")
+(use "Tn2")
+;; Proof finished.
+;; (cdp)
+(save "NatLeastTotalNc")
+
+;; NatLeastExtNc
+(set-goal
+ (rename-variables (terms-to-eqpnc-formula (pt "NatLeast") (pt "NatLeast"))))
+
+;; allnc n^(
+;;      TotalNatNc n^ -> 
+;;      allnc pf^,pf^0(
+;;       allnc n^0(TotalNatNc n^0 -> EqPBooleNc(pf^ n^0)(pf^0 n^0)) -> 
+;;       EqPNatNc(NatLeast n^ pf^)(NatLeast n^ pf^0)))
+
+(assume "n^" "Tn")
+(elim "Tn")
+;; 3,4
+(ng #t)
+(strip)
+(use "EqPNatNcZero")
+;; 4
+(assume "n^1" "Tn1" "IH" "pf^1" "pf^2" "EqPHyp")
+(ng #t)
+(use "BooleIfEqPNc")
+(use "EqPHyp")
+(use "TotalNatNcZero")
+(use "EqPNatZero")
+(use "EqPNatSucc")
+(use "IH")
+(assume "n^2" "Tn2")
+(ng #t)
+(use "EqPHyp")
+(use "TotalNatNcSucc")
+(use "Tn2")
+;; Proof finished.
+;; (cdp)
+(save "NatLeastExtNc")
+
 ;; NatLeastBound
-(set-goal "all n,(nat=>boole) NatLeast n(nat=>boole)<=n")
+(set-goal "all n,pf NatLeast n pf<=n")
 (ind)
 (ng #t)
 (strip)
 (use "Truth")
-(assume "n" "IH" "(nat=>boole)")
+(assume "n" "IH" "pf")
 (ng #t)
-(cases (pt "(nat=>boole)0"))
-(assume "(nat=>boole)0")
+(cases (pt "pf 0"))
+(assume "pf 0")
 (ng #t)
 (use "Truth")
-(assume "(nat=>boole)0 -> F")
+(assume "pf 0 -> F")
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastBound")
 
 ;; NatLeastLeIntro
-(set-goal "all n,m,(nat=>boole)((nat=>boole)m -> (NatLeast n nat=>boole)<=m)")
+(set-goal "all n,m,pf(pf m -> (NatLeast n pf)<=m)")
 (ind)
 (strip)
 (use "Truth")
 (assume "n" "IH")
 (cases)
-(assume "(nat=>boole)" "g0")
+(assume "pf" "g0")
 (ng #t)
 (simp "g0")
 (use "Truth")
-(assume "m" "(nat=>boole)" "g(Sn)")
+(assume "m" "pf" "g(Sn)")
 (ng #t)
 (cases 'auto)
 (strip)
 (use "Truth")
 (strip)
 (ng #t)
-(use-with "IH" (pt "m") (pt "[nat]((nat=>boole)(Succ nat))") "?")
+(use-with "IH" (pt "m") (pt "[nat](pf(Succ nat))") "?")
 (ng #t)
 (use "g(Sn)")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastLeIntro")
 
 ;; NatLeastLtElim
-(set-goal "all n,(nat=>boole)(
- NatLeast n(nat=>boole)<n -> (nat=>boole)(NatLeast n(nat=>boole)))")
+(set-goal "all n,pf(NatLeast n pf<n -> pf(NatLeast n pf))")
 (ind)
-(assume "(nat=>boole)")
+(assume "pf")
 (ng #t)
-(use "Efq")
-(assume "n" "IH" "(nat=>boole)")
+(assume "Absurd")
+(use "EfAtom")
+(use "Absurd")
+(assume "n" "IH" "pf")
 (ng #t)
-(cases (pt "(nat=>boole)0"))
+(cases (pt "pf 0"))
 (assume "g0" "Useless")
 (use "g0")
-(assume "(nat=>boole)0 -> F")
+(assume "pf 0 -> F")
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastLtElim")
 
 ;; EqPNatNcPlus
@@ -2541,65 +4118,211 @@
 (use "IH")
 (use "n1=n2")
 ;; Proof finished.
-(save "EqPNatNcPlus")
 ;; (cdp)
+(save "EqPNatNcPlus")
 
 (set-totality-goal "NatLeastUp")
-(assume "n^1" "Tn1" "n^2" "Tn2" "(nat=>boole)^1" "(nat=>boole)^2" "Hyp")
+
+;; allnc n^(
+;;      TotalNat n^ -> 
+;;      allnc n^0(
+;;       TotalNat n^0 -> 
+;;       allnc pf^(
+;;        allnc n^1(TotalNat n^1 -> TotalBoole(pf^ n^1)) -> 
+;;        TotalNat(NatLeastUp n^ n^0 pf^))))
+
+(assume "n^1" "Tn1" "n^2" "Tn2" "pf^" "Tpf")
 (ng #t)
-(use "BooleIfEqP")
-;; 4-6
-(use "EqPBooleRefl")
+(use "BooleIfTotal")
 (use "NatLeTotal")
 (use "Tn1")
 (use "Tn2")
-;; 5
-(use "NatPlusEqP")
-(use "NatLeastExt")
+(use "NatPlusTotal")
+(use "NatLeastTotal")
 (use "NatMinusTotal")
 (use "Tn2")
 (use "Tn1")
-(assume "n^3" "n^4" "EqPn3n4")
-(use "Hyp")
-(use "NatPlusEqP")
-(use "EqPn3n4")
-(use "EqPNatRefl")
+(ng #t)
+(assume "n^3" "Tn3")
+(use "Tpf")
+(use "NatPlusTotal")
+(use "Tn3")
 (use "Tn1")
-(use "EqPNatRefl")
 (use "Tn1")
-;; 6
-(use "EqPNatZero")
+(use "TotalNatZero")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
+;; ok, NatLeastUpTotal has been added as a new theorem.
+;; ok, computation rule NatLeastUp n0 n nat=>boole ->
+;;  [if (n0<=n) (NatLeast(n--n0)([m]nat=>boole(m+n0))+n0) 0] added
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [n,n0,pf][if (n<=n0) (NatLeast(n0--n)([n1]pf(n1+n))+n) 0]
+
+;; Moreover we have extensionality of NatLeastUp:
+
 ;; NatLeastUpExt
-(set-totality-goal "NatLeastUp")
-(assume "n^1" "Tn1" "n^2" "Tn2" "(nat=>boole)^1" "(nat=>boole)^2" "Hyp")
+(set-goal
+ (rename-variables (terms-to-eqp-formula (pt "NatLeastUp") (pt "NatLeastUp"))))
+
+;; allnc n^(
+;;      TotalNat n^ -> 
+;;      allnc n^0(
+;;       TotalNat n^0 -> 
+;;       allnc pf^,pf^0(
+;;        allnc n^1(TotalNat n^1 -> EqPBoole(pf^ n^1)(pf^0 n^1)) -> 
+;;        EqPNat(NatLeastUp n^ n^0 pf^)(NatLeastUp n^ n^0 pf^0))))
+
+(assume "n^1" "Tn1" "n^2" "Tn2" "pf^1" "pf^2" "EqPpf")
 (ng #t)
-(use "BooleIfEqP")
-;; 4-6
-(use "EqPBooleRefl")
+(assert "EqPNat(NatLeast(n^2--n^1)([n]pf^1(n+n^1)))
+               (NatLeast(n^2--n^1)([n]pf^2(n+n^1)))")
+ (use "NatLeastExt")
+ (use "NatMinusTotal")
+ (use "Tn2")
+ (use "Tn1")
+ (ng #t)
+ (assume "n^3" "Tn3")
+ (use "EqPpf")
+ (use "NatPlusTotal")
+ (use "Tn3")
+ (use "Tn1")
+;; Assertion proved.
+(assume "EqPHyp")
+(assert "(NatLeast(n^2--n^1)([n]pf^1(n+n^1)))eqd
+         (NatLeast(n^2--n^1)([n]pf^2(n+n^1)))")
+ (use "EqPNatNcToEqD")
+ (use "EqPHyp")
+;; Assertion proved.
+(assume "EqDHyp")
+(simp "EqDHyp")
+(use "EqPNatRefl")
+(use "BooleIfTotal")
 (use "NatLeTotal")
 (use "Tn1")
 (use "Tn2")
-;; 5
-(use "NatPlusEqP")
-(use "NatLeastExt")
+(use "NatPlusTotal")
+(use "NatLeastTotal")
 (use "NatMinusTotal")
 (use "Tn2")
 (use "Tn1")
-(assume "n^3" "n^4" "EqPn3n4")
-(use "Hyp")
-(use "NatPlusEqP")
-(use "EqPn3n4")
-(use "EqPNatRefl")
+(ng #t)
+(assume "n^3" "Tn3")
+(use "EqPBooleToTotalRight" (pt "pf^1(n^3+n^1)"))
+(use "EqPpf")
+(use "NatPlusTotal")
+(use "Tn3")
 (use "Tn1")
-(use "EqPNatRefl")
 (use "Tn1")
-;; 6
-(use "EqPNatZero")
+(use "TotalNatZero")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastUpExt")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [n,n0,pf]cEqPNatRefl[if (n<=n0) (NatLeast(n0--n)([n1]pf(n1+n))+n) 0]
+
+;; Same for nc
+
+;; NatLeastUpTotalNc
+
+(set-goal (rename-variables (term-to-totalnc-formula (pt "NatLeastUp"))))
+
+;; allnc n^(
+;;      TotalNatNc n^ -> 
+;;      allnc n^0(
+;;       TotalNatNc n^0 -> 
+;;       allnc pf^(
+;;        allnc n^1(TotalNatNc n^1 -> TotalBooleNc(pf^ n^1)) -> 
+;;        TotalNatNc(NatLeastUp n^ n^0 pf^))))
+
+(assume "n^1" "Tn1" "n^2" "Tn2" "pf^" "Tpf")
+(ng #t)
+(use "BooleIfTotal")
+(use "NatLeTotal")
+(use "Tn1")
+(use "Tn2")
+(use "NatPlusTotal")
+(use "NatLeastTotal")
+(use "NatMinusTotal")
+(use "Tn2")
+(use "Tn1")
+(ng #t)
+(assume "n^3" "Tn3")
+(use "Tpf")
+(use "NatPlusTotal")
+(use "Tn3")
+(use "Tn1")
+(use "Tn1")
+(use "TotalNatZero")
+;; Proof finished.
+;; (cdp)
+(save "NatLeastUpTotalNc")
+
+;; NatLeastUpExtNc
+(set-goal (rename-variables
+            (terms-to-eqpnc-formula (pt "NatLeastUp") (pt "NatLeastUp"))))
+
+;; ?^1:allnc n^(
+;;      TotalNatNc n^ -> 
+;;      allnc n^0(
+;;       TotalNatNc n^0 -> 
+;;       allnc pf^,pf^0(
+;;        allnc n^1(TotalNatNc n^1 -> EqPBooleNc(pf^ n^1)(pf^0 n^1)) -> 
+;;        EqPNatNc(NatLeastUp n^ n^0 pf^)(NatLeastUp n^ n^0 pf^0))))
+
+(assume "n^1" "Tn1" "n^2" "Tn2" "pf^1" "pf^2" "EqPpf")
+(ng #t)
+(assert "EqPNatNc(NatLeast(n^2--n^1)([n]pf^1(n+n^1)))
+                 (NatLeast(n^2--n^1)([n]pf^2(n+n^1)))")
+ (use "NatLeastExt")
+ (use "NatMinusTotal")
+ (use "Tn2")
+ (use "Tn1")
+ (ng #t)
+ (assume "n^3" "Tn3")
+ (use "EqPpf")
+ (use "NatPlusTotal")
+ (use "Tn3")
+ (use "Tn1")
+;; Assertion proved.
+(assume "EqPHyp")
+(assert "NatLeast(n^2--n^1)([n]pf^1(n+n^1))eqd
+         NatLeast(n^2--n^1)([n]pf^2(n+n^1))")
+ (use "EqPNatNcToEqD")
+ (use "EqPHyp")
+;; Assertion proved.
+(assume "EqDHyp")
+(simp "EqDHyp")
+(use "EqPNatNcRefl")
+(use "BooleIfTotalNc")
+(use "NatLeTotal")
+(use "Tn1")
+(use "Tn2")
+(use "NatPlusTotal")
+(use "NatLeastTotal")
+(use "NatMinusTotal")
+(use "Tn2")
+(use "Tn1")
+(ng #t)
+(assume "n^3" "Tn3")
+(use "EqPBooleToTotalRight" (pt "pf^1(n^3+n^1)"))
+(use "EqPpf")
+(use "NatPlusTotal")
+(use "Tn3")
+(use "Tn1")
+(use "Tn1")
+(use "TotalNatZero")
+;; Proof finished.
+;; (cdp)
+(save "NatLeastUpExtNc")
 
 ;; We postpone proofs of the NatLeastUpBound NatLeastUpLBound
 ;; NatLeastUpLeIntro NatLeastUpLtElim NatLeastUpZero since they use
@@ -2617,6 +4340,7 @@
 (assume "n" "IH")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n<=m+n" "True")
 
 (set-goal "all n,m (n+m<n)=False")
@@ -2639,6 +4363,7 @@
 (use "AtomFalse")
 (use "Prop")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n+m<n" "False")
 
 (set-goal "all n Pred n<=n")
@@ -2647,6 +4372,7 @@
 (assume "n")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Pred n<=n" "True")
 
 (set-goal "all n 0--n=0")
@@ -2657,6 +4383,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "0--n" "0")
 
 (set-goal "all n,m n--m<=n")
@@ -2669,6 +4396,7 @@
 (use "Truth")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n--m<=n" "True")
 
 (set-goal "all n,m n+m--m=n")
@@ -2679,6 +4407,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n+m--m" "n")
 
 (set-goal "all n,m m+n--m=n")
@@ -2689,6 +4418,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "m+n--m" "n")
 
 (set-goal "all n,m n*Pred m=n*m--n")
@@ -2698,6 +4428,7 @@
 (assume "m" "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n*Pred m" "n*m--n")
 
 (set-goal "all n,m Pred m*n=m*n--n")
@@ -2707,6 +4438,7 @@
 (assume "m" "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "Pred m*n" "m*n--n")
 
 (set-goal "all n,m,l n--m--l=n--(m+l)")
@@ -2718,6 +4450,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n--m--l" "n--(m+l)")
 
 (set-goal "all n,m,l n*(m--l)=n*m--n*l")
@@ -2729,6 +4462,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "n*(m--l)" "n*m--n*l")
 
 (set-goal "all n,m,l (m--l)*n=m*n--l*n")
@@ -2740,6 +4474,7 @@
 (simp "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (add-rewrite-rule "(m--l)*n" "m*n--l*n")
 
 ;; SuccNatMinus
@@ -2756,6 +4491,7 @@
 (assume "n")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "SuccNatMinus")
 
 ;; NatLeMonPlus
@@ -2775,10 +4511,11 @@
 (assume "l" "IHl")
 (cases)
 (assume "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (use "IHl")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeMonPlus")
 
 ;; NatLeMonTimes
@@ -2794,7 +4531,7 @@
 (assume "l" "IHl")
 (cases)
 (assume "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "l0" "n<=m" "l<=l0")
 (ng)
@@ -2804,6 +4541,7 @@
 (use "l<=l0")
 (use "n<=m")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeMonTimes")
 
 ;; NatLeMonPred
@@ -2814,11 +4552,12 @@
 (assume "n")
 (cases)
 (assume "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "m" "n<=m")
 (use "n<=m")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeMonPred")
 
 ;; NatLeMonMinus
@@ -2840,7 +4579,7 @@
  (assume "nat5" "IH5")
  (cases)
  (assume "nat6" "Absurd")
- (use "Efq")
+ (use "EfAtom")
  (use "Absurd")
  (assume "nat6")
  (cases)
@@ -2853,6 +4592,7 @@
 (use "NatLeMonMinusRight")
 (use "l<=l0")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeMonMinus")
 
 ;; NatLeMonMax
@@ -2894,6 +4634,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeMonMax")
 
 ;; NatPlusMinus
@@ -2908,7 +4649,7 @@
  (assume "l0")
  (cases)
  (assume "Absurd")
- (use "Efq")
+ (use "EfAtom")
  (use "Absurd")
  (assume "l1" "Useless")
  (use "Truth")
@@ -2925,6 +4666,7 @@
 (use "Truth")
 (use "l+1<=m")
 ;; Proof finished.
+;; (cdp)
 (save "NatPlusMinus")
 
 ;; NatMinusPlus
@@ -2939,7 +4681,7 @@
  (assume "l1")
  (cases)
  (assume "Absurd")
- (use "Efq")
+ (use "EfAtom")
  (use "Absurd")
  (assume "l0" "Useless")
  (use "Truth")
@@ -2956,6 +4698,7 @@
 (use "Truth")
 (use "l+1<=n")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinusPlus")
 
 ;; NatMinusPlusEq
@@ -2965,6 +4708,7 @@
 (use "Truth")
 (use "m<=n")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinusPlusEq")
 
 ;; NatMinusMinus
@@ -2975,7 +4719,7 @@
 (assume "Useless1" "Useless2")
 (use "Truth")
 (assume "m" "Absurd" "Useless")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "m" "IHm")
 (cases)
@@ -2987,6 +4731,7 @@
 (use "l<=m")
 (use "m<=n+l")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinusMinus")
 
 ;; NatLtMonPlus1
@@ -2995,7 +4740,9 @@
 (cases)
 (assume "l" "l0")
 (ng #t)
-(use "Efq")
+(assume "Absurd" "Useless")
+(use "EfAtom")
+(use "Absurd")
 (assume "m" "l" "l0" "Useless" "l<=l0")
 (ng #t)
 (use "NatLeToLtSucc")
@@ -3012,6 +4759,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtMonPlus1")
 
 ;; NatLtMonPlus2
@@ -3020,8 +4768,9 @@
 (ind)
 (cases)
 (ng #t)
-(assume "Useless")
-(use "Efq")
+(assume "Useless" "Absurd")
+(use "EfAtom")
+(use "Absurd")
 (assume "l" "n<=m" "Useless")
 (ng #t)
 (use "NatLeToLtSucc")
@@ -3038,6 +4787,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtMonPlus2")
 
 ;; NatLtMonMinusLeft
@@ -3049,8 +4799,9 @@
 (assume "n" "IH")
 (cases)
 (ng #t)
-(assume "l" "Useless")
-(use "Efq")
+(assume "l" "Useless" "Absurd")
+(use "EfAtom")
+(use "Absurd")
 (assume "m")
 (cases)
 (ng #t)
@@ -3060,6 +4811,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtMonMinusLeft")
 
 ;; NatLtMonMinus
@@ -3079,7 +4831,7 @@
  (assume "nat5" "IH5")
  (cases)
  (assume "nat6" "Absurd")
- (use "Efq")
+ (use "EfAtom")
  (use "Absurd")
  (assume "nat6")
  (cases)
@@ -3092,11 +4844,12 @@
 (use "NatLeMonMinusRight")
 (use "l<=l0")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtMonMinus")
 
 ;;  NatLeastUpBound
-(set-goal "all n0,n,(nat=>boole) NatLeastUp n0 n(nat=>boole)<=n")
-(assume "n0" "n" "(nat=>boole)")
+(set-goal "all n0,n,pf NatLeastUp n0 n pf<=n")
+(assume "n0" "n" "pf")
 (ng #t)
 (cases (pt "n0<=n"))
 (assume "n0<=n")
@@ -3111,35 +4864,37 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastUpBound")
 
 ;; NatLeastUpLBound
-(set-goal "all n0,n,(nat=>boole)(n0<=n -> n0<=NatLeastUp n0 n(nat=>boole))")
-(assume "n0" "n" "(nat=>boole)" "n0<=n")
+(set-goal "all n0,n,pf(n0<=n -> n0<=NatLeastUp n0 n pf)")
+(assume "n0" "n" "pf" "n0<=n")
 (ng #t)
 (simp "n0<=n")
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastUpLBound")
 
 ;; NatLeastUpLeIntro
-(set-goal "all n0,n,m,(nat=>boole)(
- n0<=m -> (nat=>boole)m -> NatLeastUp n0 n(nat=>boole)<=m)")
-(assume "n0" "n" "m" "(nat=>boole)" "n0<=m" "(nat=>boole)m")
+(set-goal "all n0,n,m,pf(
+ n0<=m -> pf m -> NatLeastUp n0 n pf<=m)")
+(assume "n0" "n" "m" "pf" "n0<=m" "pf m")
 (ng #t)
 (cases (pt "n0<=n"))
 (assume "n0<=n")
 (ng #t)
-(assert "NatLeast(n--n0)([nat](nat=>boole)(nat+n0))<=m--n0")
+(assert "NatLeast(n--n0)([nat]pf(nat+n0))<=m--n0")
  (use "NatLeastLeIntro")
  (ng #t)
  (simp "NatMinusPlusEq")
- (use "(nat=>boole)m")
+ (use "pf m")
  (use "n0<=m")
 (assume "Assertion")
 (assert
- "NatLeast(n--n0)([nat](nat=>boole)(nat+n0))+n0<=m--n0+n0")
+ "NatLeast(n--n0)([nat]pf(nat+n0))+n0<=m--n0+n0")
  (use "NatLeMonPlus")
  (use "Assertion")
  (use "Truth")
@@ -3150,17 +4905,18 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastUpLeIntro")
 
 ;; NatLeastUpLtElim
-(set-goal "all n0,n,(nat=>boole)(
- n0<=NatLeastUp n0 n(nat=>boole) ->
- NatLeastUp n0 n(nat=>boole)<n ->
- (nat=>boole)(NatLeastUp n0 n(nat=>boole)))")
-(assume "n0" "n" "(nat=>boole)" "n0<=m" "m<n")
+(set-goal "all n0,n,pf(
+ n0<=NatLeastUp n0 n pf ->
+ NatLeastUp n0 n pf<n ->
+ pf(NatLeastUp n0 n pf))")
+(assume "n0" "n" "pf" "n0<=m" "m<n")
 (ng #t)
 (assert "n0<=n")
- (use "NatLeTrans" (pt "NatLeastUp n0 n(nat=>boole)"))
+ (use "NatLeTrans" (pt "NatLeastUp n0 n pf"))
  (use "n0<=m")
  (use "NatLtToLe")
  (use "m<n")
@@ -3169,12 +4925,12 @@
 (ng #t)
 (use-with "NatLeastLtElim"
 	  (pt "n--n0")
-	  (pt "[nat]((nat=>boole)(nat+n0))") "?")
+	  (pt "[nat](pf(nat+n0))") "?")
 (ng "m<n")
 (simphyp-with-to "m<n" "n0<=n" "SimpHyp")
 (ng "SimpHyp")
 (assert
- "NatLeast(n--n0)([nat](nat=>boole)(nat+n0))+n0--n0<n--n0")
+ "NatLeast(n--n0)([nat]pf(nat+n0))+n0--n0<n--n0")
  (use "NatLtMonMinusLeft")
  (use "SimpHyp")
  (ng #t)
@@ -3183,16 +4939,18 @@
 (assume "Hyp")
 (use "Hyp")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastUpLtElim")
 
 ;; NatLeastUpZero
-(set-goal "all n,(nat=>boole)
- NatLeastUp Zero n(nat=>boole)=NatLeast n(nat=>boole)")
+(set-goal "all n,pf
+ NatLeastUp Zero n pf=NatLeast n pf")
 (assume "n" "nat=>boole")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeastUpZero")
-(add-rewrite-rule "NatLeastUp Zero n(nat=>boole)" "NatLeast n(nat=>boole)")
+(add-rewrite-rule "NatLeastUp Zero n pf" "NatLeast n pf")
 
 ;; For totality of (Rec nat=>alpha) we need a general forms (with
 ;; alpha for nat) of
@@ -3204,29 +4962,90 @@
 ;; We could take the general forms as global assumption, where alpha
 ;; ranges over closed finitary types.
 
+;; (term-to-t-deg (pt "(Rec nat=>alpha)"))
+;; 1
+
+(add-var-name "x" (py "alpha"))
 (add-var-name "f" (py "nat=>alpha=>alpha"))
 
 (set-goal (rename-variables (term-to-totality-formula (pt "(Rec nat=>alpha)"))))
-(assume "n^" "Tn" "alpha^" "Talpha" "f^1" "f^2" "Hyp")
+(assume "n^" "Tn" "x^" "Tx" "f^" "Tf")
 (elim "Tn")
 ;; 3,4
 (ng #t)
-(use "EqPRefl")
-(use "Talpha")
+(use "Tx")
 ;; 4
 (assume "n^1" "Tn1" "IH")
 (ng #t)
-(use "EqPDefOne")
-(use "Hyp")
-(use "EqPNatRefl")
+(use "Tf")
 (use "Tn1")
 (use "IH")
-;; Proof finished
+;; Proof finished.
+;; (cdp)
 ;; (save-totality) ;does not work here
 (save "NatRecTotal")
-;; (cdp)
 
-(remove-var-name "f")
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+(animate "NatRecTotal")
+
+;; NatRecExt
+(set-goal (rename-variables (terms-to-eqp-formula
+			     (pt "(Rec nat=>alpha)")
+			     (pt "(Rec nat=>alpha)"))))
+
+;; allnc n^(
+;;      TotalNat n^ -> 
+;;      allnc x^,x^0(
+;;       EqP x^ x^0 -> 
+;;       allnc f^,f^0(
+;;        allnc n^0(
+;;         TotalNat n^0 -> 
+;;         allnc x^1,x^2(
+;;          EqP x^1 x^2 -> EqP(f^ n^0 x^1)(f^0 n^0 x^2))) -> 
+;;        EqP((Rec nat=>alpha)n^ x^ f^)((Rec nat=>alpha)n^ x^0 f^0))))
+
+(assert "allnc x^,x^0(
+     EqP x^ x^0 -> 
+     allnc f^,f^0(
+      allnc n^(
+       TotalNat n^ -> 
+       allnc x^1,x^2(
+        EqP x^1 x^2 -> EqP(f^ n^ x^1)(f^0 n^ x^2))) -> 
+      allnc n^(
+       TotalNat n^ -> 
+       EqP((Rec nat=>alpha)n^ x^ f^)((Rec nat=>alpha)n^ x^0 f^0))))")
+(assume "x^1" "x^2" "EqPx1x2" "f^1" "f^2" "EqPf1f2" "n^" "Tn")
+(elim "Tn")
+;; 5,6
+(ng #t)
+(use "EqPx1x2")
+;; 6
+(assume "n^1" "Tn1" "IH")
+(ng #t)
+(use "EqPf1f2")
+(use "Tn1")
+(use "IH")
+;; Assertion proved.
+(assume "Assertion"
+	"n^" "Tn" "x^1" "x^2" "EqPx1x2" "f^1" "f^2" "EqPf1f2")
+(use "Assertion")
+(use "EqPx1x2")
+(use "EqPf1f2")
+(use "Tn")
+;; Proof finished.
+;; (cdp)
+(save "NatRecExt")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; (Rec nat=>alpha)
+
+(animate "NatRecExt")
+;; ok, computation rule (cNatRecExt alpha) -> (Rec nat=>alpha) added
 
 ;; NatDouble
 (add-program-constant "NatDouble" (py "nat=>nat"))
@@ -3245,7 +5064,14 @@
 (use "TotalNatSucc")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
+
+;; (cdp (proof-to-soundness-proof))
+;; (pp (rename-variables (proof-to-formula (proof-to-soundness-proof))))
+;; allnc n^,n^0(
+;;  TotalNatMR n^ n^0 -> 
+;;  TotalNatMR(NatDouble n^)((Rec nat=>nat)n^0 0([n^1,n^2]Succ(Succ n^2))))
 
 ;; NatMaxDouble
 (set-goal "all n,m NatDouble n max NatDouble m=NatDouble(n max m)")
@@ -3260,6 +5086,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMaxDouble")
 
 ;; NatMinDouble
@@ -3275,6 +5102,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatMinDouble")
 
 (add-program-constant "NatEven" (py "nat=>boole"))
@@ -3286,7 +5114,7 @@
 
 (set-totality-goal "NatEven")
 (assert "allnc n^(TotalNat n^ ->
-         TotalBoole(NatEven(Succ n^)) &
+         TotalBoole(NatEven(Succ n^)) andd
          TotalBoole(NatEven(Succ(Succ n^))))")
  (assume "n^" "Tn")
  (elim "Tn")
@@ -3305,6 +5133,7 @@
 (use "NatEvenTotalAux")
 (use "Tn")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; NatEvenDouble
@@ -3316,6 +5145,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatEvenDouble")
 
 ;; NatEvenSucc
@@ -3330,6 +5160,7 @@
 (use "ESSn")
 (use "ESn")
 ;; Proof finished.
+;; (cdp)
 (save "NatEvenSucc")
 
 ;; NatOddSuccToEven
@@ -3348,6 +5179,7 @@
 (use "IH")
 (use "OSn")
 ;; Proof finished
+;; (cdp)
 (save "NatOddSuccToEven")
 
 (add-program-constant "NatHalf" (py "nat=>nat"))
@@ -3358,7 +5190,7 @@
  "NatHalf(Succ(Succ n))" "Succ(NatHalf n)")
 
 (set-totality-goal "NatHalf")
-(assert "allnc n^(TotalNat n^ -> TotalNat(NatHalf n^) &
+(assert "allnc n^(TotalNat n^ -> TotalNat(NatHalf n^) andd
                                  TotalNat(NatHalf(Succ n^)))")
  (assume "n^" "Tn")
  (elim "Tn")
@@ -3377,6 +5209,7 @@
 (use "NatHalfTotalAux")
 (use "Tn")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; NatHalfDouble
@@ -3388,6 +5221,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatHalfDouble")
 
 ;; NatHalfSuccDouble
@@ -3399,6 +5233,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatHalfSuccDouble")
 
 ;; NatPlusDouble
@@ -3410,6 +5245,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatPlusDouble")
 
 ;; NatDoubleLt
@@ -3428,6 +5264,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoubleLt")
 
 ;; NatDoubleLe
@@ -3444,6 +5281,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoubleLe")
 
 ;; NatLt0Double
@@ -3454,6 +5292,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished
+;; (cdp)
 (save "NatLt0Double")
 
 ;; NatLeDouble
@@ -3466,6 +5305,7 @@
 (use "IH")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeDouble")
 
 ;; NatLtDouble
@@ -3480,6 +5320,7 @@
 (use "NatLeDouble")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtDouble")
 
 ;; NatDoubleMinus
@@ -3499,6 +5340,7 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoubleMinus")
 
 ;; NatLtSZeroSOne 
@@ -3533,6 +5375,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtDoubleSuccDouble")
 
 ;; NatLtSuccDoubleDouble
@@ -3553,6 +5396,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtSuccDoubleDouble")
 
 ;; NatLtSuccDoubleSuccDouble
@@ -3575,6 +5419,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtSuccDoubleSuccDouble")
 
 ;; NatLeDoubleSuccDouble
@@ -3592,6 +5437,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeDoubleSuccDouble")
 
 ;; NatLeSuccDoubleDouble
@@ -3612,6 +5458,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeSuccDoubleDouble")
 
 ;; NatLeSuccDoubleSuccDouble
@@ -3630,6 +5477,7 @@
 (ng #t)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeSuccDoubleSuccDouble")
 
 ;; NatLtOneDouble
@@ -3641,6 +5489,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtOneDouble")
 
 ;; NatLtOneSuccDouble
@@ -3651,6 +5500,7 @@
 (use "0<n")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtOneSuccDouble")
 
 ;; NatLeDoubleOne
@@ -3662,6 +5512,7 @@
 (assume "n" "Useless" "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "NatLeDoubleOne")
 
 ;; NatLtDoubleOne
@@ -3673,13 +5524,14 @@
 (assume "n" "Useless" "Absurd")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtDoubleOne")
 
 ;; Reason to have a local efq assumption in CVIndPvar: soundness proof
 ;; does not normalize for Efq a global assumption.  Check
 
 ;; CVIndPvar
-(set-goal "(F -> all n^(Pvar nat)n^) ->
+(set-goal "(F -> allnc n^(Pvar nat)n^) ->
   all n(all m(m<n -> (Pvar nat)m) -> (Pvar nat)n) ->
   all n (Pvar nat)n")
 (assume "efq" "Prog")
@@ -3700,6 +5552,7 @@
 (use "Assertion" (pt "Succ n"))
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CVIndPvar")
 
 ;; (define sproof (proof-to-soundness-proof))
@@ -3707,19 +5560,17 @@
 ;; (cdp nsproof)
 ;; (proof-to-expr-with-formulas nsproof)
 
-;; In CVInd we do not need an Efq assumption since EfqEqD is avaiable
-;; (pp "EfqEqD")
+;; In CVInd we do not need an Efq assumption since EfEqD is avaiable
+;; (pp "EfEqD")
 ;; F -> all alpha^,alpha^0 alpha^ eqd alpha^0
 
 ;; CVInd
-(set-goal "all nat=>boole(
- all n(all m(m<n -> (nat=>boole)m) -> (nat=>boole)n) ->
- all n (nat=>boole)n)")
-(assume "nat=>boole" "Prog")
-(assert "all n,m(m<n -> (nat=>boole)m)")
+(set-goal "all pf(all n(all m(m<n -> pf m) -> pf n) -> all n pf n)")
+(assume "pf" "Prog")
+(assert "all n,m(m<n -> pf m)")
  (ind)
  (assume "m" "Absurd")
- (use "EfqAtom")
+ (use "EfAtom")
  (use "Absurd")
  (assume "n" "IHn" "m" "m<Succ n")
  (use "NatLtSuccCases" (pt "m") (pt "n"))
@@ -3733,14 +5584,20 @@
 (use "Assertion" (pt "Succ n"))
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CVInd")
 
 ;; NatHalfLt
 (set-goal "all n(Zero<n -> NatHalf n<n)")
-(assert "all n((Zero<n -> NatHalf n<n) &
-                  NatHalf(Succ n)<Succ n)")
+(assert "all n((Zero<n -> NatHalf n<n) andnc NatHalf(Succ n)<Succ n)")
 (use "CVIndPvar")
-(use "Efq")
+(assume "Absurd" "n^")
+(split)
+(strip)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
+(use "Absurd")
 (assume "n" "Prog")
 (split)
 (cases (pt "n"))
@@ -3750,7 +5607,7 @@
 (use-with "Prog" (pt "l") "?" 'right)
 (simp "n=Sl")
 (use "Truth")
-;; 7
+;; 14
 (cases (pt "n"))
 (ng #t)
 (strip)
@@ -3774,6 +5631,7 @@
 (assume "NatHalfLtAux" "n")
 (use "NatHalfLtAux")
 ;; Proof finished.
+;; (cdp)
 (save "NatHalfLt")
 
 ;; NatHalfLtSucc
@@ -3800,11 +5658,12 @@
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatHalfLtSucc")
 
 ;; NatDoubleHalfEven
 (set-goal "all n(NatEven n -> NatDouble(NatHalf n)=n)")
-(assert "all n((NatEven n -> NatDouble(NatHalf n)=n) &
+(assert "all n((NatEven n -> NatDouble(NatHalf n)=n) andnc
                (NatEven(Succ n) -> NatDouble(NatHalf(Succ n))=Succ n))")
 (ind)
 (split)
@@ -3823,12 +5682,13 @@
 (assume "NatDoubleHalfEvenAux" "n")
 (use "NatDoubleHalfEvenAux")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoubleHalfEven")
 
 ;; NatDoubleHalfOdd
 (set-goal "all n((NatEven n -> F) -> Succ(NatDouble(NatHalf n))=n)")
 (assert "all n(
-   ((NatEven n -> F) -> Succ(NatDouble(NatHalf n))=n) &
+   ((NatEven n -> F) -> Succ(NatDouble(NatHalf n))=n) andnc
    ((NatEven(Succ n) -> F) -> Succ(NatDouble(NatHalf(Succ n)))=Succ n))")
 (ind)
 (split)
@@ -3848,6 +5708,7 @@
 (assume "NatDoubleHalfOddAux" "n")
 (use "NatDoubleHalfOddAux")
 ;; Proof finished.
+;; (cdp)
 (save "NatDoubleHalfOdd")
 
 ;; NatLtZeroHalfEven
@@ -3861,6 +5722,7 @@
 (assume "n" "Useless1" "Useless2")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtZeroHalfEven")
 
 ;; NatLtZeroHalfFinally
@@ -3878,6 +5740,7 @@
 (strip)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatLtZeroHalfFinally")
 
 ;; For use with grec we add
@@ -3888,259 +5751,60 @@
 
 (add-program-constant "TranslationNatMinusPosDiff" (py "nat=>nat=>nat"))
 
-;; TotalNatMRToEqD
-(set-goal "all n^,m^(TotalNatMR m^ n^ -> n^ eqd m^)")
-(assume "n^" "m^" "TMRHyp")
-(elim "TMRHyp")
-;; 3,4
-(use "InitEqD")
-;; 4
-(assume "n^1" "m^1" "Useless" "EqHyp")
-(simp "EqHyp")
-(use "InitEqD")
-;; Proof finished.
-(save "TotalNatMRToEqD")
-;; (cdp)
+;; 2019-05-22.  Done up to this point.
 
-;; TotalNatMRToTotalNatNc
-(set-goal "all n^,m^(TotalNatMR m^ n^ -> TotalNatNc n^)")
-(assume "n^" "m^" "TMRHyp")
-(elim "TMRHyp")
-;; 3,4
-(use "TotalNatNcZero")
-;; 4
-(assume "n^1" "m^1" "TMRm1n1Hyp")
-(use "TotalNatNcSucc")
-;; Proof finished.
-(save "TotalNatMRToTotalNatNc")
-;; (cdp)
+;; The following are derivable from what we have
+;; ;; TotalNatMRToEqD
+;; (set-goal "allnc n^,m^(TotalNatMR m^ n^ -> n^ eqd m^)")
+;; (assume "n^" "m^" "TMRHyp")
+;; (elim "TMRHyp")
+;; ;; 3,4
+;; (use "InitEqD")
+;; ;; 4
+;; (assume "n^1" "m^1" "Useless" "EqHyp")
+;; (simp "EqHyp")
+;; (use "InitEqD")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "TotalNatMRToEqD")
 
-;; TotalNatToTotalNatMR
-(set-goal "all n^(TotalNat n^ -> TotalNatMR n^ n^)")
-(assume "n^" "Tn")
-(elim "Tn")
-;; 3,4
-(use "TotalNatZeroMR")
-;; 4
-(assume "n^1" "Tn1")
-(use "TotalNatSuccMR")
-;; Proof finished.
-(save "TotalNatToTotalNatMR")
-;; (cdp)
+;; ;; TotalNatMRToTotalNc
+;; (set-goal "allnc n^,m^(TotalNatMR m^ n^ -> TotalNatNc n^)")
+;; (assume "n^" "m^" "TMRHyp")
+;; (elim "TMRHyp")
+;; ;; 3,4
+;; (use "TotalNatNcZero")
+;; ;; 4
+;; (assume "n^1" "m^1" "TMRm1n1Hyp")
+;; (use "TotalNatNcSucc")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "TotalNatMRToTotalNc")
 
-;; CoEqPNatToEqD (maybe better: NatBisim)
-(set-goal "all n^,m^(CoEqPNat n^ m^ -> n^ eqd m^)")
-(use (make-proof-in-aconst-form (finalg-to-bisim-aconst (py "nat"))))
-;; Proof finished.
-;; (cdp)
+;; ;; TotalNatToTotalMR
+;; (set-goal "allnc n^(TotalNat n^ -> TotalNatMR n^ n^)")
+;; (assume "n^" "Tn")
+;; (elim "Tn")
+;; ;; 3,4
+;; (use "TotalNatZeroMR")
+;; ;; 4
+;; (assume "n^1" "Tn1")
+;; (use "TotalNatSuccMR")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "TotalNatToTotalMR")
 
-;; CoEqPNatToCoTotalNatNcLeft
-(set-goal "all n^,m^(CoEqPNat n^ m^ -> CoTotalNatNc n^)")
-(assume "n^" "m^" "n~m")
-(use (imp-formulas-to-coind-proof
-      (pf "exr n^1 CoEqPNat n^ n^1 -> CoTotalNatNc n^")))
-;; 3,4
-(assume "n^1" "ExHyp1")
-(by-assume "ExHyp1" "m^1" "n1~m1")
-(inst-with-to "CoEqPNatNcClause" (pt "n^1") (pt "m^1") "n1~m1"
-	      "CoEqPNatNcClauseInst")
-(elim "CoEqPNatNcClauseInst")
-;; 11,12
-(drop "CoEqPNatNcClauseInst")
-(assume "Conj")
-(intro 0)
-(use "Conj")
-;; 12
-(drop "CoEqPNatNcClauseInst")
-(assume "ExHyp2")
-(by-assume "ExHyp2" "n^2" "n2Prop")
-(by-assume "n2Prop" "m^2" "n2m2Prop")
-(intro 1)
-(intro 0 (pt "n^2"))
-(split)
-(intro 1)
-(intro 0 (pt "m^2"))
-(use "n2m2Prop")
-(use "n2m2Prop")
-;; 4
-(intro 0 (pt "m^"))
-(use "n~m")
-;; Proof finished.
-(save "CoEqPNatToCoTotalNatNcLeft")
-;; (cdp)
+;; (display-default-varnames)
 
-;; CoEqPNatToCoTotalNatNcRight
-(set-goal "all n^,m^(CoEqPNat n^ m^ -> CoTotalNatNc m^)")
-(assume "n^" "m^" "n~m")
-(use (imp-formulas-to-coind-proof
-      (pf "exr m^1 CoEqPNat m^1 m^ -> CoTotalNatNc m^")))
-;; 3,4
-(assume "m^1" "ExHyp1")
-(by-assume "ExHyp1" "n^1" "n1~m1")
-(inst-with-to "CoEqPNatNcClause" (pt "n^1") (pt "m^1") "n1~m1"
-	      "CoEqPNatNcClauseInst")
-(elim "CoEqPNatNcClauseInst")
-;; 11,12
-(drop "CoEqPNatNcClauseInst")
-(assume "Conj")
-(intro 0)
-(use "Conj")
-;; 12
-(drop "CoEqPNatNcClauseInst")
-(assume "ExHyp2")
-(by-assume "ExHyp2" "m^2" "m2Prop")
-(by-assume "m2Prop" "n^2" "m2n2Prop")
-;; (by-assume "ExHyp2" "n^2" "n2Prop")
-;; (by-assume "n2Prop" "m^2" "n2m2Prop")
-(intro 1)
-(intro 0 (pt "n^2"))
-(split)
-(intro 1)
-(intro 0 (pt "m^2"))
-(use "m2n2Prop")
-(use "m2n2Prop")
-;; 4
-(intro 0 (pt "n^"))
-(use "n~m")
-;; Proof finished.
-(save "CoEqPNatToCoTotalNatNcRight")
-;; (cdp)
+;; f: 	nat=>alpha=>alpha
+;; x: 	alpha
+;; nf: 	nat=>nat
+;; pf: 	nat=>boole
+;; n: 	nat
 
-;; We show reflexivity of bisimilarity on cototal natural numbers
+(remove-var-name "f")
+(remove-var-name "x")
+(remove-var-name "pf")
+(remove-var-name "nf")
 
-;; CoTotalNatToCoEqPNatNc
-(set-goal "all n^(CoTotalNat n^ -> CoEqPNatNc n^ n^)")
-(assume "n^" "CoTn")
-(use (imp-formulas-to-coind-proof
-      (pf "exr n^2(CoTotalNatNc n^2 andnc n^ eqd n^2 andnc n^1 eqd n^2) ->
-           CoEqPNatNc n^ n^1")))
-;; 3,4
-(assume "n^1" "n^2" "ExHyp")
-(by-assume "ExHyp" "m^" "mProp")
-(assert "CoTotalNatNc m^")
- (use "mProp")
-(assume "CoTm")
-(inst-with-to "CoTotalNatNcClause" (pt "m^") "CoTm"
-	      "CoTotalNatNcClauseInst")
-(elim "CoTotalNatNcClauseInst")
-;; 14,15
-(drop "CoTotalNatNcClauseInst")
-(assume "m=0")
-(intro 0)
-(split)
-(simp "mProp")
-(use "m=0")
-(simp "mProp")
-(use "m=0")
-;; 15
-(drop "CoTotalNatNcClauseInst")
-(assume "ExHyp1")
-(by-assume "ExHyp1" "m^1" "m1Prop")
-(intro 1)
-(intro 0 (pt "m^1"))
-(intro 0 (pt "m^1"))
-(split)
-(intro 1)
-(intro 0 (pt "m^1"))
-(split)
-(use "m1Prop")
-(split)
-(use "InitEqD")
-(use "InitEqD")
-(split)
-(simp "mProp")
-(use "m1Prop")
-(simp "mProp")
-(use "m1Prop")
-;; 4
-(intro 0 (pt "n^"))
-(split)
-(use "CoTn")
-(split)
-(use "InitEqD")
-(use "InitEqD")
-;; Proof finished.
-(save "CoTotalNatToCoEqPNatNc")
-;; (cdp)
-
-;; CoEqPNatToCoTotalNatMR
-(set-goal "all n^,m^(CoEqPNat n^ m^ -> CoTotalNatMR n^ m^)")
-(assume "n^" "m^" "n~m")
-(use (make-proof-in-aconst-form
-      (imp-formulas-to-gfp-aconst
-       (pf "CoEqPNat n^ m^ -> CoTotalNatMR n^ m^"))))
-;; 3,4
-(use "n~m")
-;; 4
-(assume "n^1" "m^1" "n1~m1")
-;; use the closure axiom for CoEqPNat
-;; (pp "CoEqPNatClause")
-(inst-with-to "CoEqPNatClause" (pt "n^1") (pt "m^1") "n1~m1"
-	      "CoEqPNatClauseInst")
-(elim "CoEqPNatClauseInst")
-;; 8,9
-(drop "CoEqPNatClauseInst")
-(assume "Conj")
-(intro 0)
-(split)
-(use "Conj")
-(use "Conj")
-;; 9
-(drop "CoEqPNatClauseInst")
-(assume "ExHyp")
-(by-assume "ExHyp" "n^2" "n2Prop")
-(by-assume "n2Prop" "m^2" "n2m2Prop")
-(intro 1)
-(intro 0 (pt "n^2"))
-(intro 0 (pt "m^2"))
-(split)
-(intro 1)
-(use "n2m2Prop")
-(split)
-(use "n2m2Prop")
-(use "n2m2Prop")
-;; Proof finished.
-(save "CoEqPNatToCoTotalNatMR")
-
-;; CoTotalNatMRToCoEqPNatNc
-(set-goal "all n^,m^(CoTotalNatMR n^ m^ -> CoEqPNatNc n^ m^)")
-(assume "n^" "m^" "CoTnm")
-(use (make-proof-in-aconst-form
-      (imp-formulas-to-gfp-aconst
-       (pf "CoTotalNatMR n^ m^ -> CoEqPNatNc n^ m^"))))
-;; 3,4
-(use "CoTnm")
-;; 4
-(assume "n^1" "m^1" "CoTn1m1")
-;; use the closure axiom for CoTotalNatMR
-(inst-with-to "CoTotalNatMRClause" (pt "n^1") (pt "m^1") "CoTn1m1"
-	      "CoTotalNatMRClauseInst")
-(elim "CoTotalNatMRClauseInst")
-;; 8,9
-(drop "CoTotalNatMRClauseInst")
-(assume "EqConj")
-(intro 0)
-(split)
-(use "EqConj")
-(use "EqConj")
-;; 9
-(drop "CoTotalNatMRClauseInst")
-(assume "ExHyp")
-(by-assume "ExHyp" "n^2" "n2Prop")
-(by-assume "n2Prop" "m^2" "n2m2Prop")
-(intro 1)
-(intro 0 (pt "n^2"))
-(intro 0 (pt "m^2"))
-(split)
-(intro 1)
-(use "n2m2Prop")
-(split)
-(use "n2m2Prop")
-(use "n2m2Prop")
-;; Proof finished.
-(save "CoTotalNatMRToCoEqPNatNc")
-;; (cdp)
-
-
-
-
+;; We keep the var names n m l of type nat
