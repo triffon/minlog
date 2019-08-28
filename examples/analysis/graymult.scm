@@ -1,10 +1,11 @@
-;; 2017-12-12.  examples/analysis/graymult.scm.
+;; 2019-08-27.  examples/analysis/graymult.scm.
 
 (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
 (libload "list.scm")
+(libload "str.scm")
 (libload "pos.scm")
 (libload "int.scm")
 (libload "rat.scm")
@@ -13,6 +14,7 @@
 ;; (set! COMMENT-FLAG #t)
 
 (load "~/git/minlog/examples/analysis/digits.scm")
+(load "~/git/minlog/examples/analysis/sdcode.scm")
 (load "~/git/minlog/examples/analysis/graycode.scm")
 (load "~/git/minlog/examples/analysis/JK.scm")
 (load "~/git/minlog/examples/analysis/grayavaux.scm")
@@ -109,13 +111,80 @@
 (use "RatEqvToRealEq")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoGZero")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; (CoRec rea=>ag rea=>ah)0([x]InR(InR 0))([x]InR(InR 0))
+
+;; CoGMultToMultcAux2
+(set-goal "allnc x1,y1,d1,e1(Real x1 -> Real y1 ->
+ (1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
+ (1#4)*(x1*d1*(y1*e1)+z1+d1*e1))")
+
+;; CoGMultToMultcAux
+(set-goal "allnc x1,y1,d1,e1(Real x1 -> Real y1 ->
+ (1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
+ (1#4)*(x1*d1*(y1*e1)+2*((1#2)*(x1* ~(d1*e1)+y1* ~(d1*e1)))+d1*e1))")
+(assume "x1" "y1" "d1" "e1" "Rx1" "Ry1")
+(use "RealEqSToEq")
+(realproof)
+(realproof)
+(use "RealEqSIntro")
+(assume "n")
+(cases (pt "x1"))
+(assume "as" "M" "x1Def")
+(cases (pt "y1"))
+(assume "bs" "N" "y1Def")
+(ng #t)
+(simprat (pf "(1#2)*(as n+IntN 1)*d1*(1#2)==
+              (1#2)*((1#2)*(as n+IntN 1)*d1)"))
+(ng #t)
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "<-" "RatTimesAssoc")
+(simp "RatEqv6RewRule")
+;; ?^19:(as n+IntN 1)*(d1*((bs n+IntN 1)*e1))==
+;;      as n*d1*bs n*e1+ ~(as n*(d1*e1))+ ~(bs n*(d1*e1))+d1*e1
+(simprat "RatTimesPlusDistrLeft")
+(simprat "RatTimesPlusDistrLeft")
+(simprat "RatTimesPlusDistr")
+(simprat "RatTimesPlusDistr")
+(simprat "RatTimesPlusDistr")
+(ng #t)
+(use "RatPlusCompat")
+(use "RatPlusCompat")
+(simp "RatEqv4RewRule")
+(simp "<-" "RatTimes3RewRule")
+;; ?^31:as n*(d1*IntN 1*e1)==as n* ~(d1*e1)
+(simp "IntTimesIntNR")
+(use "Truth")
+;; ?^29:IntN 1*d1*bs n*e1== ~(bs n*(d1*e1))
+(simp "IntTimesIntNL")
+(ng #t)
+(simp (pf "d1*bs n=bs n*d1"))
+(simp (pf "(d1*e1#1)=RatTimes d1 e1"))
+(use "RatEqvSym")
+(simp "RatTimesAssoc")
+(use "Truth")
+(use "Truth")
+(use "RatTimesComm")
+;; ?^27:IntN 1*d1*IntN 1*e1==d1*e1
+(simp "IntTimesIntNL")
+(ng #t)
+(simp "<-" "IntTimesAssoc")
+(simp "IntTimesIntNL")
+(use "Truth")
+;; ?^14:(1#2)*(as n+IntN 1)*d1*(1#2)==(1#2)*((1#2)*(as n+IntN 1)*d1)
+(simp (pf "(1#2)*((1#2)*(as n+IntN 1)*d1)=((1#2)*(as n+IntN 1)*d1)*(1#2)"))
+(use "Truth")
+(use "RatTimesComm")
+;; Proof finished.
+;; (cdp)
+(save "CoGMultToMultcAux")
 
 ;; CoGMultToMultc
 (set-goal "allnc x,y(CoG x -> CoG y ->
@@ -218,71 +287,18 @@
 (assume "R")
 (simpreal "d1x1Prop")
 (simpreal "e1y1Prop")
-;; ?_90:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
+;; ?^90:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
 ;;      (1#4)*(x1*d1*(y1*e1)+z1* ~d0+(d0+d1*e1))
 ;; RealEqTrans for simpreal with (1#2)*z1
 (use "RealEqTrans"
      (pt "(1#4)*(x1*d1*(y1*e1)+2*((1#2)*(z1+IntN 1)* ~d0)+d1*e1)"))
 (simpreal "<-" "d0z1Prop")
-;; ?_93:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
-;;      (1#4)*(x1*d1*(y1*e1)+2*((1#2)*(x1* ~(d1*e1)+y1* ~(d1*e1)))+d1*e1)
-(use "RealEqSToEq")
-(realproof)
-(realproof)
-(use "RealEqSIntro")
-(assume "n")
-(cases (pt "x1"))
-(assume "as" "M" "x1Def")
-(cases (pt "y1"))
-(assume "bs" "N" "y1Def")
-(ng #t)
-(simprat (pf "(1#2)*(as n+IntN 1)* ~d1*(1#2)==
-              (1#2)*((1#2)*(as n+IntN 1)* ~d1)"))
-(ng #t)
-(simp "<-" "RatTimesAssoc")
-(simp "<-" "RatTimesAssoc")
-(simp "<-" "RatTimesAssoc")
-(simp "RatEqv6RewRule")
-;; ?_110:(as n+IntN 1)*(d1*((bs n+IntN 1)*e1))==
-;;       as n*d1*bs n*e1+ ~(as n*(d1*e1))+ ~(bs n*(d1*e1))+d1*e1
-(simprat "RatTimesPlusDistrLeft")
-(simprat "RatTimesPlusDistrLeft")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
-(ng #t)
-(use "RatPlusCompat")
-(use "RatPlusCompat")
-(simp "RatEqv4RewRule")
-(simp "<-" "RatTimes3RewRule")
-;; ?_122:as n*(d1*IntN 1*e1)==as n* ~(d1*e1)
-(simp "IntTimesIntNR")
-(use "Truth")
-;; ?_120:IntN 1*d1*bs n*e1== ~(bs n*(d1*e1))
-(simp "IntTimesIntNL")
-(ng #t)
-(simp (pf "d1*bs n=bs n*d1"))
-(simp (pf "(d1*e1#1)=RatTimes d1 e1"))
-(use "RatEqvSym")
-(simp "RatTimesAssoc")
-(use "Truth")
-(use "Truth")
-(use "RatTimesComm")
-;; ?_118:IntN 1*d1*IntN 1*e1==d1*e1
-(simp "IntTimesIntNL")
-(ng #t)
-(simp "<-" "IntTimesAssoc")
-(simp "IntTimesIntNL")
-(use "Truth")
-;; ?_105:(1#2)*(as n+IntN 1)* ~d1*(1#2)==(1#2)*((1#2)*(as n+IntN 1)* ~d1)
-(simp (pf "(1#2)*((1#2)*(as n+IntN 1)* ~d1)=((1#2)*(as n+IntN 1)* ~d1)*(1#2)"))
-(use "Truth")
-(use "RatTimesComm")
-;; ?_92:(1#4)*(x1*d1*(y1*e1)+2*((1#2)*(z1* ~d0+d0))+d1*e1)===
+(use "CoGMultToMultcAux")
+(autoreal)
+;; ?^92:(1#4)*(x1*d1*(y1*e1)+2*((1#2)*(z1* ~d0+d0))+d1*e1)===
 ;;      (1#4)*(x1*d1*(y1*e1)+z1* ~d0+(d0+d1*e1))
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (cases (pt "x1"))
 (assume "as" "M" "x1Def")
 (cases (pt "y1"))
@@ -313,7 +329,7 @@
 ;;   {z1}  z1Prop:CoH z1 andl (1#2)*(x1* ~(d1*e1)+y1* ~(d1*e1))===(1#2)*z1
 ;;   CoHz1:CoH z1
 ;; -----------------------------------------------------------------------------
-;; ?_164:exr i,x0,y0,z(
+;; ?_122:exr i,x0,y0,z(
 ;;        Sdtwo i andd 
 ;;        CoG x0 andd CoG y0 andd CoG z andl x*y===(1#4)*(x0*y0+z+i))
 
@@ -337,77 +353,25 @@
 (split)
 (use "CoHToCoG")
 (use "CoHz1")
-;; ?_183:x*y===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
+;; ?^141:x*y===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
 (simpreal "d1x1Prop")
 (simpreal "e1y1Prop")
-;; ?_186:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
+;; ?^144:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
 ;;       (1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
 ;; RealEqTrans for simpreal with (1#2)*z1
 (use "RealEqTrans" (pt "(1#4)*(x1*d1*(y1*e1)+2*((1#2)*z1)+d1*e1)"))
 (simpreal "<-" "z1Prop")
-;; ?_189:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
+;; ?^147:(1#2)*(x1+IntN 1)* ~d1*((1#2)*(y1+IntN 1)* ~e1)===
 ;;       (1#4)*(x1*d1*(y1*e1)+2*((1#2)*(x1* ~(d1*e1)+y1* ~(d1*e1)))+d1*e1)
-;; Same goal as 93 above
-(use "RealEqSToEq")
-(realproof)
-(realproof)
-(use "RealEqSIntro")
-(assume "n")
-(cases (pt "x1"))
-(assume "as" "M" "x1Def")
-(cases (pt "y1"))
-(assume "bs" "N" "y1Def")
-(ng #t)
-(simprat (pf "(1#2)*(as n+IntN 1)* ~d1*(1#2)==
-              (1#2)*((1#2)*(as n+IntN 1)* ~d1)"))
-(ng #t)
-(simp "<-" "RatTimesAssoc")
-(simp "<-" "RatTimesAssoc")
-(simp "<-" "RatTimesAssoc")
-(simp "RatEqv6RewRule")
-;; ?_206:(as n+IntN 1)*(d1*((bs n+IntN 1)*e1))==
-;;       as n*d1*bs n*e1+ ~(as n*(d1*e1))+ ~(bs n*(d1*e1))+d1*e1
-(simprat "RatTimesPlusDistrLeft")
-(simprat "RatTimesPlusDistrLeft")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
-(simprat "RatTimesPlusDistr")
-(ng #t)
-(use "RatPlusCompat")
-(use "RatPlusCompat")
-(simp "RatEqv4RewRule")
-(simp "<-" "RatTimes3RewRule")
-;; ?_218:as n*(d1*IntN 1*e1)==as n* ~(d1*e1)
-(simp "IntTimesIntNR")
-(use "Truth")
-;; ?_216:IntN 1*d1*bs n*e1== ~(bs n*(d1*e1))
-(simp "IntTimesIntNL")
-(ng #t)
-(simp (pf "d1*bs n=bs n*d1"))
-(simp (pf "(d1*e1#1)=RatTimes d1 e1"))
-(use "RatEqvSym")
-(simp "RatTimesAssoc")
-(use "Truth")
-(use "Truth")
-(use "RatTimesComm")
-;; ?_214:IntN 1*d1*IntN 1*e1==d1*e1
-(simp "IntTimesIntNL")
-(ng #t)
-(simp "<-" "IntTimesAssoc")
-(simp "IntTimesIntNL")
-(use "Truth")
-;; ?_201:(1#2)*(as n+IntN 1)* ~d1*(1#2)==(1#2)*((1#2)*(as n+IntN 1)* ~d1)
-(simp (pf "(1#2)*((1#2)*(as n+IntN 1)* ~d1)=((1#2)*(as n+IntN 1)* ~d1)*(1#2)"))
-(use "Truth")
-(use "RatTimesComm")
-;; 188:(1#4)*(x1*d1*(y1*e1)+2*((1#2)*z1)+d1*e1)===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
+(use "CoGMultToMultcAux")
+(autoreal)
+;; 146:(1#4)*(x1*d1*(y1*e1)+2*((1#2)*z1)+d1*e1)===(1#4)*(x1*d1*(y1*e1)+z1+d1*e1)
 (simpreal (pf "2*((1#2)*z1)===z1"))
 (use "RealEqRefl")
 (realproof)
-;; ?_235:2*((1#2)*z1)===z1
+;; ?^151:2*((1#2)*z1)===z1
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (use "RealEqSIntro")
 (assume "n")
 (cases (pt "z1"))
@@ -445,10 +409,10 @@
 (use "CoHToCoG")
 (use "CoHy1")
 (use "d1x1Prop")
-;; ?_268:x*y===(1#4)*(x1* ~d1*y1+y1*d1+0)
+;; ?^268:x*y===(1#4)*(x1* ~d1*y1+y1*d1+0)
 (simpreal "d1x1Prop")
 (simpreal "y1Prop")
-;; ?_273:(1#2)*(x1+IntN 1)* ~d1*((1#2)*y1)===(1#4)*(x1* ~d1*y1+y1*d1+0)
+;; ?^273:(1#2)*(x1+IntN 1)* ~d1*((1#2)*y1)===(1#4)*(x1* ~d1*y1+y1*d1+0)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -459,7 +423,7 @@
 (cases (pt "y1"))
 (assume "bs" "N" "y1Def")
 (ng #t)
-;; ?_283:~((1#2)*(as n+IntN 1)*d1*(1#2)*bs n)==(1#4)*(~(as n*d1*bs n)+bs n*d1)
+;; ?^283:~((1#2)*(as n+IntN 1)*d1*(1#2)*bs n)==(1#4)*(~(as n*d1*bs n)+bs n*d1)
 (simp (pf "(1#2)*(as n+IntN 1)*d1*(1#2)=(1#2)*((1#2)*(as n+IntN 1)*d1)"))
 (ng #t)
 (simp "<-" "RatTimesAssoc")
@@ -472,7 +436,7 @@
 (ng #t)
 (simp "RatTimesComm")
 (use "Truth")
-;; ?_285:(1#2)*(as n+IntN 1)*d1*(1#2)=(1#2)*((1#2)*(as n+IntN 1)*d1)
+;; ?^285:(1#2)*(as n+IntN 1)*d1*(1#2)=(1#2)*((1#2)*(as n+IntN 1)*d1)
 (simp "RatTimesComm")
 (use "Truth")
 ;; ?_6:exr x0(CoH x0 andl x===(1#2)*x0) -> 
@@ -519,10 +483,10 @@
 (use "CoHToCoG")
 (use "CoHx1")
 (use "e1y1Prop")
-;; ?_335:x*y===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
+;; ?^335:x*y===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
 (simpreal "x1Prop")
 (simpreal "e1y1Prop")
-;; ?_340:(1#2)*x1*((1#2)*(y1+IntN 1)* ~e1)===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
+;; ?^340:(1#2)*x1*((1#2)*(y1+IntN 1)* ~e1)===(1#4)*(x1*(y1* ~e1)+x1*e1+0)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -533,7 +497,7 @@
 (cases (pt "y1"))
 (assume "bs" "N" "y1Def")
 (ng #t)
-;; ?_350:~((1#2)*as n*(1#2)*(bs n+IntN 1)*e1)==(1#4)*(~(as n*bs n*e1)+as n*e1)
+;; ?^350:~((1#2)*as n*(1#2)*(bs n+IntN 1)*e1)==(1#4)*(~(as n*bs n*e1)+as n*e1)
 ;;         (1#2)*as n*(1#2)*(bs n+IntN 1)* ~e1==(1#4)*(as n*bs n* ~e1+as n*e1)
 (simp (pf "(1#2)*as n*(1#2)=(1#2)*((1#2)*as n)"))
 (ng #t)
@@ -546,7 +510,7 @@
 (simprat "RatTimesPlusDistr")
 (simp "RatTimesIntNL")
 (use "Truth")
-;; ?_352:(1#2)*as n*(1#2)=(1#2)*((1#2)*as n)
+;; ?^352:(1#2)*as n*(1#2)=(1#2)*((1#2)*as n)
 (simp "RatTimesComm")
 (use "Truth")
 ;; ?_308:exr x0(CoH x0 andl y===(1#2)*x0) -> 
@@ -575,10 +539,10 @@
 (use "CoHy1")
 (split)
 (use "CoGZero")
-;; ?_384:x*y===(1#4)*(x1*y1+0+0)
+;; ?^384:x*y===(1#4)*(x1*y1+0+0)
 (simpreal "x1Prop")
 (simpreal "y1Prop")
-;; ?_486:(1#2)*x1*((1#2)*y1)===(1#4)*(x1*y1+0+0)
+;; ?^386:(1#2)*x1*((1#2)*y1)===(1#4)*(x1*y1+0+0)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -589,11 +553,12 @@
 (cases (pt "y1"))
 (assume "bs" "N" "y1Def")
 (ng #t)
-;; ?_396:(1#2)*as n*(1#2)*bs n==(1#4)*as n*bs n
+;; ?^396:(1#2)*as n*(1#2)*bs n==(1#4)*as n*bs n
 (simp (pf "(1#2)*as n*(1#2)=(1#2)*((1#2)*as n)"))
 (use "Truth")
 (use "RatTimesComm")
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultToMultc")
 
 ;; cCoGMultToMultc: ag=>ag=>sdtwo yprod ag yprod ag yprod ag
@@ -655,24 +620,210 @@
 ;;     JKUzUv
 ;;   JKUz
 
+;; The previous JKLrzLrvLr asserted exnc j j=J(e* ~e0+2*e0+d0+i) leading to
+
+;; n.c. conclusion expected
+;; exr j,d,z(Sdtwo j andd Sd d andd CoG z andl y+(d0+i#4)===(1#4)*(z+j)+d)
+;; in the elimination axiom for an n.c. idpc formula
+;; exnc k642078 k642078=J(e* ~e0+2*e0+d0+i)
+
+;; Therefore - as in the sd case - we need an auxiliary lemma proving
+;; Sdtwo(e* ~e0+2*e0+d0+i)
+
+;; JKLrzLrvLrAuxJ
+(set-goal "allnc e,e0,d0,i(Psd e -> Psd e0 -> Psd d0 -> Sdtwo i -> 
+ Sdtwo(J(e* ~e0+2*e0+d0+i)))")
+(assume "e" "e0" "d0" "i" "Psde" "Psde0" "Psdd0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR e0 boole2")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl boole3 PsdMR d0 boole3")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp3")
+(by-assume "ExHyp3" "boole3" "boole3Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdtwoMRElim"
+     (pt "IntToSdtwo(J(BooleToInt boole1* ~(BooleToInt boole2)+
+                     2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t))"))
+(simp (pf "J(BooleToInt boole1* ~(BooleToInt boole2)+
+             2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t)=
+           J(e* ~e0+2*e0+d0+i)"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^34:abs(J(e* ~e0+2*e0+d0+i))<=2
+(use "JProp")
+(simp (pf "BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+           BooleToInt boole3+SdtwoToInt t=e* ~e0+2*e0+d0+i"))
+(use "Truth")
+;; ?^36:BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+;;      BooleToInt boole3+
+;;      SdtwoToInt t=
+;;      e* ~e0+2*e0+d0+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole3") "boole3Prop" "PsdMRIdInst3")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "PsdMRIdInst3")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzLrvLrAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [boole,boole0,boole1,t]IntToSdtwo(J
+;;   (~(BooleToInt boole*BooleToInt boole0)+2*BooleToInt boole0+
+;;    BooleToInt boole1+SdtwoToInt t))
+
+;; JKLrzLrvLrAuxK
+(set-goal "allnc e,e0,d0,i(Psd e -> Psd e0 -> Psd d0 -> Sdtwo i -> 
+ Sd(K(e* ~e0+2*e0+d0+i)))")
+(assume "e" "e0" "d0" "i" "Psde" "Psde0" "Psdd0" "Sdtwoi")
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR e0 boole2")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl boole3 PsdMR d0 boole3")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp3")
+(by-assume "ExHyp3" "boole3" "boole3Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdMRElim"
+     (pt "IntToSd(K(BooleToInt boole1* ~(BooleToInt boole2)+
+                   2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t))"))
+(simp (pf "K(BooleToInt boole1* ~(BooleToInt boole2)+
+             2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t)=
+           K(e* ~e0+2*e0+d0+i)"))
+(use "SdMRIntToSd")
+;; ?^34:abs(K(e* ~e0+2*e0+d0+i))<=1
+(use "KProp")
+;; ?^35:abs(e* ~e0+2*e0+d0+i)<=6
+(use "IntLeTrans" (pt "IntP 4+IntP 2"))
+(use "IntLeTrans" (pt "abs(e* ~e0+2*e0+d0)+abs i"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(use "IntLeTrans" (pt "IntP 3+IntP 1"))
+(use "IntLeTrans" (pt "abs(e* ~e0+2*e0)+abs d0"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(use "IntLeTrans" (pt "IntP 1+IntP 2"))
+(use "IntLeTrans" (pt "abs(e* ~e0)+abs(2*e0)"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(ng #t)
+(simp "PsdToAbsOne")
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psde0")
+(use "Psde")
+(ng #t)
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psde0")
+(use "Truth")
+(use "SdBound")
+(use "PsdToSd")
+(use "Psdd0")
+(use "Truth")
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+      BooleToInt boole3+SdtwoToInt t=e* ~e0+2*e0+d0+i"))
+(use "Truth")
+;; ?^66:BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+;;      BooleToInt boole3+
+;;      SdtwoToInt t=
+;;      e* ~e0+2*e0+d0+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole3") "boole3Prop" "PsdMRIdInst3")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "PsdMRIdInst3")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzLrvLrAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [boole,boole0,boole1,t]IntToSd(K
+;;   (~(BooleToInt boole*BooleToInt boole0)+2*BooleToInt boole0+
+;;    BooleToInt boole1+SdtwoToInt t))
+
 ;; JKLrzLrvLr
-(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> CoG y --> allnc e0,z2(
- Psd e0 -> CoG z2 --> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc e,z3(
+(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> allnc e0,z2(
+ Psd e0 -> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc e,z3(
  Psd e -> CoG z3 -> z2===(1#2)*(z3+IntN 1)* ~e ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(d0+i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "d0" "y" "Sdtwoi" "Psdd0" "CoGy"
-	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
+(assume "i" "d0" "y" "Sdtwoi" "Psdd0"
+	"e0" "z2" "Psde0" "e0z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exnc j j=J(e* ~e0+2*e0+d0+i)")
+;; (assert "exnc j j=J(e* ~e0+2*e0+d0+i)")
+(assert "exr j(j=J(e* ~e0+2*e0+d0+i) andr Sdtwo j)")
 (intro 0 (pt "J(e* ~e0+2*e0+d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzLrvLrAuxJ")
+(use "Psde")
+(use "Psde0")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exnc k k=K(e* ~e0+2*e0+d0+i)")
+;; (assert "exnc k k=K(e* ~e0+2*e0+d0+i)")
+(assert "exr k(k=K(e* ~e0+2*e0+d0+i) andr Sd k)")
 (intro 0 (pt "K(e* ~e0+2*e0+d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzLrvLrAuxK")
+(use "Psde")
+(use "Psde0")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
 
@@ -686,7 +837,7 @@
 (assume "ExHype")
 (by-assume "ExHype" "boole" "booleProp")
 
-(assert "exl boole BooleToInt boole=e0")
+(assert "exl boole0 BooleToInt boole0=e0")
 (use "PsdToBooleToIntValue")
 (use "Psde0")
 (assume "ExHype0")
@@ -706,97 +857,36 @@
 
 (split)
 (simp "jDef")
-;; ?_50:Sdtwo(J(e* ~e0+2*e0+d0+i))
-;; Replace the (nc) vars by cr vars
-
-(simp "<-" "booleProp")
-(simp "<-" "boole1Prop")
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdtwoMRElim"
- (pt "IntToSdtwo(J(BooleToInt boole* ~(BooleToInt boole1)+
-                   2*BooleToInt boole1+BooleToInt boole0+SdtwoToInt t))"))
-(simp (pf "J(BooleToInt boole* ~(BooleToInt boole1)+
-             2*BooleToInt boole1+BooleToInt boole0+
-             SdtwoToInt t)=J(e* ~e0+2*e0+d0+i)"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_58:abs(J(e* ~e0+2*e0+d0+i))<=2
-(use "JProp")
-(simp "booleProp")
-(simp "boole1Prop")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
+;; ?_62:Sdtwo(J(e* ~e0+2*e0+d0+i))
+(use "JKLrzLrvLrAuxJ")
+(use "Psde")
+(use "Psde0")
+(use "Psdd0")
+(use "Sdtwoi")
 
 (split)
 (simp "kDef")
-;; ?_65:Sd(K(e* ~e0+2*e0+d0+i))
-(simp "<-" "booleProp")
-(simp "<-" "boole1Prop")
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdMRElim"
- (pt "IntToSd(K(BooleToInt boole* ~(BooleToInt boole1)+
-                   2*BooleToInt boole1+BooleToInt boole0+
-                   SdtwoToInt t))"))
-(simp (pf "K(BooleToInt boole* ~(BooleToInt boole1) +
-             2*BooleToInt boole1+BooleToInt boole0+
-             SdtwoToInt t)=K(e* ~e0+2*e0+d0+i)"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_74:abs(e* ~e0+2*e0+d0+i)<=6
-(use "IntLeTrans" (pt "IntP 4+IntP 2"))
-(use "IntLeTrans" (pt "abs(e* ~e0+2*e0+d0)+abs i"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(use "IntLeTrans" (pt "IntP 3+IntP 1"))
-(use "IntLeTrans" (pt "abs(e* ~e0+2*e0)+abs d0"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(use "IntLeTrans" (pt "IntP 1+IntP 2"))
-(use "IntLeTrans" (pt "abs(e* ~e0)+abs(2*e0)"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(simp "PsdToAbsOne")
-(use "Truth")
-(use "IntTimesPsdToPsd")
+;; ?_69:Sdtwo(K(e* ~e0+2*e0+d0+i))
+(use "JKLrzLrvLrAuxK")
 (use "Psde")
-(use "PsdUMinus")
 (use "Psde0")
-(ng #t)
-(simp (pf "abs e0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
-(use "Psde0")
-(use "Truth")
-(simp (pf "abs d0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
 (use "Psdd0")
-(use "Truth")
-(use "SdtwoBound")
 (use "Sdtwoi")
-(use "Truth")
-(simp "boole1Prop")
-(simp "booleProp")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
+
 (split)
+;; ?_74:CoG(z3*e*e0)
 (use "CoGPsdTimes")
 (use "CoGPsdTimes")
 (use "CoGz3")
 (use "Psde")
 (use "Psde0")
 
-;; ?_111:y+(d0+i#4)===(1#4)*(z3*e*e0+j)+k
+;; ?^75:y+(d0+i#4)===(1#4)*(z3*e*e0+j)+k
 (simpreal "e0z2Prop")
 (simpreal "ez3Prop")
-;; ?_117:(1#2)*((1#2)*(z3+IntN 1)* ~e+IntN 1)* ~e0+(d0+i#4)===
-;;       (1#4)*(z3*e*e0+j)+k
+;; ?^81:(1#2)*((1#2)*(z3+IntN 1)* ~e+IntN 1)* ~e0+(d0+i#4)===(1#4)*(z3*e*e0+j)+k
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (cases (pt "x1"))
 (assume "as" "M" "x1Def")
 (cases (pt "y"))
@@ -806,8 +896,8 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_129:~((1#2)*(~((1#2)*(cs n+IntN 1)*e)+IntN 1)*e0)+(d0+i#4)==
-;;       (1#4)*(cs n*e*e0+j)+k
+;; ?^93:~((1#2)*(~((1#2)*(cs n+IntN 1)*e)+IntN 1)*e0)+(d0+i#4)==
+;;      (1#4)*(cs n*e*e0+j)+k
 (use "RatEqvTrans"
      (pt "(1#2)*(((1#2)*((cs n+IntN 1)* ~e)+IntN 1)* ~e0)+(1#4)*RatPlus d0 i"))
 (use "Truth")
@@ -817,7 +907,7 @@
 (simp "RatTimesIntNL")
 (simp (pf "~(RatTimes 1~e)=(e#1)"))
 (simp (pf "~(RatTimes 1~e0)=(e0#1)"))
-;; ?_138:(1#2)*((1#2)*(cs n* ~e+e)* ~e0+e0)+(1#4)*RatPlus d0 i==
+;; ?^102:(1#2)*((1#2)*(cs n* ~e+e)* ~e0+e0)+(1#4)*RatPlus d0 i==
 ;;       (1#4)*(cs n*e*e0+j)+k
 (use "RatEqvTrans"
      (pt "(1#2)*((1#2)*((cs n* ~e+e)* ~e0)+e0)+(1#4)*RatPlus d0 i"))
@@ -834,7 +924,7 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_154:cs n* ~e* ~e0+RatTimes e~e0+2*e0+RatPlus d0 i==cs n*e*e0+j+k*4
+;; ?^118:cs n* ~e* ~e0+RatTimes e~e0+2*e0+RatPlus d0 i==cs n*e*e0+j+k*4
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (simp (pf "RatTimes~e~e0=RatTimes e e0"))
@@ -843,19 +933,19 @@
 (simp (pf "cs n*RatTimes e e0+j+k*4=cs n*RatTimes e e0+(j+k*4)"))
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_164:RatTimes e~e0+2*e0+RatPlus d0 i==j+k*4
+;; ?^128:RatTimes e~e0+2*e0+RatPlus d0 i==j+k*4
 (simp "jDef")
 (simp "kDef")
 (simp (pf "J(e* ~e0+2*e0+d0+i)+K(e* ~e0+2*e0+d0+i)*4=
            K(e* ~e0+2*e0+d0+i)*4+J(e* ~e0+2*e0+d0+i)"))
 (simp "<-" "KJProp")
-;; ?_169:RatTimes e~e0+2*e0+RatPlus d0 i==e* ~e0+2*e0+d0+i
+;; ?^133:RatTimes e~e0+2*e0+RatPlus d0 i==e* ~e0+2*e0+d0+i
 (use "Truth")
 (use "IntPlusComm")
-;; ?_162:cs n*RatTimes e e0+j+k*4=cs n*RatTimes e e0+(j+k*4)
+;; ?^126:cs n*RatTimes e e0+j+k*4=cs n*RatTimes e e0+(j+k*4)
 (simp "<-" "RatPlusAssoc")
 (use "Truth")
-;; ?_160:cs n*RatTimes e e0+RatTimes e~e0+2*e0+RatPlus d0 i==
+;; ?^124:cs n*RatTimes e e0+RatTimes e~e0+2*e0+RatPlus d0 i==
 ;;       cs n*RatTimes e e0+(RatTimes e~e0+2*e0+RatPlus d0 i)
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
@@ -865,50 +955,174 @@
 (use "Truth")
 (use "Truth")
 (use "Truth")
-;; ?_144:(1#2)*(cs n* ~e* ~e0+RatTimes e~e0)+e0==
+;; ?^108:(1#2)*(cs n* ~e* ~e0+RatTimes e~e0)+e0==
 ;;       (1#2)*(cs n* ~e* ~e0+RatTimes e~e0)+(1#2)*(2*e0)
 (use "RatPlusCompat")
 (use "Truth")
 (use "IntTimesComm")
-;; ?_139:~ ~e0=e0
+;; ?^103:~(RatTimes 1~e0)=e0
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "JKLrzLrvLr")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (pp neterm)
 
 ;; [t,boole,boole0,boole1,ag]
-;;  IntToSdtwo(J(~(BooleToInt boole1*BooleToInt boole0)+
-;;             2*BooleToInt boole0+
-;;             BooleToInt boole+
-;;             SdtwoToInt t))pair 
-;;  IntToSd(K(~(BooleToInt boole1*BooleToInt boole0)+
-;;           2*BooleToInt boole0+
-;;           BooleToInt boole+
-;;           SdtwoToInt t))pair 
-;;           cCoGPsdTimes(cCoGPsdTimes ag boole1)boole0
+;;  cJKLrzLrvLrAuxJ boole1 boole0 boole t pair 
+;;  cJKLrzLrvLrAuxK boole1 boole0 boole t pair 
+;;  cCoGPsdTimes(cCoGPsdTimes ag boole1)boole0
+
+;; The same for JKLrzLrvU
+
+;; JKLrzLrvUAuxJ
+(set-goal "allnc e0,d0,i(Psd e0 -> Psd d0 -> Sdtwo i -> Sdtwo(J(2*e0+d0+i)))")
+(assume "e0" "d0" "i" "Psde0" "Psdd0" "Sdtwoi")
+(assert "exl boole1 PsdMR e0 boole1")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR d0 boole2")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdtwoMRElim"
+     (pt "IntToSdtwo(J(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
+(simp (pf "J(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=
+           J(2*e0+d0+i)"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^27:abs(J(2*e0+d0+i))<=2
+(use "JProp")
+(simp (pf "2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=2*e0+d0+i"))
+(use "Truth")
+;; ?^29:2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=2*e0+d0+i
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzLrvUAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,boole0,t]
+;; IntToSdtwo(J(2*BooleToInt boole+BooleToInt boole0+SdtwoToInt t))
+
+;; JKLrzLrvUAuxK
+(set-goal "allnc e0,d0,i(Psd e0 -> Psd d0 -> Sdtwo i -> Sd(K(2*e0+d0+i)))")
+(assume "e0" "d0" "i" "Psde0" "Psdd0" "Sdtwoi")
+(assert "exl boole1 PsdMR e0 boole1")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR d0 boole2")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp3")
+(by-assume "ExHyp3" "t" "tProp")
+(use "SdMRElim"
+     (pt "IntToSd(K(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
+(simp (pf "K(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=
+           K(2*e0+d0+i)"))
+(use "SdMRIntToSd")
+;; ?^27:abs(K(2*e0+d0+i))<=1
+(use "KProp")
+;; ?^28:abs(2*e0+d0+i)<=6
+(use "IntLeTrans" (pt "IntP 3+IntP 2"))
+(use "IntLeTrans" (pt "abs(2*e0+d0)+abs i"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(use "IntLeTrans" (pt "IntP 2+IntP 1"))
+(use "IntLeTrans" (pt "abs(2*e0)+abs d0"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(ng #t)
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psde0")
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psdd0")
+(use "Truth")
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "2*BooleToInt boole1+ BooleToInt boole2+SdtwoToInt t=2*e0+d0+i"))
+(use "Truth")
+;; ?^48:2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=2*e0+d0+i
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzLrvUAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,boole0,t]
+;;  IntToSd(K(2*BooleToInt boole+BooleToInt boole0+SdtwoToInt t))
 
 ;; JKLrzLrvU
-(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> CoG y --> allnc e0,z2(
- Psd e0 -> CoG z2 --> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc z3(
+(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> allnc e0,z2(
+ Psd e0 -> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc z3(
  CoH z3 -> z2===(1#2)*z3 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(d0+i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "d0" "y" "Sdtwoi" "Psdd0" "CoGy"
-	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
+(assume "i" "d0" "y" "Sdtwoi" "Psdd0"
+	"e0" "z2" "Psde0" "e0z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exnc j j=J(2*e0+d0+i)")
+(assert "exr j(j=J(2*e0+d0+i) andr Sdtwo j)")
 (intro 0 (pt "J(2*e0+d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzLrvUAuxJ")
+(use "Psde0")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exnc k k=K(2*e0+d0+i)")
+(assert "exr k(k=K(2*e0+d0+i) andr Sd k)")
 (intro 0 (pt "K(2*e0+d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzLrvUAuxK")
+(use "Psde0")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
 
@@ -916,7 +1130,7 @@
 (intro 0 (pt "k"))
 (intro 0 (pt "z3* ~e0"))
 
-(assert "exl boole BooleToInt boole=e0")
+(assert "exl boole0 BooleToInt boole0=e0")
 (use "PsdToBooleToIntValue")
 (use "Psde0")
 (assume "ExHype0")
@@ -936,76 +1150,34 @@
 
 (split)
 (simp "jDef")
-;; ?_43:Sdtwo(J(2*e0+d0+i))
-;; Replace the vars by cr vars
-(simp "<-" "boole1Prop")
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdtwoMRElim"
- (pt "IntToSdtwo(J(2*BooleToInt boole1+BooleToInt boole0+SdtwoToInt t))"))
-(simp (pf "J(2*BooleToInt boole1+BooleToInt boole0+
-             SdtwoToInt t)=J(2*e0+d0+i)"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_50:abs(J(2*e0+d0+i))<=2
-(use "JProp")
-(simp "boole1Prop")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
+;; ?_53:Sdtwo(J(2*e0+d0+i))
+(use "JKLrzLrvUAuxJ")
+(use "Psde0")
+(use "Psdd0")
+(use "Sdtwoi")
 
 (split)
 (simp "kDef")
-;; ?_56:Sd(K(2*e0+d0+i))
-(simp "<-" "boole1Prop")
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdMRElim"
- (pt "IntToSd(K(2*BooleToInt boole1+BooleToInt boole0+SdtwoToInt t))"))
-(simp (pf "K(2*BooleToInt boole1+BooleToInt boole0+
-             SdtwoToInt t)=K(2*e0+d0+i)"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_64:abs(2*e0+d0+i)<=6
-(use "IntLeTrans" (pt "IntP 3+IntP 2"))
-(use "IntLeTrans" (pt "abs(2*e0+d0)+abs i"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(use "IntLeTrans" (pt "IntP 2+IntP 1"))
-(use "IntLeTrans" (pt "abs(2*e0)+abs d0"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(ng #t)
-(simp (pf "abs e0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
+;; ?_59:Sd(K(2*e0+d0+i))
+(use "JKLrzLrvUAuxK")
 (use "Psde0")
-(simp (pf "abs d0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
 (use "Psdd0")
-(use "Truth")
-(use "SdtwoBound")
 (use "Sdtwoi")
-(use "Truth")
-(simp "boole1Prop")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
 
 (split)
+;; ?_63:CoG(z3* ~e0)
 (use "CoGPsdTimes")
 (use "CoHToCoG")
 (use "CoHz3")
 (use "PsdUMinus")
 (use "Psde0")
 
-;; ?_89:y+(d0+i#4)===(1#4)*(z3* ~e0+j)+k
+;; ?^64:y+(d0+i#4)===(1#4)*(z3* ~e0+j)+k
 (simpreal "e0z2Prop")
 (simpreal "z3Prop")
-;; ?_95:(1#2)*((1#2)*z3+IntN 1)* ~e0+(d0+i#4)===(1#4)*(z3* ~e0+j)+k
+;; ?^70:(1#2)*((1#2)*z3+IntN 1)* ~e0+(d0+i#4)===(1#4)*(z3* ~e0+j)+k
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (cases (pt "x1"))
 (assume "as" "M" "x1Def")
 (cases (pt "y"))
@@ -1015,14 +1187,14 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_107:~((1#2)*((1#2)*cs n+IntN 1)*e0)+(d0+i#4)==(1#4)*(~(cs n*e0)+j)+k
+;; ?^82:~((1#2)*((1#2)*cs n+IntN 1)*e0)+(d0+i#4)==(1#4)*(~(cs n*e0)+j)+k
 (use "RatEqvTrans"
  (pt "(1#2)*(((1#2)*cs n+IntN 1)* ~e0)+(1#4)*RatPlus d0 i"))
 (use "Truth")
 (simprat "RatTimesPlusDistrLeft")
 (simp "RatTimesIntNL")
 (simp (pf "~(RatTimes 1~e0)=(e0#1)"))
-;; ?_112:(1#2)*((1#2)*cs n* ~e0+e0)+(1#4)*RatPlus d0 i==(1#4)*(cs n* ~e0+j)+k
+;; ?^87:(1#2)*((1#2)*cs n* ~e0+e0)+(1#4)*RatPlus d0 i==(1#4)*(~(cs n*e0)+j)+k
 (simp (pf "(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)"))
 (simprat (pf "(1#2)*((1#2)*(cs n* ~e0)+e0)==
               (1#2)*((1#2)*(cs n* ~e0)+(1#2)*(2*e0))"))
@@ -1034,58 +1206,71 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_127:cs n* ~e0+2*e0+RatPlus d0 i==cs n* ~e0+j+k*4
+;; ?^102:cs n* ~e0+2*e0+RatPlus d0 i== ~(cs n*e0)+j+k*4
 (simp (pf "cs n* ~e0+2*e0+RatPlus d0 i=cs n* ~e0+(2*e0+RatPlus d0 i)"))
 (simp (pf "cs n* ~e0+j+k*4=cs n* ~e0+(j+k*4)"))
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_133:2*e0+RatPlus d0 i==j+k*4
+;; ?^108:2*e0+RatPlus d0 i==j+k*4
 (simp "jDef")
 (simp "kDef")
 (simp (pf "J(2*e0+d0+i)+K(2*e0+d0+i)*4=K(2*e0+d0+i)*4+J(2*e0+d0+i)"))
 (simp "<-" "KJProp")
-;; ?_138:2*e0+RatPlus d0 i==2*e0+d0+i
+;; ?^113:2*e0+RatPlus d0 i==2*e0+d0+i
 (use "Truth")
 (use "IntPlusComm")
-;; ?_131:cs n* ~e0+j+k*4=acs n* ~e0+(j+k*4)
+;; ?^106:cs n* ~e0+j+k*4=acs n* ~e0+(j+k*4)
 (simp "<-" "RatPlusAssoc")
 (use "Truth")
-;; ?_129:cs n* ~e0+2*e0+RatPlus d0 i=cs n* ~e0+(2*e0+RatPlus d0 i)
+;; ?^104:cs n* ~e0+2*e0+RatPlus d0 i=cs n* ~e0+(2*e0+RatPlus d0 i)
 (simp "<-" "RatPlusAssoc")
 (use "Truth")
 (use "Truth")
 (use "Truth")
-;; ?_117:(1#2)*((1#2)*(cs n* ~e0)+e0)==(1#2)*((1#2)*(cs n* ~e0)+(1#2)*(2*e0))
+;; ?^92:(1#2)*((1#2)*(cs n* ~e0)+e0)==(1#2)*((1#2)*(cs n* ~e0)+(1#2)*(2*e0))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_142:(1#2)*(cs n* ~e0)+e0==(1#2)*(cs n* ~e0)+(1#2)*(2*e0)
+;; ?^117:(1#2)*(cs n* ~e0)+e0==(1#2)*(cs n* ~e0)+(1#2)*(2*e0)
 (use "RatPlusCompat")
 (use "Truth")
 (use "IntTimesComm")
-;; ?_115:(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)
+;; ?^90:(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "JKLrzLrvU")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [t,boole,boole0,ah]
-;;  IntToSdtwo(J(2*BooleToInt boole0+
-;;             BooleToInt boole+
-;;             SdtwoToInt t))pair 
-;;  IntToSd(K(2*BooleToInt boole0+
-;;          BooleToInt boole+
-;;          SdtwoToInt t))pair 
+;;  cJKLrzLrvUAuxJ boole0 boole t pair 
+;;  cJKLrzLrvUAuxK boole0 boole t pair 
 ;;  cCoGPsdTimes(cCoHToCoG ah)(cPsdUMinus boole0)
 
+(animate "JKLrzLrvUAuxJ")
+(animate "JKLrzLrvUAuxK")
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [t,boole,boole0,ah]
+;;  IntToSdtwo(J(2*BooleToInt boole0+BooleToInt boole+SdtwoToInt t))pair 
+;;  IntToSd(K(2*BooleToInt boole0+BooleToInt boole+SdtwoToInt t))pair 
+;;  cCoGPsdTimes(cCoHToCoG ah)(cPsdUMinus boole0)
+
+(deanimate "JKLrzLrvUAuxJ")
+(deanimate "JKLrzLrvUAuxK")
+
+;; Next JKLrzLrv
+
 ;; JKLrzLrv
-(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> CoG y --> allnc e0,z2(
+(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> allnc e0,z2(
  Psd e0 -> CoG z2 -> y===(1#2)*(z2+IntN 1)* ~e0 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(d0+i#4)===(1#4)*(z+j)+d)))")
-(assume "i" "d0" "y" "Sdtwoi" "Psdd0" "CoGy"
+(assume "i" "d0" "y" "Sdtwoi" "Psdd0"
 	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop")
 (inst-with-to "CoGClosure" (pt "z2") "CoGz2" "z2Cases")
 (elim "z2Cases")
@@ -1096,11 +1281,9 @@
 (assume "ExHypz2")
 (by-assume "ExHypz2" "e" "eProp")
 (by-assume "eProp" "z3" "ez3Prop")
-
 (use-with "JKLrzLrvLr"
- (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0" "CoGy"
- (pt "e0") (pt "z2") "Psde0" "CoGz2" "e0z2Prop"
- (pt "e") (pt "z3") "?" "?" "?")
+ (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0"
+ (pt "e0") (pt "z2") "Psde0" "e0z2Prop" (pt "e") (pt "z3") "?" "?" "?")
 (use "ez3Prop")
 (use "ez3Prop")
 (use "ez3Prop")
@@ -1115,18 +1298,18 @@
 (by-assume "ExHypz2" "z3" "z3Prop")
 
 (use-with "JKLrzLrvU"
- (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0" "CoGy"
- (pt "e0") (pt "z2") "Psde0" "CoGz2" "e0z2Prop"
+ (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0"
+ (pt "e0") (pt "z2") "Psde0" "e0z2Prop"
  (pt "z3") "?" "?")
 (use "z3Prop")
 (use "z3Prop")
 ;; Proof finished.
-(save "JKLrzLrv")
 ;; (cdp)
+(save "JKLrzLrv")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [t,boole,boole0,ag]
 ;;  [case (cCoGClosure ag)
@@ -1135,20 +1318,26 @@
 
 (animate "CoGClosure")
 (animate "JKLrzLrvLr")
+(animate "JKLrzLrvLrAuxJ")
+(animate "JKLrzLrvLrAuxK")
 (animate "JKLrzLrvU")
+(animate "JKLrzLrvUAuxJ")
+(animate "JKLrzLrvUAuxK")
 
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [t,boole,boole0,ag]
 ;;  [case (DesYprod ag)
 ;;    (InL bg -> 
 ;;    IntToSdtwo
-;;    (J(~(BooleToInt clft bg*BooleToInt boole0)+2*BooleToInt boole0+
+;;    (J
+;;     (~(BooleToInt clft bg*BooleToInt boole0)+2*BooleToInt boole0+
 ;;      BooleToInt boole+
 ;;      SdtwoToInt t))pair 
 ;;    IntToSd
-;;    (K(~(BooleToInt clft bg*BooleToInt boole0)+2*BooleToInt boole0+
+;;    (K
+;;     (~(BooleToInt clft bg*BooleToInt boole0)+2*BooleToInt boole0+
 ;;      BooleToInt boole+
 ;;      SdtwoToInt t))pair 
 ;;    cCoGPsdTimes(cCoGPsdTimes crht bg clft bg)boole0)
@@ -1159,26 +1348,159 @@
 
 (deanimate "CoGClosure")
 (deanimate "JKLrzLrvLr")
+(deanimate "JKLrzLrvLrAuxJ")
+(deanimate "JKLrzLrvLrAuxK")
 (deanimate "JKLrzLrvU")
+(deanimate "JKLrzLrvUAuxJ")
+(deanimate "JKLrzLrvUAuxK")
+
+;; Next JKLrzUvFin
+
+;; JKLrzUvFinAuxJ
+(set-goal "allnc e,d0,i(Psd e -> Psd d0 -> Sdtwo i -> Sdtwo(J(e+d0+i)))")
+(assume "e" "d0" "i" "Psde" "Psdd0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR d0 boole2")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdtwoMRElim"
+     (pt "IntToSdtwo(J(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
+(simp (pf "J(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=J(e+d0+i)"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^27:abs(J(e+d0+i))<=2
+(use "JProp")
+(simp (pf "BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=e+d0+i"))
+(use "Truth")
+;; ?^29:BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=e+d0+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzUvFinAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,boole0,t]
+;;  IntToSdtwo(J(BooleToInt boole+BooleToInt boole0+SdtwoToInt t))
+
+;; JKLrzUvFinAuxK
+(set-goal "allnc e,d0,i(Psd e -> Psd d0 -> Sdtwo i -> Sd(K(e+d0+i)))")
+(assume "e" "d0" "i" "Psde" "Psdd0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR d0 boole2")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdMRElim"
+     (pt "IntToSd(K(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
+(simp (pf "K(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=K(e+d0+i)"))
+(use "SdMRIntToSd")
+;; ?^27:abs(K(e+d0+i))<=1
+(use "KProp")
+(use "IntLeTrans" (pt "IntP 2+IntP 2"))
+(use "IntLeTrans" (pt "abs(e+d0)+abs i"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(use "IntLeTrans" (pt "IntP 1+IntP 1"))
+(use "IntLeTrans" (pt "abs e+abs d0"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psde")
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psdd0")
+(use "Truth")
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "BooleToInt boole1+ BooleToInt boole2+SdtwoToInt t=e+d0+i"))
+(use "Truth")
+;; ?^47:BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=e+d0+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzUvFinAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [boole,boole0,t]IntToSd(K(BooleToInt boole+BooleToInt boole0+SdtwoToInt t))
 
 ;; JKLrzUvFin
-(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> CoG y --> allnc z2(
+(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> allnc z2(
  CoH z2 --> y===(1#2)*z2 -> allnc e,z3(
  Psd e -> CoG z3 -> z2===(1#2)*(z3+1)*e ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(d0+i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "d0" "y" "Sdtwoi" "Psdd0" "CoGy"
+(assume "i" "d0" "y" "Sdtwoi" "Psdd0"
 	"z2" "CoHz2" "z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exnc j j=J(e+d0+i)")
+;; (assert "exnc j j=J(e+d0+i)")
+(assert "exr j(j=J(e+d0+i) andr Sdtwo j)")
 (intro 0 (pt "J(e+d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzUvFinAuxJ")
+(use "Psde")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exnc k k=K(e+d0+i)")
+;; (assert "exnc k k=K(e+d0+i)")
+(assert "exr k(k=K(e+d0+i) andr Sd k)")
 (intro 0 (pt "K(e+d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzUvFinAuxK")
+(use "Psde")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
 
@@ -1205,73 +1527,22 @@
 (by-assume "ExHypi" "t" "tProp")
 
 (split)
-(simp "jDef")
-;; Replace the vars by cr vars
-(simp "<-" "booleProp")
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdtwoMRElim"
- (pt "IntToSdtwo(J(BooleToInt boole+BooleToInt boole0+SdtwoToInt t))"))
-(simp (pf "J(BooleToInt boole+BooleToInt boole0+SdtwoToInt t)=
-           J(e+d0+i)"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_50:abs(J(e+d0+i))<=2
-(use "JProp")
-(simp "booleProp")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
+(use "jDef")
 
 (split)
-(simp "kDef")
-;; ?_56:Sd(K(e+d0+i))
-(simp "<-" "booleProp")
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdMRElim"
- (pt "IntToSd(K(BooleToInt boole+BooleToInt boole0+SdtwoToInt t))"))
-(simp (pf "K(BooleToInt boole+BooleToInt boole0+
-             SdtwoToInt t)=K(e+d0+i)"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_64:abs(e+d0+i)<=6
-(use "IntLeTrans" (pt "IntP 2+IntP 2"))
-(use "IntLeTrans" (pt "abs(e+d0)+abs i"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(use "IntLeTrans" (pt "IntP 1+IntP 1"))
-(use "IntLeTrans" (pt "abs e+abs d0"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(simp (pf "abs e=1"))
-(use "Truth")
-(use "PsdToAbsOne")
-(use "Psde")
-(simp (pf "abs d0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
-(use "Psdd0")
-(use "Truth")
-(use "SdtwoBound")
-(use "Sdtwoi")
-(use "Truth")
-(simp "booleProp")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
+(use "kDef")
 
 (split)
 (use "CoGPsdTimes")
 (use "CoGz3")
 (use "Psde")
 
-;; ?_88:y+(d0+i#4)===(1#4)*(z3*e+j)+k
+;; ?^56:y+(d0+i#4)===(1#4)*(z3*e+j)+k
 (simpreal "z2Prop")
 (simpreal "ez3Prop")
-;; ?_92:(1#2)*((1#2)*(z3+1)*e)+(d0+i#4)===(1#4)*(z3*e+j)+k
+;; ?^60:(1#2)*((1#2)*(z3+1)*e)+(d0+i#4)===(1#4)*(z3*e+j)+k
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (cases (pt "x1"))
 (assume "as" "M" "x1Def")
 (cases (pt "y"))
@@ -1281,10 +1552,10 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_104:(1#4)*(cs n+1)*e+(d0+i#4)==(1#4)*(cs n*e+j)+k
+;; ?^72:(1#4)*(cs n+1)*e+(d0+i#4)==(1#4)*(cs n*e+j)+k
 (use "RatEqvTrans" (pt "(1#4)*(cs n+1)*e+(1#4)*RatPlus d0 i"))
 (use "Truth")
-;; ?_106:(1#4)*(cs n+1)*e+(1#4)*RatPlus d0 i==(1#4)*(cs n*e+j)+k
+;; ?^74:(1#4)*(cs n+1)*e+(1#4)*RatPlus d0 i==(1#4)*(cs n*e+j)+k
 (simp (pf "(1#4)*(cs n+1)*e=(1#4)*((cs n+1)*e)"))
 (simprat "RatTimesPlusDistrLeft")
 (simprat (pf "k==(1#4)*(k*4)"))
@@ -1292,51 +1563,165 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_115:cs n*e+RatTimes 1 e+RatPlus d0 i==cs n*e+j+k*4
+;; ?^83:cs n*e+RatTimes 1 e+RatPlus d0 i==cs n*e+j+k*4
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_119:RatTimes 1 e+RatPlus d0 i==RatPlus j(k*4)
+;; ?^87:RatTimes 1 e+RatPlus d0 i==RatPlus j(k*4)
 (simp "jDef")
 (simp "kDef")
 (simp (pf "RatPlus(J(e+d0+i))(K(e+d0+i)*4)=K(e+d0+i)*4+J(e+d0+i)"))
 (simp "<-" "KJProp")
-;; ?_124:RatTimes 1 e+RatPlus d0 i==e+d0+i
+;; ?^92:RatTimes 1 e+RatPlus d0 i==e+d0+i
 (use "Truth")
 (use "IntPlusComm")
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "JKLrzUvFin")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
+
+;; [t,boole,boole0,ag]
+;;  cJKLrzUvFinAuxJ boole0 boole t pair 
+;;  cJKLrzUvFinAuxK boole0 boole t pair cCoGPsdTimes ag boole0
+
+(animate "JKLrzUvFinAuxJ")
+(animate "JKLrzUvFinAuxK")
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
 
 ;; [t,boole,boole0,ag]
 ;;  IntToSdtwo(J(BooleToInt boole0+BooleToInt boole+SdtwoToInt t))pair 
 ;;  IntToSd(K(BooleToInt boole0+BooleToInt boole+SdtwoToInt t))pair 
 ;;  cCoGPsdTimes ag boole0
 
+(deanimate "JKLrzUvFinAuxJ")
+(deanimate "JKLrzUvFinAuxK")
+
+;; Next JKLrzUvD
+
+;; JKLrzUvDAuxJ
+(set-goal "allnc d0,i(Psd d0 -> Sdtwo i -> Sdtwo(J(d0+i)))")
+(assume "d0" "i" "Psdd0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR d0 boole1")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "t" "tProp")
+
+(use "SdtwoMRElim"
+     (pt "IntToSdtwo(J(BooleToInt boole1+SdtwoToInt t))"))
+(simp (pf "J(BooleToInt boole1+SdtwoToInt t)=J(d0+i)"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^20:abs(J(d0+i))<=2
+(use "JProp")
+(simp (pf "BooleToInt boole1+SdtwoToInt t=d0+i"))
+(use "Truth")
+;; ?^22:BooleToInt boole1+SdtwoToInt t=d0+i
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzUvDAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,t]IntToSdtwo(J(BooleToInt boole+SdtwoToInt t))
+
+;; JKLrzUvDAuxK
+(set-goal "allnc d0,i(Psd d0 -> Sdtwo i -> Sd(K(d0+i)))")
+(assume "d0" "i" "Psdd0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR d0 boole1")
+(use "PsdMRIntro")
+(use "Psdd0")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "t" "tProp")
+
+(use "SdMRElim" (pt "IntToSd(K(BooleToInt boole1+SdtwoToInt t))"))
+(simp (pf "K(BooleToInt boole1+SdtwoToInt t)=K(d0+i)"))
+(use "SdMRIntToSd")
+;; ?^20:abs(K(d0+i))<=1
+(use "KProp")
+(use "IntLeTrans" (pt "IntP 1+IntP 2"))
+(use "IntLeTrans" (pt "abs d0+abs i"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psdd0")
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "BooleToInt boole1+SdtwoToInt t=d0+i"))
+(use "Truth")
+;; ?^32:BooleToInt boole1+SdtwoToInt t=d0+i
+(inst-with-to "PsdMRId" (pt "d0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKLrzUvDAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,t]IntToSd(K(BooleToInt boole+SdtwoToInt t))
+
 ;; JKLrzUvD
-(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> CoG y --> allnc z2(
- CoH z2 --> y===(1#2)*z2 -> allnc z3(
- CoH z3 -> z2===(1#2)*z3 ->
+(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> allnc z2(
+ y===(1#2)*z2 -> allnc z3(CoH z3 -> z2===(1#2)*z3 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(d0+i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "d0" "y" "Sdtwoi" "Psdd0" "CoGy"
-	"z2" "CoHz2" "z2Prop"
+(assume "i" "d0" "y" "Sdtwoi" "Psdd0"
+	"z2" "z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exnc j j=J(d0+i)")
+;; (assert "exnc j j=J(d0+i)")
+(assert "exr j(j=J(d0+i) andr Sdtwo j)")
 (intro 0 (pt "J(d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzUvDAuxJ")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exnc k k=K(d0+i)")
+;; (assert "exnc k k=K(d0+i)")
+(assert "exr k(k=K(d0+i) andr Sd k)")
 (intro 0 (pt "K(d0+i)"))
+(split)
 (use "Truth")
+(use "JKLrzUvDAuxK")
+(use "Psdd0")
+(use "Sdtwoi")
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
 
@@ -1357,63 +1742,27 @@
 (by-assume "ExHypi" "t" "tProp")
 
 (split)
-(simp "jDef")
-;; ?_36:Sdtwo(J(d0+i))
-;; Replace vars by cr vars
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdtwoMRElim"
- (pt "IntToSdtwo(J(BooleToInt boole0+SdtwoToInt t))"))
-(simp (pf "J(BooleToInt boole0+SdtwoToInt t)=J(d0+i)"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_42:abs(J(d0+i))<=2
-(use "JProp")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
+(use "jDef")
 
 (split)
-(simp "kDef")
-;; ?_47:Sd(K(d0+i))
-(simp "<-" "boole0Prop")
-(simp "<-" "tProp")
-(use "SdMRElim" (pt "IntToSd(K(BooleToInt boole0+SdtwoToInt t))"))
-(simp (pf "K(BooleToInt boole0+SdtwoToInt t)=K(d0+i)"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_54:abs(d0+i)<=6
-(use "IntLeTrans" (pt "IntP 1+IntP 2"))
-(use "IntLeTrans" (pt "abs d0+abs i"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(simp (pf "abs d0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
-(use "Psdd0")
-(use "SdtwoBound")
-(use "Sdtwoi")
-(use "Truth")
-(simp "boole0Prop")
-(simp "tProp")
-(use "Truth")
+(use "kDef")
 
 (split)
 (use "CoHToCoG")
 (use "CoHz3")
 
-;; ?_68:y+(d0+i#4)===(1#4)*(z3+j)+k
+;; ?^47:y+(d0+i#4)===(1#4)*(z3+j)+k
 (simpreal "z2Prop")
 (simpreal "z3Prop")
-;; ?_71:(1#2)*((1#2)*z3)+(d0+i#4)===(1#4)*(z3+j)+k
+;; ?^50:(1#2)*((1#2)*z3)+(d0+i#4)===(1#4)*(z3+j)+k
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (cases (pt "z3"))
 (assume "cs" "L" "z3Def")
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_79:(1#4)*cs n+(d0+i#4)==(1#4)*(cs n+j)+k
+;; ?^58:(1#4)*cs n+(d0+i#4)==(1#4)*(cs n+j)+k
 (use "RatEqvTrans" (pt "(1#4)*cs n+(1#4)*RatPlus d0 i"))
 (use "Truth")
 (simprat "<-" "RatTimesPlusDistr")
@@ -1421,12 +1770,12 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_87:cs n+RatPlus d0 i==cs n+j+k*4
+;; ?^66:cs n+RatPlus d0 i==cs n+j+k*4
 (simp "<-" "RatPlusAssoc")
 (use "RatPlusCompat")
 (use "Truth")
 (ng #t)
-;; ?_91:d0+i=j+k*4
+;; ?^70:d0+i=j+k*4
 (simp "jDef")
 (simp "kDef")
 (simp (pf "J(d0+i)+K(d0+i)*4=K(d0+i)*4+J(d0+i)"))
@@ -1434,23 +1783,36 @@
 (use "IntPlusComm")
 (use "Truth")
 ;; Proof finished.
-(save "JKLrzUvD")
 ;; (cdp)
+(save "JKLrzUvD")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
+
+;; [t,boole,ah]
+;;  cJKLrzUvDAuxJ boole t pair cJKLrzUvDAuxK boole t pair cCoHToCoG ah
+
+(animate "JKLrzUvDAuxJ")
+(animate "JKLrzUvDAuxK")
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
 
 ;; [t,boole,ah]
 ;;  IntToSdtwo(J(BooleToInt boole+SdtwoToInt t))pair 
 ;;  IntToSd(K(BooleToInt boole+SdtwoToInt t))pair cCoHToCoG ah
 
+(deanimate "JKLrzUvDAuxJ")
+(deanimate "JKLrzUvDAuxK")
+
+;; Next JKLrzUv
+
 ;; JKLrzUv
-(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> CoG y --> allnc z2(
+(set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> allnc z2(
  CoH z2 -> y===(1#2)*z2 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(d0+i#4)===(1#4)*(z+j)+d)))")
-(assume "i" "d0" "y" "Sdtwoi" "Psdd0" "CoGy"
-	"z2" "CoHz2" "z2Prop")
+(assume "i" "d0" "y" "Sdtwoi" "Psdd0" "z2" "CoHz2" "z2Prop")
 (inst-with-to "CoHClosure" (pt "z2") "CoHz2" "z2Cases")
 (elim "z2Cases")
 ;; 5,6
@@ -1462,7 +1824,7 @@
 (by-assume "eProp" "z3" "ez3Prop")
 
 (use-with "JKLrzUvFin"
- (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0" "CoGy"
+ (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0"
  (pt "z2") "CoHz2" "z2Prop"
  (pt "e") (pt "z3") "?" "?" "?")
 (use "ez3Prop")
@@ -1479,18 +1841,18 @@
 (by-assume "ExHypz2" "z3" "z3Prop")
 
 (use-with "JKLrzUvD"
- (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0" "CoGy"
- (pt "z2") "CoHz2" "z2Prop"
+ (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0"
+ (pt "z2") "z2Prop"
  (pt "z3") "?" "?")
 (use "z3Prop")
 (use "z3Prop")
 ;; Proof finished.
-(save "JKLrzUv")
 ;; (cdp)
+(save "JKLrzUv")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [t,boole,ah]
 ;;  [case (cCoHClosure ah)
@@ -1499,10 +1861,12 @@
 
 (animate "CoHClosure")
 (animate "JKLrzUvFin")
+(animate "JKLrzUvFinAuxJ")
+(animate "JKLrzUvFinAuxK")
 (animate "JKLrzUvD")
 
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [t,boole,ah]
 ;;  [case (DesYprod ah)
@@ -1516,7 +1880,11 @@
 
 (deanimate "CoHClosure")
 (deanimate "JKLrzUvFin")
+(deanimate "JKLrzUvFinAuxJ")
+(deanimate "JKLrzUvFinAuxK")
 (deanimate "JKLrzUvD")
+
+;; Next JKLrz
 
 ;; JKLrz
 (set-goal "allnc i,d0,y(Sdtwo i -> Psd d0 -> CoG y ->
@@ -1534,7 +1902,7 @@
 
 ;; (pp "JKLrzLrv")
 (use-with "JKLrzLrv"
- (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0" "CoGy"
+ (pt "i") (pt "d0") (pt "y") "Sdtwoi" "Psdd0"
  (pt "e0") (pt "z2") "?" "?" "?")
 (use "e0z2Prop")
 (use "e0z2Prop")
@@ -1553,15 +1921,15 @@
 (use "JKLrzUv" (pt "z2"))
 (use "Sdtwoi")
 (use "Psdd0")
-(use "CoGy")
 (use "z2Prop")
 (use "z2Prop")
 ;; Proof finished.
+;; (cdp)
 (save "JKLrz")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [t,boole,ag]
 ;;  [case (cCoGClosure ag)
@@ -1571,9 +1939,15 @@
 (animate "CoGClosure")
 (animate "CoHClosure")
 (animate "JKLrzLrvLr")
+(animate "JKLrzLrvLrAuxJ")
+(animate "JKLrzLrvLrAuxK")
 (animate "JKLrzLrvU")
+(animate "JKLrzLrvUAuxJ")
+(animate "JKLrzLrvUAuxK")
 (animate "JKLrzLrv")
 (animate "JKLrzUvFin")
+(animate "JKLrzUvFinAuxJ")
+(animate "JKLrzUvFinAuxK")
 (animate "JKLrzUvD")
 (animate "JKLrzUv")
 
@@ -1613,32 +1987,185 @@
 (deanimate "CoGClosure")
 (deanimate "CoHClosure")
 (deanimate "JKLrzLrvLr")
+(deanimate "JKLrzLrvLrAuxJ")
+(deanimate "JKLrzLrvLrAuxK")
 (deanimate "JKLrzLrvU")
+(deanimate "JKLrzLrvUAuxJ")
+(deanimate "JKLrzLrvUAuxK")
 (deanimate "JKLrzLrv")
 (deanimate "JKLrzUvFin")
+(deanimate "JKLrzUvFinAuxJ")
+(deanimate "JKLrzUvFinAuxK")
 (deanimate "JKLrzUvD")
 (deanimate "JKLrzUv")
 
+;; Next JKUzLrvLr
+
+;; JKUzLrvLrAuxJ
+(set-goal "allnc e,e0,i(
+ Psd e -> Psd e0 -> Sdtwo i -> Sdtwo(J(e* ~e0+2*e0+i)))")
+(assume "e" "e0" "i" "Psde" "Psde0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR e0 boole2")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdtwoMRElim"
+     (pt "IntToSdtwo(J(BooleToInt boole1* ~(BooleToInt boole2)+
+                     2*BooleToInt boole2+SdtwoToInt t))"))
+(simp (pf "J(BooleToInt boole1* ~(BooleToInt boole2)+
+             2*BooleToInt boole2+SdtwoToInt t)=
+           J(e* ~e0+2*e0+i)"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^27:abs(J(e* ~e0+2*e0+i))<=2
+(use "JProp")
+(simp (pf "BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+           SdtwoToInt t=e* ~e0+2*e0+i"))
+(use "Truth")
+;; ?^29:BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+;;      SdtwoToInt t=
+;;      e* ~e0+2*e0+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzLrvLrAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,boole0,t]
+;;  IntToSdtwo
+;;  (J(~(BooleToInt boole*BooleToInt boole0)+2*BooleToInt boole0+SdtwoToInt t))
+
+;; JKUzLrvLrAuxK
+(set-goal "allnc e,e0,i(
+ Psd e -> Psd e0 -> Sdtwo i -> Sd(K(e* ~e0+2*e0+i)))")
+(assume "e" "e0" "i" "Psde" "Psde0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl boole2 PsdMR e0 boole2")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "boole2" "boole2Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdMRElim"
+     (pt "IntToSd(K(BooleToInt boole1* ~(BooleToInt boole2)+
+                     2*BooleToInt boole2+SdtwoToInt t))"))
+(simp (pf "K(BooleToInt boole1* ~(BooleToInt boole2)+
+             2*BooleToInt boole2+SdtwoToInt t)=
+           K(e* ~e0+2*e0+i)"))
+(use "SdMRIntToSd")
+;; ?^27:abs(K(e* ~e0+2*e0+i))<=1
+(use "KProp")
+(use "IntLeTrans" (pt "IntP 3+IntP 2"))
+(use "IntLeTrans" (pt "abs(e* ~e0+2*e0)+abs i"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(use "IntLeTrans" (pt "IntP 1+IntP 2"))
+(use "IntLeTrans" (pt "abs(e* ~e0)+abs(2*e0)"))
+(use "IntLeAbsPlus")
+(ng #t)
+(simp "PsdToAbsOne")
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psde0")
+(use "Psde")
+(use "Truth")
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+      SdtwoToInt t=e* ~e0+2*e0+i"))
+(use "Truth")
+;; ?^46:BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
+;;      SdtwoToInt t=
+;;      e* ~e0+2*e0+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "PsdMRIdInst2")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzLrvLrAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,boole0,t]
+;;  IntToSd
+;;  (K(~(BooleToInt boole*BooleToInt boole0)+2*BooleToInt boole0+SdtwoToInt t))
+
 ;; JKUzLrvLr
-(set-goal "allnc i,y(Sdtwo i -> CoG y --> allnc e0,z2(
- Psd e0 -> CoG z2 --> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc e,z3(
+(set-goal "allnc i,y(Sdtwo i -> allnc e0,z2(
+ Psd e0 -> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc e,z3(
  Psd e -> CoG z3 -> z2===(1#2)*(z3+IntN 1)* ~e ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "y" "Sdtwoi" "CoGy"
-	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
+(assume "i" "y" "Sdtwoi"
+	"e0" "z2" "Psde0" "e0z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exnc j j=J(e* ~e0+2*e0+i)")
+;; (assert "exnc j j=J(e* ~e0+2*e0+i)")
+(assert "exr j(j=J(e* ~e0+2*e0+i) andr Sdtwo j)")
 (intro 0 (pt "J(e* ~e0+2*e0+i)"))
+(split)
 (use "Truth")
-(assume "ExHypj")
-(by-assume "ExHypj" "j" "jDef")
+(use "JKUzLrvLrAuxJ")
+(use "Psde")
+(use "Psde0")
+(use "Sdtwoi")
 
-(assert "exnc k k=K(e* ~e0+2*e0+i)")
+;; (assert "exnc k k=K(e* ~e0+2*e0+i)")
+(assert "exr k(k=K(e* ~e0+2*e0+i) andr Sd k)")
 (intro 0 (pt "K(e* ~e0+2*e0+i)"))
+(split)
 (use "Truth")
+(use "JKUzLrvLrAuxK")
+(use "Psde")
+(use "Psde0")
+(use "Sdtwoi")
+
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
+
+(assume "ExHypj")
+(by-assume "ExHypj" "j" "jDef")
 
 (intro 0 (pt "j"))
 (intro 0 (pt "k"))
@@ -1663,67 +2190,10 @@
 (by-assume "ExHypi" "t" "tProp")
 
 (split)
-(simp "jDef")
-;; ?_43:Sdtwo(J(e* ~e0+2*e0+i))
-;; Replace the (nc) vars by cr vars
-
-(simp "<-" "booleProp")
-(simp "<-" "boole1Prop")
-(simp "<-" "tProp")
-(use "SdtwoMRElim"
- (pt "IntToSdtwo(J(BooleToInt boole* ~(BooleToInt boole1)+
-                   2*BooleToInt boole1+SdtwoToInt t))"))
-(simp (pf "J(BooleToInt boole* ~(BooleToInt boole1)+
-             2*BooleToInt boole1+SdtwoToInt t)=J(e* ~e0+2*e0+i)"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_50:abs(J(e* ~e0+2*e0+i))<=2
-(use "JProp")
-(simp "booleProp")
-(simp "boole1Prop")
-(simp "tProp")
-(use "Truth")
+(use "jDef")
 
 (split)
-(simp "kDef")
-;; ?_56:Sd(K(e* ~e0+2*e0+i))
-(simp "<-" "booleProp")
-(simp "<-" "boole1Prop")
-(simp "<-" "tProp")
-(use "SdMRElim"
- (pt "IntToSd(K(BooleToInt boole* ~(BooleToInt boole1)+
-                   2*BooleToInt boole1+SdtwoToInt t))"))
-(simp (pf "K(BooleToInt boole* ~(BooleToInt boole1) +
-             2*BooleToInt boole1+SdtwoToInt t)=K(e* ~e0+2*e0+i)"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_64:abs(e* ~e0+2*e0+i)<=6
-(use "IntLeTrans" (pt "IntP 3+IntP 2"))
-(use "IntLeTrans" (pt "abs(e* ~e0+2*e0)+abs i"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(use "IntLeTrans" (pt "IntP 1+IntP 2"))
-(use "IntLeTrans" (pt "abs(e* ~e0)+abs(2*e0)"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(simp "PsdToAbsOne")
-(use "Truth")
-(use "IntTimesPsdToPsd")
-(use "Psde")
-(use "PsdUMinus")
-(use "Psde0")
-(ng #t)
-(simp (pf "abs e0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
-(use "Psde0")
-(use "Truth")
-(use "SdtwoBound")
-(use "Sdtwoi")
-(use "Truth")
-(simp "boole1Prop")
-(simp "booleProp")
-(simp "tProp")
-(use "Truth")
+(use "kDef")
 
 (split)
 (use "CoGPsdTimes")
@@ -1732,14 +2202,13 @@
 (use "Psde")
 (use "Psde0")
 
-;; ?_91:y+(i#4)===(1#4)*(z3*e*e0+j)+k
+;; ?^56:y+(i#4)===(1#4)*(z3*e*e0+j)+k
 (simpreal "e0z2Prop")
 (simpreal "ez3Prop")
 
-;; ?_97:(1#2)*((1#2)*(z3+IntN 1)* ~e+IntN 1)* ~e0+(i#4)===(1#4)*(z3*e*e0+j)+k
+;; ?^62:(1#2)*((1#2)*(z3+IntN 1)* ~e+IntN 1)* ~e0+(i#4)===(1#4)*(z3*e*e0+j)+k
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (cases (pt "x1"))
 (assume "as" "M" "x1Def")
 (cases (pt "y"))
@@ -1749,8 +2218,8 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_109:(1#2)*((1#2)*(cs n+IntN 1)* ~e+IntN 1)* ~e0+(i#4)==
-;;       (1#4)*(cs n*e*e0+j)+k
+;; ?^74:(1#2)*((1#2)*(cs n+IntN 1)* ~e+IntN 1)* ~e0+(i#4)==
+;;      (1#4)*(cs n*e*e0+j)+k
 (use "RatEqvTrans"
  (pt "(1#2)*(((1#2)*((cs n+IntN 1)* ~e)+IntN 1)* ~e0)+(i#4)"))
 (use "Truth")
@@ -1760,7 +2229,7 @@
 (simp "RatTimesIntNL")
 (simp (pf "~(RatTimes 1~e)=(e#1)"))
 (simp (pf "~(RatTimes 1~e0)=(e0#1)"))
-;; ?_118:(1#2)*((1#2)*(cs n* ~e+e)* ~e0+e0)+(i#4)==(1#4)*(cs n*e*e0+j)+k
+;; ?^83:(1#2)*((1#2)*(cs n* ~e+e)* ~e0+e0)+(i#4)==(1#4)*(cs n*e*e0+j)+k
 (use "RatEqvTrans" (pt "(1#2)*((1#2)*((cs n* ~e+e)* ~e0)+e0)+(i#4)"))
 (use "Truth")
 (simprat "RatTimesPlusDistrLeft")
@@ -1776,7 +2245,7 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_136:cs n* ~e* ~e0+RatTimes e~e0+2*e0+i==cs n*e*e0+j+k*4
+;; ?^101:cs n* ~e* ~e0+RatTimes e~e0+2*e0+i==cs n*e*e0+j+k*4
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (simp (pf "RatTimes~e~e0=RatTimes e e0"))
@@ -1785,19 +2254,19 @@
 (simp (pf "cs n*RatTimes e e0+j+k*4=cs n*RatTimes e e0+(j+k*4)"))
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_146:RatTimes e~e0+2*e0+i==j+k*4
+;; ?^111:RatTimes e~e0+2*e0+i==j+k*4
 (simp "jDef")
 (simp "kDef")
 (simp (pf "J(e* ~e0+2*e0+i)+K(e* ~e0+2*e0+i)*4=
            K(e* ~e0+2*e0+i)*4+J(e* ~e0+2*e0+i)"))
 (simp "<-" "KJProp")
-;; ?_151:RatTimes e~e0+2*e0+i==e* ~e0+2*e0+i
+;; ?_116:RatTimes e~e0+2*e0+i==e* ~e0+2*e0+i
 (use "Truth")
 (use "IntPlusComm")
-;; ?_144:cs n*RatTimes e e0+j+k*4=cs n*RatTimes e e0+(j+k*4)
+;; ?^109:cs n*RatTimes e e0+j+k*4=cs n*RatTimes e e0+(j+k*4)
 (simp "<-" "RatPlusAssoc")
 (use "Truth")
-;; ?_142:cs n*RatTimes e e0+RatTimes e~e0+2*e0+i==
+;; ?^107:cs n*RatTimes e e0+RatTimes e~e0+2*e0+i==
 ;;       cs n*RatTimes e e0+(RatTimes e~e0+2*e0+i)
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
@@ -1808,47 +2277,156 @@
 (use "Truth")
 (use "Truth")
 (use "Truth")
-;; ?_124:(1#2)*(cs n* ~e* ~e0+RatTimes e~e0)+e0==
-;;       (1#2)*(cs n* ~e* ~e0+RatTimes e~e0)+(1#2)*(2*e0)
+;; ?^89:(1#2)*(cs n* ~e* ~e0+RatTimes e~e0)+e0==
+;;      (1#2)*(cs n* ~e* ~e0+RatTimes e~e0)+(1#2)*(2*e0)
 (use "RatPlusCompat")
 (use "Truth")
 (use "IntTimesComm")
-;; ?_119:~ ~e0=e0
+;; ?^84:~(RatTimes 1~e0)=e0
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
-(save "JKUzLrvLr")
 ;; (cdp)
+(save "JKUzLrvLr")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
+
+(animate "JKUzLrvLrAuxJ")
+(animate "JKUzLrvLrAuxK")
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
 
 ;; [t,boole,boole0,ag]
-;;  IntToSdtwo(J(~(BooleToInt boole0*BooleToInt boole)+
-;;               2*BooleToInt boole+SdtwoToInt t))pair 
-;;  IntToSd(K(~(BooleToInt boole0*BooleToInt boole)+
-;;            2*BooleToInt boole+SdtwoToInt t))pair 
+;;  IntToSdtwo
+;;  (J(~(BooleToInt boole0*BooleToInt boole)+2*BooleToInt boole+SdtwoToInt t))pair 
+;;  IntToSd
+;;  (K(~(BooleToInt boole0*BooleToInt boole)+2*BooleToInt boole+SdtwoToInt t))pair 
 ;;  cCoGPsdTimes(cCoGPsdTimes ag boole0)boole
 
+(deanimate "JKUzLrvLrAuxJ")
+(deanimate "JKUzLrvLrAuxK")
+
+;; Next JKUzLrvU
+
+;; JKUzLrvUAuxJ
+(set-goal "allnc e0,i(Psd e0 -> Sdtwo i -> Sdtwo(J(2*e0+i)))")
+(assume "e0" "i" "Psde0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e0 boole1")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdtwoMRElim" (pt "IntToSdtwo(J(2*BooleToInt boole1+SdtwoToInt t))"))
+(simp (pf "J(2*BooleToInt boole1+SdtwoToInt t)=J(2*e0+i)"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^20:abs(J(2*e0+i))<=2
+(use "JProp")
+(simp (pf "2*BooleToInt boole1+SdtwoToInt t=2*e0+i"))
+(use "Truth")
+;; ?^22:2*BooleToInt boole1+SdtwoToInt t=2*e0+i
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzLrvUAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,t]IntToSdtwo(J(2*BooleToInt boole+SdtwoToInt t))
+
+;; JKUzLrvUAuxK
+(set-goal "allnc e0,i(Psd e0 -> Sdtwo i -> Sd(K(2*e0+i)))")
+(assume "e0" "i" "Psde0" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e0 boole1")
+(use "PsdMRIntro")
+(use "Psde0")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp3")
+(by-assume "ExHyp3" "t" "tProp")
+(use "SdMRElim" (pt "IntToSd(K(2*BooleToInt boole1+SdtwoToInt t))"))
+(simp (pf "K(2*BooleToInt boole1+SdtwoToInt t)=K(2*e0+i)"))
+(use "SdMRIntToSd")
+;; ?^20:abs(K(2*e0+i))<=1
+(use "KProp")
+;; ?^21:abs(2*e0+i)<=6
+(use "IntLeTrans" (pt "IntP 2+IntP 2"))
+(use "IntLeTrans" (pt "abs(2*e0)+abs i"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(ng #t)
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psde0")
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "2*BooleToInt boole1+SdtwoToInt t=2*e0+i"))
+(use "Truth")
+;; ?^33:2*BooleToInt boole1+SdtwoToInt t=2*e0+i
+(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzLrvUAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,t]IntToSd(K(2*BooleToInt boole+SdtwoToInt t))
+
 ;; JKUzLrvU
-(set-goal "allnc i,y(Sdtwo i -> CoG y --> allnc e0,z2(
- Psd e0 -> CoG z2 --> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc z3(
+(set-goal "allnc i,y(Sdtwo i -> allnc e0,z2(
+ Psd e0 -> y===(1#2)*(z2+IntN 1)* ~e0 -> allnc z3(
  CoH z3 -> z2===(1#2)*z3 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "y" "Sdtwoi" "CoGy"
-	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop"
+(assume "i" "y" "Sdtwoi"
+	"e0" "z2" "Psde0" "e0z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exnc j j=J(2*e0+i)")
+;; (assert "exnc j j=J(2*e0+i)")
+(assert "exr j(j=J(2*e0+i) andr Sdtwo j)")
 (intro 0 (pt "J(2*e0+i)"))
+(split)
 (use "Truth")
+(use "JKUzLrvUAuxJ")
+(use "Psde0")
+(use "Sdtwoi")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exnc k k=K(2*e0+i)")
+(assert "exr k(k=K(2*e0+i) andr Sd k)")
 (intro 0 (pt "K(2*e0+i)"))
+(split)
 (use "Truth")
+(use "JKUzLrvUAuxK")
+(use "Psde0")
+(use "Sdtwoi")
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
 
@@ -1856,7 +2434,7 @@
 (intro 0 (pt "k"))
 (intro 0 (pt "z3* ~e0"))
 
-(assert "exl boole BooleToInt boole=e0")
+(assert "exl boole0 BooleToInt boole0=e0")
 (use "PsdToBooleToIntValue")
 (use "Psde0")
 (assume "ExHype0")
@@ -1869,60 +2447,25 @@
 (by-assume "ExHypi" "t" "tProp")
 
 (split)
-(simp "jDef")
-;; ?_36:Sdtwo(J(2*e0+i))
-;; Replace the vars by cr vars
-(simp "<-" "boole1Prop")
-(simp "<-" "tProp")
-(use "SdtwoMRElim" (pt "IntToSdtwo(J(2*BooleToInt boole1+SdtwoToInt t))"))
-(simp (pf "J(2*BooleToInt boole1+SdtwoToInt t)=J(2*e0+i)"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_42:abs(J(2*e0+i))<=2
-(use "JProp")
-(simp "boole1Prop")
-(simp "tProp")
-(use "Truth")
+(use "jDef")
 
 (split)
-(simp "kDef")
-;; ?_47:Sd(K(2*e0+i))
-(simp "<-" "boole1Prop")
-(simp "<-" "tProp")
-(use "SdMRElim" (pt "IntToSd(K(2*BooleToInt boole1+SdtwoToInt t))"))
-(simp (pf "K(2*BooleToInt boole1+SdtwoToInt t)=K(2*e0+i)"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_54:abs(2*e0+i)<=6
-(use "IntLeTrans" (pt "IntP 2+IntP 2"))
-(use "IntLeTrans" (pt "abs(2*e0)+abs i"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(ng #t)
-(simp (pf "abs e0=1"))
-(use "Truth")
-(use "PsdToAbsOne")
-(use "Psde0")
-(use "SdtwoBound")
-(use "Sdtwoi")
-(use "Truth")
-(simp "boole1Prop")
-(simp "tProp")
-(use "Truth")
+(use "kDef")
 
 (split)
+;; ?_46:CoG(z3* ~e0)
 (use "CoGPsdTimes")
 (use "CoHToCoG")
 (use "CoHz3")
 (use "PsdUMinus")
 (use "Psde0")
 
-;; ?_69:y+(i#4)===(1#4)*(z3* ~e0+j)+k
+;; ?47:y+(i#4)===(1#4)*(z3* ~e0+j)+k
 (simpreal "e0z2Prop")
 (simpreal "z3Prop")
-;; ?_75:(1#2)*((1#2)*z3+IntN 1)* ~e0+(i#4)===(1#4)*(z3* ~e0+j)+k
+;; ?^53:(1#2)*((1#2)*z3+IntN 1)* ~e0+(i#4)===(1#4)*(z3* ~e0+j)+k
 (use "RealEqSToEq")
-(realproof)
-(realproof)
+(autoreal)
 (cases (pt "x1"))
 (assume "as" "M" "x1Def")
 (cases (pt "y"))
@@ -1932,13 +2475,13 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_87:(1#2)*((1#2)*cs n+IntN 1)* ~e0+(i#4)==(1#4)*(cs n* ~e0+j)+k
-(use "RatEqvTrans" (pt "(1#2)*(((1#2)*cs n+IntN 1)* ~e0)+(1#4)*i"))
+;; ?^65:~((1#2)*((1#2)*cs n+IntN 1)*e0)+(i#4)==(1#4)*(~(cs n*e0)+j)+k
+(use "RatEqvTrans" (pt "(1#2)*(((1#2)*cs n+IntN 1)* ~e0)+(1#4)*i")) ;or (i#4)
 (use "Truth")
 (simprat "RatTimesPlusDistrLeft")
 (simp "RatTimesIntNL")
 (simp (pf "~(RatTimes 1~e0)=(e0#1)"))
-;; ?_92:(1#2)*((1#2)*cs n* ~e0+e0)+(1#4)*i==(1#4)*(cs n* ~e0+j)+k
+;; ?^70:(1#2)*((1#2)*cs n* ~e0+e0)+(1#4)*i==(1#4)*(~(cs n*e0)+j)+k
 (simp (pf "(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)"))
 (simprat (pf "(1#2)*((1#2)*(cs n* ~e0)+e0)==
               (1#2)*((1#2)*(cs n* ~e0)+(1#2)*(2*e0))"))
@@ -1950,54 +2493,71 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_107:cs n* ~e0+2*e0+i==cs n* ~e0+j+k*4
-(simprat (pf "cs n* ~e0+2*e0+i==cs n* ~e0+(2*e0+i)"))
-(simprat (pf "cs n* ~e0+j+k*4==cs n* ~e0+RatPlus j(k*4)"))
+;; ?^85:cs n* ~e0+2*e0+i== ~(cs n*e0)+j+k*4
+(simp (pf "cs n* ~e0+2*e0+i=cs n* ~e0+(RatPlus(2*e0)i)"))
+(simp (pf "cs n* ~e0+j+k*4=cs n* ~e0+(RatPlus j(k*4))"))
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_113:2*e0+i==RatPlus j(k*4)
+;; ?^91:2*e0+i==j+k*4
 (simp "jDef")
 (simp "kDef")
-(simp "IntPlusComm")
-(simp (pf "J(i+2*e0)+K(i+2*e0)*4=K(i+2*e0)*4+J(i+2*e0)"))
+(simp (pf "J(2*e0+i)+K(2*e0+i)*4=K(2*e0+i)*4+J(2*e0+i)"))
 (simp "<-" "KJProp")
 (use "Truth")
+;; ?^95:J(2*e0+i)+K(2*e0+i)*4=K(2*e0+i)*4+J(2*e0+i)
 (use "IntPlusComm")
+;; ?^89:cs n* ~e0+j+k*4=cs n* ~e0+RatPlus j(k*4)
 (simp "RatPlusAssoc")
 (use "Truth")
-(simp "<-" "RatPlusAssoc")
+;; ?^87:cs n* ~e0+2*e0+i=cs n* ~e0+RatPlus(2*e0)i
+(simp "RatPlusAssoc")
+(use "Truth")
+;; ?^82:k==(1#4)*(k*4)
+(ng #t)
 (use "Truth")
 (use "Truth")
-(use "Truth")
-;; ?_97:(1#2)*((1#2)*(cs n* ~e0)+e0)==(1#2)*((1#2)*(cs n* ~e0)+(1#2)*(2*e0))
+;; ?^75:(1#2)*((1#2)*(cs n* ~e0)+e0)==(1#2)*((1#2)*(cs n* ~e0)+(1#2)*(2*e0))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_121:(1#2)*(cs n* ~e0)+e0==(1#2)*(cs n* ~e0)+(1#2)*(2*e0)
-(use "RatPlusCompat")
-(use "Truth")
+;; ?^101:(1#2)*(cs n* ~e0)+e0==(1#2)*(cs n* ~e0)+(1#2)*(2*e0)
+(ng #t)
 (use "IntTimesComm")
-;; ?_95:(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)
+;; ?^73:(1#2)*cs n* ~e0=(1#2)*(cs n* ~e0)
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "JKUzLrvU")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [t,boole,ah]
-;;  IntToSdtwo(J(2*BooleToInt boole+
-;;               SdtwoToInt t))pair 
-;;  IntToSd(K(2*BooleToInt boole+
-;;            SdtwoToInt t))pair 
+;;  cJKUzLrvUAuxJ boole t pair 
+;;  cJKUzLrvUAuxK boole t pair cCoGPsdTimes(cCoHToCoG ah)(cPsdUMinus boole)
+
+(animate "JKUzLrvUAuxJ")
+(animate "JKUzLrvUAuxK")
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [t,boole,ah]
+;;  IntToSdtwo(J(2*BooleToInt boole+SdtwoToInt t))pair 
+;;  IntToSd(K(2*BooleToInt boole+SdtwoToInt t))pair 
 ;;  cCoGPsdTimes(cCoHToCoG ah)(cPsdUMinus boole)
 
+(deanimate "JKUzLrvUAuxJ")
+(deanimate "JKUzLrvUAuxK")
+
+;; Next JKUzLrv
+
 ;; JKUzLrv
-(set-goal "allnc i,y(Sdtwo i -> CoG y --> allnc e0,z2(
+(set-goal "allnc i,y(Sdtwo i -> allnc e0,z2(
  Psd e0 -> CoG z2 -> y===(1#2)*(z2+IntN 1)* ~e0 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(i#4)===(1#4)*(z+j)+d)))")
-(assume "i" "y" "Sdtwoi" "CoGy"
+(assume "i" "y" "Sdtwoi"
 	"e0" "z2" "Psde0" "CoGz2" "e0z2Prop")
 (inst-with-to "CoGClosure" (pt "z2") "CoGz2" "z2Cases")
 (elim "z2Cases")
@@ -2008,10 +2568,9 @@
 (assume "ExHypz2")
 (by-assume "ExHypz2" "e" "eProp")
 (by-assume "eProp" "z3" "ez3Prop")
-
 (use-with "JKUzLrvLr"
- (pt "i") (pt "y") "Sdtwoi" "CoGy"
- (pt "e0") (pt "z2") "Psde0" "CoGz2" "e0z2Prop"
+ (pt "i") (pt "y") "Sdtwoi"
+ (pt "e0") (pt "z2") "Psde0" "e0z2Prop"
  (pt "e") (pt "z3") "?" "?" "?")
 (use "ez3Prop")
 (use "ez3Prop")
@@ -2027,14 +2586,14 @@
 (by-assume "ExHypz2" "z3" "z3Prop")
 
 (use-with "JKUzLrvU"
- (pt "i") (pt "y") "Sdtwoi" "CoGy"
- (pt "e0") (pt "z2") "Psde0" "CoGz2" "e0z2Prop"
+ (pt "i") (pt "y") "Sdtwoi"
+ (pt "e0") (pt "z2") "Psde0" "e0z2Prop"
  (pt "z3") "?" "?")
 (use "z3Prop")
 (use "z3Prop")
 ;; Proof finished.
-(save "JKUzLrv")
 ;; (cdp)
+(save "JKUzLrv")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -2045,49 +2604,155 @@
 ;;    (InL bg -> cJKUzLrvLr t boole clft bg crht bg)
 ;;    (InR ah -> cJKUzLrvU t boole ah)]
 
-(animate "CoGClosure")
 (animate "JKUzLrvLr")
+(animate "JKUzLrvLrAuxJ")
+(animate "JKUzLrvLrAuxK")
 (animate "JKUzLrvU")
+(animate "JKUzLrvUAuxJ")
+(animate "JKUzLrvUAuxK")
 
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
-;; [t,boole,ag][case (DesYprod ag)
+;; [t,boole,ag]
+;;  [case (cCoGClosure ag)
 ;;    (InL bg -> 
 ;;    IntToSdtwo
-;;    (J(~(BooleToInt clft bg*BooleToInt boole)+
-;;       2*BooleToInt boole+SdtwoToInt t))pair 
+;;    (J
+;;     (~(BooleToInt clft bg*BooleToInt boole)+2*BooleToInt boole+SdtwoToInt t))pair 
 ;;    IntToSd
-;;    (K(~(BooleToInt clft bg*BooleToInt boole)+
-;;       2*BooleToInt boole+SdtwoToInt t))pair 
+;;    (K
+;;     (~(BooleToInt clft bg*BooleToInt boole)+2*BooleToInt boole+SdtwoToInt t))pair 
 ;;    cCoGPsdTimes(cCoGPsdTimes crht bg clft bg)boole)
 ;;    (InR ah -> 
 ;;    IntToSdtwo(J(2*BooleToInt boole+SdtwoToInt t))pair 
 ;;    IntToSd(K(2*BooleToInt boole+SdtwoToInt t))pair 
 ;;    cCoGPsdTimes(cCoHToCoG ah)(cPsdUMinus boole))]
 
-(deanimate "CoGClosure")
 (deanimate "JKUzLrvLr")
+(deanimate "JKUzLrvLrAuxJ")
+(deanimate "JKUzLrvLrAuxK")
 (deanimate "JKUzLrvU")
+(deanimate "JKUzLrvUAuxJ")
+(deanimate "JKUzLrvUAuxK")
+
+;; Next JKUzUvFin
+
+;; JKUzUvFinAuxJ
+(set-goal "allnc e,i(Psd e -> Sdtwo i -> Sdtwo(J(e+i)))")
+(assume "e" "i" "Psde" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdtwoMRElim" (pt "IntToSdtwo(J(BooleToInt boole1+SdtwoToInt t))"))
+(simp (pf "J(BooleToInt boole1+SdtwoToInt t)=J(e+i)"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^20:abs(J(e+i))<=2
+(use "JProp")
+(simp (pf "BooleToInt boole1+SdtwoToInt t=e+i"))
+(use "Truth")
+;; ?^22:BooleToInt boole1+SdtwoToInt t=e+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzUvFinAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [boole,t]IntToSdtwo(J(BooleToInt boole+SdtwoToInt t))
+
+;; JKUzUvFinAuxK
+(set-goal "allnc e,i(Psd e -> Sdtwo i -> Sd(K(e+i)))")
+(assume "e" "i" "Psde" "Sdtwoi")
+
+(assert "exl boole1 PsdMR e boole1")
+(use "PsdMRIntro")
+(use "Psde")
+(assume "ExHyp1")
+(by-assume "ExHyp1" "boole1" "boole1Prop")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp4")
+(by-assume "ExHyp4" "t" "tProp")
+
+(use "SdMRElim" (pt "IntToSd(K(BooleToInt boole1+SdtwoToInt t))"))
+(simp (pf "K(BooleToInt boole1+SdtwoToInt t)=K(e+i)"))
+(use "SdMRIntToSd")
+;; ?^20:abs(K(e+i))<=1
+(use "KProp")
+(use "IntLeTrans" (pt "IntP 1+IntP 2"))
+(use "IntLeTrans" (pt "abs e+abs i"))
+(use "IntLeAbsPlus")
+(use "IntLeMonPlus")
+(simp "PsdToAbsOne")
+(use "Truth")
+(use "Psde")
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "BooleToInt boole1+SdtwoToInt t=e+i"))
+(use "Truth")
+;; ?^32:BooleToInt boole1+SdtwoToInt t=e+i
+(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "PsdMRIdInst1")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzUvFinAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [boole,t]IntToSd(K(BooleToInt boole+SdtwoToInt t))
 
 ;; JKUzUvFin
-(set-goal "allnc i,y(Sdtwo i -> CoG y --> allnc z2(
- CoH z2 --> y===(1#2)*z2 -> allnc e,z3(
+(set-goal "allnc i,y(Sdtwo i -> allnc z2(
+ y===(1#2)*z2 -> allnc e,z3(
  Psd e -> CoG z3 -> z2===(1#2)*(z3+1)*e ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "y" "Sdtwoi" "CoGy"
-	"z2" "CoHz2" "z2Prop"
+(assume "i" "y" "Sdtwoi"
+	"z2" "z2Prop"
         "e" "z3" "Psde" "CoGz3" "ez3Prop")
 
-(assert "exnc j j=J(e+i)")
+;; (assert "exnc j j=J(e+i)")
+(assert "exr j(j=J(e+i) andr Sdtwo j)")
 (intro 0 (pt "J(e+i)"))
+(split)
 (use "Truth")
+(use "JKUzUvFinAuxJ")
+(use "Psde")
+(use "Sdtwoi")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exnc k k=K(e+i)")
+;; (assert "exnc k k=K(e+i)")
+(assert "exr k(k=K(e+i) andr Sd k)")
 (intro 0 (pt "K(e+i)"))
+(split)
 (use "Truth")
+(use "JKUzUvFinAuxK")
+(use "Psde")
+(use "Sdtwoi")
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
 
@@ -2108,53 +2773,20 @@
 (by-assume "ExHypi" "t" "tProp")
 
 (split)
-(simp "jDef")
-;; Replace the vars by cr vars
-(simp "<-" "booleProp")
-(simp "<-" "tProp")
-(use "SdtwoMRElim" (pt "IntToSdtwo(J(BooleToInt boole+SdtwoToInt t))"))
-(simp (pf "J(BooleToInt boole+SdtwoToInt t)=J(e+i)"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_42:abs(J(e+i))<=2
-(use "JProp")
-(simp "booleProp")
-(simp "tProp")
-(use "Truth")
+(use "jDef")
 
 (split)
-(simp "kDef")
-;; ?_47:Sd(K(e+i))
-(simp "<-" "booleProp")
-(simp "<-" "tProp")
-(use "SdMRElim" (pt "IntToSd(K(BooleToInt boole+SdtwoToInt t))"))
-(simp (pf "K(BooleToInt boole+SdtwoToInt t)=K(e+i)"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_54:abs(e+i)<=6
-(use "IntLeTrans" (pt "IntP 1+IntP 2"))
-(use "IntLeTrans" (pt "abs e+abs i"))
-(use "IntLeAbsPlus")
-(use "IntLeMonPlus")
-(simp (pf "abs e=1"))
-(use "Truth")
-(use "PsdToAbsOne")
-(use "Psde")
-(use "SdtwoBound")
-(use "Sdtwoi")
-(use "Truth")
-(simp "booleProp")
-(simp "tProp")
-(use "Truth")
+(use "kDef")
 
 (split)
 (use "CoGPsdTimes")
 (use "CoGz3")
 (use "Psde")
 
-;; ?_68:y+(i#4)===(1#4)*(z3*e+j)+k
+;; ?^47:y+(i#4)===(1#4)*(z3*e+j)+k
 (simpreal "z2Prop")
 (simpreal "ez3Prop")
-;; ?_72:(1#2)*((1#2)*(z3+1)*e)+(i#4)===(1#4)*(z3*e+j)+k
+;; ?^51:(1#2)*((1#2)*(z3+1)*e)+(i#4)===(1#4)*(z3*e+j)+k
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -2167,10 +2799,10 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_84:(1#4)*(cs n+1)*e+(i#4)==(1#4)*(cs n*e+j)+k
+;; ?^63:(1#4)*(cs n+1)*e+(i#4)==(1#4)*(cs n*e+j)+k
 (use "RatEqvTrans" (pt "(1#4)*(cs n+1)*e+(1#4)*i"))
 (use "Truth")
-;; ?_106:(1#4)*(cs n+1)*e+(1#4)*i==(1#4)*(cs n*e+j)+k
+;; ?^65:(1#4)*(cs n+1)*e+(1#4)*i==(1#4)*(cs n*e+j)+k
 (simp (pf "(1#4)*(cs n+1)*e=(1#4)*((cs n+1)*e)"))
 (simprat "RatTimesPlusDistrLeft")
 (simprat (pf "k==(1#4)*(k*4)"))
@@ -2178,53 +2810,140 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_95:cs n*e+RatTimes 1 e+i==cs n*e+j+k*4
+;; ?^74:cs n*e+RatTimes 1 e+i==cs n*e+j+k*4
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_99:RatTimes 1 e+i==RatPlus j(k*4)
+;; ?^78:RatTimes 1 e+i==RatPlus j(k*4)
 (simp "jDef")
 (simp "kDef")
 (simp (pf "RatPlus(J(e+i))(K(e+i)*4)=K(e+i)*4+J(e+i)"))
 (simp "<-" "KJProp")
-;; ?_104:RatTimes 1 e+i==e+i
+;; ?^83:RatTimes 1 e+i==e+i
 (use "Truth")
 (use "IntPlusComm")
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "JKUzUvFin")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [t,boole,ag]
-;;  IntToSdtwo(J(BooleToInt boole+
-;;               SdtwoToInt t))pair 
-;;  IntToSd(K(BooleToInt boole+
-;;            SdtwoToInt t))pair
-;;  cCoGPsdTimes ag boole
+;;  cJKUzUvFinAuxJ boole t pair 
+;;  cJKUzUvFinAuxK boole t pair cCoGPsdTimes ag boole
+
+(animate "JKUzUvFinAuxJ")
+(animate "JKUzUvFinAuxK")
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [t,boole,ag]
+;;  IntToSdtwo(J(BooleToInt boole+SdtwoToInt t))pair 
+;;  IntToSd(K(BooleToInt boole+SdtwoToInt t))pair cCoGPsdTimes ag boole
+
+(deanimate "JKUzUvFinAuxJ")
+(deanimate "JKUzUvFinAuxK")
+
+;; Next JKUzUvD
+
+;; JKUzUvDAuxJ
+(set-goal "allnc i(Sdtwo i -> Sdtwo(J i))")
+(assume "i" "Sdtwoi")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "t" "tProp")
+
+(use "SdtwoMRElim" (pt "IntToSdtwo(J(SdtwoToInt t))"))
+(simp (pf "J(SdtwoToInt t)=J i"))
+(use "SdtwoMRIntToSdtwo")
+;; ?^13:abs(J i)<=2
+(use "JProp")
+(simp (pf "SdtwoToInt t=i"))
+(use "Truth")
+;; ?^15:SdtwoToInt t=i
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzUvDAuxJ")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [t]IntToSdtwo(J(SdtwoToInt t))
+
+;; JKUzUvDAuxK
+(set-goal "allnc i(Sdtwo i -> Sd(K i))")
+(assume "i" "Sdtwoi")
+
+(assert "exl t SdtwoMR i t")
+(use "SdtwoMRIntro")
+(use "Sdtwoi")
+(assume "ExHyp2")
+(by-assume "ExHyp2" "t" "tProp")
+
+(use "SdMRElim" (pt "IntToSd(K(SdtwoToInt t))"))
+(simp (pf "K(SdtwoToInt t)=K i"))
+(use "SdMRIntToSd")
+;; ?^13:abs(K i)<=1
+(use "KProp")
+(use "IntLeTrans" (pt "IntP 2"))
+(use "SdtwoBound")
+(use "Sdtwoi")
+(use "Truth")
+(simp (pf "SdtwoToInt t=i"))
+(use "Truth")
+;; ?^19:SdtwoToInt t=i
+(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
+(simp "SdtwoMRIdInst")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "JKUzUvDAuxK")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+
+;; [t]IntToSd(K(SdtwoToInt t))
 
 ;; JKUzUvD
-(set-goal "allnc i,y(Sdtwo i -> CoG y --> allnc z2(
- CoH z2 --> y===(1#2)*z2 -> allnc z3(
+(set-goal "allnc i,y(Sdtwo i -> allnc z2(
+ y===(1#2)*z2 -> allnc z3(
  CoH z3 -> z2===(1#2)*z3 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(i#4)===(1#4)*(z+j)+d))))")
-(assume "i" "y" "Sdtwoi" "CoGy"
-	"z2" "CoHz2" "z2Prop"
+(assume "i" "y" "Sdtwoi"
+	"z2" "z2Prop"
         "z3" "CoHz3" "z3Prop")
 
-(assert "exnc j j=J(i)")
-(intro 0 (pt "J(i)"))
+;; (assert "exnc j j=J(i)")
+(assert "exr j(j=J(i) andr Sdtwo j)")
+(intro 0 (pt "J i"))
+(split)
 (use "Truth")
+(use "JKUzUvDAuxJ")
+(use "Sdtwoi")
 (assume "ExHypj")
 (by-assume "ExHypj" "j" "jDef")
 
-(assert "exnc k k=K(i)")
-(intro 0 (pt "K(i)"))
+;; (assert "exnc k k=K(i)")
+(assert "exr k(k=K i andr Sd k)")
+(intro 0 (pt "K i"))
+(split)
 (use "Truth")
+(use "JKUzUvDAuxK")
+(use "Sdtwoi")
 (assume "ExHypk")
 (by-assume "ExHypk" "k" "kDef")
 
@@ -2239,42 +2958,19 @@
 (by-assume "ExHypi" "t" "tProp")
 
 (split)
-(simp "jDef")
-;; ?_29:Sdtwo(J i)
-;; Replace vars by cr vars
-(simp "<-" "tProp")
-(use "SdtwoMRElim" (pt "IntToSdtwo(J(SdtwoToInt t))"))
-(simp (pf "J(SdtwoToInt t)=J i"))
-(use "SdtwoMRIntToSdtwo")
-;; ?_34:abs(J i)<=2
-(use "JProp")
-(simp "tProp")
-(use "Truth")
+(use "jDef")
 
 (split)
-(simp "kDef")
-;; ?_38:Sd(K i)
-(simp "<-" "tProp")
-(use "SdMRElim" (pt "IntToSd(K(SdtwoToInt t))"))
-(simp (pf "K(SdtwoToInt t)=K i"))
-(use "SdMRIntToSd")
-(use "KProp")
-;; ?_44:abs i<=6
-(use "IntLeTrans" (pt "IntP 2"))
-(use "SdtwoBound")
-(use "Sdtwoi")
-(use "Truth")
-(simp "tProp")
-(use "Truth")
+(use "kDef")
 
 (split)
 (use "CoHToCoG")
 (use "CoHz3")
 
-;; ?_50:y+(i#4)===(1#4)*(z3+j)+k
+;; ?^38:y+(i#4)===(1#4)*(z3+j)+k
 (simpreal "z2Prop")
 (simpreal "z3Prop")
-;; ?_53:(1#2)*((1#2)*z3)+(i#4)===(1#4)*(z3+j)+k
+;; ?^41:(1#2)*((1#2)*z3)+(i#4)===(1#4)*(z3+j)+k
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -2283,7 +2979,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_61:(1#4)*cs n+(i#4)==(1#4)*(cs n+j)+k
+;; ?^49:(1#4)*cs n+(i#4)==(1#4)*(cs n+j)+k
 (use "RatEqvTrans" (pt "(1#4)*cs n+(1#4)*i"))
 (use "Truth")
 (simprat "<-" "RatTimesPlusDistr")
@@ -2291,12 +2987,12 @@
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_69:cs n+i==cs n+j+k*4
+;; ?^57:cs n+i==cs n+j+k*4
 (simp "<-" "RatPlusAssoc")
 (use "RatPlusCompat")
 (use "Truth")
 (ng #t)
-;; ?_73:i=j+k*4
+;; ?^61:i=j+k*4
 (simp "jDef")
 (simp "kDef")
 (simp (pf "J i+K i*4=K i*4+J i"))
@@ -2304,23 +3000,31 @@
 (use "IntPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "JKUzUvD")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
+
+;; [t,ah]cJKUzUvDAuxJ t pair cJKUzUvDAuxK t pair cCoHToCoG ah
+
+(animate "JKUzUvDAuxJ")
+(animate "JKUzUvDAuxK")
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
 
 ;; [t,ah]
-;;  IntToSdtwo(J(SdtwoToInt t))pair 
-;;  IntToSd(K(SdtwoToInt t))pair
-;;  cCoHToCoG ah
+;;  IntToSdtwo(J(SdtwoToInt t))pair IntToSd(K(SdtwoToInt t))pair cCoHToCoG ah
+
+;; Next JKUzUv
 
 ;; JKUzUv
-(set-goal "allnc i,y(Sdtwo i -> CoG y --> allnc z2(
+(set-goal "allnc i,y(Sdtwo i -> allnc z2(
  CoH z2 -> y===(1#2)*z2 ->
  exr j,d,z(Sdtwo j andi Sd d andi CoG z andi y+(i#4)===(1#4)*(z+j)+d)))")
-(assume "i" "y" "Sdtwoi" "CoGy"
-	"z2" "CoHz2" "z2Prop")
+(assume "i" "y" "Sdtwoi" "z2" "CoHz2" "z2Prop")
 (inst-with-to "CoHClosure" (pt "z2") "CoHz2" "z2Cases")
 (elim "z2Cases")
 ;; 5,6
@@ -2332,8 +3036,8 @@
 (by-assume "eProp" "z3" "ez3Prop")
 
 (use-with "JKUzUvFin"
- (pt "i") (pt "y") "Sdtwoi" "CoGy"
- (pt "z2") "CoHz2" "z2Prop"
+ (pt "i") (pt "y") "Sdtwoi"
+ (pt "z2") "z2Prop"
  (pt "e") (pt "z3") "?" "?" "?")
 (use "ez3Prop")
 (use "ez3Prop")
@@ -2349,18 +3053,19 @@
 (by-assume "ExHypz2" "z3" "z3Prop")
 
 (use-with "JKUzUvD"
- (pt "i") (pt "y") "Sdtwoi" "CoGy"
- (pt "z2") "CoHz2" "z2Prop"
+ (pt "i") (pt "y") "Sdtwoi"
+ (pt "z2") "z2Prop"
  (pt "z3") "?" "?")
 (use "z3Prop")
 (use "z3Prop")
 ;; Proof finished.
+;; (cdp)
 (save "JKUzUv")
 ;; (cdp)
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [t,ah]
 ;;  [case (cCoHClosure ah)
@@ -2369,24 +3074,34 @@
 
 (animate "CoHClosure")
 (animate "JKUzUvFin")
+(animate "JKUzUvFinAuxJ")
+(animate "JKUzUvFinAuxK")
 (animate "JKUzUvD")
+(animate "JKUzUvDAuxJ")
+(animate "JKUzUvDAuxK")
 
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
-;; [t,ah][case (DesYprod ah)
-;;    (InL bg -> IntToSdtwo(J(BooleToInt clft bg+
-;;                            SdtwoToInt t))pair 
-;;    IntToSd(K(BooleToInt clft bg+
-;;              SdtwoToInt t))pair 
+;; [t,ah]
+;;  [case (DesYprod ah)
+;;    (InL bg -> 
+;;    IntToSdtwo(J(BooleToInt clft bg+SdtwoToInt t))pair 
+;;    IntToSd(K(BooleToInt clft bg+SdtwoToInt t))pair 
 ;;    cCoGPsdTimes crht bg clft bg)
-;;    (InR ah0 -> IntToSdtwo(J(SdtwoToInt t))pair 
-;;                IntToSd(K(SdtwoToInt t))pair
-;;                cCoHToCoG ah0)]
+;;    (InR ah0 -> 
+;;    IntToSdtwo(J(SdtwoToInt t))pair 
+;;    IntToSd(K(SdtwoToInt t))pair cCoHToCoG ah0)]
 
 (deanimate "CoHClosure")
 (deanimate "JKUzUvFin")
+(deanimate "JKUzUvFinAuxJ")
+(deanimate "JKUzUvFinAuxK")
 (deanimate "JKUzUvD")
+(deanimate "JKUzUvDAuxJ")
+(deanimate "JKUzUvDAuxK")
+
+;; Next JKUz
 
 ;; JKUz
 (set-goal "allnc i,y(Sdtwo i -> CoG y ->
@@ -2403,7 +3118,7 @@
 (by-assume "e0Prop" "z2" "e0z2Prop")
 
 (use-with "JKUzLrv"
- (pt "i") (pt "y") "Sdtwoi" "CoGy"
+ (pt "i") (pt "y") "Sdtwoi"
  (pt "e0") (pt "z2") "?" "?" "?")
 (use "e0z2Prop")
 (use "e0z2Prop")
@@ -2421,15 +3136,15 @@
 ;; (pp "JKUzUv")
 (use "JKUzUv" (pt "z2"))
 (use "Sdtwoi")
-(use "CoGy")
 (use "z2Prop")
 (use "z2Prop")
 ;; Proof finished.
+;; (cdp)
 (save "JKUz")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [t,ag][case (cCoGClosure ag)
 ;;    (InL bg -> cJKUzLrv t clft bg crht bg)
@@ -2438,52 +3153,69 @@
 (animate "CoGClosure")
 (animate "CoHClosure")
 (animate "JKUzLrvLr")
+(animate "JKUzLrvLrAuxJ")
+(animate "JKUzLrvLrAuxK")
 (animate "JKUzLrvU")
+(animate "JKUzLrvUAuxJ")
+(animate "JKUzLrvUAuxK")
 (animate "JKUzLrv")
 (animate "JKUzUvFin")
+(animate "JKUzUvFinAuxJ")
+(animate "JKUzUvFinAuxK")
 (animate "JKUzUvD")
+(animate "JKUzUvDAuxJ")
+(animate "JKUzUvDAuxK")
 (animate "JKUzUv")
 
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
 ;; [t,ag][case (DesYprod ag)
-;;  (InL bg -> [case (DesYprod crht bg)
-;;   (InL bg0 -> IntToSdtwo(J(~(BooleToInt clft bg0*
+;;    (InL bg -> [case (DesYprod crht bg)
+;;      (InL bg0 -> IntToSdtwo(J(~(BooleToInt clft bg0*
+;;                                 BooleToInt clft bg)+
+;;                               2*BooleToInt clft bg+
+;;                               SdtwoToInt t))pair 
+;;                  IntToSd(K(~(BooleToInt clft bg0*
 ;;                              BooleToInt clft bg)+
 ;;                            2*BooleToInt clft bg+
 ;;                            SdtwoToInt t))pair 
-;;               IntToSd(K(~(BooleToInt clft bg0*
-;;                           BooleToInt clft bg)+
-;;                         2*BooleToInt clft bg+
-;;                         SdtwoToInt t))pair 
-;;               cCoGPsdTimes
-;;                (cCoGPsdTimes crht bg0 clft bg0)clft bg)
-;;   (InR ah -> IntToSdtwo(J(2*BooleToInt clft bg+
+;;                  cCoGPsdTimes
+;;                   (cCoGPsdTimes crht bg0 clft bg0)clft bg)
+;;      (InR ah -> IntToSdtwo(J(2*BooleToInt clft bg+
+;;                              SdtwoToInt t))pair 
+;;                 IntToSd(K(2*BooleToInt clft bg+
 ;;                           SdtwoToInt t))pair 
-;;              IntToSd(K(2*BooleToInt clft bg+
-;;                        SdtwoToInt t))pair 
-;;              cCoGPsdTimes(cCoHToCoG ah)
-;;                          (cPsdUMinus clft bg))])
-;;  (InR ah -> [case (DesYprod ah)
-;;   (InL bg -> IntToSdtwo(J(BooleToInt clft bg+
+;;                 cCoGPsdTimes(cCoHToCoG ah)
+;; 		            (cPsdUMinus clft bg))])
+;;    (InR ah -> [case (DesYprod ah)
+;;      (InL bg -> IntToSdtwo(J(BooleToInt clft bg+
+;;                              SdtwoToInt t))pair 
+;;                 IntToSd(K(BooleToInt clft bg+
 ;;                           SdtwoToInt t))pair 
-;;              IntToSd(K(BooleToInt clft bg+
-;;                        SdtwoToInt t))pair 
-;;              cCoGPsdTimes crht bg clft bg)
-;;   (InR ah0 -> IntToSdtwo(J(SdtwoToInt t))pair 
-;;               IntToSd(K(SdtwoToInt t))pair
-;;               cCoHToCoG ah0)])]
+;;                 cCoGPsdTimes crht bg clft bg)
+;;      (InR ah0 -> IntToSdtwo(J(SdtwoToInt t))pair 
+;;                  IntToSd(K(SdtwoToInt t))pair
+;;                  cCoHToCoG ah0)])]
 
 (deanimate "CoGClosure")
 (deanimate "CoHClosure")
 (deanimate "JKUzLrvLr")
+(deanimate "JKUzLrvLrAuxJ")
+(deanimate "JKUzLrvLrAuxK")
 (deanimate "JKUzLrvU")
+(deanimate "JKUzLrvUAuxJ")
+(deanimate "JKUzLrvUAuxK")
 (deanimate "JKUzLrv")
 (deanimate "JKUzUvFin")
+(deanimate "JKUzUvFinAuxJ")
+(deanimate "JKUzUvFinAuxK")
 (deanimate "JKUzUvD")
+(deanimate "JKUzUvDAuxJ")
+(deanimate "JKUzUvDAuxK")
 (deanimate "JKUzUv")
 
+;; 2019-08-19.  Done up to this point.
 ;; We show CoGMultcSatCoICl, using JKLrz and JKUz.  This is split into
 ;; CoGMultcSatCoIClLrxLrz using JKLrz
 ;; CoGMultcSatCoIClLrxUz  using JKUz
@@ -2491,12 +3223,12 @@
 ;; CoGMultcSatCoIClUxUz   using JKUz
 
 ;; CoGMultcSatCoIClLrxLrz
-(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> CoG x --> CoG z --> allnc d1,x1(
+(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> allnc d1,x1(
  Psd d1 -> CoG x1 -> x===(1#2)*(x1+IntN 1)* ~d1 -> allnc d0,z1(
  Psd d0 -> CoG z1 -> z===(1#2)*(z1+IntN 1)* ~d0 ->
  exr d,j,x0,z0(Sd d andi Sdtwo j andi CoG x0 andi CoG z0 andi 
  (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d)))))")
-(assume "y" "i" "x" "z" "CoGy" "Sdtwoi" "CoGx" "CoGz"
+(assume "y" "i" "x" "z" "CoGy" "Sdtwoi"
 	"d1" "x1" "Psdd1" "CoGx1" "d1x1Prop"
 	"d0" "z1" "Psdd0" "CoGz1" "d0z1Prop")
 
@@ -2523,7 +3255,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_22:(1#4)*(~((1#2)*(as n+IntN 1)*d1*bs n)+ ~((1#2)*(cs n+IntN 1)*d0)+i)==
+;; ?^22:(1#4)*(~((1#2)*(as n+IntN 1)*d1*bs n)+ ~((1#2)*(cs n+IntN 1)*d0)+i)==
 ;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+(d0+i#4))
 ;; Replace first i by (1#2)*RatPlus i i, and prepare for taking (1#2) out
 (use "RatEqvTrans" 
@@ -2536,11 +3268,9 @@
 (use "Truth")
 ;; Similarly replace (d0+i#4) by (1#4)*RatPlus d0 i.
 (use "RatEqvTrans" 
-
-
   (pt "(1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+
        (1#4)*RatPlus d0 i)"))
-;; ?_29:(1#4)*
+;; ?^29:(1#4)*
 ;;      (~((1#2)*(as n+IntN 1)*d1*bs n)+ ~(1#2)*((cs n+IntN 1)*d0)+
 ;;       (1#2)*RatPlus i i)==
 ;;      (1#2)*
@@ -2563,12 +3293,12 @@
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_50:(as n+IntN 1)*d1* ~(bs n)+ ~((cs n+IntN 1)*d0)+RatPlus i i==
+;; ?^50:(as n+IntN 1)*d1* ~(bs n)+ ~((cs n+IntN 1)*d0)+RatPlus i i==
 ;;      as n*(d1* ~(bs n))+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
-;; ?_53:as n*d1* ~(bs n)+RatTimes IntN 1 d1* ~(bs n)+ 
+;; ?^53:as n*d1* ~(bs n)+RatTimes IntN 1 d1* ~(bs n)+ 
 ;;      ~(cs n*d0+RatTimes IntN 1 d0)+
 ;;      RatPlus i i==
 ;;      as n*(d1* ~(bs n))+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
@@ -2580,10 +3310,8 @@
 (assume "Assertion")
 (simp "Assertion")
 (simp "Assertion")
-;; ?_61:as n*d1* ~(bs n)+ ~d1* ~(bs n)+ ~(cs n*d0+ ~d0)+RatPlus i i==
+;; ?^61:as n*d1* ~(bs n)+ ~d1* ~(bs n)+ ~(cs n*d0+ ~d0)+RatPlus i i==
 ;;      as n*(d1* ~(bs n))+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
-;; ?_52:as n* ~d1*bs n+d1*bs n+(cs n* ~d0+d0)+RatPlus i i==
-;;      as n* ~d1*bs n+(bs n*d1+cs n* ~d0+i)+RatPlus d0 i
 (simp "<-" (pf "d1*bs n=bs n*d1"))
 (use "RatEqvTrans" (pt "as n* ~d1*bs n+bs n*d1+(cs n* ~d0+i+RatPlus d0 i)"))
 (use "RatEqvTrans" (pt "as n* ~d1*bs n+bs n*d1+(cs n* ~d0+d0+RatPlus i i)"))
@@ -2601,16 +3329,16 @@
 (use "RatPlusCompat")
 (use "IntPlusComm")
 (use "Truth")
-;; ?_65:as n* ~d1*bs n+bs n*d1+(cs n* ~d0+i+RatPlus d0 i)==
+;; ?^65:as n* ~d1*bs n+bs n*d1+(cs n* ~d0+i+RatPlus d0 i)==
 ;;      as n*(d1* ~(bs n))+(d1*bs n+cs n* ~d0+i)+RatPlus d0 i
 (ng #t)
 (simp "RatTimesComm")
 (use "Truth")
 (use "RatTimesComm")
 (use "Truth")
-;; ?_35:~(1#2)*((cs n+IntN 1)*d0)=(1#2)* ~((cs n+IntN 1)*d0)
+;; ?^35:~(1#2)*((cs n+IntN 1)*d0)=(1#2)* ~((cs n+IntN 1)*d0)
 (use "Truth")
-;; ?_30:(1#2)*
+;; ?^30:(1#2)*
 ;;      (~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+(1#4)*RatPlus d0 i)==
 ;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+ ~(cs n*d0)+i)+(d0+i#4))
 (use "Truth")
@@ -2657,7 +3385,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_110:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
+;; ?^110:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqTrans" 
      (pt "(1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*(z1+IntN 1)* ~d0+i)"))
 (use "Eq1")
@@ -2673,7 +3401,7 @@
 (realproof)
 (assume "R")
 (simpreal "jdz0Prop")
-;; ?_122:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
+;; ?^122:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
 ;;       (1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
@@ -2687,7 +3415,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_134:~((1#4)*as n*d1*bs n)+(1#4)*(cs n+j)==(1#4)*(~(as n*d1*bs n)+cs n+j)
+;; ?^134:~((1#4)*as n*d1*bs n)+(1#4)*(cs n+j)==(1#4)*(~(as n*d1*bs n)+cs n+j)
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimesAssoc")
 (simp "<-" "RatTimes3RewRule")
@@ -2719,6 +3447,7 @@
 (use "RealEqRefl")
 (realproof)
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultcSatCoIClLrxLrz")
 
 ;; cCoGMultcSatCoIClLrxLrz:
@@ -2727,7 +3456,7 @@
 (define eterm (proof-to-extracted-term))
 (add-var-name "tsg" (py "sdtwo yprod sd yprod ag"))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [ag,t,boole,ag0,boole0,ag1]
 ;;  [let tsg
@@ -2738,12 +3467,12 @@
 ;;    clft tsg pair cCoGPsdTimes ag0(cPsdUMinus boole)pair crht crht tsg)]
 
 ;; CoGMultcSatCoIClLrxUz
-(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> CoG x --> CoG z --> allnc d1,x1(
+(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> allnc d1,x1(
  Psd d1 -> CoG x1 -> x===(1#2)*(x1+IntN 1)* ~d1 -> allnc z1(
  CoH z1 -> z===(1#2)*z1 ->
  exr d,j,x0,z0(Sd d andi Sdtwo j andi CoG x0 andi CoG z0 andi 
  (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d)))))")
-(assume "y" "i" "x" "z" "CoGy" "Sdtwoi" "CoGx" "CoGz"
+(assume "y" "i" "x" "z" "CoGy" "Sdtwoi"
 	"d1" "x1" "Psdd1" "CoGx1" "d1x1Prop"
 	"z1" "CoHz1" "z1Prop")
 ;; Substitute x===(1#2)*(x1+IntN 1)* ~d1 and z===(1#2)*(z1+IntN 1)* ~d0
@@ -2768,7 +3497,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_22:(1#4)*(~((1#2)*(as n+IntN 1)*d1*bs n)+(1#2)*cs n+i)==
+;; ?^22:(1#4)*(~((1#2)*(as n+IntN 1)*d1*bs n)+(1#2)*cs n+i)==
 ;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(i#4))
 ;; Replace first i by (1#2)*RatPlus i i, and prepare for taking (1#2) out
 
@@ -2782,7 +3511,7 @@
 ;; Similarly replace (i#4) by (1#4)*i.
 (use "RatEqvTrans" 
   (pt "(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)"))
-;; ?_29:(1#4)*(~(1#2)*((as n+IntN 1)*d1*bs n)+(1#2)*cs n+(1#2)*RatPlus i i)==
+;; ?^29:(1#4)*(~(1#2)*((as n+IntN 1)*d1*bs n)+(1#2)*cs n+(1#2)*RatPlus i i)==
 ;;      (1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)
 ;; Cancel rational factors
 (simp (pf "~(1#2)*((as n+IntN 1)*d1*bs n)=(1#2)* ~((as n+IntN 1)*d1*bs n)"))
@@ -2796,11 +3525,11 @@
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_44:~((as n+IntN 1)*d1*bs n)+cs n+RatPlus i i== 
+;; ?^44:~((as n+IntN 1)*d1*bs n)+cs n+RatPlus i i== 
 ;;      ~(as n*d1*bs n)+(bs n*d1+cs n+i)+i
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
-;; ?_46:~(as n*d1*bs n+RatTimes IntN 1 d1*bs n)+cs n+RatPlus i i== 
+;; ?^46:~(as n*d1*bs n+RatTimes IntN 1 d1*bs n)+cs n+RatPlus i i== 
 ;;      ~(as n*d1*bs n)+(bs n*d1+cs n+i)+i
 (assert "all k (IntN 1#1)*k= ~k")
  (assume "k")
@@ -2809,7 +3538,7 @@
  (use "Truth")
 (assume "Assertion")
 (simp "Assertion")
-;; ?_53:~(as n*d1*bs n+ ~d1*bs n)+cs n+RatPlus i i== 
+;; ?^53:~(as n*d1*bs n+ ~d1*bs n)+cs n+RatPlus i i== 
 ;;      ~(as n*d1*bs n)+(bs n*d1+cs n+i)+i
 (simp "RatUMinus2RewRule")
 (simp "<-" "RatPlusAssoc")
@@ -2823,12 +3552,12 @@
 (simp "RatTimesComm")
 (use "Truth")
 (use "Truth")
-;; ?_34:~(1#2)*((as n+IntN 1)*d1*bs n)=(1#2)* ~((as n+IntN 1)*d1*bs n)
+;; ?^34:~(1#2)*((as n+IntN 1)*d1*bs n)=(1#2)* ~((as n+IntN 1)*d1*bs n)
 (use "Truth")
-;; ?_32:(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)==
+;; ?^32:(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)==
 ;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(i#4))
 (use "Truth")
-;; ?_30:(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)==
+;; ?^30:(1#2)*(~(1#4)*(as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(1#4)*i)==
 ;;      (1#2)*(~((1#4)*as n*d1*bs n)+(1#4)*(bs n*d1+cs n+i)+(i#4))
 (use "Truth")
 (assume "Eq2")
@@ -2867,7 +3596,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_92:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
+;; ?^92:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqTrans" (pt "(1#4)*((1#2)*(x1+IntN 1)* ~d1*y+(1#2)*z1+i)"))
 (use "Eq1")
 (use "RealEqTrans" (pt "(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(y*d1+z1+i)+(i#4)))"))
@@ -2878,7 +3607,7 @@
 (assume "CoGz0")
 (simpreal "jdz0Prop")
 
-;; ?_101:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
+;; ?^101:(1#2)*((1#4)*(x1* ~d1*y)+((1#4)*(z0+j)+d))===
 ;;       (1#2)*((1#4)*(x1* ~d1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
@@ -2892,7 +3621,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_113:~((1#4)*as n*d1*bs n)+(1#4)*(cs n+j)==(1#4)*(~(as n*d1*bs n)+cs n+j)
+;; ?^113:~((1#4)*as n*d1*bs n)+(1#4)*(cs n+j)==(1#4)*(~(as n*d1*bs n)+cs n+j)
 (simp (pf "(1#4)*as n*d1*bs n=(1#4)*(as n*d1*bs n)"))
 (simp (pf "~((1#4)*(as n*d1*bs n))=(1#4)* ~(as n*d1*bs n)"))
 (simprat "<-" "RatTimesPlusDistr")
@@ -2920,6 +3649,7 @@
 (use "RealEqRefl")
 (realproof)
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultcSatCoIClLrxUz")
 
 ;; cCoGMultcSatCoIClLrxUz:
@@ -2936,12 +3666,12 @@
 ;;    clft tsg pair cCoGPsdTimes ag0(cPsdUMinus boole)pair crht crht tsg)]
 
 ;; CoGMultcSatCoIClUxLrz
-(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> CoG x --> CoG z --> allnc x1(
+(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> allnc x1(
  CoH x1 -> x===(1#2)*x1 -> allnc d0,z1(
  Psd d0 -> CoG z1 -> z===(1#2)*(z1+IntN 1)* ~d0 ->
  exr d,j,x0,z0(Sd d andi Sdtwo j andi CoG x0 andi CoG z0 andi 
  (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d)))))")
-(assume "y" "i" "x" "z" "CoGy" "Sdtwoi" "CoGx" "CoGz"
+(assume "y" "i" "x" "z" "CoGy" "Sdtwoi"
 	"x1" "CoHx1" "x1Prop"
 	"d0" "z1" "Psdd0" "CoGz1" "d0z1Prop")
 
@@ -2968,7 +3698,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_22:(1#4)*((1#2)*as n*bs n+(1#2)*(cs n+IntN 1)* ~d0+i)==
+;; ?^22:(1#4)*((1#2)*as n*bs n+(1#2)*(cs n+IntN 1)* ~d0+i)==
 ;;      (1#2)*((1#4)*as n*bs n+(1#4)*(cs n* ~d0+i)+(d0+i#4))
 ;; Replace first i by (1#2)*RatPlus i i, and prepare for taking (1#2) out
 
@@ -2992,7 +3722,7 @@
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_40:as n*bs n+(cs n+IntN 1)* ~d0+RatPlus i i==
+;; ?^40:as n*bs n+(cs n+IntN 1)* ~d0+RatPlus i i==
 ;;      as n*bs n+(cs n* ~d0+i)+RatPlus d0 i
 (simprat "RatTimesPlusDistrLeft")
 (simp "<-" "RatPlusAssoc")
@@ -3044,7 +3774,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_81:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?^81:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqTrans" (pt "(1#4)*((1#2)*x1*y+(1#2)*(z1+IntN 1)* ~d0+i)"))
 (use "Eq1")
 (use "RealEqTrans"
@@ -3059,7 +3789,7 @@
 (realproof)
 (assume "R")
 (simpreal "jdz0Prop")
-;; ?_93:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?^93:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3072,13 +3802,12 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_105:(1#4)*as n*bs n+(1#4)*(cs n+j)==(1#4)*(as n*bs n+cs n+j)
-
+;; ?^105:(1#4)*as n*bs n+(1#4)*(cs n+j)==(1#4)*(as n*bs n+cs n+j)
 (simp "<-" "RatTimesAssoc")
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_109:as n*bs n+(cs n+j)==as n*bs n+cs n+j
+;; ?^109:as n*bs n+(cs n+j)==as n*bs n+cs n+j
 (use "Truth")
 ;; Now we prove the formula cut in above
 (use "JKLrz")
@@ -3100,6 +3829,7 @@
 (use "RealEqRefl")
 (realproof)
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultcSatCoIClUxLrz")
 
 ;; cCoGMultcSatCoIClUxLrz:
@@ -3107,7 +3837,7 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [ag,t,ah,boole,ag0]
 ;;  [let tsg
@@ -3116,12 +3846,12 @@
 ;;    (clft crht tsg pair clft tsg pair cCoHToCoG ah pair crht crht tsg)]
 
 ;; CoGMultcSatCoIClUxUz
-(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> CoG x --> CoG z --> allnc x1(
+(set-goal "allnc y,i,x,z(CoG y -> Sdtwo i -> allnc x1(
  CoH x1 -> x===(1#2)*x1 -> allnc z1(
  CoH z1 -> z===(1#2)*z1 ->
  exr d,j,x0,z0(Sd d andi Sdtwo j andi CoG x0 andi CoG z0 andi 
  (1#4)*(x*y+z+i)===(1#2)*((1#4)*(x0*y+z0+j)+d)))))")
-(assume "y" "i" "x" "z" "CoGy" "Sdtwoi" "CoGx" "CoGz"
+(assume "y" "i" "x" "z" "CoGy" "Sdtwoi"
 	"x1" "CoHx1" "x1Prop"
 	"z1" "CoHz1" "z1Prop")
 
@@ -3147,7 +3877,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_22:(1#4)*((1#2)*as n*bs n+(1#2)*cs n+i)==
+;; ?^22:(1#4)*((1#2)*as n*bs n+(1#2)*cs n+i)==
 ;;      (1#2)*((1#4)*as n*bs n+(1#4)*(cs n+i)+(i#4))
 ;; Replace first i by (1#2)*RatPlus i i, and prepare for taking (1#2) out
 
@@ -3170,7 +3900,7 @@
 (simp (pf "(1#4)*(1#2)=(1#2)*(1#4)"))
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_40:as n*bs n+cs n+RatPlus i i==as n*bs n+(cs n+i)+i
+;; ?^40:as n*bs n+cs n+RatPlus i i==as n*bs n+(cs n+i)+i
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
@@ -3210,7 +3940,7 @@
 (split)
 (use "jdz0Prop")
 
-;; ?_70:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?^70:(1#4)*(x*y+z+i)===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqTrans" (pt "(1#4)*((1#2)*x1*y+(1#2)*z1+i)"))
 (use "Eq1")
 (use "RealEqTrans" (pt "(1#2)*((1#4)*(x1*y)+((1#4)*(0+z1+i)+(i#4)))"))
@@ -3221,7 +3951,7 @@
 (assume "CoGz0")
 
 (simpreal "jdz0Prop")
-;; ?_79:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
+;; ?^79:(1#2)*((1#4)*(x1*y)+((1#4)*(z0+j)+d))===(1#2)*((1#4)*(x1*y+z0+j)+d)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3234,7 +3964,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_91:(1#4)*as n*bs n+(1#4)*(cs n+j)==(1#4)*(as n*bs n+cs n+j)
+;; ?^91:(1#4)*as n*bs n+(1#4)*(cs n+j)==(1#4)*(as n*bs n+cs n+j)
 (simp "<-" "RatTimesAssoc")
 (simprat "<-" "RatTimesPlusDistr")
 (use "RatTimesCompat")
@@ -3257,6 +3987,7 @@
 (use "RealEqRefl")
 (realproof)
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultcSatCoIClUxUz")
 
 ;; cCoGMultcSatCoIClUxUz:
@@ -3304,8 +4035,6 @@
 (use "CoGMultcSatCoIClLrxLrz" (pt "d1") (pt "x1") (pt "d0") (pt "z1"))
 (use "CoGy")
 (use "Sdtwoi")
-(use "CoGx")
-(use "CoGz")
 (use "d1x1Prop")
 (use "d1x1Prop")
 (use "d1x1Prop")
@@ -3328,8 +4057,6 @@
 (use "CoGMultcSatCoIClLrxUz" (pt "d1") (pt "x1") (pt "z1"))
 (use "CoGy")
 (use "Sdtwoi")
-(use "CoGx")
-(use "CoGz")
 (use "d1x1Prop")
 (use "d1x1Prop")
 (use "d1x1Prop")
@@ -3362,15 +4089,13 @@
 (use "CoGMultcSatCoIClUxLrz" (pt "x1") (pt "d0") (pt "z1"))
 (use "CoGy")
 (use "Sdtwoi")
-(use "CoGx")
-(use "CoGz")
 (use "x1Prop")
 (use "x1Prop")
 (use "d0z1Prop")
 (use "d0z1Prop")
 (use "d0z1Prop")
 
-;; ?_62:exr x0(CoH x0 andl z===(1#2)*x0) -> 
+;; ?_58:exr x0(CoH x0 andl z===(1#2)*x0) -> 
 ;;      exr d,j,x0,z0(
 ;;       Sd d andd 
 ;;       Sdtwo j andd 
@@ -3385,13 +4110,12 @@
 (use "CoGMultcSatCoIClUxUz" (pt "x1") (pt "z1"))
 (use "CoGy")
 (use "Sdtwoi")
-(use "CoGx")
-(use "CoGz")
 (use "x1Prop")
 (use "x1Prop")
 (use "z1Prop")
 (use "z1Prop")
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultcSatCoICl")
 
 ;; cCoGMultcSatCoICl:
@@ -3470,7 +4194,7 @@
 (autoreal)
 (use "RatLeToRealLe")
 (use "Truth")
-;; ?_11:abs(x*y+z+i)<<=4
+;; ?^11:abs(x*y+z+i)<<=4
 (use "RealLeTrans" (pt "(RealTimes 1 1)+1+2"))
 (use "RealLeTrans" (pt "abs(x*y)+(abs z)+RealAbs i"))
 (use "RealLeTrans" (pt "abs(x*y+z)+RealAbs i"))
@@ -3504,9 +4228,10 @@
 (use "Truth")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultcToCoGAux")
 
-(set! COMMENT-FLAG #f)
+;; (set! COMMENT-FLAG #f)
 ;; CoGMultcToCoG
 (set-goal "allnc z0(
  exr i,x,y,z(Sdtwo i andi CoG x andi CoG y andi CoG z andi
@@ -3564,7 +4289,7 @@
 (split)
 (realproof)
 (split)
-;; ?_66:abs((1#4)*(x1*y+z1+i1))<<=1
+;; ?^66:abs((1#4)*(x1*y+z1+i1))<<=1
 (use "CoGMultcToCoGAux")
 (autoreal)
 (use "Sdtwoi1")
@@ -3595,7 +4320,7 @@
 (simpreal "Eq")
 ;;   d1=0:d1=0
 ;; -----------------------------------------------------------------------------
-;; ?_97:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===(1#2)*((1#4)*(x1*y+z1+i1))
+;; ?^97:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===(1#2)*((1#4)*(x1*y+z1+i1))
 (simp "d1=0")
 (simpreal "RealPlusZero")
 (use "RealEqRefl")
@@ -3615,12 +4340,12 @@
 (split)
 (autoreal)
 (split)
-;; ?_114:abs((1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1))<<=1
+;; ?^114:abs((1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1))<<=1
 (use "CoGMultcToCoGAux")
 (autoreal)
 (simp (pf "~(i1*d1)= ~i1*d1"))
 (use "IntTimesSdtwoPsdToSdtwo")
-;; ?_125:Sdtwo(~i1)
+;; ?^125:Sdtwo(~i1)
 (use "SdtwoIntUMinus")
 (use "Sdtwoi1")
 (use "Psdd1")
@@ -3640,7 +4365,7 @@
 (use "Truth")
 (autoreal)
 (use "RatLeToRealLe")
-;; ?_142:RatLe abs d1 1
+;; ?^142:RatLe abs d1 1
 (ng #t)
 (simp "PsdToAbsOne")
 (use "Truth")
@@ -3654,9 +4379,9 @@
 (autoreal)
 (use "CoGToBd")
 (use "CoGz1")
-;; ?_154:abs~d1<<=1
+;; ?^154:abs~d1<<=1
 (use "RatLeToRealLe")
-;; ?_158:RatLe abs d1 1
+;; ?^158:RatLe abs d1 1
 (ng #t)
 (simp "PsdToAbsOne")
 (use "Truth")
@@ -3688,7 +4413,7 @@
 (use "CoGz1")
 (use "PsdUMinus")
 (use "Psdd1")
-;; ?_183:(1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1)===
+;; ?^183:(1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1)===
 ;;       (1#4)*(x1*(y* ~d1)+z1* ~d1+i1* ~d1)
 (use "RealEqSToEq")
 (autoreal)
@@ -3702,12 +4427,12 @@
 (assume "n")
 (ng #t)
 (use "Truth")
-;;?_164:z2===(1#2)*((1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1)+IntN 1)* ~d1 andnc
+;;?^164:z2===(1#2)*((1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1)+IntN 1)* ~d1 andnc
 ;;       z2===z2
 (split)
 (simpreal "ixyzProp")
 (simpreal "Eq")
-;; ?_202:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===
+;; ?^202:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===
 ;;       (1#2)*((1#4)*(x1*y* ~d1+z1* ~d1+RealTimes i1~d1)+IntN 1)* ~d1
 (use "RealEqSToEq")
 (realproof)
@@ -3721,19 +4446,19 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_214:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)== 
+;; ?^214:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)== 
 ;;       ~((1#2)*((1#4)*(~(as n*bs n*d1)+ ~(cs n*d1)+ ~(i1*d1))+IntN 1)*d1)
 (simp "<-" "RatTimes3RewRule")
 (simp "<-" "RatTimesAssoc")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_218:(1#4)*(as n*bs n+cs n+i1)+d1==
+;; ?^218:(1#4)*(as n*bs n+cs n+i1)+d1==
 ;;       ((1#4)*(~(as n*bs n*d1)+ ~(cs n*d1)+ ~(i1*d1))+IntN 1)* ~d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
 (simp "RatTimesIntNL")
 (use "RatPlusCompat")
-;; ?_222:(1#4)*(as n*bs n+cs n+i1)==
+;; ?^222:(1#4)*(as n*bs n+cs n+i1)==
 ;;       (1#4)*(~(as n*(bs n*d1))+ ~(cs n*d1)+ ~(i1*d1))* ~d1
 (simp "<-" "RatTimesAssoc")
 (use "RatTimesCompat")
@@ -3757,7 +4482,7 @@
 (use "Truth")
 (use "Psdd1")
 (use "Truth")
-;; ?_200:z2===z2
+;; ?^200:z2===z2
 (use "RealEqRefl")
 (use "RealEqElim0" (pt "(1#4)*(x*y+z+i)"))
 (use "ixyzProp")
@@ -3823,7 +4548,7 @@
 (split)
 (autoreal)
 (split)
-;; ?_311:abs((1#4)*(x1*y+z1+i1))<<=1
+;; ?^311:abs((1#4)*(x1*y+z1+i1))<<=1
 (use "CoGMultcToCoGAux")
 (autoreal)
 (use "Sdtwoi1")
@@ -3854,7 +4579,7 @@
 (simpreal "Eq")
 ;;   d1=0:d1=0
 ;; -----------------------------------------------------------------------------
-;; ?_342:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===(1#2)*((1#4)*(x1*y+z1+i1))
+;; ?^342:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===(1#2)*((1#4)*(x1*y+z1+i1))
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3869,7 +4594,7 @@
 (ng #t)
 (simp "d1=0")
 (use "Truth")
-;; ?_340:z2===z2
+;; ?^340:z2===z2
 (use "RealEqRefl")
 (use "RealEqElim0" (pt "(1#4)*(x*y+z+i)"))
 (use "ixyzProp")
@@ -3885,7 +4610,7 @@
 (split)
 (autoreal)
 (split)
-;; ?_368:abs((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1))<<=1
+;; ?^368:abs((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1))<<=1
 (use "CoGMultcToCoGAux")
 (autoreal)
 (use "IntTimesSdtwoPsdToSdtwo")
@@ -3920,9 +4645,9 @@
 (autoreal)
 (use "CoGToBd")
 (use "CoGz1")
-;; ?_405:abs d1<<=1
+;; ?^405:abs d1<<=1
 (use "RatLeToRealLe")
-;; ?_409:RatLe abs d1 1
+;; ?^409:RatLe abs d1 1
 (ng #t)
 (simp "PsdToAbsOne")
 (use "Truth")
@@ -3951,7 +4676,7 @@
 (use "CoGPsdTimes")
 (use "CoGz1")
 (use "Psdd1")
-;; ?_432:(1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)===(1#4)*(x1*(y*d1)+z1*d1+i1*d1)
+;; ?^432:(1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)===(1#4)*(x1*(y*d1)+z1*d1+i1*d1)
 (use "RealEqSToEq")
 (realproof)
 (realproof)
@@ -3965,11 +4690,11 @@
 (assume "n")
 (ng #t)
 (use "Truth")
-;; ?_3415:z2===(1#2)*((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)+1)*d1 andnc z2===z2
+;; ?^415:z2===(1#2)*((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)+1)*d1 andnc z2===z2
 (split)
 (simpreal "ixyzProp")
 (simpreal "Eq")
-;; ?_450:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===
+;; ?^450:(1#2)*((1#4)*(x1*y+z1+i1)+d1)===
 ;;       (1#2)*((1#4)*(x1*y*d1+z1*d1+RealTimes i1 d1)+1)*d1
 (use "RealEqSToEq")
 (realproof)
@@ -3983,16 +4708,16 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_352:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)==
+;; ?^462:(1#2)*((1#4)*(as n*bs n+cs n+i1)+d1)==
 ;;       (1#2)*((1#4)*(as n*bs n*d1+cs n*d1+i1*d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
 (use "RatTimesCompat")
 (use "Truth")
-;; ?_465:(1#4)*(as n*bs n+cs n+i1)+d1==((1#4)*(as n*bs n*d1+cs n*d1+i1*d1)+1)*d1
+;; ?^465:(1#4)*(as n*bs n+cs n+i1)+d1==((1#4)*(as n*bs n*d1+cs n*d1+i1*d1)+1)*d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
 (use "RatPlusCompat")
-;; ?_468:(1#4)*(as n*bs n+cs n+i1)==(1#4)*(as n*(bs n*d1)+cs n*d1+i1*d1)*d1
+;; ?^468:(1#4)*(as n*bs n+cs n+i1)==(1#4)*(as n*(bs n*d1)+cs n*d1+i1*d1)*d1
 (simp "<-" "RatTimesAssoc")
 (simprat "RatTimesPlusDistrLeft")
 (simprat "RatTimesPlusDistrLeft")
@@ -4012,7 +4737,7 @@
 (use "Truth")
 (use "Psdd1")
 (use "Truth")
-;; ?_448:z2===z2
+;; ?^448:z2===z2
 (use "RealEqRefl")
 (use "RealEqElim0" (pt "(1#4)*(x*y+z+i)"))
 (use "ixyzProp")
@@ -4029,6 +4754,7 @@
 (use "ixyzProp")
 (use "ixyzProp")
 ;; Proof finished.
+;; (cdp)
 (save "CoGMultcToCoG")
 
 ;; cCoGMultcToCoG: sdtwo yprod ag yprod ag yprod ag=>ag
@@ -4037,7 +4763,7 @@
 (add-var-name "tggg" (py "sdtwo yprod ag yprod ag yprod ag"))
 (add-var-name "stgg" (py "sd yprod sdtwo yprod ag yprod ag"))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [tggg](CoRec sdtwo yprod ag yprod ag yprod ag=>ag
 ;;              sdtwo yprod ag yprod ag yprod ag=>ah)tggg
@@ -4082,8 +4808,8 @@
 ;; Proof finished.
 (save "CoGMult")
 
-(define eterm (proof-to-extracted-term))
-(define neterm-CoGMult (rename-variables (nt eterm)))
-(ppc neterm-CoGMult)
+(define CoGMult-eterm (proof-to-extracted-term))
+(define CoGMult-neterm (rename-variables (nt CoGMult-eterm)))
+;; (ppc CoGMult-neterm)
 
 ;; [ag,ag0]cCoGMultcToCoG(cCoGMultToMultc ag ag0)
