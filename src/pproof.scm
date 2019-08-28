@@ -1,4 +1,4 @@
-;; 2018-11-13.  pproof.scm
+;; 2019-08-21.  pproof.scm
 ;; 11. Partial proofs
 ;; ==================
 
@@ -1796,7 +1796,7 @@
 	 (new-maxgoal (caddr proof-and-new-num-goals-and-maxgoal)))
     (if (not (classical-formula=? (proof-to-formula new-proof) goal-formula))
 	(myerror "use-with-intern" "equal formulas expected"
-		 (fold-formula (proof-to-formula new-proof))
+		 (rename-variables (fold-formula (proof-to-formula new-proof)))
 		 goal-formula))
     (let ((final-proof (goal-subst proof goal new-proof)))
       (if
@@ -3043,9 +3043,27 @@
 	 (formula (goal-to-formula goal))
 	 (all-formula
           (if (null? opt-term)
-              (if (all-form? formula)
-                  formula
-                  (myerror "ind" "all formula expected" formula))
+	      (cond
+	       ((all-form? formula)
+		(let* ((var (all-form-to-var formula))
+		       (t-deg (var-to-t-deg var)))
+		  (if (t-deg-one? t-deg)
+		      formula
+		      (myerror "ind" "total variable expected" formula))))
+	       ((and (allnc-form? formula) (formula-of-nulltype? formula))
+		(let* ((var (allnc-form-to-var formula))
+		       (kernel (allnc-form-to-kernel formula))
+		       (t-deg (var-to-t-deg var))
+		       (newvar (if (t-deg-one? t-deg)
+				   (var-and-t-deg-to-new-var var t-deg)
+				   (myerror "ind" "total variable expected"
+					    formula)))
+		       (varterm (make-term-in-var-form newvar))
+		       (subst-kernel (formula-subst kernel var varterm)))
+		  (make-all newvar subst-kernel)))
+	       (else (myerror "ind"
+			      "allnc form with n.c. goal or all form expected"
+			      formula)))
               (let* ((term (car opt-term))
                      (type (if (term-form? term)
 			       (term-to-type term)
@@ -3458,24 +3476,24 @@
 			     imp-formula imp-formulas))
 	 (mr? (mr-idpredconst-name? (idpredconst-to-name idpredconst)))
 	 (inst-elim-formula ;Ij xs^ -> K1(Is,Cs) ->..-> Kk(Is,Cs) -> Cj rs
-					;if mr?:  all x^(Ij x^ xs^ -> .. -> Cj
+					;if mr?: allnc x^(Ij xs^ x^ -> .. -> Cj
 	  (aconst-to-inst-formula elim-aconst))
 	 (free (formula-to-free inst-elim-formula))
-	 (prem ;if mr? then Ij x^ xs^ else Ij xs^
-	  (if mr? (imp-form-to-premise (all-form-to-kernel inst-elim-formula))
+	 (prem ;if mr? then Ij xs^ x^ else Ij xs^
+	  (if mr? (imp-form-to-premise (allnc-form-to-kernel inst-elim-formula))
 	      (imp-form-to-premise inst-elim-formula)))
-	 (new-arg-vars ;if mr? then x^ xs^ else xs^
+	 (new-arg-vars ;if mr? then xs^ x^ else xs^
 	  (map term-in-var-form-to-var (predicate-form-to-args prem)))
 	 (proper-new-arg-vars ;xs^
-	  (if mr? (cdr new-arg-vars) new-arg-vars))
+	  (if mr? (reverse (cdr (reverse new-arg-vars))) new-arg-vars))
 	 (idpc-vars ;internal for the cterms in idpc
 	  (set-minus (formula-to-free prem) new-arg-vars))
 	 (rest-vars (set-minus free (append idpc-vars proper-new-arg-vars)))
 	 (elim-terms
 	  (if mr? (append (map make-term-in-var-form idpc-vars)
-			  (cdr args)
+			  (reverse (cdr (reverse args)))
 			  (map make-term-in-var-form rest-vars)
-			  (list (car args)))
+			  (list (car (reverse args))))
 	      (append (map make-term-in-var-form idpc-vars)
 		      args
 		      (map make-term-in-var-form rest-vars))))
@@ -4362,9 +4380,27 @@
       (let* ((all-formula
 	      (if
 	       (null? x)
-	       (if (all-form? formula)
-                   formula
-		   (myerror "cases" "all formula expected" formula))
+	       (cond
+		((all-form? formula)
+		 (let* ((var (all-form-to-var formula))
+			(t-deg (var-to-t-deg var)))
+		   (if (t-deg-one? t-deg)
+		       formula
+		       (myerror "cases" "total variable expected" formula))))
+		((and (allnc-form? formula) (formula-of-nulltype? formula))
+		 (let* ((var (allnc-form-to-var formula))
+			(kernel (allnc-form-to-kernel formula))
+			(t-deg (var-to-t-deg var))
+			(newvar (if (t-deg-one? t-deg)
+				    (var-and-t-deg-to-new-var var t-deg)
+				    (myerror "cases" "total variable expected"
+					     formula)))
+			(varterm (make-term-in-var-form newvar))
+			(subst-kernel (formula-subst kernel var varterm)))
+		   (make-all newvar subst-kernel)))
+		(else (myerror "cases"
+			       "allnc form with n.c. goal or all form expected"
+			       formula)))
 	       (let* ((term (car x))
 		      (type (if (term-form? term)
 				(term-to-type term)
@@ -7177,9 +7213,10 @@
 	 (uninst-fla (aconst-to-uninst-formula invarall-aconst))
 	 (var (all-form-to-var uninst-fla))
 	 (tvar (var-to-type var))
-	 (kernel (all-form-to-kernel uninst-fla))
-	 (mr-predicate (imp-form-to-premise kernel))
-	 (predicate (imp-form-to-conclusion kernel))
+	 (kernel (all-allnc-form-to-kernel uninst-fla))
+	 (ext-predicate (imp-form-to-premise kernel))
+	 (mr-predicate (imp-form-to-premise (imp-form-to-conclusion kernel)))
+	 (predicate (imp-form-to-final-conclusion kernel))
 	 (mr-pvar (predicate-form-to-predicate mr-predicate))
 	 (pvar (predicate-form-to-predicate predicate))
 	 (tsubst (make-subst tvar type))
@@ -7194,7 +7231,7 @@
      num-goals proof maxgoal
      (make-proof-in-aconst-form subst-aconst)
      (append (map make-term-in-var-form (remove newvar vars))
-	     (list term DEFAULT-GOAL-NAME)))))
+	     (list term DEFAULT-GOAL-NAME DEFAULT-GOAL-NAME)))))
 
 ;; Now we provide some tactics to generate classical proofs.
 
