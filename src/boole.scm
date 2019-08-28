@@ -1,4 +1,4 @@
-;; 2018-06-11.  boole.scm
+;; 2019-08-20.  boole.scm
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -433,21 +433,6 @@
 			      (nbe-fam-apply (nbe-reify (car l)) k)
 			      (nbe-fam-apply (nbe-reify obj) k)))))))
 		       ((null? l) obj))))))))
-	   ((or constr1? constr2?)
-	    (let* ((constr-obj (if constr1? obj1 obj2))
-		   (constr-val (if constr1? val1 val2))
-		   (obj (if constr1? obj2 obj1)))
-	      (do ((l (nbe-constr-value-to-args constr-val) (cdr l)))
-		  ((or (null? l)
-		       (let* ((arg (car l))
-			      (argalg (nbe-object-to-type arg))
-			      (prev (nbe-object-app (in-at finalg argalg)
-						    obj arg))
-			      (prevval (nbe-object-to-value prev)))
-			 (trueval? prevval)))
-		   (if (null? l)
-		       reprod-obj
-		       falseobj)))))
 	   ((and (nbe-fam-value? val1) (nbe-fam-value? val2))
 	    (let ((term1 (nbe-extract val1))
 		  (term2 (nbe-extract val2)))
@@ -457,7 +442,7 @@
 		  reprod-obj)))
 	   (else reprod-obj))))))))
 
-(define (in-at finalg1 finalg2)
+(define (in-at finalg1 finalg2) ;obsolete
   (nbe-make-object
    (mk-arrow finalg1 finalg2 (make-alg "boole"))
    (lambda (obj1)
