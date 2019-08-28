@@ -1,4 +1,4 @@
-;; 2018-08-09
+;; 2019-08-20.  formula.scm
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -257,6 +257,9 @@
 	      (myerror "make-coeqpmr"
 		       "equal types expected" type type1 type2))))
     (make-predicate-formula coeqpmr-predconst term1 term2 real)))
+
+(define (make-ext term) (make-eqp term term))
+(define (make-extnc term) (make-eqpnc term term))
 
 ;; Constructor and accessors for formulas:
 
@@ -2516,8 +2519,7 @@
 		   ((string=? "EqPMR" (predconst-to-name pred))
 		    (apply terms-to-mr-eqp-formula args))
 		   ((string=? "CoEqPMR" (predconst-to-name pred))
-		    (apply terms-to-mr-coeqp-formula args))
-		   (else formula)))
+		    (apply terms-to-mr-coeqp-formula args))))
 	    ((idpredconst-form? pred) formula)
 	    (else (myerror "unfold-formula"
 			   "predicate expected" pred)))))
@@ -2912,6 +2914,20 @@
    (else (myerror "unfold-totality" "formula expected" formula))))
 
 ;; Moreover we need
+
+(define (formula-of-one-clause-nc-idpredconst? formula)
+  (or (and (imp-impnc-form? formula)
+	   (formula-of-one-clause-nc-idpredconst?
+	    (imp-impnc-form-to-conclusion formula)))
+      (and (allnc-form? formula)
+	   (formula-of-one-clause-nc-idpredconst?
+	    (allnc-form-to-kernel formula)))
+      (and (all-form? formula) ;all x^ understood as allnc x^
+	   (t-deg-zero? (var-to-t-deg (all-form-to-var formula)))
+	   (formula-of-one-clause-nc-idpredconst?
+	    (all-form-to-kernel formula)))
+      (and (predicate-form? formula)
+	   (pvar-form? (predicate-form-to-predicate formula)))))
 
 (define (formula-to-free formula)
   (cond
