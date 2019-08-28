@@ -1,4 +1,4 @@
-;; 2017-12-12.  examples/analysis/sddiv.scm
+;; 2019-08-26.  examples/analysis/sddiv.scm
 
 (load "~/git/minlog/init.scm")
 
@@ -1672,13 +1672,14 @@
 (use "(1#4)<<=y")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIDiv")
 
-(define eterm (proof-to-extracted-term))
+(define CoIDiv-eterm (proof-to-extracted-term))
 (animate "CoIDivAux")
 (animate "CoIDivSatCoICl")
-(define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+(define CoIDiv-neterm (rename-variables (nt CoIDiv-eterm)))
+(ppc CoIDiv-neterm)
 
 ;; [u,u0](CoRec str=>str)u
 ;;  ([u1][case (cCoIClosure u1)
@@ -1703,3 +1704,100 @@
 ;;          (s0 pair u3 -> s0 pair InR u3)])])])
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Haskell translation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; terms-to-haskell-program (written by Fredrik Nordvall-Forsberg)
+;; generates a Haskell file (here sddivtest.hs).  To run it, in a
+;; terminal type ghci sddivtest.hs.  Then in *Main> one can evaluate
+;; the Haskell functions in sddivtest.hs.  To quit type *Main> :q
+
+'(
+(animate "RealToCoI")
+(animate "RealToCoIAux")
+(animate "ApproxSplitZeroMinusPtFive")
+(animate "ApproxSplitZeroPtFive")
+(animate "ApproxSplit")
+(animate "CoIToCoIDouble")
+(animate "CoIToCoIQuad")
+(animate "CoIDivSatCoIClAuxL")
+(animate "CoIDivSatCoIClAuxR")
+(animate "CoIPosToCoIMinusOne")
+(animate "CoIUMinus")
+(animate "Rht")
+(animate "SdUMinus")
+(animate "Lft")
+(animate "CoINegToCoIPlusOne")
+(animate "CoIOne")
+(animate "CoIClosure")
+(animate "CoIIntNOne")
+(animate "CoICompat")
+(animate "CoIClosureInv")
+(animate "CoIAverage")
+(animate "CoIAvcToCoI")
+(animate "CoIAvToAvc")
+(animate "IntPlusSdToSdtwo")
+(animate "CoIClauseInv")
+(animate "CoIAvcSatCoICl")
+(animate "CoIAvcSatCoIClAuxK")
+(animate "CoIAvcSatCoIClAuxJ")
+
+(terms-to-haskell-program
+ "~/temp/sddivtest.hs"
+ (list (list CoIDiv-eterm "coidiv")
+       (list RealToCoI-eterm "realtocoi")
+       (list RatToCoI-eterm "rattocoi")
+       (list (pt "SdMs") "sdms")
+       (list (pt "PtFive") "ptfive")
+       (list (pt "MPtFive") "mptfive")
+       (list (pt "OneSdR") "onesdr")
+       (list (pt "OneSdL") "onesdl")
+       (list (pt "SqrtTwoOverTwo") "stot")
+       (list (pt "IrrStr") "irrstr")
+       (list (pt "AiToReal") "aitoreal")
+       (list (pt "TakeStr") "takestr")
+       (list (pt "ListSdToRat") "listsdtorat")))
+
+(deanimate "RealToCoI")
+(deanimate "RealToCoIAux")
+(deanimate "ApproxSplitZeroMinusPtFive")
+(deanimate "ApproxSplitZeroPtFive")
+(deanimate "ApproxSplit")
+(deanimate "CoIToCoIDouble")
+(deanimate "CoIToCoIQuad")
+(deanimate "CoIDivSatCoIClAuxL")
+(deanimate "CoIDivSatCoIClAuxR")
+(deanimate "CoIPosToCoIMinusOne")
+(deanimate "CoIUMinus")
+(deanimate "Rht")
+(deanimate "SdUMinus")
+(deanimate "Lft")
+(deanimate "CoINegToCoIPlusOne")
+(deanimate "CoIOne")
+(deanimate "CoIClosure")
+(deanimate "CoIIntNOne")
+(deanimate "CoICompat")
+(deanimate "CoIClosureInv")
+(deanimate "CoIAverage")
+(deanimate "CoIAvcToCoI")
+(deanimate "CoIAvToAvc")
+(deanimate "IntPlusSdToSdtwo")
+(deanimate "CoIClauseInv")
+(deanimate "CoIAvcSatCoICl")
+(deanimate "CoIAvcSatCoIClAuxK")
+(deanimate "CoIAvcSatCoIClAuxJ")
+)
+
+;; ghci sddivtest.hs
+;; takestr 18 ((coidiv mptfive) ptfive)
+
+;; SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL
+
+;; takestr 18 (coidiv (realtocoi (aitoreal (irrstr (\ n -> (n + 1)) 0))) ptfive)
+
+;; SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR,SdR
+
+;; takestr 18 (coidiv (rattocoi (2 % 7)) ptfive)
+
+;; SdR,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR
