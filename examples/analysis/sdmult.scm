@@ -1,4 +1,4 @@
-;; 2018-09-08.  examples/analysis/sdmult.scm
+;; 2019-08-26.  examples/analysis/sdmult.scm
 
 (load "~/git/minlog/init.scm")
 
@@ -83,8 +83,8 @@
 (use "RealEqRefl")
 (use "RealRat")
 ;; Proof finished.
+;; (cdp)
 (save "CoIZero")
-;; (cdp) ;ok
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -116,8 +116,8 @@
 (use "CoIx")
 (autoreal)
 ;; Proof finished.
-(save "CoISdTimes")
 ;; (cdp)
+(save "CoISdTimes")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -191,6 +191,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMultcSatCoIClEq1")
 
 ;; CoIMultcSatCoIClAvcDestr
@@ -265,6 +266,7 @@
 (use "CoIClosure")
 (use "CoIv")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMultcSatCoIClAvcDestr")
 
 ;; cCoIMultcSatCoIClAvcDestr: str=>sd=>str=>sdtwo=>str yprod sd yprod sd
@@ -338,6 +340,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMultcSatCoIClEq2")
 
 ;; CoIMultcSatCoIClAuxJ
@@ -383,6 +386,7 @@
 (simp "SdtwoMRIdInst")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMultcSatCoIClAuxJ")
 
 (define eterm (proof-to-extracted-term))
@@ -464,6 +468,7 @@
 (simp "SdtwoMRIdInst")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMultcSatCoIClAuxK")
 
 (define eterm (proof-to-extracted-term))
@@ -581,8 +586,8 @@
 (use "CoIClosure")
 (use "CoIAvxy")
 ;; Proof finished.
-(save "CoIMultToMultc")
 ;; (cdp)
+(save "CoIMultToMultc")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -707,6 +712,7 @@
 (use "CoIClosure")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMultcSatCoICl")
 
 (define eterm (proof-to-extracted-term))
@@ -870,18 +876,19 @@
 (use "ix1y1z1Prop")
 (use "ix1y1z1Prop")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMultcToCoI")
 
-;; cCoIMultcToCoI: str yprod sdtwo yprod str yprod str=>str
+;; cCoIMultcToCoI: ai yprod sdtwo yprod ai yprod ai=>ai
 
 (define eterm (proof-to-extracted-term))
-(add-var-name "utvw" (py "str yprod sdtwo yprod str yprod str"))
-(add-var-name "stuv" (py "sd yprod sdtwo yprod str yprod str"))
+(add-var-name "utvw" (py "ai yprod sdtwo yprod ai yprod ai"))
+(add-var-name "stuv" (py "sd yprod sdtwo yprod ai yprod ai"))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
 ;; [utvw]
-;;  (CoRec str yprod sdtwo yprod str yprod str=>str)utvw
+;;  (CoRec ai yprod sdtwo yprod ai yprod ai=>ai)utvw
 ;;  ([utvw0]
 ;;    [let stuv
 ;;      (cCoIMultcSatCoICl clft utvw0 crht utvw0)
@@ -917,16 +924,136 @@
 (use "CoIx")
 (use "CoIy")
 ;; Proof finished.
+;; (cdp)
 (save "CoIMult")
 
-(define eterm (proof-to-extracted-term))
+(define CoIMult-eterm (proof-to-extracted-term))
 (animate "CoIMultcToCoI")
-(define neterm-CoIMult (rename-variables (nt eterm)))
-(ppc neterm-CoIMult)
+(define CoIMult-neterm (rename-variables (nt eterm)))
+(ppc CoIMult-neterm)
 
 ;; [u,u0][let utvw (cCoIMultToMultc u u0)
-;;    ((CoRec str yprod sdtwo yprod str yprod str=>str)utvw
+;;    ((CoRec ai yprod sdtwo yprod ai yprod ai=>ai)utvw
 ;;    ([utvw0][let stuv (cCoIMultcSatCoICl clft utvw0 crht utvw0)
 ;;        (clft stuv pair InR(clft utvw0 pair crht stuv))]))]
 
 (deanimate "CoIMultcToCoI")
+
+;; The following is added for experiments with the Haskell
+;; translation.
+
+(define CoIAverage-eterm
+  (proof-to-extracted-term (theorem-name-to-proof "CoIAverage")))
+
+(define CoIAverage-neterm (rename-variables (nt CoIAverage-eterm)))
+
+;; (pp CoIAverage-neterm)
+
+;; [u,u0]
+;;  [let tuv
+;;    (cCoIAvToAvc u u0)
+;;    (cCoIAvcToCoI(clft tuv pair clft crht tuv pair crht crht tuv))]
+
+(define RealToCoI-eterm
+  (proof-to-extracted-term (theorem-name-to-proof "RealToCoI")))
+
+(define RealToCoI-neterm (rename-variables (nt RealToCoI-eterm)))
+
+;; (pp RealToCoI-neterm)
+
+;; [x]
+;;  (CoRec sd yprod rea=>ai)(cRealToCoIAux x)
+;;  ([(sd yprod rea)]
+;;    [if (sd yprod rea)
+;;      ([s,x0]
+;;       [if (cRealToCoIAux x0)
+;;         ([s0,x1]s pair(InR (sd yprod rea) ai)(s0 pair x1))])])
+
+'(
+(animate "RealToCoIAux")
+(animate "ApproxSplitZeroMinusPtFive")
+(animate "ApproxSplitZeroPtFive")
+(animate "ApproxSplit")
+(animate "Rht")
+(animate "CoIMultToMultc")
+(animate "CoIMultcToCoI")
+(animate "CoIMultcSatCoICl")
+(animate "CoIMultcSatCoIClAvcDestr")
+(animate "CoIAvcSatCoIClAuxJ")
+(animate "CoIMultcSatCoIClAuxJ")
+(animate "CoIAvcToCoI")
+(animate "CoIMultcSatCoIClAuxK")
+(animate "CoIAvcSatCoICl")
+(animate "CoIAverage")
+(animate "CoISdTimes")
+(animate "CoIUMinus")
+(animate "CoIZero")
+(animate "SdUMinus")
+(animate "CoICompat")
+(animate "CoIClause")
+(animate "IntPlusSdToSdtwo")
+(animate "IntTimesSdToSd")
+(animate "CoIAvcSatCoIClAuxK")
+(animate "CoIAvToAvc")
+(animate "Lft")
+(animate "CoIClosure")
+(animate "CoIClauseInv")
+
+;; (display-animation)
+
+(terms-to-haskell-program
+ "~/temp/sdmulttest.hs"
+ (list (list CoIMult-eterm "coimult")
+       (list RealToCoI-eterm "realtocoi")
+       (list (nt (pt "PtFive")) "ptfive")
+       (list (nt (pt "MPtFive")) "mptfive")
+       (list (nt (pt "SqrtTwoOverTwo")) "stot")
+       (list (pt "IrrStr") "irrstr")
+       (list (pt "AiToReal") "aitoreal")
+       (list (nt (pt "TakeStr")) "takestr")))
+
+(deanimate "RealToCoIAux")
+(deanimate "ApproxSplitZeroMinusPtFive")
+(deanimate "ApproxSplitZeroPtFive")
+(deanimate "ApproxSplit")
+(deanimate "Rht")
+(deanimate "CoIMultToMultc")
+(deanimate "CoIMultcToCoI")
+(deanimate "CoIMultcSatCoICl")
+(deanimate "CoIMultcSatCoIClAvcDestr")
+(deanimate "CoIAvcSatCoIClAuxJ")
+(deanimate "CoIMultcSatCoIClAuxJ")
+(deanimate "CoIAvcToCoI")
+(deanimate "CoIMultcSatCoIClAuxK")
+(deanimate "CoIAvcSatCoICl")
+(deanimate "CoIAverage")
+(deanimate "CoISdTimes")
+(deanimate "CoIUMinus")
+(deanimate "CoIZero")
+(deanimate "SdUMinus")
+(deanimate "CoICompat")
+(deanimate "CoIClause")
+(deanimate "IntPlusSdToSdtwo")
+(deanimate "IntTimesSdToSd")
+(deanimate "CoIAvcSatCoIClAuxK")
+(deanimate "CoIAvToAvc")
+(deanimate "Lft")
+(deanimate "CoIClosure")
+(deanimate "CoIClauseInv")
+)
+
+;; ghci sdmulttest.hs
+;; takestr 18 ((coimult ptfive) mptfive)
+
+;; SdM,SdL,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM,SdM
+
+;; takestr 3 ((coimult (realtocoi stot)) mptfive)
+
+;; SdL,SdR,SdL
+
+;; takestr 18 (coimult (realtocoi (aitoreal (irrstr (\ n -> (n + 1)) 0))) mptfive)
+
+;; SdL,SdR,SdM,SdL,SdM,SdM,SdL,SdM,SdM,SdM,SdL,SdM,SdM,SdM,SdM,SdL,SdM,SdM
+
+
+
