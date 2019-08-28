@@ -1,4 +1,4 @@
-;; 2018-09-08.  examples/analysis/sdavaux.scm
+;; 2019-08-25.  examples/analysis/sdavaux.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -46,13 +46,13 @@
 (use "CoIx1")
 (split)
 (use "CoIy1")
-;; ?_35:(1#2)*(x+y)===(1#4)*(x1+y1+(d+e))
+;; ?^35:(1#2)*(x+y)===(1#4)*(x1+y1+(d+e))
 (assert "Real((1#4)*(x1+y1+(d+e)))")
 (autoreal)
 (assume "R")
 (simpreal "dx1Prop")
 (simpreal "ey1Prop")
-;; ?_40:(1#2)*((1#2)*(x1+d)+(1#2)*(y1+e))===(1#4)*(x1+y1+(d+e))
+;; ?^40:(1#2)*((1#2)*(x1+d)+(1#2)*(y1+e))===(1#4)*(x1+y1+(d+e))
 (use "RealEqSToEq")
 (autoreal)
 (cases (pt "x1"))
@@ -62,17 +62,17 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_50:(1#2)*((1#2)*(as n+d)+(1#2)*(bs n+e))==(1#4)*(as n+bs n+(d+e))
+;; ?^50:(1#2)*((1#2)*(as n+d)+(1#2)*(bs n+e))==(1#4)*(as n+bs n+(d+e))
 (simprat "<-" "RatTimesPlusDistr")
-;; ?_51:(1#2)*((1#2)*(as n+d+(bs n+e)))==(1#4)*(as n+bs n+(d+e))
+;; ?^51:(1#2)*((1#2)*(as n+d+(bs n+e)))==(1#4)*(as n+bs n+(d+e))
 (ng #t)
-;; ?_52:(1#4)*(as n+d+bs n+e)==(1#4)*(as n+bs n+(d+e))
+;; ?^52:(1#4)*(as n+d+bs n+e)==(1#4)*(as n+bs n+(d+e))
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (simp "<-" "RatPlusAssoc")
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_57:d+(bs n+e)==bs n+(d+e)
+;; ?^57:d+(bs n+e)==bs n+(d+e)
 (ng #t)
 (simp (pf "d+bs n=bs n+d"))
 (simp "<-" "RatPlusAssoc")
@@ -81,6 +81,7 @@
 (use "Truth")
 (use "RatPlusComm")
 ;; Proof finished.
+;; (cdp)
 (save "CoIAvToAvc")
 
 (define eterm (proof-to-extracted-term))
@@ -115,11 +116,11 @@
      (pt "IntToSdtwo(J(SdToInt s1+SdToInt s2+SdtwoToInt t*2))"))
 (simp (pf "J(SdToInt s1+SdToInt s2+SdtwoToInt t*2)=J(d+e+i*2)"))
 (use "SdtwoMRIntToSdtwo")
-;; ?_27:abs(J(d+e+i*2))<=2
+;; ?^27:abs(J(d+e+i*2))<=2
 (use "JProp")
 (simp (pf "SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2"))
 (use "Truth")
-;; ?_29:SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2
+;; ?^29:SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2
 (inst-with-to "SdMRId" (pt "d") (pt "s1") "s1Prop" "SdMRIdInst1")
 (inst-with-to "SdMRId" (pt "e") (pt "s2") "s2Prop" "SdMRIdInst2")
 (inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
@@ -128,6 +129,7 @@
 (simp "SdtwoMRIdInst")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIAvcSatCoIClAuxJ")
 
 (define eterm (proof-to-extracted-term))
@@ -157,9 +159,9 @@
 (use "SdMRElim" (pt "IntToSd(K(SdToInt s1+SdToInt s2+SdtwoToInt t*2))"))
 (simp (pf "K(SdToInt s1+SdToInt s2+SdtwoToInt t*2)=K(d+e+i*2)"))
 (use "SdMRIntToSd")
-;; ?_27:abs(K(d+e+i*2))<=1
+;; ?^27:abs(K(d+e+i*2))<=1
 (use "KProp")
-;; ?_28:abs(d+e+i*2)<=6
+;; ?^28:abs(d+e+i*2)<=6
 (use "IntLeTrans" (pt "IntP 2+IntP 4"))
 (use "IntLeTrans" (pt "abs(d+e)+abs(i*2)"))
 (use "IntLeAbsPlus")
@@ -183,7 +185,7 @@
 (use "Truth")
 (simp (pf "SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2"))
 (use "Truth")
-;; ?_50:SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2
+;; ?^50:SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2
 (inst-with-to "SdMRId" (pt "d") (pt "s1") "s1Prop" "SdMRIdInst1")
 (inst-with-to "SdMRId" (pt "e") (pt "s2") "s2Prop" "SdMRIdInst2")
 (inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
@@ -192,6 +194,7 @@
 (simp "SdtwoMRIdInst")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIAvcSatCoIClAuxK")
 
 (define eterm (proof-to-extracted-term))
@@ -235,10 +238,10 @@
 (use "CoIx1")
 (split)
 (use "CoIy1")
-;; ?_42:(1#4)*(x+y+i)===(1#2)*((1#4)*(x1+y1+J(d+e+i*2))+K(d+e+i*2))
+;; ?^42:(1#4)*(x+y+i)===(1#2)*((1#4)*(x1+y1+J(d+e+i*2))+K(d+e+i*2))
 (simpreal "dx1Prop")
 (simpreal "ey1Prop")
-;; ?_44:(1#4)*((1#2)*(x1+d)+(1#2)*(y1+e)+i)===
+;; ?^44:(1#4)*((1#2)*(x1+d)+(1#2)*(y1+e)+i)===
 ;;      (1#2)*((1#4)*(x1+y1+J(d+e+i*2))+K(d+e+i*2))
 (use "RealEqSToEq")
 (autoreal)
@@ -249,7 +252,7 @@
 (use "RealEqSIntro")
 (assume "n")
 (ng #t)
-;; ?_54:(1#4)*((1#2)*(as n+d)+(1#2)*(bs n+e)+i)==
+;; ?^54:(1#4)*((1#2)*(as n+d)+(1#2)*(bs n+e)+i)==
 ;;      (1#2)*((1#4)*(as n+bs n+J(d+e+i*2))+K(d+e+i*2))
 (simprat "RatTimesPlusDistr")
 (simprat "RatTimesPlusDistr")
@@ -263,7 +266,7 @@
 (simprat "RatTimesPlusDistr")
 (simprat "RatTimesPlusDistr")
 (ng)
-;; ?_66:(1#8)*as n+(d#8)+(1#8)*bs n+(e#8)+(i#4)==
+;; ?^66:(1#8)*as n+(d#8)+(1#8)*bs n+(e#8)+(i#4)==
 ;;      (1#8)*as n+(1#8)*bs n+(J(d+e+i*2)#8)+(K(d+e+i*2)#2)
 (use "RatEqvTrans" (pt "(1#8)*as n+((d#8)+(1#8)*bs n+(e#8)+(i#4))"))
 (use "Truth")
@@ -276,10 +279,10 @@
 (simp "<-" "RatPlusAssoc")
 (use "RatPlusCompat")
 (use "Truth")
-;; ?_79:(d#8)+((e#8)+(i#4))==(J(d+e+i*2)#8)+(K(d+e+i*2)#2)
+;; ?^79:(d#8)+((e#8)+(i#4))==(J(d+e+i*2)#8)+(K(d+e+i*2)#2)
 (simprat (pf "(i#4)==(i*2#8)"))
 (simprat (pf "(K(d+e+i*2)#2)==(K(d+e+i*2)*4#8)"))
-;; ?_82:(d#8)+((e#8)+(i*2#8))==(J(d+e+i*2)#8)+(K(d+e+i*2)*4#8)
+;; ?^82:(d#8)+((e#8)+(i*2#8))==(J(d+e+i*2)#8)+(K(d+e+i*2)*4#8)
 (simprat "<-" "RatEqvConstrPlus")
 (simprat "<-" "RatEqvConstrPlus")
 (simprat "<-" "RatEqvConstrPlus")
@@ -287,18 +290,19 @@
 (simp "KJProp")
 (use "Truth")
 (use "IntPlusComm")
-;; ?_83:(K(d+e+i*2)#2)==(K(d+e+i*2)*4#8)
+;; ?^83:(K(d+e+i*2)#2)==(K(d+e+i*2)*4#8)
 (ng #t)
 (simp "<-" "IntTimesAssoc")
 (use "Truth")
-;; ?_81:(i#4)==(i*2#8)
+;; ?^81:(i#4)==(i*2#8)
 (ng #t)
 (simp "<-" "IntTimesAssoc")
 (use "Truth")
-;; ?_74:(d#8)+(1#8)*bs n=(1#8)*bs n+(d#8)
+;; ?^74:(d#8)+(1#8)*bs n=(1#8)*bs n+(d#8)
 (use "RatPlusComm")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIAvcSatCoICl")
 
 (define eterm (proof-to-extracted-term))
@@ -325,8 +329,7 @@
 (use "RealRat")
 (assume "p")
 (ng)
-;; ?_9:0<=SZero(2**p)+ ~(abs i*2**p)+1
-;; ?_9:0<=2**p+ ~(abs d*2**p)+1
+;; ?^9:0<=SZero(2**p)+ ~(abs i*2**p)+1
 (use "IntLeTrans" (pt "2*2**p+ ~(2*2**p)+1"))
 (use "Truth")
 (use "IntLeMonPlus")
@@ -341,6 +344,7 @@
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "SdtwoBoundReal")
 
 ;; Putting things together
@@ -424,16 +428,17 @@
 (use "y1x1iProp")
 (use "y1x1iProp")
 ;; Proof finished.
+;; (cdp)
 (save "CoIAvcToCoI")
 
 (define eterm (proof-to-extracted-term))
-(add-var-name "tuv" (py "sdtwo yprod str yprod str"))
-(add-var-name "tsuv" (py "sdtwo yprod sd yprod str yprod str"))
+(add-var-name "tuv" (py "sdtwo yprod ai yprod ai"))
+(add-var-name "tsuv" (py "sdtwo yprod sd yprod ai yprod ai"))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
 ;; [tuv]
-;;  (CoRec sdtwo yprod str yprod str=>str)tuv
+;;  (CoRec sdtwo yprod ai yprod ai=>ai)tuv
 ;;  ([tuv0]
 ;;    [let tsuv
 ;;      (cCoIAvcSatCoICl clft tuv0 clft crht tuv0 crht crht tuv0)
@@ -463,13 +468,14 @@
 ;; Now prove the formula cut in above
 (use-with "CoIAvToAvc" (pt "x") (pt "y") "CoIx" "CoIy")
 ;; Proof finished.
+;; (cdp)
 (save "CoIAverage")
 
-(define eterm (proof-to-extracted-term))
-(define neterm-CoIAverage (rename-variables (nt eterm)))
-(pp neterm-CoIAverage)
+(define CoIAverage-eterm (proof-to-extracted-term))
+(define CoIAverage-neterm (rename-variables (nt CoIAverage-eterm)))
+(pp CoIAverage-neterm)
 
-;; [u,u0](cId sdtwo yprod str yprod str=>str)cCoIAvcToCoI(cCoIAvToAvc u u0)
+;; [u,u0](cId sdtwo yprod ai yprod ai=>ai)cCoIAvcToCoI(cCoIAvToAvc u u0)
 
 (animate "CoIAvcToCoI")
 (animate "CoIAvToAvc")
@@ -478,14 +484,14 @@
 (animate "CoIAvcSatCoIClAuxK")
 (animate "IntPlusSdToSdtwo")
 
-(define neterm-CoIAverage (rename-variables (nt eterm)))
-(ppc neterm-CoIAverage)
+(define CoIAverage-neterm (rename-variables (nt CoIAverage-eterm)))
+(ppc CoIAverage-neterm)
 
 ;; [u,u0]
 ;;  [let tuv
 ;;    (IntToSdtwo(SdToInt clft(cCoIClosure u)+SdToInt clft(cCoIClosure u0))pair 
 ;;    crht(cCoIClosure u)pair crht(cCoIClosure u0))
-;;    ((CoRec sdtwo yprod str yprod str=>str)tuv
+;;    ((CoRec sdtwo yprod ai yprod ai=>ai)tuv
 ;;    ([tuv0]
 ;;      [let tsuv
 ;;        (IntToSdtwo
@@ -507,4 +513,7 @@
 (deanimate "CoIAvcSatCoIClAuxJ")
 (deanimate "CoIAvcSatCoIClAuxK")
 (deanimate "IntPlusSdToSdtwo")
+
+;; To check which program constants are animated evaluate
+;; (display-animation)
 
