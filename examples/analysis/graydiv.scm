@@ -1,10 +1,11 @@
-;; 2017-12-12.  examples/analysis/graydiv.scm
+;; 2019-08-27.  examples/analysis/graydiv.scm
 
 (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
 (libload "list.scm")
+(libload "str.scm")
 (libload "pos.scm")
 (libload "int.scm")
 (libload "rat.scm")
@@ -13,10 +14,15 @@
 ;; (set! COMMENT-FLAG #t)
 
 (load "~/git/minlog/examples/analysis/digits.scm")
+(load "~/git/minlog/examples/analysis/sdcode.scm")
 (load "~/git/minlog/examples/analysis/graycode.scm")
 (load "~/git/minlog/examples/analysis/JK.scm")
 (load "~/git/minlog/examples/analysis/grayavaux.scm")
 (load "~/git/minlog/examples/analysis/div.scm")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Division for Gray code
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; PMOneToCoG
 (set-goal "allnc x(x===1 oru x===IntN 1 -> CoG x)")
@@ -128,11 +134,12 @@
 (use "RealEqRefl")
 (realproof)
 ;; Proof finished.
+;; (cdp)
 (save "PMOneToCoG")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [boole]
 ;;  (CoRec boole=>ag boole=>ah)boole
@@ -152,6 +159,7 @@
 (use "RealEqRefl")
 (use "RealRat")
 ;; Proof finished.
+;; (cdp)
 (save "CoGOne")
 
 (define eterm (proof-to-extracted-term))
@@ -169,6 +177,8 @@
 ;;     (True -> InL(True pair InR True))
 ;;     (False -> InL(False pair InR True))])
 
+(deanimate "PMOneToCoG")
+
 ;; CoGIntNOne
 (set-goal "CoG(IntN 1)")
 (use "PMOneToCoG")
@@ -176,12 +186,13 @@
 (use "RealEqRefl")
 (use "RealRat")
 ;; Proof finished.
+;; (cdp)
 (save "CoGIntNOne")
 
 (define eterm (proof-to-extracted-term))
 (animate "PMOneToCoG")
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; (CoRec boole=>ag boole=>ah)False
 ;; ([boole]
@@ -243,6 +254,7 @@
 (use "RatLeToRealLe")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoGShiftAux1")
 
 ;; CoGShiftAux2
@@ -298,6 +310,7 @@
 (use "RatLeToRealLe")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoGShiftAux2")
 
 ;; CoGShiftAux3
@@ -318,6 +331,7 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGShiftAux3")
 
 ;; CoGShiftAux4
@@ -351,68 +365,63 @@
 (use "RatLeToRealLe")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoGShiftAux4")
 
 ;; (set! COMMENT-FLAG #f)
 ;; CoGShift
-(set-goal
- "allnc x(exr y(CoG y andi y<<=0 andr (x===y+1 oru x=== ~(y+1))) -> CoG x)")
+(set-goal "allnc x(
+ exr y,d(CoG y andi Psd d andi y<<=0 andi
+         (d=IntP 1 andnc x===y+1 ornc d=IntN 1 andnc x=== ~(y+1))) -> CoG x)")
 (assume "x" "Shift")
 (coind "Shift"
-     (pf "exr y(CoH y andi y<<=0 andr (x===y+1 oru x=== ~(y+1))) -> CoH x"))
+     (pf "exr y,d(CoH y andi Psd d andi y<<=0 andi
+         (d=IntP 1 andnc x===y+1 ornc d=IntN 1 andnc x=== ~(y+1))) -> CoH x"))
 ;; 3,4
 (drop "Shift")
 (assume "x0" "ExHyp")
 (by-assume "ExHyp" "y" "yProp")
-(elim "yProp")
-(drop "yProp")
-(assume "CoGy")
-(inst-with-to "CoGClosure" (pt "y") "CoGy" "CoGClosureInst")
-(elim "CoGClosureInst")
-;; 15,16
-(drop "CoGClosureInst")
-(assume "ExHypdx1")
-(by-assume "ExHypdx1" "d" "dProp")
-(by-assume "dProp" "x1" "dx1Prop")
-(elim "dx1Prop")
-(drop "dx1Prop")
-(assume "Psdd" "Conj")
+(by-assume "yProp" "d" "dyProp")
+(elim "dyProp")
+(drop "dyProp")
+(assume "CoGy" "Conj")
 (elim "Conj")
 (drop "Conj")
-(assume "CoGx1")
-(assert "abs x1<<=1")
- (use "CoGToBd")
- (use "CoGx1")
-(assume "x1Bd")
-(elim "Psdd")
-;; 35,36
-;; Case d=1
-(drop "Psdd")
-(assume "yDef" "Conj1")
+(assume "Psdd" "Conj1")
 (elim "Conj1")
 (drop "Conj1")
 (assume "y<=0" "Disj")
+;; 
+(inst-with-to "CoGClosure" (pt "y") "CoGy" "CoGClosureInst")
+(elim "CoGClosureInst")
+;; 24,25
+(drop "CoGClosureInst")
+(assume "ExHypez")
+(intro 0)
+(by-assume "ExHypez" "e" "eProp")
+(by-assume "eProp" "z" "ezProp")
+(elim "ezProp")
+(drop "ezProp")
+(assume "Psde" "Conj2")
+(elim "Conj2")
+(drop "Conj2")
+(elim "Psde")
+;; 40,41
+;; Case e=1
+(assume "CoGz" "yDef")
 (assert "y===0")
- (use "CoGShiftAux1" (pt "x1"))
+ (use "CoGShiftAux1" (pt "z"))
  (autoreal)
- (use "x1Bd")
- (simpreal "yDef")
- (use "RealEqRefl")
- (autoreal)
+ (use "CoGToBd")
+ (use "CoGz")
+ (use "yDef")
  (use "y<=0")
 (assume "y=0")
-(elim "Disj")
-;; 51,52
-(drop "Disj")
-;; Case x0=y+1
-(assume "x0=y+1")
-;; Go for lhs of the disjunction with d=1 and x= ~1
-(intro 0)
-(intro 0 (pt "IntP 1"))
+(intro 0 (pt "d"))
 (intro 0 (pt "RealUMinus 1"))
-(intro 0 (pt "y+1"))
+(intro 0 (pt "x0"))
 (split)
-(use "InitPsdTrue")
+(use "Psdd")
 (split)
 (autoreal)
 (split)
@@ -421,68 +430,67 @@
 (split)
 (intro 0)
 (use "CoGIntNOne")
-(split)
-(simpreal "y=0")
-(ng #t)
-(use "RatEqvToRealEq")
-(use "Truth")
-(use "x0=y+1")
-;; 52
-(drop "Disj")
-;; Case x0= ~(y+1)
-(assume "x0= ~(y+1)")
-;; Go for lhs of the disjunction with d=IntN 1 and x=RealUMinus 1
-(intro 0)
-(intro 0 (pt "IntN 1"))
-(intro 0 (pt "RealUMinus 1"))
-(intro 0 (pt "~(y+1)"))
-(split)
-(use "InitPsdFalse")
-(split)
-(autoreal)
-(split)
-(use "RatLeToRealLe")
-(use "Truth")
-(split)
-(intro 0)
-(use "CoGIntNOne")
-(split)
-(simpreal "y=0")
-(ng #t)
-(use "RatEqvToRealEq")
-(use "Truth")
-(use "x0= ~(y+1)")
-;; 36
-;; Case d=IntN 1
-(drop "Psdd")
-(assume "yDef" "Conj1")
-(elim "Conj1")
-(drop "Conj1")
-(assume "y<=0" "Disj")
 (elim "Disj")
-;; 100,101
-(drop "Disj")
-(assume "x0=y+1")
-;; Go for lhs of the disjunction with d=1 and x= ~x1
-(intro 0)
-(intro 0 (pt "IntP 1"))
-(intro 0 (pt "~x1"))
-(intro 0 (pt "y+1"))
+;; 64,65
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=1" "x0Def")
 (split)
-(use "InitPsdTrue")
+(simp "d=1")
+(ng #t)
+(simpreal "x0Def")
+(simpreal "y=0")
+(ng #t)
+(use "RatEqvToRealEq")
+(use "Truth")
+(use "RealEqRefl")
+(autoreal)
+;; 65
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=-1" "x0Def")
+(split)
+(simp "d=-1")
+(ng #t)
+(simpreal "x0Def")
+(simpreal "y=0")
+(ng #t)
+(use "RatEqvToRealEq")
+(use "Truth")
+(use "RealEqRefl")
+(autoreal)
+;; 41
+;; Case e=-1
+(assume "CoGz" "yDef")
+(intro 0 (pt "d"))
+(intro 0 (pt "~z"))
+(intro 0 (pt "x0"))
+(split)
+(use "Psdd")
 (split)
 (autoreal)
 (split)
 (simpreal "RealAbsUMinus")
-(use "x1Bd")
+(use "CoGToBd")
+(use "CoGz")
 (autoreal)
 (split)
 (intro 0)
 (use "CoGUMinus")
 (simpreal "RealUMinusUMinus")
-(use "CoGx1")
+(use "CoGz")
 (autoreal)
+(elim "Disj")
+;; 111,112
+(drop "Disj")
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=1" "x0Def")
 (split)
+(simpreal "x0Def")
 (simpreal (pf "y+1===y+RealTimes(1#2)2"))
 (simpreal "yDef")
 (simpreal "<-" "RealTimesAssoc")
@@ -490,45 +498,32 @@
 (ng #t)
 (simpreal "RealTimesOne")
 (simpreal "<-" "RealTimesAssoc")
-(simpreal "RealTimesIntNOne")
-(simpreal "RealUMinusPlusRat")
-(simpreal "RealUMinusUMinus")
+(simp "d=1")
 (ng #t)
+(simpreal "RealTimesIntNOne")
 (simpreal "<-" "RealPlusAssoc")
 (ng #t)
+(simpreal "RealUMinusPlusRat")
+(simpreal "RealUMinusUMinus")
 (use "RealEqRefl")
 (autoreal)
 (ng #t)
 (use "RealEqRefl")
 (autoreal)
-(simpreal "x0=y+1")
 (use "RealEqRefl")
 (autoreal)
-;; 101
+;; 112
 (drop "Disj")
-(assume "x0= ~(y+1)")
-;; Go for lhs of the disjunction with d=IntN 1 and x= ~x1
-(intro 0)
-(intro 0 (pt "IntN 1"))
-(intro 0 (pt "~x1"))
-(intro 0 (pt "~(y+1)"))
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=-1" "x0Def")
 (split)
-(use "InitPsdFalse")
-(split)
-(autoreal)
-(split)
-(simpreal "RealAbsUMinus")
-(use "x1Bd")
-(autoreal)
-(split)
-(intro 0)
-(use "CoGUMinus")
-(simpreal "RealUMinusUMinus")
-(use "CoGx1")
-(autoreal)
-(split)
+(simpreal "x0Def")
 (simpreal "<-" "RealTimesAssoc")
 (simpreal "RealTimesPlusDistrLeft")
+(ng #t)
+(simp "d=-1")
 (ng #t)
 (simpreal "RealTimesOne")
 (simpreal (pf "~(y+1)=== ~(y+RealTimes(1#2)2)"))
@@ -545,68 +540,70 @@
 (autoreal)
 (use "RealEqRefl")
 (autoreal)
-(use "x0= ~(y+1)")
-;; 16
+(use "RealEqRefl")
+(autoreal)
+;; 25
 (drop "CoGClosureInst")
-(assume "ExHypx1")
-(by-assume "ExHypx1" "x1" "Conj")
-(elim "Conj")
-(drop "Conj")
-(assume "CoHx1" "yDef" "Conj1")
-(assert "abs x1<<=1")
- (use "CoHToBd")
- (use "CoHx1")
-(assume "x1Bd")
-(elim "Conj1")
-(drop "Conj1")
-(assume "y<=0" "Disj")
-;; Case y<=0
-(assert "x1<<=0")
+(assume "ExHypz")
+(intro 0)
+(by-assume "ExHypz" "z" "zProp")
+(elim "zProp")
+(drop "zProp")
+(assume "CoHz" "yDef")
+(assert "z<<=0")
  (use "CoGShiftAux3" (pt "y"))
  (autoreal)
  (use "yDef")
  (use "y<=0")
-(assume "x1<=0")
-(assert "abs(x1+1)<<=1")
+(assume "z<=0")
+(assert "abs(z+1)<<=1")
  (use "CoGShiftAux4" (pt "y"))
  (autoreal)
- (use "x1Bd")
+ (use "CoHToBd")
+ (use "CoHz")
  (use "yDef")
  (use "y<=0")
-(assume "abs(x1+1)<=1")
-(elim "Disj")
-;; 246,247
-(drop "Disj")
-;; Case x0=y+1
-(assume "x0=y+1")
-;; Go for lhs of the disjunction with d=1 and x= ~(x1+1)
-(intro 0)
-(intro 0 (pt "IntP 1"))
-(intro 0 (pt "~(x1+1)"))
-(intro 0 (pt "y+1"))
+(assume "abs(z+1)<=1")
+;; Go for x=-(z+1)
+(intro 0 (pt "d"))
+(intro 0 (pt "~(z+1)"))
+(intro 0 (pt "x0"))
 (split)
-(use "InitPsdTrue")
+(use "Psdd")
 (split)
 (autoreal)
 (split)
 (simpreal "RealAbsUMinus")
-(use "abs(x1+1)<=1")
+(use "abs(z+1)<=1")
 (autoreal)
 (split)
 (intro 1)
-(intro 0 (pt "x1"))
+(intro 0 (pt "z"))
+(intro 0 (pt "IntN 1"))
 (split)
 (use "CoHToCoG")
-(use "CoHx1")
+(use "CoHz")
 (split)
-;; ?_269:x1<<=0
-(use "x1<=0")
-;; ?_270:~(x1+1)===x1+1 oru ~(x1+1)=== ~(x1+1)
+(use "InitPsdFalse")
+(split)
+(use "z<=0")
 (intro 1)
+(split)
+(use "Truth")
 (use "RealEqRefl")
 (autoreal)
+;; ?^239:x0===(1#2)*(~(z+1)+IntN 1)* ~d andnc x0===x0
+(elim "Disj")
+;; 254,255
+(drop "Disj")
+(assume "Conj2")
+(elim "Conj2")
+(drop "Conj2")
+(assume "d=1" "x0Def")
+(simp "d=1")
 (split)
-;; ?_273:y+1===(1#2)*(~(x1+1)+IntN 1)* ~1
+(simpreal "x0Def")
+;; ?^264:y+1===(1#2)*(~(z+1)+IntN 1)* ~1
 (simpreal "<-" "RealTimesAssoc")
 (ng #t)
 (simpreal "RealTimesIntNOne")
@@ -619,394 +616,329 @@
 (simpreal "yDef")
 (use "RealEqRefl")
 (autoreal)
-(use "x0=y+1")
-;; 247
-(drop "Disj")
-;; Case x0= ~(y+1)
-(assume "x0= ~(y+1)")
-;; Go for lhs of the disjunction with d=IntN 1 and x= ~(x1+1)
-(intro 0)
-(intro 0 (pt "IntN 1"))
-(intro 0 (pt "~(x1+1)"))
-(intro 0 (pt "~(y+1)"))
-(split)
-(use "InitPsdFalse")
-(split)
-(autoreal)
-(split)
-(simpreal "RealAbsUMinus")
-(use "abs(x1+1)<=1")
-(autoreal)
-(split)
-(intro 1)
-(intro 0 (pt "x1"))
-(split)
-(use "CoHToCoG")
-(use "CoHx1")
-(split)
-(use "x1<=0")
-(intro 1)
 (use "RealEqRefl")
 (autoreal)
+;; 255
+(drop "Disj")
+(assume "Conj2")
+(elim "Conj2")
+(drop "Conj2")
+(assume "d=-1" "x0Def")
+(simp "d=-1")
 (split)
+(simpreal "x0Def")
+;; ?^297:~(y+1)===(1#2)*(~(z+1)+IntN 1)* ~IntN 1
 (ng #t)
-(simpreal "<-" "RealTimesAssoc")
 (simpreal "RealTimesOne")
-(simpreal (pf "~(x1+1)=== ~x1+RealUMinus 1"))
-(simpreal "<-" "RealPlusAssoc")
-(ng #t)
-(simpreal "RealTimesPlusDistr")
-(ng #t)
-(simpreal "RealUMinusPlusRat")
-(simpreal "yDef")
-(simpreal "RealTimesIdUMinus")
-(use "RealEqRefl")
-(autoreal)
-(simpreal "RealUMinusPlusRat")
-(use "RealEqRefl")
-(autoreal)
-(use "x0= ~(y+1)")
-;; 4
-(drop "Shift")
-(assume "x0" "ExHyp")
-(by-assume "ExHyp" "y" "yProp")
-(elim "yProp")
-(drop "yProp")
-(assume "CoHy")
-(inst-with-to "CoHClosure" (pt "y") "CoHy" "CoHClosureInst")
-(elim "CoHClosureInst")
-;; 364,365
-(drop "CoHClosureInst")
-(assume "ExHypdx1")
-(by-assume "ExHypdx1" "d" "dProp")
-(by-assume "dProp" "x1" "dx1Prop")
-(elim "dx1Prop")
-(drop "dx1Prop")
-(assume "Psdd" "Conj")
-(elim "Conj")
-(drop "Conj")
-(assume "CoGx1")
-(assert "abs x1<<=1")
- (use "CoGToBd")
- (use "CoGx1")
-(assume "x1Bd")
-(elim "Psdd")
-;; 384,385
-;; Case d=1
-(drop "Psdd")
-(assume "yDef" "Conj1")
-(elim "Conj1")
-(drop "Conj1")
-(assume "y<=0" "Disj")
-(assert "y===0")
- (use "CoGShiftAux2" (pt "x1"))
- (autoreal)
- (use "x1Bd")
- (simpreal "yDef")
- (use "RealEqRefl")
- (autoreal)
- (use "y<=0")
-(assume "y=0")
-(elim "Disj")
-;; 400,401
-(drop "Disj")
-;; Almost the same situation as in goal 51.  But here (1#2)*(x+1)*d
-(assume "x0=y+1")
-;; Go for lhs of the disjunction with d=1 and x=1
-(intro 0)
-(intro 0 (pt "IntP 1"))
-(intro 0 (pt "RealConstr([n]1#1)([p]Zero)"))
-(intro 0 (pt "y+1"))
-(split)
-(use "InitPsdTrue")
-(split)
-(autoreal)
-(split)
-(use "RatLeToRealLe")
-(use "Truth")
-(split)
-(intro 0)
-(use "CoGOne")
-(split)
-(simpreal "y=0")
-(ng #t)
-(use "RatEqvToRealEq")
-(use "Truth")
-(use "x0=y+1")
-;; 401
-(drop "Disj")
-;; Case x0= ~(y+1)
-(assume "x0= ~(y+1)")
-;; Go for lhs of the disjunction with d=IntN 1 and x=1
-(intro 0)
-(intro 0 (pt "IntN 1"))
-(intro 0 (pt "RealConstr([n]1#1)([p]Zero)"))
-(intro 0 (pt "~(y+1)"))
-(split)
-(use "InitPsdFalse")
-(split)
-(autoreal)
-(split)
-(use "RatLeToRealLe")
-(use "Truth")
-(split)
-(intro 0)
-(use "CoGOne")
-(split)
-(simpreal "y=0")
-(ng #t)
-(use "RatEqvToRealEq")
-(use "Truth")
-(use "x0= ~(y+1)")
-;; 385
-;; Case d=IntN 1
-(drop "Psdd")
-(assume "yDef" "Conj1")
-(elim "Conj1")
-(drop "Conj1")
-(assume "y<=0" "Disj")
-(elim "Disj")
-;; 449,450
-(drop "Disj")
-(assume "x0=y+1")
-;; Go for lhs of the disjunction with d=1 and x= ~x1
-(intro 0)
-(intro 0 (pt "IntP 1"))
-(intro 0 (pt "~x1"))
-(intro 0 (pt "y+1"))
-(split)
-(use "InitPsdTrue")
-(split)
-(autoreal)
-(split)
-(simpreal "RealAbsUMinus")
-(use "x1Bd")
-(autoreal)
-(split)
-(intro 0)
-(use "CoGUMinus")
-(simpreal "RealUMinusUMinus")
-(use "CoGx1")
-(autoreal)
-(split)
-(simpreal (pf "y+1===y+RealTimes(1#2)2"))
-(simpreal "yDef")
-(simpreal "<-" "RealTimesAssoc")
-(simpreal "<-" "RealTimesPlusDistr")
-(simpreal "<-" "RealTimesAssoc")
-(simpreal "RealTimesOne")
-(simpreal "RealTimesIntNOne")
-(simpreal "RealUMinusPlusRat")
-(simpreal "<-" "RealPlusAssoc")
-(ng #t)
-(use "RealEqRefl")
-(autoreal)
-(use "RealEqRefl")
-(autoreal)
-(simpreal "x0=y+1")
-(use "RealEqRefl")
-(autoreal)
-;; 450
-(drop "Disj")
-;; Case x0= ~(y+1)
-(assume "x0= ~(y+1)")
-;; Go for lhs of the disjunction with d=IntN 1 and x= ~x1
-(intro 0)
-(intro 0 (pt "IntN 1"))
-(intro 0 (pt "~x1"))
-(intro 0 (pt "~(y+1)"))
-(split)
-(use "InitPsdFalse")
-(split)
-(autoreal)
-(split)
-(simpreal "RealAbsUMinus")
-(use "x1Bd")
-(autoreal)
-(split)
-(intro 0)
-(use "CoGUMinus")
-(simpreal "RealUMinusUMinus")
-(use "CoGx1")
-(autoreal)
-(split)
-(simpreal "<-" "RealTimesAssoc")
-(simpreal "RealTimesPlusDistrLeft")
-(ng #t)
-(simpreal "RealTimesIntNOne")
-(simpreal "RealUMinusUMinus")
 (simpreal (pf "~(y+1)=== ~(y+RealTimes(1#2)2)"))
 (simpreal "yDef")
-(simpreal "<-" "RealTimesAssoc")
 (simpreal "<-" "RealTimesPlusDistr")
-(simpreal "RealTimesIntNOne")
 (simpreal "RealUMinusPlusRat")
 (simpreal "<-" "RealPlusAssoc")
 (ng #t)
 (simpreal "<-" "RealTimesIdUMinus")
 (simpreal "RealUMinusPlusRat")
-(simpreal "RealUMinusUMinus")
 (use "RealEqRefl")
 (autoreal)
 (use "RealEqRefl")
 (autoreal)
-(use "x0= ~(y+1)")
-;; 365
-(drop "CoHClosureInst")
-(assume "ExHypx1")
-(by-assume "ExHypx1" "x1" "Conj")
+(use "RealEqRefl")
+(autoreal)
+;; 4
+(drop "Shift")
+(assume "x0" "ExHyp")
+(by-assume "ExHyp" "y" "yProp")
+(by-assume "yProp" "d" "dyProp")
+(elim "dyProp")
+(drop "dyProp")
+(assume "CoHy" "Conj")
 (elim "Conj")
 (drop "Conj")
-(assume "CoHx1")
-(assert "abs x1<<=1")
- (use "CoHToBd")
- (use "CoHx1")
-(assume "x1Bd" "yDef" "Conj1")
+(assume "Psdd" "Conj1")
 (elim "Conj1")
 (drop "Conj1")
 (assume "y<=0" "Disj")
-;; Case y<=0
-(elim "Disj")
-;; 582,583
-(drop "Disj")
-;; Case x0=y+1
-(assume "x0=y+1")
-;; Go for lhs of the disjunction with d=1 and x=x1+1
+(inst-with-to "CoHClosure" (pt "y") "CoHy" "CoHClosureInst")
+(elim "CoHClosureInst")
+;; 342,343
+(drop "CoHClosureInst")
+(assume "ExHypez")
 (intro 0)
+(by-assume "ExHypez" "e" "eProp")
+(by-assume "eProp" "z" "ezProp")
+(elim "ezProp")
+(drop "ezProp")
+(assume "Psde" "Conj2")
+(elim "Conj2")
+(drop "Conj2")
+(elim "Psde")
+;; 358,359
+;; Case e=1
+(assume "CoGz" "yDef")
+(assert "y===0")
+ (use "CoGShiftAux2" (pt "z"))
+ (autoreal)
+ (use "CoGToBd")
+ (use "CoGz")
+ (simpreal "yDef")
+ (use "RealEqRefl")
+ (autoreal)
+ (use "y<=0")
+(assume "y=0")
+;; Go for x=1
+(intro 0 (pt "d"))
+(intro 0 (pt "RealConstr([n]1#1)([p]Zero)"))
+(intro 0 (pt "x0"))
+(split)
+(use "Psdd")
+(split)
+(autoreal)
+(split)
+(use "RatLeToRealLe")
+(use "Truth")
+(split)
+(intro 0)
+(use "CoGOne")
+(elim "Disj")
+;; 384,385
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=1" "x0Def")
+(split)
+(simp "d=1")
+(ng #t)
+(simpreal "x0Def")
+(simpreal "y=0")
+(use "RatEqvToRealEq")
+(use "Truth")
+(use "RealEqRefl")
+(autoreal)
+;; 385
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=-1" "x0Def")
+(split)
+(simp "d=-1")
+(ng #t)
+(simpreal "x0Def")
+(simpreal "y=0")
+(use "RatEqvToRealEq")
+(use "Truth")
+(use "RealEqRefl")
+(autoreal)
+;; 359
+;; Case e=-1
+(assume "CoGz" "yDef")
+;; Go for x=-z
+(intro 0 (pt "d"))
+(intro 0 (pt "~z"))
+(intro 0 (pt "x0"))
+(split)
+(use "Psdd")
+(split)
+(autoreal)
+(split)
+(simpreal "RealAbsUMinus")
+(use "CoGToBd")
+(use "CoGz")
+(autoreal)
+(split)
+(intro 0)
+(use "CoGUMinus")
+(simpreal "RealUMinusUMinus")
+(use "CoGz")
+(autoreal)
+(elim "Disj")
+;; 429,430
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=1" "x0Def")
+(split)
+(simp "d=1")
+(simpreal "<-" "RealTimesAssoc")
+(simpreal "RealTimesOne")
+(simpreal "x0Def")
+(simpreal (pf "y+1===y+RealTimes(1#2)2"))
+(simpreal "yDef")
+(simpreal "<-" "RealTimesAssoc")
+(simpreal "<-" "RealTimesPlusDistr")
+(simpreal "RealTimesIntNOne")
+(simpreal "RealUMinusPlusRat")
+(simpreal "<-" "RealPlusAssoc")
+(ng #t)
+(use "RealEqRefl")
+(autoreal)
+(use "RealEqRefl")
+(autoreal)
+(simpreal "x0Def")
+(use "RealEqRefl")
+(autoreal)
+;; 430
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=-1" "x0Def")
+(split)
+(simp "d=-1")
+(simpreal "<-" "RealTimesAssoc")
+(simpreal "RealTimesIntNOne")
+(simpreal "x0Def")
+(simpreal (pf "y+1===y+RealTimes(1#2)2"))
+(simpreal "yDef")
+(simpreal "<-" "RealTimesAssoc")
+(simpreal "<-" "RealTimesPlusDistr")
+(simpreal "RealTimesIntNOne")
+(simpreal "RealUMinusPlusRat")
+(simpreal "<-" "RealPlusAssoc")
+(ng #t)
+(simpreal "RealTimesIdUMinus")
+(use "RealEqRefl")
+(autoreal)
+(use "RealEqRefl")
+(autoreal)
+(simpreal "x0Def")
+(use "RealEqRefl")
+(autoreal)
+;; 343
+(drop "CoHClosureInst")
+(assume "ExHypz")
+(by-assume "ExHypz" "z" "zProp")
+(elim "zProp")
+(drop "zProp")
+(assume "CoHz" "yDef")
+(assert "z<<=0")
+ (use "CoGShiftAux3" (pt "y"))
+ (autoreal)
+ (use "yDef")
+ (use "y<=0")
+(assume "z<=0")
+(assert "abs(z+1)<<=1")
+ (use "CoGShiftAux4" (pt "y"))
+ (autoreal)
+ (use "CoHToBd")
+ (use "CoHz")
+ (use "yDef")
+ (use "y<=0")
+(assume "abs(z+1)<=1")
+(intro 0)
+;; Go for x=-(z+1)
+(intro 0 (pt "d"))
+(intro 0 (pt "z+1"))
+(intro 0 (pt "x0"))
+(split)
+(use "Psdd")
+(split)
+(autoreal)
+(split)
+(use "abs(z+1)<=1")
+(split)
+(intro 1)
+(intro 0 (pt "z"))
 (intro 0 (pt "IntP 1"))
-(intro 0 (pt "x1+1"))
-(intro 0 (pt "y+1"))
+(split)
+(use "CoHToCoG")
+(use "CoHz")
 (split)
 (use "InitPsdTrue")
 (split)
-(autoreal)
-(split)
-(use "CoGShiftAux4" (pt "y"))
-(autoreal)
-(use "x1Bd")
-(use "yDef")
-(use "y<=0")
-(split)
-(intro 1)
-(intro 0 (pt "x1"))
-(split)
-(use "CoHToCoG")
-(use "CoHx1")
-(split)
-(use "CoGShiftAux3" (pt "y"))
-(autoreal)
-(use "yDef")
-(use "y<=0")
+(use "z<=0")
 (intro 0)
+(split)
+(use "Truth")
 (use "RealEqRefl")
 (autoreal)
+;; ?_543:x0===(1#2)*(~(z+1)+1)*d andnc x0===x0
+(elim "Disj")
+;; 558,559
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=1" "x0Def")
 (split)
+(simp "d=1")
 (simpreal "<-" "RealTimesAssoc")
 (simpreal "RealTimesOne")
-(simpreal "<-" "RealPlusAssoc")
-(ng #t)
-(simpreal "RealTimesPlusDistr")
-(ng #t)
+(simpreal "x0Def")
 (simpreal "yDef")
-(use "RealEqRefl")
-(autoreal)
-(use "x0=y+1")
-;; 613
-(drop "Disj")
-;; Case x0= ~(y+1)
-(assume "x0= ~(y+1)")
-;; Go for lhs of the disjunction with d=IntN 1 and x=(x1+1)
-(intro 0)
-(intro 0 (pt "IntN 1"))
-(intro 0 (pt "x1+1"))
-(intro 0 (pt "~(y+1)"))
-(split)
-(use "InitPsdFalse")
-(split)
-(autoreal)
-(split)
-(use "CoGShiftAux4" (pt "y"))
-(autoreal)
-(use "x1Bd")
-(use "yDef")
-(use "y<=0")
-(split)
-(intro 1)
-(intro 0 (pt "x1"))
-(split)
-(use "CoHToCoG")
-(use "CoHx1")
-(split)
-(use "CoGShiftAux3" (pt "y"))
-(autoreal)
-(use "yDef")
-(use "y<=0")
-(intro 0)
-(use "RealEqRefl")
-(autoreal)
-(split)
 (simpreal "<-" "RealPlusAssoc")
-(ng #t)
+(simpreal "RealTimesPlusDistr")
+(use "RealEqRefl")
+(autoreal)
+(use "RealEqRefl")
+(autoreal)
+;; 559
+(assume "Conj3")
+(elim "Conj3")
+(drop "Conj3")
+(assume "d=-1" "x0Def")
+(split)
+(simp "d=-1")
 (simpreal "<-" "RealTimesAssoc")
 (simpreal "RealTimesIntNOne")
+(simpreal "x0Def")
+(simpreal "yDef")
+(simpreal "<-" "RealPlusAssoc")
 (simpreal "RealTimesIdUMinus")
 (simpreal "RealTimesPlusDistr")
-(simpreal "yDef")
 (use "RealEqRefl")
 (autoreal)
-(use "x0= ~(y+1)")
+(use "RealEqRefl")
+(autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGShift")
+
+(add-var-name "gb" (py "ag yprod boole"))
+(add-var-name "hb" (py "ah yprod boole"))
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
+;; (ppc neterm)
+
+;; [gb](CoRec ag yprod boole=>ag ah yprod boole=>ah)gb
+;;  ([gb0][case gb0 (ag pair boole -> [case (DesYprod ag)
+;;        (InL bg -> InL[case bg
+;;          (boole0 pair ag0 -> [case boole0
+;;            (True -> boole pair InL cCoGIntNOne)
+;;            (False -> boole pair InL(cCoGUMinus(cCoGCompat ag0)))])])
+;;        (InR ah -> InL(boole pair InR(cCoHToCoG ah pair False)))])])
+;;  ([hb][case hb (ah pair boole -> [case (DesYprod ah)
+;;        (InL bg -> InL[case bg (boole0 pair ag -> [case boole0
+;;            (True -> boole pair InL cCoGOne)
+;;            (False -> boole pair InL(cCoGUMinus(cCoGCompat ag)))])])
+;;        (InR ah0 -> InL(boole pair InR(cCoHToCoG ah0 pair True)))])])
+
+(animate "CoGClosure")
+(animate "CoHClosure")
+
+(define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
-;; [(ag yprod boole)]
-;;  (CoRec ag yprod boole=>ag ah yprod boole=>ah)(ag yprod boole)
-;;  ([(ag yprod boole)_0]
-;;    [case (ag yprod boole)_0
+;; [gb](CoRec ag yprod boole=>ag ah yprod boole=>ah)gb
+;;  ([gb0][case gb0
 ;;      (ag pair boole -> 
-;;      [case (cCoGClosure ag)
-;;        (InL bg -> 
-;;        [case bg
+;;      [case (DesYprod ag)
+;;        (InL bg -> InL[case bg
 ;;          (boole0 pair ag0 -> 
 ;;          [case boole0
-;;            (True -> 
-;;            [case boole
-;;              (True -> InL(True pair InL cCoGIntNOne))
-;;              (False -> InL(False pair InL cCoGIntNOne))])
-;;            (False -> 
-;;            [case boole
-;;              (True -> InL(True pair InL(cCoGUMinus(cCoGCompat ag0))))
-;;              (False -> InL(False pair InL(cCoGUMinus(cCoGCompat ag0))))])])])
-;;        (InR ah -> 
-;;        [case boole
-;;          (True -> InL(True pair InR(cCoHToCoG ah pair False)))
-;;          (False -> InL(False pair InR(cCoHToCoG ah pair False)))])])])
-;;  ([(ah yprod boole)]
-;;    [case (ah yprod boole)
+;;            (True -> boole pair InL cCoGIntNOne)
+;;            (False -> boole pair InL(cCoGUMinus(cCoGCompat ag0)))])])
+;;        (InR ah -> InL(boole pair InR(cCoHToCoG ah pair False)))])])
+;;  ([hb][case hb
 ;;      (ah pair boole -> 
-;;      [case (cCoHClosure ah)
-;;        (InL bg -> 
-;;        [case bg
+;;      [case (DesYprod ah)
+;;        (InL bg -> InL[case bg
 ;;          (boole0 pair ag -> 
 ;;          [case boole0
-;;            (True -> 
-;;            [case boole
-;;              (True -> InL(True pair InL cCoGOne))
-;;              (False -> InL(False pair InL cCoGOne))])
-;;            (False -> 
-;;            [case boole
-;;              (True -> InL(True pair InL(cCoGUMinus(cCoGCompat ag))))
-;;              (False -> InL(False pair InL(cCoGUMinus(cCoGCompat ag))))])])])
-;;        (InR ah0 -> 
-;;        [case boole
-;;          (True -> InL(True pair InR(cCoHToCoG ah0 pair True)))
-;;          (False -> InL(False pair InR(cCoHToCoG ah0 pair True)))])])])
+;;            (True -> boole pair InL cCoGOne)
+;;            (False -> boole pair InL(cCoGUMinus(cCoGCompat ag)))])])
+;;        (InR ah0 -> InL(boole pair InR(cCoHToCoG ah0 pair True)))])])
 
-;; (set! COMMENT-FLAG #t)
-(dcg)
+(deanimate "CoGClosure")
+(deanimate "CoHClosure")
 
 ;; As corollaries we obtain
 ;; CoGNegToCoGPlusOne
@@ -1021,24 +953,30 @@
 (assume "y<=0" "x=y+1")
 (use "CoGShift")
 (intro 0 (pt "y"))
+(intro 0 (pt "IntP 1"))
 (split)
 (use "CoGy")
 (split)
+(use "InitPsdTrue")
+(split)
 (use "y<=0")
 (intro 0)
+(split)
+(use "Truth")
 (use "x=y+1")
 ;; Proof finished.
+;; (cdp)
 (save "CoGNegToCoGPlusOne")
 
 (define eterm (proof-to-extracted-term))
 (animate "CoGShift")
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
+
+(deanimate "CoGShift")
 
 ;; As for CoGShift, but with (ag pair True) rather than (ag pair boole)
 ;; as CoRec argument
-
-(deanimate "CoGShift")
 
 ;; CoGPosToCoGMinusOne
 (set-goal "allnc x(exr y(CoG y andi 0<<=y andi x===y+ ~1) -> CoG x)")
@@ -1052,33 +990,38 @@
 (assume "y<=0" "x=y+ ~1")
 (use "CoGShift")
 (intro 0 (pt "~y"))
+(intro 0 (pt "IntN 1"))
 (split)
 (use "CoGUMinus")
 (simpreal "RealUMinusUMinus")
 (use "CoGy")
 (autoreal)
 (split)
+(use "InitPsdFalse")
+(split)
 (use "RealLeUMinusInv")
 (simpreal "RealUMinusUMinus")
 (use "y<=0")
 (autoreal)
 (intro 1)
+(split)
+(use "Truth")
 (simpreal "RealUMinusPlusRat")
 (simpreal "RealUMinusUMinus")
 (use "x=y+ ~1")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGPosToCoGMinusOne")
 
 (define eterm (proof-to-extracted-term))
 (animate "CoGShift")
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
+(deanimate "CoGShift")
 
 ;; As for CoGShift, but with (cCoGUMinus(cCoGCompat ag)pair False)
-;; rather than (ag pair boole) as CoRec argument
-
-(deanimate "CoGShift")
+;; rather than ag as CoRec argument
 
 ;; CoGToCoGDouble
 (set-goal "allnc x(CoG x -> abs x<<=(1#2) -> CoG(2*x))")
@@ -1100,15 +1043,19 @@
 (elim "Conj")
 (drop "Conj")
 (assume "CoGx1" "xDef")
-(simpreal "xDef")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealTimesIntNOne")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealOneTimes")
-(simpreal "RealUMinusPlusRat")
-(ng #t)
+(assert "2*x=== ~x1+1")
+ (simpreal "xDef")
+ (ng #t)
+ (simpreal "RealTimesIntNOne")
+ (simpreal "<-" "RealTimesIdUMinus")
+ (simpreal "RealTimesAssoc")
+ (simpreal "RealUMinusPlusRat")
+ (ng #t)
+ (simpreal "RealOneTimes")
+ (use "RealEqRefl")
+ (autoreal)
+(assume "EqHyp")
+(simpreal "EqHyp")
 (use "CoGNegToCoGPlusOne")
 (intro 0 (pt "~x1"))
 (split)
@@ -1117,15 +1064,9 @@
 (use "CoGx1")
 (autoreal)
 (split)
-;;   {x}  CoGx:CoG x
-;;   LeHyp:abs x<<=(1#2)
-;;   {d}  {x1}  Psdd:Psd d
-;;   CoGx1:CoG x1
-;;   xDef:x===(1#2)*(x1+IntN 1)* ~1
-;; -----------------------------------------------------------------------------
-;; ?_49:~x1<<=0
+;; ?^52:~x1<<=0
 (use "RealLeTrans" (pt "2*((1#2)*(x1+IntN 1)* ~1)+ ~1"))
-;; 51,52
+;; 54,55
 (simpreal "<-" "RealTimesAssoc")
 (simpreal "RealTimesPlusDistrLeft")
 (simpreal "RealTimesIdRatUMinus")
@@ -1138,7 +1079,7 @@
 (simpreal "RealPlusZero")
 (use "RealLeRefl")
 (autoreal)
-;; 52
+;; 55
 (simpreal "<-" "xDef")
 (use "RealLeTrans" (pt "2*abs x+ ~1"))
 (use "RealLeMonPlus")
@@ -1162,33 +1103,31 @@
 (use "Truth")
 (use "RealEqRefl")
 (autoreal)
-;; 19
-;; Case d= ~1
+;; ?_19:CoG x1 andl x===(1#2)*(x1+IntN 1)* ~IntN 1 -> CoG(2*x)
+(drop "Psdd")
 (ng #t)
 (assume "Conj")
 (elim "Conj")
 (drop "Conj")
 (assume "CoGx1" "xDef")
-(simpreal "xDef")
-(simpreal "<-" "RealTimesAssoc")
-(simpreal "RealTimesOne")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealOneTimes")
+(assert "2*x===x1+ ~1")
+ (simpreal "xDef")
+ (simpreal "RealTimesOne")
+ (simpreal "RealTimesAssoc")
+ (ng #t)
+ (simpreal "RealOneTimes")
+ (use "RealEqRefl")
+ (autoreal)
+(assume "EqHyp")
+(simpreal "EqHyp")
 (use "CoGPosToCoGMinusOne")
 (intro 0 (pt "x1"))
 (split)
 (use "CoGx1")
 (split)
-;;   {x}  CoGx:CoG x
-;;   LeHyp:abs x<<=(1#2)
-;;   {d}  {x1}  Psdd:Psd d
-;;   CoGx1:CoG x1
-;;   xDef:x===(1#2)*(x1+IntN 1)*1
-;; -----------------------------------------------------------------------------
-;; ?_124:0<<=x1
+;; ?^129: 0<<=x1
 (use "RealLeTrans" (pt "2*((1#2)*(x1+IntN 1)*1)+ 1"))
-;; 126,127
+;; 131,132
 (simpreal "<-" "xDef")
 (use "RealLeTrans" (pt "2*RealUMinus(1#2)+1"))
 (ng #t)
@@ -1203,7 +1142,7 @@
 (use "LeHyp")
 (use "RatLeToRealLe")
 (use "Truth")
-;; 127
+;; 132
 (simpreal "<-" "RealTimesAssoc")
 (simpreal "RealTimesOne")
 (simpreal "RealTimesAssoc")
@@ -1216,42 +1155,38 @@
 (autoreal)
 (use "RealEqRefl")
 (autoreal)
-;; ?_6:exr x0(CoH x0 andl x===(1#2)*x0) -> CoG(2*x)
+;; 6
 (drop "CoGClosureInst")
 (assume "ExHyp")
 (by-assume "ExHyp" "x1" "Conj")
 (elim "Conj")
 (assume "CoHx1" "xDef")
 (drop "Conj")
-(simpreal "xDef")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealOneTimes")
+(assert "2*x===x1")
+ (simpreal "xDef")
+ (simpreal "RealTimesAssoc")
+ (ng #t)
+ (simpreal "RealOneTimes")
+ (use "RealEqRefl")
+ (autoreal)
+(assume "EqHyp")
+(simpreal "EqHyp")
 (use "CoHToCoG")
 (use "CoHx1")
-(autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGToCoGDouble")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
-;; [ag][case (cCoGClosure ag)
-;;    (InL bg -> [case bg
-;;      (boole pair ag0 -> [case boole
-;;        (True -> 
-;;        cCoGCompat
-;;        (cCoGCompat
-;;         (cCoGCompat
-;;          (cCoGCompat
-;;           (cCoGCompat
-;;            (cCoGCompat(cCoGNegToCoGPlusOne(cCoGUMinus(cCoGCompat ag0)))))))))
-;;        (False -> 
-;;        cCoGCompat
-;;        (cCoGCompat
-;;         (cCoGCompat(cCoGCompat(cCoGCompat(cCoGPosToCoGMinusOne ag0))))))])])
-;;    (InR ah -> cCoGCompat(cCoGCompat(cCoGCompat(cCoHToCoG ah))))]
+;; [ag][case (DesYprod ag)
+;;    (InL bg -> [case bg (boole pair ag0 -> [case boole
+;;        (True -> cCoGCompat(
+;;                  cCoGNegToCoGPlusOne(cCoGUMinus(cCoGCompat ag0))))
+;;        (False -> cCoGCompat(cCoGPosToCoGMinusOne ag0))])])
+;;    (InR ah -> cCoGCompat(cCoHToCoG ah))]
 
 ;; CoGToCoGQuad
 (set-goal "allnc x(CoG x -> abs x<<=(1#4) -> CoG(4*x))")
@@ -1283,11 +1218,12 @@
 (use "Truth")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGToCoGQuad")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [ag]cCoGCompat(cCoGToCoGDouble(cCoGToCoGDouble ag))
 
@@ -1300,11 +1236,11 @@
 (use "CoGx")
 (use "CoGUMinus")
 (simpreal "RealUMinusUMinus")
-(use "CoGClosureInvH")
+(use "CoGU")
 (use "CoGToCoH")
 (use "CoGy")
 (autoreal)
-;; ?_4:abs((1#2)*(x+ ~((1#2)*y)))<<=(1#4)
+;; ?^4:abs((1#2)*(x+ ~((1#2)*y)))<<=(1#4)
 (simpreal (pf "((1#2)*(x+ ~((1#2)*y)))===(1#4)*(4*((1#2)*(x+ ~((1#2)*y))))"))
 (simpreal "RealAbsTimes")
 (use "RealLeTrans" (pt "abs(1#4)*y"))
@@ -1329,22 +1265,22 @@
 (use "RatLeToRealLe")
 (use "Truth")
 (autoreal)
-;; ?_13:(1#2)*(x+ ~((1#2)*y))===(1#4)*(4*((1#2)*(x+ ~((1#2)*y))))
+;; ?^13:(1#2)*(x+ ~((1#2)*y))===(1#4)*(4*((1#2)*(x+ ~((1#2)*y))))
 (simpreal "RealTimesAssoc")
 (ng #t)
 (simpreal "RealOneTimes")
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGDivSatCoIClAuxR")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [ag,ag0]
-;;  cCoGToCoGQuad
-;;  (cCoGAverage ag(cCoGUMinus(cCoGCompat(cCoGClosureInvH(cCoGToCoH ag0)))))
+;;  cCoGToCoGQuad(cCoGAverage ag(cCoGUMinus(cCoGCompat(cCoGU(cCoGToCoH ag0)))))
 
 ;; CoGDivSatCoIClAuxL
 (set-goal "allnc x,y(CoG x -> CoG y -> (1#4)<<=y -> abs x<<=y -> x<<=0 -> 
@@ -1353,10 +1289,10 @@
 (use "CoGToCoGQuad")
 (use "CoGAverage")
 (use "CoGx")
-(use "CoGClosureInvH")
+(use "CoGU")
 (use "CoGToCoH")
 (use "CoGy")
-;; ?_4:abs((1#2)*(x+(1#2)*y))<<=(1#4)
+;; ?^4:abs((1#2)*(x+(1#2)*y))<<=(1#4)
 (simpreal (pf "((1#2)*(x+(1#2)*y))===(1#4)*(4*((1#2)*(x+(1#2)*y)))"))
 (simpreal "RealAbsTimes")
 (use "RealLeTrans" (pt "abs(1#4)*y"))
@@ -1378,20 +1314,21 @@
 (use "RatLeToRealLe")
 (use "Truth")
 (autoreal)
-;; ?_10:(1#2)*(x+(1#2)*y)===(1#4)*(4*((1#2)*(x+(1#2)*y)))
+;; ?^10:(1#2)*(x+(1#2)*y)===(1#4)*(4*((1#2)*(x+(1#2)*y)))
 (simpreal "RealTimesAssoc")
 (ng #t)
 (simpreal "RealOneTimes")
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGDivSatCoIClAuxL")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
-;; [ag,ag0]cCoGToCoGQuad(cCoGAverage ag(cCoGClosureInvH(cCoGToCoH ag0)))
+;; [ag,ag0]cCoGToCoGQuad(cCoGAverage ag(cCoGU(cCoGToCoH ag0)))
 
 ;; (set! COMMENT-FLAG #f)
 ;; CoGDivSatCoICl
@@ -1514,7 +1451,7 @@
 (use "DivAuxBdL")
 (use "x<<=0")
 (use "xBd")
-;; ?_122:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+(1#2)*y))*RealUDiv y 3+IntN 1)
+;; ?^122:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+(1#2)*y))*RealUDiv y 3+IntN 1)
 (use "DivAuxEqL")
 (autoreal)
 (use "yLBd")
@@ -1587,14 +1524,14 @@
 (use "xBd")
 (use "0<<=x")
 (split)
-;; ?_201:abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y
+;; ?^201:abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y
 (use "DivAuxBdR")
 (use "0<<=x")
 (use "RealLeTrans" (pt "abs x"))
 (use "RealLeAbsId")
 (autoreal)
 (use "xBd")
-;; ?_202:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
+;; ?^202:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
 (use "DivAuxEqR")
 (autoreal)
 (use "yLBd")
@@ -1649,7 +1586,7 @@
 (use "xBd")
 (use "x<<=0")
 (split)
-;; ?_262:abs(4*((1#2)*(x+(1#2)*y)))<<=y
+;; ?^261:abs(4*((1#2)*(x+(1#2)*y)))<<=y
 (use "DivAuxBdL")
 (use "x<<=0")
 (use "xBd")
@@ -1670,7 +1607,7 @@
 (assume "x2Bd" "Eq2")
 (inst-with-to "CoHClosure" (pt "x2") "CoHx2" "CoHClosureInst3")
 (elim "CoHClosureInst3")
-;; 283,284
+;; 282,283
 (drop "CoHClosureInst3")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "d3" "d3Prop")
@@ -1680,7 +1617,7 @@
 (assume "Psdd3")
 ;; We now distinguish cases on d3
 (elim "Psdd3")
-;; 296,297
+;; 295,296
 (drop "Psdd3")
 ;; Case d1=0, d2=0, d3=1
 (assume "Conj31")
@@ -1731,18 +1668,18 @@
 (use "xBd")
 (use "0<<=x")
 (split)
-;; ?_347:abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y
+;; ?^346:abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y
 (use "DivAuxBdR")
 (use "0<<=x")
 (use "RealLeTrans" (pt "abs x"))
 (use "RealLeAbsId")
 (autoreal)
 (use "xBd")
-;; ?_348:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
+;; ?^347:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
 (use "DivAuxEqR")
 (autoreal)
 (use "yLBd")
-;; 297
+;; 296
 ;; Case d1=0, d2=0, d3=IntN 1
 (assume "Conj32")
 (elim "Conj32")
@@ -1796,14 +1733,14 @@
 (use "xBd")
 (use "x<<=0")
 (split)
-;; ?_410:abs(4*((1#2)*(x+(1#2)*y)))<<=y
+;; ?^409:abs(4*((1#2)*(x+(1#2)*y)))<<=y
 (use "DivAuxBdL")
 (use "x<<=0")
 (use "xBd")
 (use "DivAuxEqL")
 (autoreal)
 (use "yLBd")
-;; 284
+;; 283
 (drop "CoHClosureInst3")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "x3" "Conj31")
@@ -1834,7 +1771,7 @@
 (use "Truth")
 (autoreal)
 (split)
-;; ?_448:abs(2*x)<<=y
+;; ?^447:abs(2*x)<<=y
 (simpreal "RealAbsTimes")
 (ng #t)
 (simpreal "Eq1")
@@ -1858,7 +1795,7 @@
 (use "x3Bd")
 (use "yLBd")
 (autoreal)
-;; ?_449:x*RealUDiv y 3===(1#2)*(2*x*RealUDiv y 3+0)
+;; ?^448:x*RealUDiv y 3===(1#2)*(2*x*RealUDiv y 3+0)
 (assert "Real(RealUDiv y 3)")
  (use "RealUDivReal")
  (autoreal)
@@ -1878,28 +1815,35 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGDivSatCoICl")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
-;; [ag,ag0][case (cCoGClosure ag)
-;;    (InL bg -> [case bg
-;;      (boole pair ag1 -> [case boole
+(animate "CoGClosure")
+(animate "CoHClosure")
+
+(define neterm (rename-variables (nt eterm)))
+;; (ppc neterm)
+
+;; [ag,ag0][case (DesYprod ag)
+;;    (InL bg -> [case bg (boole pair ag1 -> [case boole
 ;;        (True -> SdR pair cCoGDivSatCoIClAuxR ag ag0)
 ;;        (False -> SdL pair cCoGDivSatCoIClAuxL ag ag0)])])
-;;    (InR ah -> [case (cCoHClosure ah)
-;;      (InL bg -> [case bg
-;;        (boole pair ag1 -> [case boole
+;;    (InR ah -> [case (DesYprod ah)
+;;      (InL bg -> [case bg (boole pair ag1 -> [case boole
 ;;          (True -> SdR pair cCoGDivSatCoIClAuxR ag ag0)
 ;;          (False -> SdL pair cCoGDivSatCoIClAuxL ag ag0)])])
-;;      (InR ah0 -> [case (cCoHClosure ah0)
-;;        (InL bg -> [case bg
-;;          (boole pair ag1 -> [case boole
+;;      (InR ah0 -> [case (DesYprod ah0)
+;;        (InL bg -> [case bg (boole pair ag1 -> [case boole
 ;;            (True -> SdR pair cCoGDivSatCoIClAuxR ag ag0)
 ;;            (False -> SdL pair cCoGDivSatCoIClAuxL ag ag0)])])
 ;;        (InR ah1 -> SdM pair cCoGToCoGDouble ag)])])]
+
+(deanimate "CoGClosure")
+(deanimate "CoHClosure")
 
 ;; CoGDivAux
 (set-goal "allnc y(CoG y -> (1#4)<<=y -> allnc z(
@@ -1988,7 +1932,7 @@
 (split)
 (autoreal)
 (split)
-;; ?_90:abs(x2*RealUDiv y 3)<<=1
+;; ?^90:abs(x2*RealUDiv y 3)<<=1
 (use "x2/yBd")
 (split)
 (intro 1)
@@ -2021,7 +1965,7 @@
 (split)
 (autoreal)
 (split)
-;; ?_120:abs(x2*RealUDiv y 3* ~d)<<=1
+;; ?^120:abs(x2*RealUDiv y 3* ~d)<<=1
 (simpreal "RealAbsTimes")
 (simpreal "RealAbsUMinus")
 (simpreal (pf "RealAbs d===1"))
@@ -2146,7 +2090,7 @@
 (split)
 (autoreal)
 (split)
-;; ?_263:abs(x2*RealUDiv y 3)<<=1
+;; ?^263:abs(x2*RealUDiv y 3)<<=1
 (use "x2/yBd")
 (split)
 (intro 1)
@@ -2179,7 +2123,7 @@
 (split)
 (autoreal)
 (split)
-;; ?_293:abs(x2*RealUDiv y 3*d)<<=1
+;; ?^293:abs(x2*RealUDiv y 3*d)<<=1
 (simpreal "RealAbsTimes")
 (simpreal (pf "RealAbs d===1"))
 (simpreal "RealTimesOne")
@@ -2233,23 +2177,25 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGDivAux")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
-;; [ag,ag0]
-;;  ([ag1]
-;;    [case (cCoGDivSatCoICl ag1 ag)
+;; [ag,ag0](CoRec ag=>ag ah=>ah)ag0
+;;  ([ag1][case (cCoGDivSatCoICl ag1 ag)
 ;;      (s pair ag2 -> [case (cSdDisj s)
 ;;        (DummyL -> InR(InR(cCoGToCoH ag2)))
-;;        (Inr boole -> 
-;;          InL(boole pair InR(cCoGPsdTimes ag2(cPsdUMinus boole))))])])
+;;        (Inr boole ->
+;;          InL(boole pair
+;;              InR(cCoGPsdTimes ag2(cPsdUMinus boole))))])])
 ;;  ([ah][case (cCoGDivSatCoICl(cCoHToCoG ah)ag)
 ;;      (s pair ag1 -> [case (cSdDisj s)
 ;;        (DummyL -> InR(InR(cCoGToCoH ag1)))
-;;        (Inr boole -> InL(boole pair InR(cCoGPsdTimes ag1 boole)))])])
+;;        (Inr boole -> InL(boole pair
+;;                          InR(cCoGPsdTimes ag1 boole)))])])
 
 ;; CoGDiv
 (set-goal
@@ -2277,395 +2223,12 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoGDiv")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [ag,ag0]cCoGDivAux ag0 ag
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 2017-12-04.  Treatment with Gray code only, without relying on sd.
-;; The rest is obsolete
-
-;; 2017-11-27.  examplesanalysisgraydiv.scm
-
-;; (load "~/git/minlog/init.scm")
-
-;; (set! COMMENT-FLAG #f)
-;; (libload "nat.scm")
-;; (libload "list.scm")
-;; (libload "pos.scm")
-;; (libload "int.scm")
-;; (libload "rat.scm")
-;; (remove-var-name "x" "y" "z")
-;; (libload "rea.scm")
-;; ;; (set! COMMENT-FLAG #t)
-
-;; (load "examplesanalysisJK.scm")
-;; ;; (load "~/git/minlog/examples/analysis/JK.scm")
-
-;; (load "examplesanalysisdigits.scm")
-;; ;; (load "~/git/minlog/examples/analysis/digits.scm")
-
-;; (load "examplesanalysissdcode.scm")
-;; ;; (load "~/git/minlog/examples/analysis/sdcode.scm")
-
-;; (load "examplesanalysissdshift.scm")
-;; ;; (load "~/git/minlog/examples/analysis/sdshift.scm")
-
-;; (load "examplesanalysisgraycode.scm")
-;; ;; (load "~/git/minlog/examples/analysis/graycode.scm")
-
-;; (load "examplesanalysissdgray.scm")
-;; ;; (load "~/git/minlog/examples/analysis/sdgray.scm")
-
-;; (load "examplesanalysisgrayavaux.scm")
-;; ;; (load "~/git/minlog/examples/analysis/sdavaux.scm")
-
-;; ;; CoGNegToCoGPlusOne
-;; (set-goal "allnc x(exr y(CoG y andi y<<=0 andi x===y+1) -> CoG x)")
-;; (assume "x" "ExHyp")
-;; (use "CoIToCoG")
-;; (by-assume "ExHyp" "y" "yProp")
-;; (use "CoINegToCoIPlusOne")
-;; (intro 0 (pt "y"))
-;; (split)
-;; (use "CoGToCoI")
-;; (use "yProp")
-;; (use "yProp")
-;; ;; Proof finished.
-;; (save "CoGNegToCoGPlusOne")
-
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (pp neterm)
-;; ;; [ag]cCoIToCoG(cCoINegToCoIPlusOne(cCoGToCoI ag))
-
-;; ;; CoGPosToCoGMinusOne
-;; (set-goal "allnc x(exr y(CoG y andi 0<<=y andi x===y+ ~1) -> CoG x)")
-;; (assume "x" "ExHyp")
-;; (use "CoIToCoG")
-;; (by-assume "ExHyp" "y" "yProp")
-;; (use "CoIPosToCoIMinusOne")
-;; (intro 0 (pt "y"))
-;; (split)
-;; (use "CoGToCoI")
-;; (use "yProp")
-;; (use "yProp")
-;; ;; Proof finished.
-;; (save "CoGPosToCoGMinusOne")
-
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (pp neterm)
-;; ;; [ag]cCoIToCoG(cCoIPosToCoIMinusOne(cCoGToCoI ag))
-
-;; ;; CoGToCoGDouble
-;; (set-goal "allnc x(CoG x -> abs x<<=(1#2) -> CoG(2*x))")
-;; (assume "x" "CoGx" "LeHyp")
-;; (inst-with-to "CoGClosure" (pt "x") "CoGx" "CoGClosureInst")
-;; (elim "CoGClosureInst")
-;; ;; 5,6
-;; (drop "CoGClosureInst")
-;; (assume "ExHyp")
-;; (by-assume "ExHyp" "d" "dProp")
-;; (by-assume "dProp" "x1" "dx1Prop")
-;; (elim "dx1Prop")
-;; (drop "dx1Prop")
-;; (assume "Psdd")
-;; (elim "Psdd")
-;; ;; 18,19
-;; ;; Case d=1
-;; (assume "Conj")
-;; (elim "Conj")
-;; (drop "Conj")
-;; (assume "CoGx1" "xDef")
-;; (simpreal "xDef")
-;; (simpreal "RealTimesAssoc")
-;; (ng #t)
-;; (simpreal "RealTimesIntNOne")
-;; (simpreal "RealTimesAssoc")
-;; (ng #t)
-;; (simpreal "RealOneTimes")
-;; (simpreal "RealUMinusPlusRat")
-;; (ng #t)
-;; (use "CoGNegToCoGPlusOne")
-;; (intro 0 (pt "~x1"))
-;; (split)
-;; (use "CoGUMinus")
-;; (simpreal "RealUMinusUMinus")
-;; (use "CoGx1")
-;; (autoreal)
-;; (split)
-;; ;;   {x}  CoGx:CoG x
-;; ;;   LeHyp:abs x<<=(1#2)
-;; ;;   {d}  {x1}  Psdd:Psd d
-;; ;;   CoGx1:CoG x1
-;; ;;   xDef:x===(1#2)*(x1+IntN 1)* ~1
-;; ;; -----------------------------------------------------------------------------
-;; ;; ?_49:~x1<<=0
-;; (use "RealLeTrans" (pt "2*((1#2)*(x1+IntN 1)* ~1)+ ~1"))
-;; ;; 51,52
-;; (simpreal "<-" "RealTimesAssoc")
-;; (simpreal "RealTimesPlusDistrLeft")
-;; (simpreal "RealTimesIdRatUMinus")
-;; (simpreal "RealTimesAssoc")
-;; (simpreal "RealTimesOne")
-;; (ng #t)
-;; (simpreal "RealOneTimes")
-;; (simpreal "<-" "RealPlusAssoc")
-;; (ng #t)
-;; (simpreal "RealPlusZero")
-;; (use "RealLeRefl")
-;; (autoreal)
-;; ;; 52
-;; (simpreal "<-" "xDef")
-;; (use "RealLeTrans" (pt "2*abs x+ ~1"))
-;; (use "RealLeMonPlus")
-;; (use "RealLeMonTimes")
-;; (use "RatNNegToRealNNeg")
-;; (use "Truth")
-;; (use "RealLeAbsId")
-;; (autoreal)
-;; (use "RatLeToRealLe")
-;; (use "Truth")
-;; (use "RealLeTrans" (pt "RealTimes 2(1#2)+ ~1"))
-;; (use "RealLeMonPlus")
-;; (use "RealLeMonTimes")
-;; (use "RatNNegToRealNNeg")
-;; (use "Truth")
-;; (use "LeHyp")
-;; (use "RatLeToRealLe")
-;; (use "Truth")
-;; (ng #t)
-;; (use "RatLeToRealLe")
-;; (use "Truth")
-;; (use "RealEqRefl")
-;; (autoreal)
-;; ;; 19
-;; ;; Case d= ~1
-;; (ng #t)
-;; (assume "Conj")
-;; (elim "Conj")
-;; (drop "Conj")
-;; (assume "CoGx1" "xDef")
-;; (simpreal "xDef")
-;; (simpreal "<-" "RealTimesAssoc")
-;; (simpreal "RealTimesOne")
-;; (simpreal "RealTimesAssoc")
-;; (ng #t)
-;; (simpreal "RealOneTimes")
-;; (use "CoGPosToCoGMinusOne")
-;; (intro 0 (pt "x1"))
-;; (split)
-;; (use "CoGx1")
-;; (split)
-;; ;;   {x}  CoGx:CoG x
-;; ;;   LeHyp:abs x<<=(1#2)
-;; ;;   {d}  {x1}  Psdd:Psd d
-;; ;;   CoGx1:CoG x1
-;; ;;   xDef:x===(1#2)*(x1+IntN 1)*1
-;; ;; -----------------------------------------------------------------------------
-;; ;; ?_124:0<<=x1
-;; (use "RealLeTrans" (pt "2*((1#2)*(x1+IntN 1)*1)+ 1"))
-;; ;; 126,127
-;; (simpreal "<-" "xDef")
-;; (use "RealLeTrans" (pt "2*RealUMinus(1#2)+1"))
-;; (ng #t)
-;; (use "RatLeToRealLe")
-;; (use "Truth")
-;; (use "RealLeMonPlus")
-;; (use "RealLeMonTimes")
-;; (use "RatNNegToRealNNeg")
-;; (use "Truth")
-;; (use "RealLeAbsInv")
-;; (autoreal)
-;; (use "LeHyp")
-;; (use "RatLeToRealLe")
-;; (use "Truth")
-;; ;; 127
-;; (simpreal "<-" "RealTimesAssoc")
-;; (simpreal "RealTimesOne")
-;; (simpreal "RealTimesAssoc")
-;; (ng #t)
-;; (simpreal "RealOneTimes")
-;; (simpreal "<-" "RealPlusAssoc")
-;; (ng #t)
-;; (simpreal "RealPlusZero")
-;; (use "RealLeRefl")
-;; (autoreal)
-;; (use "RealEqRefl")
-;; (autoreal)
-;; ;; ?_6:exr x0(CoH x0 andl x===(1#2)*x0) -> CoG(2*x)
-;; (drop "CoGClosureInst")
-;; (assume "ExHyp")
-;; (by-assume "ExHyp" "x1" "Conj")
-;; (elim "Conj")
-;; (assume "CoHx1" "xDef")
-;; (drop "Conj")
-;; (simpreal "xDef")
-;; (simpreal "RealTimesAssoc")
-;; (ng #t)
-;; (simpreal "RealOneTimes")
-;; (use "CoHToCoG")
-;; (use "CoHx1")
-;; (autoreal)
-;; ;; Proof finished.
-;; (save "CoGToCoGDouble")
-
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (ppc neterm)
-
-;; ;; [ag][case (cCoGClosure ag)
-;; ;;    (InL bg -> [case bg
-;; ;;      (boole pair ag0 -> [case boole
-;; ;;        (True -> 
-;; ;;        cCoGCompat
-;; ;;        (cCoGCompat
-;; ;;         (cCoGCompat
-;; ;;          (cCoGCompat
-;; ;;           (cCoGCompat
-;; ;;            (cCoGCompat(cCoGNegToCoGPlusOne(cCoGUMinus(cCoGCompat ag0)))))))))
-;; ;;        (False -> 
-;; ;;        cCoGCompat
-;; ;;        (cCoGCompat
-;; ;;         (cCoGCompat(cCoGCompat(cCoGCompat(cCoGPosToCoGMinusOne ag0))))))])])
-;; ;;    (InR ah -> cCoGCompat(cCoGCompat(cCoGCompat(cCoHToCoG ah))))]
-
-;; ;; CoGToCoGQuad
-;; (set-goal "allnc x(CoG x -> abs x<<=(1#4) -> CoG(4*x))")
-;; (assume "x" "CoGx" "LeHyp")
-;; (assert "4*x===2*(2*x)")
-;; (simpreal "RealTimesAssoc")
-;; (ng #t)
-;; (use "RealEqRefl")
-;; (autoreal)
-;; ;; Assertion proved
-;; (assume "EqHyp")
-;; (simpreal "EqHyp")
-;; (use "CoGToCoGDouble")
-;; (use "CoGToCoGDouble")
-;; (use "CoGx")
-;; (use "RealLeTrans" (pt "RealPlus 0(1#4)"))
-;; (ng #t)
-;; (use "LeHyp")
-;; (ng #t)
-;; (use "RatLeToRealLe")
-;; (use "Truth")
-;; (simpreal "RealAbsTimes")
-;; (ng #t)
-;; (use "RealLeTrans" (pt "RealTimes 2(1#4)"))
-;; (use "RealLeMonTimes")
-;; (use "RealNNegPos")
-;; (use "LeHyp")
-;; (use "RatLeToRealLe")
-;; (use "Truth")
-;; (autoreal)
-;; ;; Proof finished.
-;; (save "CoGToCoGQuad")
-
-;; (define eterm (proof-to-extracted-term))
-;; (define neterm (rename-variables (nt eterm)))
-;; (pp neterm)
-
-;; ;; [u]cCoGCompat(cCoGToCoGDouble(cCoGToCoGDouble u))
-
-;; ;; CoIDivSatCoIClAuxBdR CoIDivSatCoIClAuxEqR
-;; ;; do not exist here.  Are without CoI !
-
-;; ;; CoIDivSatCoIClAuxR has CoI, but relies only on CoIToCoIQuad CoIAverage
-;; ;; (and CoIUMinus CoIClosureInv CoIToBd), which we have for CoG
-;; ;; Caution: CoGClosure has no CoGClosureInv 
-
-;; (pp "CoGClosure")
-;; ;; allnc x(
-;; ;;  CoG x -> 
-;; ;;  exr d,x0(Psd d andd CoG x0 andl x===(1#2)*(x0+IntN 1)* ~d) ord 
-;; ;;  exr x0(CoH x0 andl x===(1#2)*x0))
-
-;; (pp "CoIClosure")
-;; ;; allnc x(
-;; ;;  CoI x -> exr d,x0(Sd d andd abs x0<<=1 andr CoI x0 andl x===(1#2)*(x0+d)))
-
-;; (pp "CoIClosureInv")
-;; ;; allnc d,x(Sd d -> CoI x -> CoI((1#2)*(x+d)))
-
-;; ;; [It seems that abs x0<<=1 is not needed in CoIClosure: follows from CoIToBd]
-
-;; ;; Attempt:
-
-;; ;; CoGClosureInvG
-;; (set-goal "allnc d,x(Psd d -> CoG x -> CoG((1#2)*(x+IntN 1)* ~d))")
-;; (assume "d" "x" "Psdd" "CoGx")
-;; (use "CoGClauseInv")
-;; (intro 0)
-;; (intro 0 (pt "d"))
-;; (intro 0 (pt "x"))
-;; (intro 0 (pt "(1#2)*(x+IntN 1)* ~d"))
-;; (split)
-;; (use "Psdd")
-;; (split)
-;; (autoreal)
-;; (split)
-;; (use "CoGToBd")
-;; (use "CoGx")
-;; (split)
-;; (use "CoGx")
-;; (split)
-;; (use "RealEqRefl")
-;; (autoreal)
-;; (use "RealEqRefl")
-;; (autoreal)
-;; ;; Proof finished.
-;; (save "CoGClosureInvG")
-
-;; (define eterm (proof-to-extracted-term))
-;; (animate "CoGClauseInv")
-;; (define neterm (rename-variables (nt eterm)))
-;; (ppc neterm)
-
-;; ;; [boole,ag]
-;; ;;  (CoRec boole yprod ag ysum ah=>ag boole yprod ag ysum ah=>ah)
-;; ;;  (InL(boole pair ag))
-;; ;;  ([bgh]
-;; ;;    [case bgh
-;; ;;      (InL bg -> InL(clft bg pair InL crht bg))
-;; ;;      (InR ah -> InR(InL ah))])
-;; ;;  ([bgh]
-;; ;;    [case bgh
-;; ;;      (InL bg -> InL(clft bg pair InL crht bg))
-;; ;;      (InR ah -> InR(InL ah))])
-
-;; (deanimate "CoGClauseInv")
-
-;; (pp "CoGClauseInv")
-;; ;; Has a disjunction in the premise.  Split into CoGClauseInvG CoGClauseInvH
-
-;; ;; CoGClauseInvG
-;; (set-goal "allnc x(
-;;  exr d,x0,y(Psd d andd Real x0 andi abs x0<<=1 
-;;             andr CoG x0 andl y===(1#2)*(x0+IntN 1)* ~d andnc x===y) -> CoG x)")
-;; (assume "x" "ExHyp")
-;; (use "CoGClauseInv")
-;; (intro 0)
-;; (use "ExHyp")
-;; ;; Proof finished.
-
-;; (define eterm (proof-to-extracted-term))
-;; (animate "CoGClauseInv")
-;; (define neterm (rename-variables (nt eterm)))
-;; (ppc neterm)
-
-;; ;; [bg](CoRec boole yprod ag ysum ah=>ag boole yprod ag ysum ah=>ah)(InL bg)
-;; ;;  ([bgh][case bgh
-;; ;;      (InL bg0 -> InL(clft bg0 pair InL crht bg0))
-;; ;;      (InR ah -> InR(InL ah))])
-;; ;;  ([bgh][case bgh
-;; ;;      (InL bg0 -> InL(clft bg0 pair InL crht bg0))
-;; ;;      (InR ah -> InR(InL ah))])
-
-;; (pp "CoHClosure")
