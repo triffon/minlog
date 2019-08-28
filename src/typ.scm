@@ -1,4 +1,4 @@
-;; 2018-09-09.  typ.scm
+;; 2019-08-20.  typ.scm
 ;; 2. Types
 ;; ========
 
@@ -493,11 +493,28 @@
 		   (star-form-to-right-type type)))
     (else (myerror "type-to-spos-tvars" "type expected" type))))
 
+;; For type-to-level we need
+
+(define (alg-name-to-constr-arg-types alg-name)
+  (let* ((typed-constr-names (alg-name-to-typed-constr-names alg-name))
+	 (constr-types (map typed-constr-name-to-type typed-constr-names))
+	 (simalg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) simalg-names))
+	 (alg-tvars (map (lambda (x) (new-tvar)) simalg-names))
+	 (constr-types-with-alg-tvars
+	  (map (lambda (type) (type-gen-substitute
+			       type (map list algs alg-tvars)))
+	       constr-types)))
+    (apply union (map arrow-form-to-arg-types constr-types-with-alg-tvars))))
+
 (define (type-to-level type)
   (cond
    ((alg-form? type)
-    (let* ((types (alg-form-to-types type))
-	   (prevs (map type-to-level types)))
+    (let* ((name (alg-form-to-name type))
+	   (types (alg-form-to-types type))
+	   (constr-arg-types (alg-name-to-constr-arg-types name))
+	   (prevs (map type-to-level (union types constr-arg-types))))
       (foldr max 0 prevs)))
    ((arrow-form? type)
     (let* ((arg-type (arrow-form-to-arg-type type))
@@ -1492,6 +1509,48 @@
 					argtypes-with-alg-tvars)
 	    alg-form?)))))
 
+(define (coalg-name? name)
+  (and (string=? "co" (substring name 0 2))
+       (assoc (substring name 2 (string-length name)) ALGEBRAS)))
+      
+(define (cotype-to-type cotype)
+  (case (tag cotype)
+    ((tvar tconst) cotype)
+    ((alg)
+     (let* ((name (alg-form-to-name cotype))
+	    (alg-name (if (coalg-name? name)
+			  (substring name 2 (string-length name))
+			  name)))
+       (apply make-alg alg-name
+	      (map cotype-to-type (alg-form-to-types cotype)))))
+    ((arrow)
+     (make-arrow (cotype-to-type (arrow-form-to-arg-type cotype))
+		 (cotype-to-type (arrow-form-to-val-type cotype))))
+    ((star)
+     (make-star (cotype-to-type (star-form-to-left-type cotype))
+		(cotype-to-type(star-form-to-right-type cotype))))
+    (else (myerror "cotype-to-type" "cotype expected" cotype))))
+
+(define (alg-name-to-recursive? alg-name . opt-rec-names)
+  (or 
+   (member alg-name opt-rec-names)
+   (let* ((typed-constr-names (alg-name-to-typed-constr-names alg-name))
+	  (constr-types (map typed-constr-name-to-type typed-constr-names))
+	  (arg-types (apply union (map arrow-form-to-arg-types constr-types)))
+	  (arg-val-types (map arrow-form-to-final-val-type arg-types))
+	  (arg-val-algs (list-transform-positive arg-val-types alg-form?))
+	  (arg-val-alg-names (map alg-form-to-name arg-val-algs)))
+     (apply or-op
+	    (map (lambda (name)
+		   (apply alg-name-to-recursive? name alg-name opt-rec-names))
+		 arg-val-alg-names)))))
+
+;; (alg-name-to-recursive? "yprod")
+;; (alg-name-to-recursive? "nat")
+;; (alg-name-to-recursive? "list")
+;; (alg-name-to-recursive? "tlist")
+;; (alg-name-to-recursive? "tree")
+
 ;; To add algebras use add-algs.  Example:
 
 ;; (add-algs (list "list") 'prefix-typeop
@@ -2320,6 +2379,16 @@
 	   (type-le? (star-form-to-left-type type1)
 		     (star-form-to-left-type type2))
 	   (type-le? (star-form-to-right-type type1)
+		     (star-form-to-right-type type2)))
+      (and (star-form? type1) (yprod-form? type2)
+	   (type-le? (star-form-to-left-type type1)
+		     (yprod-form-to-left-type type2))
+	   (type-le? (star-form-to-right-type type1)
+		     (yprod-form-to-right-type type2)))
+      (and (yprod-form? type1) (star-form? type2)
+	   (type-le? (yprod-form-to-left-type type1)
+		     (star-form-to-left-type type2))
+	   (type-le? (yprod-form-to-right-type type1)
 		     (star-form-to-right-type type2)))))
 
 ;; (type-le? (py "pos") (py "int"))
@@ -2441,92 +2510,107 @@
 		  "types-to-embedding"
 		  "types of equal lengths expected"
 		  (append types1 (list "and") types2)))
-       (if
-	(null? types1)
-	(algebras-to-embedding type1 type2)
-	(let ((name1 (alg-form-to-name type1))
-	      (name2 (alg-form-to-name type2)))
-	  (if (not (string=? name1 name2))
-	      (myerror "types-to-embedding" "equal alg names expected"
-		       type1 type2))
-	  (let* ((tvars (alg-name-to-tvars name1))
-		 (tvar-to-embedding-alist
-		  (map (lambda (tvar type1 type2)
-			 (list tvar (types-to-embedding type1 type2)))
-		       tvars types1 types2))
-		 (tsubst1 (make-substitution tvars types1))
-		 (tsubst2 (make-substitution tvars types2))
-		 (rec-const (type-info-to-rec-const (make-arrow type1 type2)))
-		 (uninst-type (const-to-uninst-type rec-const))
-		 (arg-types (arrow-form-to-arg-types uninst-type))
-		 (step-types (cdr arg-types))
-		 (alg-type (car arg-types))
-		 (step-arg-type-lists (map arrow-form-to-arg-types step-types))
-		 (step-alg-arg-type-lists ;((ss1->mu1 .. ssn->mun) ..)
-		  (map (lambda (l)
-			 (list-transform-positive l
-			   (lambda (y)
-			     (let ((val-type (arrow-form-to-final-val-type y)))
-			       (and (alg-form? y)
-				    (string=? (alg-form-to-name y) name1))))))
-		       step-arg-type-lists))
-		 (step-alg-arg-lengths (map length step-alg-arg-type-lists))
-		 (step-param-arg-tvar-lists
-		  (map (lambda (l n) (list-head l (- (length l) (* 2 n))))
-		       step-arg-type-lists step-alg-arg-lengths))
-		 (subst-step-alg-arg-type-lists
-		  (map (lambda (types)
-			 (map (lambda (type)
-				(type-substitute type tsubst1)) types))
-		       step-alg-arg-type-lists))
-		 (subst-step-param-arg-type-lists
-		  (map (lambda (types)
-			 (map (lambda (type)
-				(type-substitute type tsubst1)) types))
-		       step-param-arg-tvar-lists))
-		 (subst-step-alg-arg-var-lists
-		  (map (lambda (types) (map type-to-new-var types))
-		       subst-step-alg-arg-type-lists))
-		 (subst-step-param-arg-var-lists
-		  (map (lambda (types) (map type-to-new-var types))
-		       subst-step-param-arg-type-lists))
-		 (embedded-subst-step-param-arg-varterm-lists
-		  (map
-		   (lambda (tvars ps)
-		     (map (lambda (tvar p)
-			    (let* ((info (assoc tvar tvar-to-embedding-alist))
-				   (f (if info (cadr info)
-					  (myerror
-					   "types-to-embedding" "unknown tvar"
-					   tvar))))
-			      (f (make-term-in-var-form p))))
-			  tvars ps))
-		   step-param-arg-tvar-lists
-		   subst-step-param-arg-var-lists))
-		 (typed-constr-names (alg-name-to-typed-constr-names name1))
-		 (constr-names (map typed-constr-name-to-name
-				    typed-constr-names))
-		 (constrs (map constr-name-to-constr constr-names))
-		 (subst-constrs
-		  (map (lambda (c) (const-substitute c tsubst2 #t))
-		       constrs))
-		 (step-terms
-		  (map (lambda (ps rs c ts)
-			 (apply
-			  mk-term-in-abst-form
-			  (append
-			   ps rs (list (apply
-					mk-term-in-app-form
-					(make-term-in-const-form c)
-					ts)))))
-		       subst-step-param-arg-var-lists
-		       subst-step-alg-arg-var-lists
-		       subst-constrs
-		       embedded-subst-step-param-arg-varterm-lists)))
-	    (lambda (term)
-	      (apply
-	       mk-term-in-app-form
-	       (make-term-in-const-form rec-const) term step-terms)))))))
+       (cond
+	((null? types1)	(algebras-to-embedding type1 type2))
+	((and (yprod-form? type1) (yprod-form? type2))
+	 (let ((prev-left
+		(types-to-embedding (yprod-form-to-left-type type1)
+				    (yprod-form-to-left-type type2)))
+	       (prev-right
+		(types-to-embedding (yprod-form-to-right-type type1)
+				    (yprod-form-to-right-type type2))))
+	   (lambda (x)
+	     (make-term-in-cons-form
+	      (prev-left (if (term-in-cons-form? x)
+			     (term-in-cons-form-to-left x)
+			     (make-term-in-car-form x)))
+	      (prev-right (if (term-in-cons-form? x)
+			      (term-in-cons-form-to-right x)
+			      (make-term-in-cdr-form x)))))))
+	(else
+	 (let ((name1 (alg-form-to-name type1))
+	       (name2 (alg-form-to-name type2)))
+	   (if (not (string=? name1 name2))
+	       (myerror "types-to-embedding" "equal alg names expected"
+			type1 type2))
+	   (let* ((tvars (alg-name-to-tvars name1))
+		  (tvar-to-embedding-alist
+		   (map (lambda (tvar type1 type2)
+			  (list tvar (types-to-embedding type1 type2)))
+			tvars types1 types2))
+		  (tsubst1 (make-substitution tvars types1))
+		  (tsubst2 (make-substitution tvars types2))
+		  (rec-const (type-info-to-rec-const (make-arrow type1 type2)))
+		  (uninst-type (const-to-uninst-type rec-const))
+		  (arg-types (arrow-form-to-arg-types uninst-type))
+		  (step-types (cdr arg-types))
+		  (alg-type (car arg-types))
+		  (step-arg-type-lists (map arrow-form-to-arg-types step-types))
+		  (step-alg-arg-type-lists ;((ss1->mu1 .. ssn->mun) ..)
+		   (map (lambda (l)
+			  (list-transform-positive l
+			    (lambda (y)
+			      (let ((val-type (arrow-form-to-final-val-type y)))
+				(and (alg-form? y)
+				     (string=? (alg-form-to-name y) name1))))))
+			step-arg-type-lists))
+		  (step-alg-arg-lengths (map length step-alg-arg-type-lists))
+		  (step-param-arg-tvar-lists
+		   (map (lambda (l n) (list-head l (- (length l) (* 2 n))))
+			step-arg-type-lists step-alg-arg-lengths))
+		  (subst-step-alg-arg-type-lists
+		   (map (lambda (types)
+			  (map (lambda (type)
+				 (type-substitute type tsubst1)) types))
+			step-alg-arg-type-lists))
+		  (subst-step-param-arg-type-lists
+		   (map (lambda (types)
+			  (map (lambda (type)
+				 (type-substitute type tsubst1)) types))
+			step-param-arg-tvar-lists))
+		  (subst-step-alg-arg-var-lists
+		   (map (lambda (types) (map type-to-new-var types))
+			subst-step-alg-arg-type-lists))
+		  (subst-step-param-arg-var-lists
+		   (map (lambda (types) (map type-to-new-var types))
+			subst-step-param-arg-type-lists))
+		  (embedded-subst-step-param-arg-varterm-lists
+		   (map
+		    (lambda (tvars ps)
+		      (map (lambda (tvar p)
+			     (let* ((info (assoc tvar tvar-to-embedding-alist))
+				    (f (if info (cadr info)
+					   (myerror
+					    "types-to-embedding" "unknown tvar"
+					    tvar))))
+			       (f (make-term-in-var-form p))))
+			   tvars ps))
+		    step-param-arg-tvar-lists
+		    subst-step-param-arg-var-lists))
+		  (typed-constr-names (alg-name-to-typed-constr-names name1))
+		  (constr-names (map typed-constr-name-to-name
+				     typed-constr-names))
+		  (constrs (map constr-name-to-constr constr-names))
+		  (subst-constrs
+		   (map (lambda (c) (const-substitute c tsubst2 #t))
+			constrs))
+		  (step-terms
+		   (map (lambda (ps rs c ts)
+			  (apply
+			   mk-term-in-abst-form
+			   (append
+			    ps rs (list (apply
+					 mk-term-in-app-form
+					 (make-term-in-const-form c)
+					 ts)))))
+			subst-step-param-arg-var-lists
+			subst-step-alg-arg-var-lists
+			subst-constrs
+			embedded-subst-step-param-arg-varterm-lists)))
+	     (lambda (term)
+	       (apply
+		mk-term-in-app-form
+		(make-term-in-const-form rec-const) term step-terms))))))))
     ((and (arrow-form? type1) (arrow-form? type2))
      (lambda (r)
        (let* ((argtype1 (arrow-form-to-arg-type type1))
@@ -2549,6 +2633,32 @@
 	   (prev-right (types-to-embedding (star-form-to-right-type type1)
 					   (star-form-to-right-type type2))))
        (lambda (x)
+	 (make-term-in-pair-form
+	  (prev-left (if (term-in-pair-form? x)
+			 (term-in-pair-form-to-left x)
+			 (make-term-in-lcomp-form x)))
+	  (prev-right (if (term-in-pair-form? x)
+			  (term-in-pair-form-to-right x)
+			  (make-term-in-rcomp-form x)))))))
+    ((and (star-form? type1) (yprod-form? type2))
+     (let ((prev-left (types-to-embedding (star-form-to-left-type type1)
+					  (yprod-form-to-left-type type2)))
+	   (prev-right (types-to-embedding (star-form-to-right-type type1)
+					   (yprod-form-to-right-type type2))))
+       (lambda (x) ;t@s -> (emb t)pair(emb s)
+	 (make-term-in-cons-form
+	  (prev-left (if (term-in-pair-form? x)
+			 (term-in-pair-form-to-left x)
+			 (make-term-in-lcomp-form x)))
+	  (prev-right (if (term-in-pair-form? x)
+			  (term-in-pair-form-to-right x)
+			  (make-term-in-rcomp-form x)))))))
+    ((and (yprod-form? type1) (star-form? type2))
+     (let ((prev-left (types-to-embedding (yprod-form-to-left-type type1)
+					  (star-form-to-left-type type2)))
+	   (prev-right (types-to-embedding (yprod-form-to-right-type type1)
+					   (star-form-to-right-type type2))))
+       (lambda (x) ;t pair s -> (emb t)@(emb s)
 	 (make-term-in-pair-form
 	  (prev-left (if (term-in-pair-form? x)
 			 (term-in-pair-form-to-left x)
