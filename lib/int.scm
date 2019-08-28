@@ -1,4 +1,4 @@
-;; 2018-08-22.  int.scm.  Based on the former numbers.scm.
+;; 2019-08-24.  int.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -181,41 +181,47 @@
 (use "InitEqD")
 ;; 7
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 ;; 8
 (assume "q")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 ;; 3
 (cases)
-;; 16-18
-(assume "q")
-(ng)
-(use "Efq")
-;; 17
+;; 20-22
+(assume "q" "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; 21
 (assume "Useless")
 (use "InitEqD")
-;; 18
-(assume "q")
-(ng)
-(use "Efq")
+;; 22
+(assume "q" "Absurd")
+(use "EfEqD")
+(use "Absurd")
 ;; 4
 (assume "p")
 (cases)
-;; 25-27
-(assume "q")
-(ng #t)
-(use "Efq")
-;; 26
-(ng)
-(use "Efq")
-;; 27
+;; 29-31
+(assume "q" "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; 30
+(assume "Absurd")
+(use"EfEqD")
+(use "Absurd")
+;; 32
 (assume "q")
 (ng)
 (assume "p=q")
 (simp "p=q")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "IntEqToEqD")
 
 ;; IntIfTotal
@@ -1185,7 +1191,7 @@
 (set-goal "all n(Zero<n -> IntP(NatToPos n)=NatToInt n)")
 (ind)
 (assume "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (cases)
@@ -2789,9 +2795,8 @@
 (ng)
 (use "PosTimesCancelL")
 ;; 3
-(ng)
 (assume "j" "i" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (ng)
@@ -3111,12 +3116,12 @@
 (assume "r" "Useless" "Absurd")
 (use "Absurd")
 ;; 7
-(assume "int" "Absurd")
-(use "Efq")
+(assume "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
-(assume "q" "i" "Absurd")
-(use "Efq")
+(assume "q" "i" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (cases)
@@ -3128,11 +3133,11 @@
 (use "Absurd")
 (assume "r" "Useless" "Absurd")
 (use "Absurd")
-(assume "int" "Absurd")
-(use "Efq")
+(assume "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
-(assume "q" "int" "Absurd")
-(use "Efq")
+(assume "q" "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (assume "p")
@@ -3144,7 +3149,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (cases)
 (strip)
@@ -3152,7 +3157,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "q")
 (cases)
@@ -3167,6 +3172,7 @@
 (use "r<q")
 (use "q<p")
 ;; Proof finished.
+;; (cdp)
 (save "IntLtTrans")
 
 ;; The following theorems can be proved similarly from the
@@ -3187,12 +3193,12 @@
 (assume "r" "Useless" "Absurd")
 (use "Absurd")
 ;; 7
-(assume "int" "Absurd")
-(use "Efq")
+(assume "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
-(assume "q" "i" "Absurd")
-(use "Efq")
+(assume "q" "i" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (cases)
@@ -3200,14 +3206,14 @@
 (cases)
 (strip)
 (use "Truth")
-(assume "Useless" "Absurd")
+(strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
 (use "Absurd")
 (assume "int" "Useless" "0<=int")
 (use "0<=int")
-(assume "q" "int" "Absurd")
-(use "Efq")
+(assume "q" "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (assume "p")
@@ -3219,7 +3225,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (cases)
 (strip)
@@ -3227,7 +3233,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "q")
 (cases)
@@ -3242,6 +3248,7 @@
 (use "r<=q")
 (use "q<=p")
 ;; Proof finished.
+;; (cdp)
 (save "IntLeTrans")
 
 ;; IntLeLtTrans
@@ -3259,12 +3266,12 @@
 (assume "r" "Useless" "Absurd")
 (use "Absurd")
 ;; 7
-(assume "int" "Absurd")
-(use "Efq")
+(assume "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
-(assume "q" "i" "Absurd")
-(use "Efq")
+(assume "q" "i" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (cases)
@@ -3278,8 +3285,8 @@
 (use "Absurd")
 (assume "int" "Useless" "0<int")
 (use "0<int")
-(assume "q" "int" "Absurd")
-(use "Efq")
+(assume "q" "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (assume "p")
@@ -3291,7 +3298,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (cases)
 (strip)
@@ -3299,7 +3306,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "q")
 (cases)
@@ -3314,6 +3321,7 @@
 (use "r<q")
 (use "q<=p")
 ;; Proof finished.
+;; (cdp)
 (save "IntLeLtTrans")
 
 ;; IntLtLeTrans
@@ -3331,12 +3339,12 @@
 (assume "r" "Useless" "Absurd")
 (use "Absurd")
 ;; 7
-(assume "int" "Absurd")
-(use "Efq")
+(assume "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
-(assume "q" "i" "Absurd")
-(use "Efq")
+(assume "q" "i" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (cases)
@@ -3348,11 +3356,11 @@
 (use "Absurd")
 (assume "r" "Useless" "Absurd")
 (use "Absurd")
-(assume "int" "Absurd")
-(use "Efq")
+(assume "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
-(assume "q" "int" "Absurd")
-(use "Efq")
+(assume "q" "int" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (assume "p")
@@ -3364,7 +3372,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (cases)
 (strip)
@@ -3372,7 +3380,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "q")
 (cases)
@@ -3387,6 +3395,7 @@
 (use "r<=q")
 (use "q<p")
 ;; Proof finished.
+;; (cdp)
 (save "IntLtLeTrans")
 
 ;; IntNotLeToLt
@@ -3690,7 +3699,7 @@
 (use "Absurd")
 ;; 8
 (assume "q" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (cases)
@@ -3704,7 +3713,7 @@
 (use "Absurd")
 ;; 18
 (assume "q" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 4
 (assume "p")
@@ -3747,11 +3756,11 @@
 (use "IntLtMonPredIntP")
 ;; 7
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
 (assume "q" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 3
 (cases)
@@ -4041,16 +4050,17 @@
 (use "pj<=pi")
 ;; 6
 (assume "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 7
 (assume "p" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; Assertion proved.
 (assume "Assertion" "k" "j" "i")
 (use "Assertion")
 ;; Proof finished.
+;; (cdp)
 (save "IntLeTimesCancelL")
 
 ;; IntLeTimesCancelR
@@ -4073,11 +4083,11 @@
 (use "pj<pi")
 ;; 6
 (assume "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 7
 (assume "p" "Absurd" "Useless")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; Assertion proved.
 (assume "Assertion" "k" "j" "i")
@@ -4221,7 +4231,7 @@
 (use "Absurd")
 ;; 12
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 ;; 7
 (cases)
@@ -4231,7 +4241,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Useless" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
 (assume "q")
@@ -4248,10 +4258,11 @@
 (strip)
 (use "Truth")
 ;; 4
-(assume "p" "j" "i" "Absurd")
-(use "Efq")
+(assume "p" "j" "i" "Absurd" "Useless")
+(use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "IntLeMonTimes")
 
 ;; (search-about "IntS" "Mon")
@@ -4523,7 +4534,7 @@
 (use "Absurd")
 ;; 12
 (assume "r" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 7
 (cases)
@@ -4533,7 +4544,7 @@
 (strip)
 (use "Truth")
 (assume "r" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 8
 (assume "q")
@@ -4571,11 +4582,11 @@
 (use "q<=r")
 ;; 50
 (assume "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 51
 (assume "r" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ; 46
 (cases)
@@ -4593,7 +4604,7 @@
 (use "Truth")
 ;; 61
 (assume "r" "Absurd")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; 47
 (assume "q")
@@ -4659,7 +4670,9 @@
 (ng)
 (assume "Absurd")
 (use "Absurd")
-(use "Efq")
+(assume "Absurd")
+(use "EfAtom")
+(use "Absurd")
 ;; 3
 (cases)
 (strip)
@@ -5437,8 +5450,15 @@
 (use "Truth")
 ;; 19
 (ng #t)
-(assume "Useless")
-(use "Efq")
+(assume "Useless" "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
+(use "Absurd")
 ;; 13
 (assume "p" "k" "j")
 (ng #t)
@@ -5458,8 +5478,15 @@
 (use "Truth")
 ;; 29
 (ng #t)
-(assume "Useless")
-(use "Efq")
+(assume "Useless" "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
+(use "Absurd")
 ;; 14
 (assume "p" "k" "j")
 (ng #t)
@@ -5479,8 +5506,15 @@
 (use "Truth")
 ;; 53
 (ng #t)
-(assume "Useless")
-(use "Efq")
+(assume "Useless" "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
+(use "Absurd")
 ;; 10
 (assume "p" "IH" "q" "k" "j")
 (ng #t)
@@ -5522,8 +5556,16 @@
 ;; 86
 (assume "2*lft(PosQR p q)=k -> F")
 (ng #t)
-(use "Efq")
-;; 79
+(assume "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
+(use "Absurd")
+;; 100
 (ng #t)
 (assume "2*rht(PosQR p q)<q -> F")
 (assert "q<=2*rht(PosQR p q)")
@@ -5532,7 +5574,7 @@
 (assume "q<=2*rht(PosQR p q)")
 (simp "<-" "IfAndb")
 (cases (pt "(2*lft(PosQR p q)+1=k)"))
-;; 111,112
+;; 140,141
 (ng #t)
 (assume "2*lft(PosQR p q)+1=k")
 (simp "<-" "2*lft(PosQR p q)+1=k")
@@ -5545,12 +5587,12 @@
 (inst-with-to "IntPlusComm" (pt "2*rht(PosQR p q)") (pt "IntN q") "InstComm")
 (simp "InstComm")
 (ng #t)
-;; ?_126:SZero p=2*lft(PosQR p q)*q+2*rht(PosQR p q)
+;; ?^155:SZero p=2*lft(PosQR p q)*q+2*rht(PosQR p q)
 (use "IHAux")
 (inst-with-to "IH" (pt "q") (pt "lft(PosQR p q)") (pt "rht(PosQR p q)")
 	      "InstAssertion" "InstIH")
 (use "InstIH")
-;; 119
+;; 148
 (split)
 (simp (pf "0=0+q+IntN q"))
 (use "IntLeMonPlus")
@@ -5573,7 +5615,7 @@
 ;;   InstIH:p=lft(PosQR p q)*q+rht(PosQR p q) andnc 
 ;;          0<=rht(PosQR p q) andnc rht(PosQR p q)<q
 ;; -----------------------------------------------------------------------------
-;; ?_147:rht(PosQR p q)+(rht(PosQR p q)+IntN q)<rht(PosQR p q)+(q+IntN q)
+;; ?^177:rht(PosQR p q)+(rht(PosQR p q)+IntN q)<rht(PosQR p q)+(q+IntN q)
 
 ;; (pp "IntLtMonPlus1")
 ;; all k,j,i,i0(k<j -> i<=i0 -> k+i<j+i0)
@@ -5586,10 +5628,16 @@
 (ng #t)
 (use "IntLtToLe")
 (use "InstIH")
-;; 112
+;; 141
 (ng #t)
 (assume "Useless" "Absurd")
-(use "Efq")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
 (use "Absurd")
 ;; 11
 ;; 2016-10-24.  Done up to this point.  provide InstIH early
@@ -5608,12 +5656,12 @@
 	      "InstAssertion" "InstIH")
 (simp "IntPlusOneIntS")
 (cases (pt "IntS(2*rht(PosQR p q))<q"))
-;; 174,175
+;; 209,210
 (ng #t)
 (assume "IntS(2*rht(PosQR p q))<q")
 (simp "<-" "IfAndb")
 (cases (pt "(2*lft(PosQR p q)=k)"))
-;; 179,180
+;; 214,215
 (assume "2*lft(PosQR p q)=k")
 (ng #t)
 (assume "IntS(2*rht(PosQR p q))=j")
@@ -5634,7 +5682,7 @@
 ;;   IntS(2*rht(PosQR p q))=j:
 ;;     IntS(2*rht(PosQR p q))=j
 ;; -----------------------------------------------------------------------------
-;; ?_187:SOne p=IntS(k*q+2*rht(PosQR p q))
+;; ?^222:SOne p=IntS(k*q+2*rht(PosQR p q))
 
 (simp (pf "SOne p=IntS(SZero p)")) ;normalizes to T
 (simp (pf "SZero p=k*q+2*rht(PosQR p q)"))
@@ -5646,7 +5694,7 @@
 (ng #t)
 (use "Truth")
 (use "Truth")
-;; 186
+;; 221
 (split)
 (use "IntLeTrans" (pt "2*rht(PosQR p q)"))
 (simp "IntTimesComm")
@@ -5657,11 +5705,19 @@
 (use "Truth")
 (use "Truth")
 (use "IntS(2*rht(PosQR p q))<q")
-;; 180
+;; 215
 (assume "2*lft(PosQR p q)=k -> F")
 (ng #t)
-(use "Efq")
-;; 175
+(assume "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
+(use "Absurd")
+;; 210
 (ng #t)
 (assume "IntS(2*rht(PosQR p q))<q -> F")
 (assert "q<=IntS(2*rht(PosQR p q))")
@@ -5671,7 +5727,7 @@
 ;; New from here onwards
 (simp "<-" "IfAndb")
 (cases (pt "2*lft(PosQR p q)+1=k"))
-;; 215,216
+;; 258,259
 (assume "2*lft(PosQR p q)+1=k")
 (ng #t)
 (assume "IntS(2*rht(PosQR p q)+IntN q)=j")
@@ -5696,14 +5752,14 @@
 (use "InstIH")
 (use "Truth")
 (split)
-;; ?_240:0<=IntS(2*rht(PosQR p q)+IntN q)
+;; ?^283:0<=IntS(2*rht(PosQR p q)+IntN q)
 (assert "q+ ~q<=IntS(2*rht(PosQR p q))+ ~q")
  (use "IntLeMonPlus")
  (use "q<=IntS(2*rht(PosQR p q))")
  (use "Truth")
 (assume "q+ ~q<=IntS(2*rht(PosQR p q))+ ~q")
 (use "q+ ~q<=IntS(2*rht(PosQR p q))+ ~q")
-;; ?_241:IntS(2*rht(PosQR p q)+IntN q)<q
+;; ?^284:IntS(2*rht(PosQR p q)+IntN q)<q
 (assert "all i 2*i=i+i") ;should go into int.scm, as IntTimesTwoPlusId
  (assume "i")
  (simp-with (pf "2=IntP 1+IntP 1"))
@@ -5723,11 +5779,19 @@
 (simp "IntPlusComm")
 (ng #t)
 (use "InstIH")
-;; 216
+;; 259
+(ng #t)
 (assume "Useless" "Absurd")
-(use "Efq")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(split)
+(use "EfAtom")
+(use "Absurd")
+(use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "PosQRCorrAux")
 
 ;; PosQRCorr
@@ -5739,43 +5803,5 @@
 (simp "PairConstrOneTwo")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "PosQRCorr")
-
-;; (add-program-constant "PosQuot" (py "pos=>pos=>int"))
-;; (add-program-constant "PosRem" (py "pos=>pos=>int"))
-
-;; (add-computation-rules "PosQuot p q" "lft(PosQR p q)")
-;; (add-computation-rules "PosRem p q" "rht(PosQR p q)")
-
-;; (set-totality-goal "PosQuot")
-;; (use "AllTotalElim")
-;; (assume "p")
-;; (use "AllTotalElim")
-;; (assume "q")
-;; (ng)
-;; (use "IntTotalVar")
-;; ;; Proof finished.
-;; (save-totality)
-
-;; (set-totality-goal "PosRem")
-;; (use "AllTotalElim")
-;; (assume "p")
-;; (use "AllTotalElim")
-;; (assume "q")
-;; (ng)
-;; (use "IntTotalVar")
-;; ;; Proof finished.
-;; (save-totality)
-
-;; ;; PosQRCorr
-;; (set-goal
-;;  "all p,q(p=(PosQuot p q)*q+PosRem p q andnc 0<=PosRem p q andnc PosRem p q<q)")
-;; (assume "p" "q")
-;; (use "PosQRCorrAux")
-;; (cases (pt "PosQR p q"))
-;; (assume "k" "j" "EqHyp")
-;; (ng)
-;; (simp "EqHyp")
-;; (use "Truth")
-;; ;; Proof finished.
-;; (save "PosQRCorr")
