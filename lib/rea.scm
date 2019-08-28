@@ -1,4 +1,4 @@
-;; 2018-11-13.  rea.scm.  Based on numbers.scm.
+;; 2019-08-25.  rea.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -34,10 +34,6 @@
 
 (add-alg "rea" (list "RealConstr" "(nat=>rat)=>(pos=>nat)=>rea"))
 (add-var-name "x" "y" "z" (py "rea"))
-;; (add-totality "rea") does not work, because rea is non-finitary.
-;; (add-totalnc "rea")
-;; (add-co "TotalRea")
-;; (add-co "TotalReaNc")
 
 (add-eqp "rea")
 
@@ -49,9 +45,7 @@
 ;;   allnc p^,p^0(EqPPos p^ p^0 -> EqPNat(M^ p^)(M^0 p^0)) -> 
 ;;   EqPRea(RealConstr as^ M^)(RealConstr as^0 M^0)))
 
-(add-co "EqPRea")
 (add-eqpnc "rea")
-(add-co "EqPReaNc")
 
 ;; We prefer to work with a simple direct definition of TotalRea and
 ;; then show that its equivalence to the general definition x eqp x.
@@ -80,8 +74,8 @@
 (use "EqPNatRefl")
 (use "Tn")
 ;; Proof finished.
-(save "EqPTotalNatToRatLeft")
 ;; (cdp)
+(save "EqPTotalNatToRatLeft")
 
 ;; EqPTotalNatToRatRight
 (set-goal "allnc as^1,as^2(
@@ -93,8 +87,8 @@
 (use "EqPNatRefl")
 (use "Tn")
 ;; Proof finished.
-(save "EqPTotalNatToRatRight")
 ;; (cdp)
+(save "EqPTotalNatToRatRight")
 
 ;; EqPTotalPosToNatLeft
 (set-goal "allnc M^1,M^2(
@@ -106,8 +100,8 @@
 (use "EqPPosRefl")
 (use "Tp")
 ;; Proof finished.
-(save "EqPTotalPosToNatLeft")
 ;; (cdp)
+(save "EqPTotalPosToNatLeft")
 
 ;; EqPTotalPosToNatRight
 (set-goal "allnc M^1,M^2(
@@ -119,8 +113,8 @@
 (use "EqPPosRefl")
 (use "Tp")
 ;; Proof finished.
-(save "EqPTotalPosToNatRight")
 ;; (cdp)
+(save "EqPTotalPosToNatRight")
 
 ;; EqPReaToTotalLeft
 (set-goal "allnc x^,y^(EqPRea x^ y^ -> TotalRea x^)")
@@ -133,8 +127,8 @@
 (use "EqPTotalPosToNatLeft" (pt "M^2"))
 (use "EqPM1M2")
 ;; Proof finished.
-(save "EqPReaToTotalLeft")
 ;; (cdp)
+(save "EqPReaToTotalLeft")
 
 ;; EqPReaToTotalRight
 (set-goal "allnc x^,y^(EqPRea x^ y^ -> TotalRea y^)")
@@ -147,8 +141,8 @@
 (use "EqPTotalPosToNatRight" (pt "M^1"))
 (use "EqPM1M2")
 ;; Proof finished.
-(save "EqPReaToTotalRight")
 ;; (cdp)
+(save "EqPReaToTotalRight")
 
 ;; EqPReaRefl
 (set-goal "allnc x^(TotalRea x^ -> EqPRea x^ x^)")
@@ -165,7 +159,7 @@
 (use "EqPNatToTotalLeft" (pt "n^2"))
 (use "EqPn1n2")
 ;; 9
-(use "EqPNatToEqD")
+(use "EqPNatNcToEqD")
 (use "EqPn1n2")
 ;; 6
 (assume "p^1" "p^2" "EqPp1p2")
@@ -179,8 +173,8 @@
 (use "EqPPosToEqD")
 (use "EqPp1p2")
 ;; Proof finished.
-(save "EqPReaRefl")
 ;; (cdp)
+(save "EqPReaRefl")
 
 ;; End of proof of the equivalence of the simple direct definition of
 ;; TotalRea with the general definition x eqp x.
@@ -197,6 +191,7 @@
 (assume "p")
 (use "NatTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "ReaTotalVar")
 
 ;; To conveniently access the two fields of a real, we provide seq and
@@ -231,24 +226,15 @@
  "(RealConstr as M)seq" "as")
 
 (set-totality-goal "RealSeq")
-(assume "x^1" "x^2" "EqPx1x2" "n^1" "n^2" "EqPn1n2")
-(elim "EqPx1x2")
-(assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
-(ng #t)
-(use "EqPas1as2")
-(use "EqPn1n2")
+(assume "x^" "Tx" "n^" "Tn")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
+(ng)
+(use "Tas")
+(use "Tn")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-(set-totality-goal "RealSeq")
-(assume "x^1" "x^2" "EqPx1x2" "n^1" "n^2" "EqPn1n2")
-(elim "EqPx1x2")
-(assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
-(ng #t)
-(use "EqPas1as2")
-(use "EqPn1n2")
-;; Proof finished.
-(save "RealSeqExt")
 
 (add-program-constant "RealMod" (py "rea=>pos=>nat") t-deg-zero 'const 1)
 
@@ -280,24 +266,15 @@
 
 ;; RealModTotal
 (set-totality-goal "RealMod")
-(assume "x^1" "x^2" "EqPx1x2" "p^1" "p^2" "EqPp1p2")
-(elim "EqPx1x2")
-(assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
+(assume "x^" "Tx" "p^" "Tp")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
 (ng #t)
-(use  "EqPM1M2")
-(use "EqPp1p2")
+(use  "TM")
+(use "Tp")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-(set-totality-goal "RealMod")
-(assume "x^1" "x^2" "EqPx1x2" "p^1" "p^2" "EqPp1p2")
-(elim "EqPx1x2")
-(assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
-(ng #t)
-(use  "EqPM1M2")
-(use "EqPp1p2")
-;; Proof finished.
-(save "RealModExt")
 
 ;; (pp (pt "x seq n"))
 ;; (pp (pt "x mod p"))
@@ -424,8 +401,8 @@
 (use "EqPas1as2")
 (use "EqPM1M2")
 ;; Proof finished.
-(save "EqPReaAux")
 ;; (cdp)
+(save "EqPReaAux")
 
 ;; EqPReaElimLeft
 (set-goal "allnc x^,y^(EqP x^ y^ -> EqP(x^ seq)(y^ seq))")
@@ -433,10 +410,13 @@
 (elim "EqPxy")
 (assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
 (ng #t)
+(assume "n^" "Tn")
 (use "EqPas1as2")
+(use "EqPNatRefl")
+(use "Tn")
 ;; Proof finished.
-(save "EqPReaElimLeft")
 ;; (cdp)
+(save "EqPReaElimLeft")
 
 ;; EqPReaElimRight
 (set-goal "allnc x^,y^(EqP x^ y^ -> EqP(x^ mod)(y^ mod))")
@@ -444,140 +424,88 @@
 (elim "EqPxy")
 (assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
 (ng #t)
+(assume "p^" "Tp")
 (use "EqPM1M2")
+(use "EqPPosRefl")
+(use "Tp")
 ;; Proof finished.
-(save "EqPReaElimRight")
 ;; (cdp)
+(save "EqPReaElimRight")
+
+;; To be moved into libnat.scm
+;; AllEqPNatElim
+(set-goal "allnc n^(TotalNat n^ -> (Pvar nat nat)n^ n^) ->
+ allnc n^1,n^2(EqPNat n^1 n^2 -> (Pvar nat nat)n^1 n^2)")
+(assume "THyp" "n^1" "n^2" "EqPn1n2")
+;; (search-about 'all "EqP" "Nat" "Sym")
+(simp (pf "n^1 eqd n^2"))
+(use "THyp")
+(use "EqPNatToTotalRight" (pt "n^1"))
+(use "EqPn1n2")
+(use "EqPNatNcToEqD") ;provide EqPNatToEqD in libnat.scm
+(use "EqPn1n2")
+;; Proof finished.
+;; (cdp)
+(save "AllEqPNatElim")
+
+;; To be moved into libpos.scm
+;; AllEqPPosElim
+(set-goal "allnc p^(TotalPos p^ -> (Pvar pos pos)p^ p^) ->
+ allnc p^1,p^2(EqPPos p^1 p^2 -> (Pvar pos pos)p^1 p^2)")
+(assume "THyp" "p^1" "p^2" "EqPp1p2")
+;; (search-about 'all "EqP" "Pos" "Sym")
+(simp (pf "p^1 eqd p^2"))
+(use "THyp")
+(use "EqPPosToTotalRight" (pt "p^1"))
+(use "EqPp1p2")
+(use "EqPPosToEqD")
+(use "EqPp1p2")
+;; Proof finished.
+;; (cdp)
+(save "AllEqPPosElim")
 
 ;; EqPReaElimLeftRealConstr
 (set-goal "allnc as^,M^,bs^,N^(
  EqPRea(RealConstr as^ M^)(RealConstr bs^ N^) ->
  allnc n^,m^(EqPNat n^ m^ -> EqPRat(as^ n^)(bs^ m^)))")
-(assume "as^" "M^" "bs^" "N^" "EqPxy" "n^" "m^" "EqPnm")
+(assume "as^" "M^" "bs^" "N^" "EqPxy")
+(use "AllEqPNatElim")
 (use-with "EqPReaElimLeft"
 	  (pt "(RealConstr as^ M^)") (pt "(RealConstr bs^ N^)")
-	  "EqPxy" (pt "n^") (pt "m^") "EqPnm")
+	  "EqPxy")
 ;; Proof finished.
-(save "EqPReaElimLeftRealConstr")
 ;; (cdp)
+(save "EqPReaElimLeftRealConstr")
 
 ;; EqPReaElimRightRealConstr
 (set-goal "allnc as^,M^,bs^,N^(
  EqPRea(RealConstr as^ M^)(RealConstr bs^ N^) ->
  allnc p^,q^(EqPPos p^ q^ -> EqPNat(M^ p^)(N^ q^)))")
-(assume "as^" "M^" "bs^" "N^" "EqPxy" "p^" "q^" "EqPpq")
+(assume "as^" "M^" "bs^" "N^" "EqPxy")
+(use "AllEqPPosElim")
 (use-with "EqPReaElimRight"
 	  (pt "(RealConstr as^ M^)") (pt "(RealConstr bs^ N^)")
-	  "EqPxy" (pt "p^") (pt "q^") "EqPpq")
+	  "EqPxy")
 ;; Proof finished.
-(save "EqPReaElimRightRealConstr")
 ;; (cdp)
+(save "EqPReaElimRightRealConstr")
 
 ;; RealPosTotal
 (set-totality-goal "RealPos")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "as^2" "M^2" "EqPx1x2" "p^1" "p^2" "EqPp1p2")
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
+(use "AllTotalElim")
+(assume "p")
 (ng #t)
-(inst-with-to
- "EqPReaElimLeftRealConstr"
-  (pt "as^1") (pt "M^1") (pt "as^2") (pt "M^2") "EqPx1x2" "InstL")
-(inst-with-to
- "EqPReaElimRightRealConstr"
-  (pt "as^1") (pt "M^1") (pt "as^2") (pt "M^2") "EqPx1x2" "InstR")
-(drop "EqPx1x2")
-(inst-with-to "EqPTotalNatToRatLeft" (pt "as^1") (pt "as^2") "InstL" "Tas1")
-(inst-with-to "EqPTotalPosToNatLeft" (pt "M^1") (pt "M^2") "InstR" "TM1")
-(simp "<-" (pf "p^1 eqd p^2"))
-(simp "<-" (pf "M^1(PosS p^1) eqd M^2(PosS p^1)"))
-(simp "<-" (pf "as^1(M^1(PosS p^1))eqd as^2(M^1(PosS p^1))"))
-(use "EqPBooleRefl")
 (use "RatLeTotal")
-(use "TotalRatRatConstr")
-(use "IntTotalVar")
-(use "PosExpTotal")
+(use "RatTotalVar")
+(use "Tas")
+(use "TM")
 (use "PosTotalVar")
-(use "PosToNatTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; 22
-(use "Tas1")
-(use "TM1")
-(use "PosSTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; ?^19:as^1(M^1(PosS p^1))eqd as^2(M^1(PosS p^1))
-(use "EqPRatToEqD")
-(use "InstL")
-(use "EqPNatRefl")
-(use "TM1")
-(use "PosSTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; ?^17:M^1(PosS p^1)eqd M^2(PosS p^1)
-(use "EqPNatToEqD")
-(use "InstR")
-(use "EqPPosRefl")
-(use "PosSTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; ?^15:p^1 eqd p^2
-(use "EqPPosToEqD")
-(use "EqPp1p2")
 ;; Proof finished.
-(save-totality)
 ;; (cdp)
-
-(set-totality-goal "RealPos")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "as^2" "M^2" "EqPx1x2" "p^1" "p^2" "EqPp1p2")
-(ng #t)
-(inst-with-to
- "EqPReaElimLeftRealConstr"
-  (pt "as^1") (pt "M^1") (pt "as^2") (pt "M^2") "EqPx1x2" "InstL")
-(inst-with-to
- "EqPReaElimRightRealConstr"
-  (pt "as^1") (pt "M^1") (pt "as^2") (pt "M^2") "EqPx1x2" "InstR")
-(drop "EqPx1x2")
-(inst-with-to "EqPTotalNatToRatLeft" (pt "as^1") (pt "as^2") "InstL" "Tas1")
-(inst-with-to "EqPTotalPosToNatLeft" (pt "M^1") (pt "M^2") "InstR" "TM1")
-(simp "<-" (pf "p^1 eqd p^2"))
-(simp "<-" (pf "M^1(PosS p^1) eqd M^2(PosS p^1)"))
-(simp "<-" (pf "as^1(M^1(PosS p^1))eqd as^2(M^1(PosS p^1))"))
-(use "EqPBooleRefl")
-(use "RatLeTotal")
-(use "TotalRatRatConstr")
-(use "IntTotalVar")
-(use "PosExpTotal")
-(use "PosTotalVar")
-(use "PosToNatTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; 22
-(use "Tas1")
-(use "TM1")
-(use "PosSTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; ?^19:as^1(M^1(PosS p^1))eqd as^2(M^1(PosS p^1))
-(use "EqPRatToEqD")
-(use "InstL")
-(use "EqPNatRefl")
-(use "TM1")
-(use "PosSTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; ?^17:M^1(PosS p^1)eqd M^2(PosS p^1)
-(use "EqPNatToEqD")
-(use "InstR")
-(use "EqPPosRefl")
-(use "PosSTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-;; ?^15:p^1 eqd p^2
-(use "EqPPosToEqD")
-(use "EqPp1p2")
-;; Proof finished.
-(save "RealPosExt")
+(save-totality)
 
 ;; RealLt is a decidable property and hence can be considered as a
 ;; program constant.
@@ -617,45 +545,22 @@
 (add-computation-rules
  "~(RealConstr as M)" "RealConstr([n]~(as n))M")
 
-;; To prove totality of RealUMinus we need RatUMinusEqP
-
+;; RealUMinusTotal
 (set-totality-goal "RealUMinus")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "as^2" "M^2" "EqPx1x2")
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
 (ng #t)
-(use "EqPReaRealConstr")
-;;5,6
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatUMinusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "M^2"))
-(use "EqPx1x2")
-(use "EqPn1n2")
-;; 6
-(use "EqPReaElimRightRealConstr" (pt "as^1")  (pt "as^2"))
-(use "EqPx1x2")
+(intro 0)
+(use "AllTotalElim")
+(assume "n")
+(use "RatUMinusTotal")
+(use "Tas")
+(use "NatTotalVar")
+(use "TM")
 ;; Proof finished.
-(save-totality)
 ;; (cdp)
-
-;; RealUMinusExt
-(set-totality-goal "RealUMinus")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "as^2" "M^2" "EqPx1x2")
-(ng #t)
-(use "EqPReaRealConstr")
-;;5,6
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatUMinusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "M^2"))
-(use "EqPx1x2")
-(use "EqPn1n2")
-;; 6
-(use "EqPReaElimRightRealConstr" (pt "as^1")  (pt "as^2"))
-(use "EqPx1x2")
-;; Proof finished.
-(save "RealUMinusExt")
+(save-totality)
 
 ;; Rules for RealPlus
 
@@ -665,73 +570,34 @@
 
 ;; RealPlusTotal
 (set-totality-goal "RealPlus")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaAux")
-(assume "as^2" "M^2" "bs^2" "N^2" "EqPx2y2")
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
+(assume "y^" "Ty")
+(elim "Ty")
+(assume "bs^" "Tbs" "N^" "TN")
 (ng #t)
-(use "EqPReaRealConstr")
-;; 7,8
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatPlusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "EqPn1n2")
-;; 8
-(ng #t)
-(assume "p^1" "p^2" "EqPp1p2")
-(use "NatMaxEqP")
-;; 19,20
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 20
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "EqPp1p2")
+(intro 0)
+(use "AllTotalElim")
+(assume "n")
+(use "RatPlusTotal")
+(use "Tas")
+(use "NatTotalVar")
+(use "Tbs")
+(use "NatTotalVar")
+;; 10
+(use "AllTotalElim")
+(assume "p")
+(use "NatMaxTotal")
+(use "TM")
+(use "PosSTotal")
+(use "PosTotalVar")
+(use "TN")
+(use "PosSTotal")
+(use "PosTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-;; RealPlusExt
-(set-totality-goal "RealPlus")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaAux")
-(assume "as^2" "M^2" "bs^2" "N^2" "EqPx2y2")
-(ng #t)
-(use "EqPReaRealConstr")
-;; 7,8
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatPlusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "EqPn1n2")
-;; 8
-(ng #t)
-(assume "p^1" "p^2" "EqPp1p2")
-(use "NatMaxEqP")
-;; 19,20
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 20
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; Proof finished.
-(save "RealPlusExt")
 
 ;; Rules for RealMinus
 
@@ -739,239 +605,97 @@
  "x-y" "x+ ~y")
 
 (set-totality-goal "RealMinus")
-(ng #t)
-(assume "x^1" "x^2" "EqPx1x2" "x^3" "x^4" "EqPx3x4")
-(use "RealPlusExt")
-(use "EqPx1x2")
-(use "RealUMinusExt")
-(use "EqPx3x4")
+(assume "x^" "Tx"  "y^" "Ty")
+(use "RealPlusTotal")
+(use "Tx")
+(use "RealUMinusTotal")
+(use "Ty")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-(set-totality-goal "RealMinus")
-(ng #t)
-(assume "x^1" "x^2" "EqPx1x2" "x^3" "x^4" "EqPx3x4")
-(use "RealPlusExt")
-(use "EqPx1x2")
-(use "RealUMinusExt")
-(use "EqPx3x4")
-;; Proof finished.
-(save "RealMinusExt")
 
 ;; Rules for RealUDiv
 (add-computation-rules
  "RealUDiv(RealConstr as M)q" "RealConstr([n]RatUDiv(as n))([p]M(2*PosS q+p))")
 
+;; RealUDivTotal
 (set-totality-goal "RealUDiv")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1" "p^1" "p^2" "EqPp1p2")
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
+(use "AllTotalElim")
+(assume "p")
 (ng #t)
-(use "EqPReaRealConstr")
-;; 5,6
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatUDivEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-;; 6
-(assume "p^3" "p^4" "EqPp3p4")
-(ng #t)
-(use "EqPReaElimRightRealConstr" (pt "as^1")  (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosPlusEqP")
-(use "PosTimesEqP")
-(use "EqPPosSZero")
-(use "EqPPosOne")
-(use "PosSEqP")
-(use "EqPp1p2")
-(use "EqPp3p4")
-;; Proof finished.
-(save-totality)
-
-(set-totality-goal "RealUDiv")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1" "p^1" "p^2" "EqPp1p2")
-(ng #t)
-(use "EqPReaRealConstr")
-;; 5,6
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatUDivEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-;; 6
-(assume "p^3" "p^4" "EqPp3p4")
-(ng #t)
-(use "EqPReaElimRightRealConstr" (pt "as^1")  (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosPlusEqP")
-(use "PosTimesEqP")
-(use "EqPPosSZero")
-(use "EqPPosOne")
-(use "PosSEqP")
-(use "EqPp1p2")
-(use "EqPp3p4")
-;; Proof finished.
-(save "RealUDivExt")
-
-(set-totality-goal "RealLt")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaAux")
-(assume "as^2" "M^2" "bs^2" "N^2" "EqPx2y2" "p^1" "p^2" "EqPp1p2")
-(ng #t)
-(use "RatLeEqP")
-;; 7,8
-(use "EqPRatRatConstr")
-(use "EqPIntIntPos")
-(use "EqPPosOne")
-(simp "<-" (pf "p^1 eqd p^2"))
-(use "EqPPosRefl")
-(use "PosExpTotal")
+(intro 0)
+(use "AllTotalElim")
+(assume "n")
+(use "RatUDivTotal")
+(use "Tas")
+(use "NatTotalVar")
+(use "AllTotalElim")
+(assume "p1")
+(use "TM")
 (use "PosTotalVar")
-(use "PosToNatTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-(use "EqPPosToEqD")
-(use "EqPp1p2")
-;; 8
-(use "RatPlusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "NatMaxEqP")
-;; 24,25
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 25
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 21
-(use "RatUMinusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "NatMaxEqP")
-;; 37,38
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 38
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
 ;; Proof finished.
-(save-totality)
 ;; (cdp)
+(save-totality)
 
+;; RealLtTotal
 (set-totality-goal "RealLt")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaAux")
-(assume "as^2" "M^2" "bs^2" "N^2" "EqPx2y2" "p^1" "p^2" "EqPp1p2")
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
+(assume "y^" "Ty")
+(elim "Ty")
+(assume "bs^" "Tbs" "N^" "TN")
 (ng #t)
-(use "RatLeEqP")
-;; 7,8
-(use "EqPRatRatConstr")
-(use "EqPIntIntPos")
-(use "EqPPosOne")
-(simp "<-" (pf "p^1 eqd p^2"))
-(use "EqPPosRefl")
-(use "PosExpTotal")
+(use "AllTotalElim")
+(assume "p")
+(use "RatLeTotal")
+(use "RatTotalVar")
+(use "RatPlusTotal")
+(use "Tbs")
+(use "NatMaxTotal")
+(use "TN")
 (use "PosTotalVar")
-(use "PosToNatTotal")
-(use "EqPPosToTotalLeft" (pt "p^2"))
-(use "EqPp1p2")
-(use "EqPPosToEqD")
-(use "EqPp1p2")
-;; 8
-(use "RatPlusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "NatMaxEqP")
-;; 24,25
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 25
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 21
-(use "RatUMinusEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "NatMaxEqP")
-;; 37,38
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; 38
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "PosSEqP")
-(use "EqPp1p2")
+(use "TM")
+(use "PosTotalVar")
+(use "RatUMinusTotal")
+(use "Tas")
+(use "NatMaxTotal")
+(use "TN")
+(use "PosTotalVar")
+(use "TM")
+(use "PosTotalVar")
 ;; Proof finished.
-(save "RealLtExt")
+;; (cdp)
+(save-totality)
 
 ;; Rules for RealAbs
 
 (add-computation-rules
  "abs(RealConstr as M)" "RealConstr([n]abs(as n))M")
 
+;; RealAbsTotal
 (set-totality-goal "RealAbs")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaRealConstr")
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
 (ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatAbsEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-;; 5
-(assume "p^1" "p^2" "EqPp1p2")
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "EqPp1p2")
+(intro 0)
+(use "AllTotalElim")
+(assume "n")
+(use "RatAbsTotal")
+(use "Tas")
+(use "NatTotalVar")
+;; 7
+(use "AllTotalElim")
+(assume "p")
+(use "TM")
+(use "PosTotalVar")
 ;; Proof finished.
-(save-totality)
 ;; (cdp)
-
-(set-totality-goal "RealAbs")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaRealConstr")
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatAbsEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-;; 5
-(assume "p^1" "p^2" "EqPp1p2")
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "EqPp1p2")
-;; Proof finished.
-(save "RealAbsExt")
+(save-totality)
 
 (add-program-constant "RealInv" (py "rea=>pos=>rea"))
 
@@ -979,80 +703,34 @@
  "RealInv(RealConstr as M)q"
  "RealConstr([n]1/as n)([p]M(2*PosS q+p)max M(PosS q))")
 
+;; RealInvTotal
 (set-totality-goal "RealInv")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1" "p^1" "p^2" "EqPp1p2")
-(use "EqPReaRealConstr")
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
+(use "AllTotalElim")
+(assume "p")
 (ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatTimesEqP")
-(use "EqPRatRatConstr")
-(use "EqPIntIntPos")
-(use "EqPPosOne")
-(use "EqPPosOne")
-(use "RatUDivEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-;; 5
-(assume "p^3" "p^4" "EqPp3p4")
-(ng #t)
-(use "NatMaxEqP")
-;; 18,19
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosPlusEqP")
-(use "PosTimesEqP")
-(use "EqPPosSZero")
-(use "EqPPosOne")
-(use "PosSEqP")
-(use "EqPp1p2")
-(use "EqPp3p4")
-;; 19
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "EqPp1p2")
+(intro 0)
+;; 8,9
+(use "AllTotalElim")
+(assume "n")
+(use "RatTimesTotal")
+(use "RatTotalVar")
+(use "RatUDivTotal")
+(use "Tas")
+(use "NatTotalVar")
+;; 9
+(use "AllTotalElim")
+(assume "p1")
+(use "NatMaxTotal")
+(use "TM")
+(use "PosTotalVar")
+(use "TM")
+(use "PosTotalVar")
 ;; Proof finished.
-(save-totality)
 ;; (cdp)
-
-(set-totality-goal "RealInv")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1" "p^1" "p^2" "EqPp1p2")
-(use "EqPReaRealConstr")
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatTimesEqP")
-(use "EqPRatRatConstr")
-(use "EqPIntIntPos")
-(use "EqPPosOne")
-(use "EqPPosOne")
-(use "RatUDivEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-;; 5
-(assume "p^3" "p^4" "EqPp3p4")
-(ng #t)
-(use "NatMaxEqP")
-;; 18,19
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosPlusEqP")
-(use "PosTimesEqP")
-(use "EqPPosSZero")
-(use "EqPPosOne")
-(use "PosSEqP")
-(use "EqPp1p2")
-(use "EqPp3p4")
-;; 19
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "EqPp1p2")
-;; Proof finished.
-(save "RealInvExt")
+(save-totality)
 
 ;; Rules for RealExp : rea=>int=>rea
 
@@ -1078,65 +756,69 @@
 
 (add-ids
  (list (list "Cauchy" (make-arity (py "nat=>rat") (py "pos=>nat"))))
- '("all as,M(
-    all p,n,m(M p<=n -> M p<=m -> abs(as n+ ~(as m))<=(1#2**p)) -> Cauchy as M)"
-   "CauchyIntro"))
+ '("allnc as,M(
+    allnc p,n,m(M p<=n -> M p<=m -> abs(as n+ ~(as m))<=(1#2**p)) ->
+    Cauchy as M)" "CauchyIntro"))
 
 ;; Similarly, we introduce a predicate constant Mon, taking a sequence
 ;; of positive numbers as argument, to express monotonicity.
 
 (add-ids (list (list "Mon" (make-arity (py "pos=>nat"))))
-	 '("all M(all p,q(p<=q -> M p<=M q) -> Mon M)" "MonIntro"))
+	 '("allnc M(allnc p,q(p<=q -> M p<=M q) -> Mon M)" "MonIntro"))
 
 ;; CauchyElim
 (set-goal
- "all as,M(Cauchy as M ->
-           all p,n,m(M p<=n -> M p<=m -> abs(as n+ ~(as m))<=(1#2**p)))")
+ "allnc as,M(Cauchy as M ->
+             allnc p,n,m(M p<=n -> M p<=m -> abs(as n+ ~(as m))<=(1#2**p)))")
 (assume "as" "M")
 (elim)
 (search)
 ;; Proof finished.
+;; (cdp)
 (save "CauchyElim")
 
 ;; MonElim
-(set-goal "all M(Mon M -> all p,q(p<=q -> M p<=M q))")
+(set-goal "allnc M(Mon M -> allnc p,q(p<=q -> M p<=M q))")
 (assume "M")
 (elim)
 (search)
 ;; Proof finished.
+;; (cdp)
 (save "MonElim")
 
 ;; EfCauchy
-(set-goal "F -> all as,M Cauchy as M")
+(set-goal "F -> allnc as,M Cauchy as M")
 (assume "Absurd" "as" "M")
 (intro 0)
 (strip)
 (use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "EfCauchy")
 
 ;; EfMon
-(set-goal "F -> all M Mon M")
+(set-goal "F -> allnc M Mon M")
 (assume "Absurd" "M")
 (intro 0)
 (strip)
 (use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "EfMon")
 
 ;; We introduce Real as an inductively defined predicate (which in this
 ;; case may also be called a record).  Then we can prove theorems:
 
-;; RealIntro: all x(Cauchy(x seq)(x mod) -> Mon(x mod) -> Real x)
-;; RealToCauchySeq: all as,M(Real(RealConstr as M) -> Cauchy as M)
-;; RealToMonMod: all as,M(Real(RealConstr as M) -> Mon M)
+;; RealIntro: allnc x(Cauchy(x seq)(x mod) -> Mon(x mod) -> Real x)
+;; RealToCauchySeq: allnc as,M(Real(RealConstr as M) -> Cauchy as M)
+;; RealToMonMod: allnc as,M(Real(RealConstr as M) -> Mon M)
 
 ;; Alternative formulation (worse, since usability is restricted)
-;; RealIntro: all as,M(Cauchy as M -> Mon M -> Real RealConstr as M) 
-;; RealToCauchySeq: all x(Real x -> Cauchy(x seq)(x mod))
-;; RealToMonMod: all x(Real x -> Mon(x mod))
+;; RealIntro: allnc as,M(Cauchy as M -> Mon M -> Real RealConstr as M) 
+;; RealToCauchySeq: allnc x(Real x -> Cauchy(x seq)(x mod))
+;; RealToMonMod: allnc x(Real x -> Mon(x mod))
 
 (add-ids
  (list (list "Real" (make-arity (py "rea"))))
@@ -1148,6 +830,7 @@
 (elim)
 (auto)
 ;; Proof finished.
+;; (cdp)
 (save "RealToCauchy")
 
 ;; RealToMon
@@ -1156,6 +839,7 @@
 (elim)
 (auto)
 ;; Proof finished.
+;; (cdp)
 (save "RealToMon")
 
 ;; The following variants will be more useful, because their heads will
@@ -1166,6 +850,7 @@
 (strip)
 (use-with "RealToCauchy" (pt "RealConstr as M") 1)
 ;; Proof finished.
+;; (cdp)
 (save "RealConstrToCauchy")
 
 ;; RealConstrToMon
@@ -1173,6 +858,7 @@
 (strip)
 (use-with "RealToMon" (pt "RealConstr as M") 1)
 ;; Proof finished.
+;; (cdp)
 (save "RealConstrToMon")
 
 ;; EfReal
@@ -1188,10 +874,11 @@
 (use "EfMon")
 (use "Absurd")
 ;; Proof finished.
+;; (cdp)
 (save "EfReal")
 
 ;; RealRat
-(set-goal "all a Real a")
+(set-goal "allnc a Real a")
 (assume "a")
 (use "RealIntro")
 (use "CauchyIntro")
@@ -1205,6 +892,7 @@
 (ng)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "RealRat")
 
 ;; 4a.  RealTimes
@@ -1242,6 +930,7 @@
 (use "NatTotalVar")
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
 ;; ListNatMaxEqP
@@ -1266,6 +955,7 @@
 (use "EqPn1n2")
 (use "Hyp2")
 ;; Proof finished.
+;; (cdp)
 (save "ListNatMaxEqP")
 
 ;; (display-pconst "ListNatMax")
@@ -1320,57 +1010,45 @@
 (use "ListNatMaxUB")
 (use "n<l")
 ;; Proof finished.
+;; (cdp)
 (save "ListNatMaxFBar")
 
 ;; We need some more auxiliary concepts.
 
 (animate "RatLeBound")
+(animate "RatLeAbsBound")
+;; (display-pconst "cRatLeAbsBound")
 
-;; cRatLeBoundEqP
-(set-goal "allnc p^1,p^2(EqPPos p^1 p^2 -> allnc q^1,q^2(EqPPos q^1 q^2 -> 
- EqPNat(cRatLeBound p^1 q^1)(cRatLeBound p^2 q^2)))")
-(assume "p^1" "p^2" "EqPp1p2" "q^1" "q^2" "EqPq1q2")
-(ng #t)
-(use "NatMinusEqP")
-;; 4,5
-(use "EqPNatSucc")
-(use "PosLogEqP")
-(use "EqPp1p2")
-;; 5
-(use "PosLogEqP")
-(use "EqPq1q2")
+;; cRatLeAbsBoundTotal
+(set-totality-goal "cRatLeAbsBound")
+(use "AllTotalElim")
+(assume "a")
+(ng)
+(use "RatIfTotal")
+(use "RatTotalVar")
+(assume "k^" "p^" "Tk" "Tp")
+(use "IntIfTotal")
+(use "Tk")
+(use "NatTotalVar")
+;; 10
+(use "AllTotalElim")
+(assume "p1")
+(use "NatMinusTotal")
+(use "NatTotalVar")
+(use "PosLogTotal")
+(use "Tp")
+;; 11
+(use "AllTotalElim")
+(assume "p1")
+(use "NatMinusTotal")
+(use "NatTotalVar")
+(use "PosLogTotal")
+(use "Tp")
 ;; Proof finished.
-(save "cRatLeBoundEqP")
 ;; (cdp)
+(save-totality)
 
 (deanimate "RatLeBound")
-(animate "RatLeAbsBound")
-
-;; cRatLeAbsBoundEqP
-(set-goal
- "allnc a^,b^(EqPRat a^ b^ -> EqPNat(cRatLeAbsBound a^)(cRatLeAbsBound b^))")
-(assume "a^" "b^" "EqPab")
-(elim "EqPab")
-(assume "k^1" "k^2" "EqPk1k2" "p^1" "p^2" "EqPp1p2")
-(elim "EqPk1k2")
-;; 5-7
-(assume "p^3" "p^4" "EqPp3p4")
-(use "cRatLeBoundEqP")
-(use "EqPp3p4")
-(use "EqPp1p2")
-;; 6
-(ng #t)
-(use "EqPNatSucc")
-(use "EqPNatZero")
-;; 7
-(assume "p^3" "p^4" "EqPp3p4")
-(use "cRatLeBoundEqP")
-(use "EqPp3p4")
-(use "EqPp1p2")
-;; Proof finished.
-(save "cRatLeAbsBoundEqP")
-;; (cdp)
-
 (deanimate "RatLeAbsBound")
 
 (set-totality-goal "cRatLeBound")
@@ -1380,99 +1058,10 @@
 (assume "q")
 (use "NatTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "cRatLeBoundTotal")
 
 ;; Every real has an upper bound, that is the reals are Archimedian ordered.
-
-;; RatLeAbsBoundSeq
-(set-goal "all as,l exl n all m(m<l -> abs(as m)<=2**n)")
-(assume "as")
-(ind)
-;; 3,4
-(intro 0 (pt "Zero"))
-(assume "m" "Absurd")
-(use "EfqAtom")
-(use "Absurd")
-;; 4
-(assume "l" "IH")
-(by-assume "IH" "n" "nProp")
-(inst-with-to "RatLeAbsBound" (pt "as l") "ExHyp")
-(by-assume "ExHyp" "n1" "n1Prop")
-(intro 0 (pt "n max n1"))
-(assume "m" "m<l+1")
-(use "NatLtSuccCases" (pt "m") (pt "l"))
-(use "m<l+1")
-(assume "m<l")
-(use "RatLeTrans" (pt "(2**n#One)"))
-(use "nProp")
-(use "m<l")
-(ng)
-(use "PosLeMonPosExp")
-(use "NatMaxUB1")
-(assume "m=l")
-(simp "m=l")
-(use "RatLeTrans" (pt "(2**n1#One)"))
-(use "n1Prop")
-(ng)
-(use "PosLeMonPosExp")
-(use "NatMaxUB2")
-;; Proof finished.
-(save "RatLeAbsBoundSeq")
-
-(pp (rename-variables
-     (nt (proof-to-extracted-term (theorem-name-to-proof "RatLeAbsBoundSeq")))))
-;; [as,n](Rec nat=>nat)n Zero([n0,n1]n1 max cRatLeAbsBound(as n0))
-
-(animate "RatLeAbsBoundSeq")
-(animate "RatLeAbsBound")
-
-(set-totality-goal "cRatLeAbsBoundSeq")
-(assume "as^1" "as^2" "EqPas1as2" "n^1" "n^2" "EqPn1n2")
-(ng #t)
-(elim "EqPn1n2")
-;; 4,5
-(ng #t)
-(use "EqPNatZero")
-;; 5
-(assume "n^3" "n^4" "EqPn3n4" "IH")
-(ng #t)
-(use "NatMaxEqP")
-(use "IH")
-(drop "IH")
-(simp "<-" (pf "(as^1 n^3)eqd(as^2 n^4)"))
-(use "EqPNatRefl")
-(use "RatIfTotal")
-(use "EqPRatToTotalLeft" (pt "as^2 n^4"))
-(use "EqPas1as2")
-(use "EqPn3n4")
-;; 16
-(assume "k^" "p^" "Tk" "Tp")
-(use "IntIfTotal")
-;; 20-23
-(use "Tk")
-;; 21
-(use "NatTotalVar")
-;; 22
-(ng #t)
-(assume "q^" "Tq")
-(use "cRatLeBoundTotal")
-(use "Tq")
-(use "Tp")
-;; 23
-(ng #t)
-(assume "q^" "Tq")
-(use "cRatLeBoundTotal")
-(use "Tq")
-(use "Tp")
-;; 13
-(use "EqPRatToEqD")
-(use "EqPas1as2")
-(use "EqPn3n4")
-;; Proof finished.
-(save "cRatLeAbsBoundSeqTotal")
-
-(deanimate "RatLeAbsBoundSeq")
-(deanimate "RatLeAbsBound")
 
 ;; Use cNatPos instead of the pconst NatToPos to block unwanted unfoldings
 
@@ -1482,6 +1071,7 @@
 (intro 0 (pt "NatToPos n"))
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatPos")
 
 (animate "NatPos")
@@ -1491,6 +1081,7 @@
 (assume "n")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatPosExFree")
 
 (deanimate "NatPos")
@@ -1500,22 +1091,8 @@
 (assume "n")
 (use "PosTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "cNatPosTotal")
-
-;; cNatPosEqP
-(set-goal "allnc n^,m^(EqPNat n^ m^ -> EqPPos(cNatPos n^)(cNatPos m^))")
-(assume "n^" "m^" "EqPnm")
-(simp "<-" (pf "n^ eqd m^"))
-;; 3,4
-(use "EqPPosRefl")
-(use "cNatPosTotal")
-(use "EqPNatToTotalLeft" (pt "m^"))
-(use "EqPnm")
-;; 4
-(use "EqPNatToEqD")
-(use "EqPnm")
-;; Proof finished.
-(save "cNatPosEqP")
 
 (add-program-constant "RealBd" (py "(nat=>rat)=>(pos=>nat)=>nat") t-deg-zero)
 
@@ -1526,81 +1103,31 @@
  "Succ(ListNatMax(cRatLeAbsBound map as fbar Succ(M 1)))")
 
 (set-totality-goal "RealBd")
-(assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
+(assume "as^" "Tas" "M^" "TM")
 (ng #t)
-(use "EqPNatSucc")
-(use "ListNatMaxEqP")
-;;   {as^1}  {as^2}  EqPas1as2:
-;;     allnc n^,n^0(EqPNat n^ n^0 -> EqPRat(as^1 n^)(as^2 n^0))
-;;   {M^1}  {M^2}  EqPM1M2:allnc p^,p^0(EqPPos p^ p^0 -> EqPNat(M^1 p^)(M^2 p^0))
-;; -----------------------------------------------------------------------------
-;; ?_5:EqPList
-;;     (cRatLeAbsBound(as^1 Zero)::
-;;      cRatLeAbsBound map([n]as^1(Succ n))fbar M^1 1)
-;;     (cRatLeAbsBound(as^2 Zero)::
-;;      cRatLeAbsBound map([n]as^2(Succ n))fbar M^2 1)
-
-(use "EqPListCons")
-(use "cRatLeAbsBoundEqP")
-(use "EqPas1as2")
-(use "EqPNatZero")
-
-;;   {as^1}  {as^2}  EqPas1as2:
-;;     allnc n^,n^0(EqPNat n^ n^0 -> EqPRat(as^1 n^)(as^2 n^0))
-;;   {M^1} {M^2}  EqPM1M2:allnc p^,p^0(EqPPos p^ p^0 -> EqPNat(M^1 p^)(M^2 p^0))
-;; -----------------------------------------------------------------------------
-;; ?_7:EqPList(cRatLeAbsBound map([n]as^1(Succ n))fbar M^1 1)
-;;     (cRatLeAbsBound map([n]as^2(Succ n))fbar M^2 1)
-(inst-with-to "ListMapExt" (py "rat") (py "nat")
-	      (pt "cRatLeAbsBound") (pt "cRatLeAbsBound") "Inst")
-(use "Inst")
-(drop "Inst")
-(use "cRatLeAbsBoundEqP")
-(drop "Inst")
-;;   {as^1}  {as^2}  EqPas1as2:
-;;     allnc n^,n^0(EqPNat n^ n^0 -> EqPRat(as^1 n^)(as^2 n^0))
-;;   {M^1}  {M^2}  EqPM1M2:allnc p^,p^0(EqPPos p^ p^0 -> EqPNat(M^1 p^)(M^2 p^0))
-;; -----------------------------------------------------------------------------
-;; ?_15:EqPList(([n]as^1(Succ n))fbar M^1 1)(([n]as^2(Succ n))fbar M^2 1)
-(use "ListFBarExt")
-;; 16,17
-(ng)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "EqPas1as2")
-(use "EqPNatSucc")
-(use "EqPn1n2")
-(use "EqPM1M2")
-(use "EqPPosOne")
+(use "TotalNatSucc")
+(use "ListNatMaxTotal")
+(use "TotalListCons")
+;; 6,7
+(use "cRatLeAbsBoundTotal")
+(use "Tas")
+(use "NatTotalVar")
+;; 7
+(use "ListMapTotal")
+;; 10,11
+(use "AllTotalElim")
+(assume "a")
+(use "NatTotalVar")
+(use "ListFBarTotal")
+(use "AllTotalElim")
+(assume "n")
+(use "Tas")
+(use "NatTotalVar")
+(use "TM")
+(use "PosTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
-
-;; RealBdExt
-(set-totality-goal "RealBd")
-(assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
-(ng #t)
-(use "EqPNatSucc")
-(use "ListNatMaxEqP")
-(use "EqPListCons")
-(use "cRatLeAbsBoundEqP")
-(use "EqPas1as2")
-(use "EqPNatZero")
-(inst-with-to "ListMapExt" (py "rat") (py "nat")
-	      (pt "cRatLeAbsBound") (pt "cRatLeAbsBound") "Inst")
-(use "Inst")
-(drop "Inst")
-(use "cRatLeAbsBoundEqP")
-(drop "Inst")
-(use "ListFBarExt")
-;; 16,17
-(ng)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "EqPas1as2")
-(use "EqPNatSucc")
-(use "EqPn1n2")
-(use "EqPM1M2")
-(use "EqPPosOne")
-;; Proof finished.
-(save "RealBdExt")
 
 (add-computation-rules
  "(RealConstr as M)*(RealConstr bs N)"
@@ -1701,6 +1228,7 @@
 ;; 21
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "RealBdProp")
 
 ;; RealBdPos
@@ -1708,166 +1236,78 @@
 (assume "as" "M")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "RealBdPos")
 
+;; RealTimesTotal
 (set-totality-goal "RealTimes")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaAux")
-(assume "as^2" "M^2" "bs^2" "N^2" "EqPx2y2")
-(use "EqPReaRealConstr")
-;; 6,7
+(assume "x^" "Tx")
+(elim "Tx")
+(assume "as^" "Tas" "M^" "TM")
+(assume "y^" "Ty")
+(elim "Ty")
+(assume "bs^" "Tbs" "N^" "TN")
 (ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatTimesEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "EqPn1n2")
-;; 7
-(assume "p^1" "p^2" "EqPp1p2")
-(use "NatMaxEqP")
-;; 17,18
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "PosPlusEqP")
-(use "EqPp1p2")
-;; ?_23:EqPPos
-;;      (cNatPos
-;;       (Succ
-;;        (ListNatMax
-;;         (cRatLeAbsBound(as^2 Zero)::
-;;          cRatLeAbsBound map([n]as^2(Succ n))fbar M^2 1))))
-;;      (cNatPos
-;;       (Succ
-;;        (ListNatMax
-;;         (cRatLeAbsBound(bs^2 Zero)::
-;;          cRatLeAbsBound map([n]bs^2(Succ n))fbar N^2 1))))
-(use "cNatPosEqP")
-(use "RealBdExt")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-;; 18
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "PosPlusEqP")
-(use "EqPp1p2")
-(use "cNatPosEqP")
-(use "EqPNatSucc")
-(use "ListNatMaxEqP")
-(use "EqPListCons")
-(use "cRatLeAbsBoundEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPNatZero")
-(use "ListMapExt")
-(assume "a^1" "a^2" "EqPa1a2")
-(use "cRatLeAbsBoundEqP")
-(use "EqPa1a2")
-(use "ListFBarExt")
-(assume "n^1" "n^2" "EqPn1n2")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPReaRealConstr")
-(assume "n^3" "n^4" "EqPn3n4")
-(ng #t)
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPNatSucc")
-(use "EqPn3n4")
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "EqPPosOne")
+(intro 0)
+(use "AllTotalElim")
+(assume "n")
+(use "RatTimesTotal")
+(use "Tas")
+(use "NatTotalVar")
+(use "Tbs")
+(use "NatTotalVar")
+(use "AllTotalElim")
+(assume "p")
+(use "NatMaxTotal")
+(use "TM")
+(use "PosSTotal")
+(use "PosPlusTotal")
+(use "PosTotalVar")
+(use "cNatPosTotal")
+(use "TotalNatSucc")
+(use "ListNatMaxTotal")
+(use "TotalListCons")
+(use "cRatLeAbsBoundTotal")
+(use "Tbs")
+(use "NatTotalVar")
+(use "ListMapTotal")
+(use "AllTotalElim")
+(assume "a")
+(use "NatTotalVar")
+(use "ListFBarTotal")
+(use "AllTotalElim")
+(assume "n")
+(use "Tbs")
+(use "NatTotalVar")
+(use "TN")
+(use "PosTotalVar")
+;; 20
+(use "TN")
+(use "PosSTotal")
+(use "PosPlusTotal")
+(use "PosTotalVar")
+(use "cNatPosTotal")
+(use "TotalNatSucc")
+(use "ListNatMaxTotal")
+(use "TotalListCons")
+(use "cRatLeAbsBoundTotal")
+(use "Tas")
+(use "NatTotalVar")
+(use "ListMapTotal")
+(use "AllTotalElim")
+(assume "a")
+(use "cRatLeAbsBoundTotal")
+(use "RatTotalVar")
+(use "ListFBarTotal")
+(use "AllTotalElim")
+(assume "n")
+(use "Tas")
+(use "NatTotalVar")
+(use "TM")
+(use "PosTotalVar")
 ;; Proof finished.
-(save-totality)
-
-(set-totality-goal "RealTimes")
-(use "EqPReaAux")
-(assume "as^1" "M^1" "bs^1" "N^1" "EqPx1y1")
-(use "EqPReaAux")
-(assume "as^2" "M^2" "bs^2" "N^2" "EqPx2y2")
-(use "EqPReaRealConstr")
-;; 6,7
-(ng #t)
-(assume "n^1" "n^2" "EqPn1n2")
-(use "RatTimesEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "EqPn1n2")
-;; 7
-(assume "p^1" "p^2" "EqPp1p2")
-(use "NatMaxEqP")
-;; 17,18
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "PosSEqP")
-(use "PosPlusEqP")
-(use "EqPp1p2")
-;; ?_23:EqPPos
-;;      (cNatPos
-;;       (Succ
-;;        (ListNatMax
-;;         (cRatLeAbsBound(as^2 Zero)::
-;;          cRatLeAbsBound map([n]as^2(Succ n))fbar M^2 1))))
-;;      (cNatPos
-;;       (Succ
-;;        (ListNatMax
-;;         (cRatLeAbsBound(bs^2 Zero)::
-;;          cRatLeAbsBound map([n]bs^2(Succ n))fbar N^2 1))))
-(use "cNatPosEqP")
-(use "RealBdExt")
-(use "EqPReaElimLeftRealConstr" (pt "M^2") (pt "N^2"))
-(use "EqPx2y2")
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-;; 18
-(use "EqPReaElimRightRealConstr" (pt "as^2") (pt "bs^2"))
-(use "EqPx2y2")
-(use "PosSEqP")
-(use "PosPlusEqP")
-(use "EqPp1p2")
-(use "cNatPosEqP")
-(use "EqPNatSucc")
-(use "ListNatMaxEqP")
-(use "EqPListCons")
-(use "cRatLeAbsBoundEqP")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPNatZero")
-(use "ListMapExt")
-(assume "a^1" "a^2" "EqPa1a2")
-(use "cRatLeAbsBoundEqP")
-(use "EqPa1a2")
-(use "ListFBarExt")
-(assume "n^1" "n^2" "EqPn1n2")
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPReaRealConstr")
-(assume "n^3" "n^4" "EqPn3n4")
-(ng #t)
-(use "EqPReaElimLeftRealConstr" (pt "M^1") (pt "N^1"))
-(use "EqPx1y1")
-(use "EqPNatSucc")
-(use "EqPn3n4")
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "EqPn1n2")
-(use "EqPReaElimRightRealConstr" (pt "as^1") (pt "bs^1"))
-(use "EqPx1y1")
-(use "EqPPosOne")
-;; Proof finished.
-(save "RealTimesExt")
 ;; (cdp)
+(save-totality)
 
 ;; 5.  Equality and order
 ;; ======================
@@ -3555,7 +2995,7 @@
 ;;              cRealNNegCharOne N(NatToPos(p+n))
 ;;   l  m<=l:m<=l
 ;; -----------------------------------------------------------------------------
-;; ?_25:(IntN 1#2**p)<=as l*bs l
+;; ?^25:(IntN 1#2**p)<=as l*bs l
 ;; Now the case distinctions
 (casedist (pt "as l<=0"))
 (assume "as l<=0")
@@ -3704,6 +3144,7 @@
 (ng #t)
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "RealNNegTimesNNeg")
 
 ;; RealLeSChar1
@@ -4221,7 +3662,7 @@
 ;;   bsProp:all n(N(PosS q)<=n -> (1#2**PosS q)<=abs(bs n))
 ;;   EqChar:all p exl n all n0(n<=n0 -> abs(bs n0+ ~(as n0))<=(1#2**p))
 ;; -----------------------------------------------------------------------------
-;; ?_27:exnc n all n0(n<=n0 -> abs(RatUDiv(as n0)+ ~(RatUDiv(bs n0)))<=(1#2**p))
+;; ?^26:exnc n all n0(n<=n0 -> abs(RatUDiv(as n0)+ ~(RatUDiv(bs n0)))<=(1#2**p))
 (inst-with-to "EqChar" (pt "SZero(PosS q)+p") "EqCharInst")
 (by-assume "EqCharInst" "l" "lProp")
 (intro 0 (pt "l max M(PosS q)max N(PosS q)"))
@@ -4231,7 +3672,7 @@
 ;;   p  l  lProp:all n(l<=n -> abs(bs n+ ~(as n))<=(1#2**(SZero(PosS q)+p)))
 ;;   n  nBd:l max M(PosS q)max N(PosS q)<=n
 ;; -----------------------------------------------------------------------------
-;; ?_35:abs(RatUDiv(as n)+ ~(RatUDiv(bs n)))<=(1#2**p)
+;; ?^33:abs(RatUDiv(as n)+ ~(RatUDiv(bs n)))<=(1#2**p)
 (simprat (pf "RatUDiv(as n)==(bs n)*RatUDiv((as n)*(bs n))"))
 (simprat (pf "RatUDiv(bs n)==(as n)*RatUDiv((as n)*(bs n))"))
 (simprat "RatUDivTimes")
@@ -4240,7 +3681,7 @@
 (simp "RatAbsTimes")
 (simp "RatAbsTimes")
 (simp "RatTimesAssoc")
-;; ?_45:abs(bs n+ ~(as n))*abs(RatUDiv(as n))*abs(RatUDiv(bs n))<=(1#2**p)
+;; ?^43:abs(bs n+ ~(as n))*abs(RatUDiv(as n))*abs(RatUDiv(bs n))<=(1#2**p)
 (simprat (pf "(1#2**p)==(1#2**(SZero(PosS q)+p))*2**PosS q*2**PosS q"))
 (use "RatLeMonTimesTwo")
 (simp "<-" "RatAbsTimes")
@@ -4251,12 +3692,12 @@
 (use "Truth")
 (simp "RatLe9RewRule")
 (use "Truth")
-;; ?_56:abs(bs n+ ~(as n))<=(1#2**(SZero(PosS q)+p))
+;; ?^54:abs(bs n+ ~(as n))<=(1#2**(SZero(PosS q)+p))
 (use "lProp")
 (use "NatLeTrans" (pt "l max(M(PosS q)max N(PosS q))"))
 (use "NatMaxUB1")
 (use "nBd")
-;; ?_57:abs(RatUDiv(as n))<=2**PosS q
+;; ?^55:abs(RatUDiv(as n))<=2**PosS q
 (ng)
 (simprat (pf "2**PosS q==RatUDiv(RatUDiv(2**PosS q))"))
 (use "RatLeUDiv")
@@ -4269,10 +3710,10 @@
 (use "NatLeTrans" (pt "l max M(PosS q)max N(PosS q)"))
 (use "NatMaxUB1")
 (use "nBd")
-;; ?_64:2**PosS q==RatUDiv(RatUDiv(2**PosS q))
+;; ?^62:2**PosS q==RatUDiv(RatUDiv(2**PosS q))
 (use "RatEqvSym")
 (use "RatUDivUDiv")
-;; ?_51:abs(RatUDiv(bs n))<=2**PosS q
+;; ?^49:abs(RatUDiv(bs n))<=2**PosS q
 (ng)
 (simprat (pf "2**PosS q==RatUDiv(RatUDiv(2**PosS q))"))
 (use "RatLeUDiv")
@@ -4283,13 +3724,13 @@
 (use "NatLeTrans" (pt "l max M(PosS q)max N(PosS q)"))
 (use "NatMaxUB2")
 (use "nBd")
-;; ?_77:2**PosS q==RatUDiv(RatUDiv(2**PosS q))
+;; ?^75:2**PosS q==RatUDiv(RatUDiv(2**PosS q))
 (use "RatEqvSym")
 (use "RatUDivUDiv")
-;; ?_47:(1#2**p)==(1#2**(SZero(PosS q)+p))*2**PosS q*2**PosS q
+;; ?^45:(1#2**p)==(1#2**(SZero(PosS q)+p))*2**PosS q*2**PosS q
 (ng)
 (simp "<-" "PosExpTwoPosPlus")
-;; ?_87:2**SZero(PosS q)*2**p=2**PosS q*2**PosS q*2**p
+;; ?^85:2**SZero(PosS q)*2**p=2**PosS q*2**PosS q*2**p
 (assert "all r(SZero r=r+r andi SOne r=PosS(r+r))")
  (ind)
  (split)
@@ -4308,9 +3749,9 @@
 (simp "<-" "PosExpTwoPosPlus")
 (use "Truth")
 (use "Assertion")
-;; ?_39:RatUDiv(bs n)==as n*RatUDiv(as n*bs n)
+;; ?^37:RatUDiv(bs n)==as n*RatUDiv(as n*bs n)
 (use "RatUDivExpandL")
-;; ?_105:0<abs(as n)
+;; ?^103:0<abs(as n)
 (use "RatLtLeTrans" (pt "(1#2**PosS q)"))
 (use "Truth")
 (use "asProp")
@@ -4319,9 +3760,9 @@
 (use "NatLeTrans" (pt "l max M(PosS q)max N(PosS q)"))
 (use "NatMaxUB1")
 (use "nBd")
-;; ?_37:RatUDiv(as n)==bs n*RatUDiv(as n*bs n)
+;; ?^35:RatUDiv(as n)==bs n*RatUDiv(as n*bs n)
 (use "RatUDivExpandR")
-;; ?_113:0<abs(bs n)
+;; ?^111:0<abs(bs n)
 (use "RatLtLeTrans" (pt "(1#2**PosS q)"))
 (use "Truth")
 (use "bsProp")
@@ -4329,6 +3770,7 @@
 (use "NatMaxUB2")
 (use "nBd")
 ;; Proof finished.
+;; (cdp)
 (save "RealUDivCompat")
 
 ;; RealAbsCompat
@@ -4349,6 +3791,7 @@
 (use "RealConstrEqElim2")
 (use "x=y")
 ;; Proof finished.
+;; (cdp)
 (save "RealAbsCompat")
 
 ;; In the proof of RealTimesCompat we use RealTimesComm, whose proof
@@ -4923,7 +4366,7 @@
 (use "RealNNegIntro")
 (use "RealRat")
 (assume "p1")
-(use "EfqAtom")
+(use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
 (save "RatNNegToRealNNeg")
@@ -5306,10 +4749,10 @@
  (assume "p1" "q1" "Useless")
  (use "Truth")
  (assume "q1" "Absurd")
- (use "EfqAtom")
+ (use "EfAtom")
  (use "Absurd")
  (assume "p1" "q1" "Absurd")
- (use "EfqAtom")
+ (use "EfAtom")
  (use "Absurd")
 (assume "RatPosUDiv")
 (use "RatLtToLe")
@@ -5471,13 +4914,54 @@
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
-(save "RealApprox")
 ;; (cdp)
+(save "RealApprox")
 
 (define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
+(define RealApprox-neterm (rename-variables (nt eterm)))
+(pp RealApprox-neterm)
 ;; [x,p][if x ([as,M]as(M p))]
+
+(animate "RealApprox")
+
+;; CRealApproxDef
+(set-goal "all x,p cRealApprox x p eqd [if x ([as,M]as(M p))]")
+(strip)
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "CRealApproxDef")
+
+;; RealApproxSound
+(set-goal (real-and-formula-to-mr-formula
+	   (pt "cRealApprox")
+	   (proof-to-formula (theorem-name-to-proof "RealApprox"))))
+(use (proof-to-soundness-proof (theorem-name-to-proof "RealApprox")))
+;; Proof finished.
+;; (cdp)
+(save "RealApproxSound")
+
+;; RealApproxSoundCor
+(set-goal "allnc x,p(
+ Real x ->
+ exnc a(a eqd cRealApprox x p andnc abs(a+ ~x)<<=(1#2**p)))")
+(assume "x" "p" "Rx")
+(intro 0 (pt "cRealApprox x p"))
+(split)
+(use "InitEqD")
+(use-with
+ "ExLTMRElim" (py "rat")
+ (make-cterm (pv "a") (pf "abs(a+ ~x)<<=(1#2**p)"))
+ (pt "cRealApprox x p")
+ "?")
+(use "RealApproxSound")
+;; (use (proof-to-soundness-proof (theorem-name-to-proof "DC")))
+(auto)
+;; Proof finished.
+;; (cdp)
+(save "RealApproxSoundCor")
+
+(deanimate "RealApprox")
 
 ;; RealLeRefl
 (set-goal "all x(Real x -> x<<=x)")
@@ -6186,8 +5670,8 @@
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
-(save "ApproxSplit")
 ;; (cdp)
+(save "ApproxSplit")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -6671,5 +6155,3 @@
 (use "RealTimesPlusOneDistrLeftEqS")
 ;; Proof finished.
 (save "RealTimesPlusOneDistrLeft")
-
-
