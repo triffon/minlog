@@ -1,4 +1,4 @@
-;; 2018-09-08.  str.scm
+;; 2019-08-24.  str.scm
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -71,6 +71,7 @@
 (use "CoTxstr")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrSCons")
 
 (define eterm (proof-to-extracted-term))
@@ -118,6 +119,7 @@
 (use "CoSTxstr")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTotalStrSCons")
 
 (define eterm (proof-to-extracted-term))
@@ -165,6 +167,7 @@
 (use "Conj")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrCoTotalToCoSTotal")
 
 (define eterm (proof-to-extracted-term))
@@ -223,6 +226,7 @@
 (use "IH")
 (use "CoTxstr")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrAppd")
 
 (define eterm (proof-to-extracted-term))
@@ -246,6 +250,7 @@
 (use "IH")
 (use "CoSTxstr")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTotalStrAppd")
 
 (define eterm (proof-to-extracted-term))
@@ -282,7 +287,6 @@
 (add-computation-rules
  "Zero thof x:~:xstr" "x"
  "Succ nat thof x:~:xstr" "nat thof xstr")
-
 
 ;; (pp (nt (pt "Zero thof 3:~:2:~:1:~:(str pos)")))
 ;; 3
@@ -390,6 +394,7 @@
 (use "ystrCoT")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrMapCoTotal")
 
 (define eterm (proof-to-extracted-term))
@@ -400,7 +405,7 @@
 ;;  ([ystr0][case (DesYprod ystr0) (y pair ystr1 -> phi y pair InR ystr1)])
 
 ;; StrProjMap
-(set-goal "all phi,n,ystr^(CoSTotalStr ystr^ ->
+(set-goal "allnc phi,n,ystr^(CoSTotalStr ystr^ ->
  n thof (phi smap ystr^)eqd phi(n thof ystr^))")
 (assume "phi")
 (ind)
@@ -422,6 +427,7 @@
 (use "IH")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrProjMap")
 
 ;; Now for StrHead
@@ -461,6 +467,7 @@
 (ng)
 (use "Tx1")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrToTotalHead")
 
 (define eterm (proof-to-extracted-term))
@@ -507,11 +514,12 @@
 (ng)
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrTail")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [xstr][case (DesYprod xstr) (x pair xstr0 -> xstr0)]
 
@@ -526,6 +534,7 @@
 (ng)
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTotalStrTail")
 
 (define eterm (proof-to-extracted-term))
@@ -589,6 +598,7 @@
 (use "IH")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrToTotalInit")
 
 (define eterm (proof-to-extracted-term))
@@ -616,6 +626,7 @@
 (use "IH")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTotalStrToSTotalInit")
 
 (define eterm (proof-to-extracted-term))
@@ -625,7 +636,7 @@
 ;; [n](Rec nat=>inf=>nat)n([inf]0)([n0,(inf=>nat),inf]Succ((inf=>nat)Des inf))
 
 ;; StrLengthInit
-(set-goal "all n,xstr^(CoSTotalStr xstr^ ->  Lh(n init xstr^)eqd n)")
+(set-goal "allnc n,xstr^(CoSTotalStr xstr^ ->  Lh(n init xstr^)eqd n)")
 (ind)
 (assume "xstr^" "Useless")
 (use "InitEqD")
@@ -640,11 +651,12 @@
 (use "InitEqD")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrLengthInit")
 
 ;; StrInitAppd
 (set-goal
- "all xs^,xstr^(STotalList xs^ -> Lh xs^ init(xs^ ++xstr^)eqd xs^)")
+ "allnc xs^,xstr^(STotalList xs^ -> Lh xs^ init(xs^ ++xstr^)eqd xs^)")
 (assume "xs^" "xstr^" "STxs")
 (elim "STxs")
 (ng)
@@ -655,10 +667,11 @@
 (simp "EqHyp")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrInitAppd")
 
 ;; StrInitPlusAppdPartial
-(set-goal "all n,xs^(STotalList xs^ ->
+(set-goal "allnc n,xs^(STotalList xs^ ->
  all xstr^ (n+Lh xs^)init(xs^ ++xstr^)eqd xs^ ++(n init xstr^))")
 (assume "n" "xs^" "STxs")
 (elim "STxs")
@@ -671,14 +684,16 @@
 (simp "IH")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrInitPlusAppdPartial")
 
 ;; StrInitPlusAppd
-(set-goal "all n,xs,xstr^ (n+Lh xs)init(xs++xstr^)eqd xs++(n init xstr^)")
+(set-goal "allnc n,xs,xstr^ (n+Lh xs)init(xs++xstr^)eqd xs++(n init xstr^)")
 (assume "n" "xs" "xstr^")
 (use "StrInitPlusAppdPartial")
 (use "ListSTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "StrInitPlusAppd")
 
 ;; Now for StrRest
@@ -739,6 +754,7 @@
 (use "IH")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrRest")
 
 (define eterm (proof-to-extracted-term))
@@ -771,6 +787,7 @@
 (use "IH")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrTailRestComposed")
 
 ;; StrTailRest
@@ -788,6 +805,7 @@
 (use "StrTailRestComposed")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrTailRest")
 
 ;; StrAppdInitRest
@@ -808,10 +826,11 @@
 (use "InitEqD")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrAppdInitRest")
 
 ;; StrAppdInitRestGen
-(set-goal "all xs,n,xstr^((Lh xs+n)init(xs++xstr^)eqd xs ++(n init xstr^))")
+(set-goal "allnc xs,n,xstr^((Lh xs+n)init(xs++xstr^)eqd xs ++(n init xstr^))")
 (ind)
 (ng)
 (strip)
@@ -822,6 +841,7 @@
 (simp "IH")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrAppdInitRestGen")
 
 ;; Now for StrNode, which returns the reverse of StrInit.  We give a
@@ -858,6 +878,7 @@
 (use "Tx1")
 (use "TotalListNil")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrToTotalNode")
 
 (define eterm (proof-to-extracted-term))
@@ -887,6 +908,7 @@
 (use "STotalListCons")
 (use "STotalListNil")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTotalStrToSTotalNode")
 
 (define eterm (proof-to-extracted-term))
@@ -898,7 +920,7 @@
 
 ;; StrRevInitEqNodePartial
 (set-goal
- "all n^(TotalNat n^ -> all xstr^(CoSTotalStr xstr^ ->
+ "allnc n^(TotalNat n^ -> allnc xstr^(CoSTotalStr xstr^ ->
   Rev(n^ init xstr^)eqd n^ node xstr^))")
 (assume "n^" "Tn")
 (elim "Tn")
@@ -916,19 +938,21 @@
 (use "InitEqD")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrRevInitEqNodePartial")
 
 ;; StrRevInitEqNode
 (set-goal
- "all n,xstr^(CoSTotalStr xstr^ ->  Rev(n init xstr^)eqd n node xstr^)")
+ "all n allnc xstr^(CoSTotalStr xstr^ ->  Rev(n init xstr^)eqd n node xstr^)")
 (use "AllTotalIntro")
 (assume "n^")
 (use "StrRevInitEqNodePartial")
 ;; Proof finished.
+;; (cdp)
 (save "StrRevInitEqNode")
 
 ;; StrLengthNode
-(set-goal "all n,xstr^(CoSTotalStr xstr^ ->  Lh(n node xstr^)eqd n)")
+(set-goal "allnc n,xstr^(CoSTotalStr xstr^ ->  Lh(n node xstr^)eqd n)")
 (assume "n" "xstr^" "CoSTxstr")
 (simp "<-" "StrRevInitEqNode")
 (simp "ListLhRevPartial")
@@ -938,10 +962,11 @@
 (use "CoSTxstr")
 (use "CoSTxstr")
 ;; Proof finished.
+;; (cdp)
 (save "StrLengthNode")
 
 ;; StrNodeMap
-(set-goal "all phi,n,ystr^(CoSTotalStr ystr^ ->
+(set-goal "allnc phi,n,ystr^(CoSTotalStr ystr^ ->
  (n node(phi smap ystr^))eqd(phi map(n node ystr^)))")
 (assume "phi")
 (ind)
@@ -962,11 +987,12 @@
 (use "CoSTotalStrToSTotalNode")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrNodeMap")
 
 ;; StrNodeAppd
 (set-goal
- "all xs^,xstr^(STotalList xs^ -> Lh xs^ node(xs^ ++xstr^)eqd Rev xs^)")
+ "allnc xs^,xstr^(STotalList xs^ -> Lh xs^ node(xs^ ++xstr^)eqd Rev xs^)")
 (assume "xs^" "xstr^" "STxs")
 (elim "STxs")
 (ng)
@@ -977,10 +1003,11 @@
 (simp "EqHyp")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrNodeAppd")
 
 ;; StrNodePlusAppdPartial
-(set-goal "all n,xs^(STotalList xs^ -> all xstr^(CoSTotalStr xstr^ -> 
+(set-goal "allnc n,xs^(STotalList xs^ -> allnc xstr^(CoSTotalStr xstr^ -> 
  (n+Lh xs^)node(Rev xs^ ++xstr^)eqd n node xstr^ ++xs^))")
 (assume "n" "xs^" "STxs" "xstr^" "CoSTxstr")
 ;; Revert both sides of StrInitPlusAppdPartial at Rev xs
@@ -1018,20 +1045,22 @@
 (use "ListRevSTotal")
 (use "STxs")
 ;; Proof finished.
+;; (cdp)
 (save "StrNodePlusAppdPartial")
 
 ;; StrNodePlusAppd
-(set-goal "all n,xs,xstr^(CoSTotalStr xstr^ -> 
+(set-goal "allnc n,xs,xstr^(CoSTotalStr xstr^ -> 
  (n+Lh xs)node(Rev xs ++xstr^)eqd n node xstr^ ++xs)")
 (assume "n" "xs" "xstr^")
 (use "StrNodePlusAppdPartial")
 (use "ListSTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "StrNodePlusAppd")
 
 ;; StrRestAppd
 (set-goal
- "all xs^,xstr^(STotalList xs^ -> Lh xs^ rest(xs^ ++xstr^)eqd xstr^)")
+ "allnc xs^,xstr^(STotalList xs^ -> Lh xs^ rest(xs^ ++xstr^)eqd xstr^)")
 (assume "xs^" "xstr^" "STxs")
 (elim "STxs")
 (ng)
@@ -1042,10 +1071,11 @@
 (simp "EqHyp")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrRestAppd")
 
 ;; StrAppdAssoc
-(set-goal "all xs^1,xs^2,xstr^(STotalList xs^1 ->
+(set-goal "allnc xs^1,xs^2,xstr^(STotalList xs^1 ->
  xs^1++(xs^2++xstr^)eqd xs^1++xs^2++xstr^)")
 (assume "xs^1" "xs^2" "xstr^" "STxs1")
 (elim "STxs1")
@@ -1056,10 +1086,11 @@
 (simp "EqHyp")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrAppdAssoc")
 
 ;; StrNodeSum
-(set-goal "all xs^1,xs^2,xstr^(
+(set-goal "allnc xs^1,xs^2,xstr^(
      STotalList xs^1 -> 
      STotalList xs^2 -> 
      Lh(xs^1++xs^2)node(xs^1++xs^2++xstr^)eqd 
@@ -1082,6 +1113,7 @@
 (use "STxs1")
 (use "STxs2")
 ;; Proof finished.
+;; (cdp)
 (save "StrNodeSum")
 
 ;; For efficiency reasons we also define StrNodeRest.
@@ -1097,7 +1129,7 @@
 
 ;; StrRestSucc
 (set-goal
- "all n,xstr^(CoSTotalStr xstr^ -> Succ n rest xstr^ eqd Tail(n rest xstr^))")
+ "allnc n,xstr^(CoSTotalStr xstr^ -> Succ n rest xstr^ eqd Tail(n rest xstr^))")
 (ind)
 (assume "xstr^" "CoSTxstr")
 (inst-with-to "CoSTotalStrClause" (pt "xstr^") "CoSTxstr"
@@ -1118,14 +1150,15 @@
 (use "IH")
 (use "xxstr1Prop")
 ;; Proof finished.
+;; (cdp)
 (save "StrRestSucc")
 
-(pp "StrNodeSum")
+;; (pp "StrNodeSum")
 ;; We will also need an instance of StrNodeSum for the second list of
 ;; length one and CoSTotalStr xstr^
 
 ;; StrNodeSucc
-(set-goal "all n,xstr^(CoSTotalStr xstr^ -> 
+(set-goal "allnc n,xstr^(CoSTotalStr xstr^ -> 
      Succ n node xstr^ eqd(Head(n rest xstr^)::n node xstr^))")
 (ind)
 (assume "xstr^" "CoSTxstr")
@@ -1148,10 +1181,11 @@
 (use "InitEqD")
 (use "xxstr1Prop")
 ;; Proof finished.
+;; (cdp)
 (save "StrNodeSucc")
 
 ;; StrNodeRestEq
-(set-goal "all n,xstr^(CoSTotalStr xstr^ ->
+(set-goal "allnc n,xstr^(CoSTotalStr xstr^ ->
  n snr xstr^ eqd(n node xstr^ pair n rest xstr^))")
 (ind)
 (assume "xstr^" "CoSTxstr")
@@ -1168,11 +1202,12 @@
 (use "CoSTxstr")
 (use "CoSTxstr")
 ;; Proof finished.
+;; (cdp)
 (save "StrNodeRestEq")
 
 ;; StrHeadRest
 (set-goal
- "all n,xstr^(CoSTotalStr xstr^ -> Head(n rest xstr^)eqd(n thof xstr^))")
+ "allnc n,xstr^(CoSTotalStr xstr^ -> Head(n rest xstr^)eqd(n thof xstr^))")
 (ind)
 (assume "xstr^" "CoSTxstr")
 (inst-with-to "CoSTotalStrClause" (pt "xstr^") "CoSTxstr"
@@ -1192,11 +1227,12 @@
 (use "IH")
 (use  "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrHeadRest")
 
 ;; StrHeadNodeSucc
 (set-goal
- "all n,xstr^(CoSTotalStr xstr^ -> Head(Succ n node xstr^)eqd(n thof xstr^))")
+ "allnc n,xstr^(CoSTotalStr xstr^ -> Head(Succ n node xstr^)eqd(n thof xstr^))")
 (assume "n" "xstr^" "CoSTxstr")
 (simp "StrNodeSucc")
 (ng)
@@ -1204,6 +1240,7 @@
 (use "CoSTxstr")
 (use "CoSTxstr")
 ;; Proof finished.
+;; (cdp)
 (save "StrHeadNodeSucc")
 
 ;; We now address the question how to generate streams.  Before
@@ -1212,8 +1249,6 @@
 
 (add-var-name "f" (py "alpha=>alpha"))
 
-;; (remove-program-constant "Iterate")
-;; (remove-token "***")
 (add-program-constant "Iterate" (py "(alpha=>alpha)=>nat=>alpha=>alpha"))
 (add-infix-display-string "Iterate" "***" 'pair-op)
 
@@ -1222,66 +1257,16 @@
  "(f***(Succ n))x" "(f***n)(f x)")
 
 (set-totality-goal "Iterate")
-(assert "allnc n^,n^0(
-     EqPNat n^ n^0 -> 
-     allnc f^,f^0(
-      allnc x^,x^0(EqP x^ x^0 -> EqP(f^ x^)(f^0 x^0)) -> 
-      allnc x^,x^0(EqP x^ x^0 -> EqP((f^ ***n^)x^)((f^0***n^0)x^0))))")
-(assume "n^1" "n^2" "EqPn1n2")
-(elim "EqPn1n2")
-;; 5,6
-(assume "f^1" "f^2" "EqPf1f2" "x^1" "x^2" "EqPx1x2")
-(ng #t)
-(use "EqPx1x2")
-;; 6
-(assume "n^3" "n^4" "EqPn3n4" "IH" "f^1" "f^2" "EqPf1f2" "x^1" "x^2" "EqPx1x2")
-(ng #t)
-(use "IH")
-(use "EqPf1f2")
-(use "EqPf1f2")
-(use "EqPx1x2")
-;; 2
-(assume "Assertion"
-	"f^1" "f^2" "EqPf1f2" "n^1" "n^2" "EqPn1n2" "x^1" "x^2" "EqPx1x2")
-(use "Assertion")
-(use "EqPn1n2")
-(use "EqPf1f2")
-(use "EqPx1x2")
+(assume "f^" "Tf")
+(use "AllTotalElim")
+(ind)
+(auto)
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
-;; IterateExt
-(set-totality-goal "Iterate")
-(assert "allnc n^,n^0(
-     EqPNat n^ n^0 -> 
-     allnc f^,f^0(
-      allnc x^,x^0(EqP x^ x^0 -> EqP(f^ x^)(f^0 x^0)) -> 
-      allnc x^,x^0(EqP x^ x^0 -> EqP((f^ ***n^)x^)((f^0***n^0)x^0))))")
-(assume "n^1" "n^2" "EqPn1n2")
-(elim "EqPn1n2")
-;; 5,6
-(assume "f^1" "f^2" "EqPf1f2" "x^1" "x^2" "EqPx1x2")
-(ng #t)
-(use "EqPx1x2")
-;; 6
-(assume "n^3" "n^4" "EqPn3n4" "IH" "f^1" "f^2" "EqPf1f2" "x^1" "x^2" "EqPx1x2")
-(ng #t)
-(use "IH")
-(use "EqPf1f2")
-(use "EqPf1f2")
-(use "EqPx1x2")
-;; 2
-(assume "Assertion"
-	"f^1" "f^2" "EqPf1f2" "n^1" "n^2" "EqPn1n2" "x^1" "x^2" "EqPx1x2")
-(use "Assertion")
-(use "EqPn1n2")
-(use "EqPf1f2")
-(use "EqPx1x2")
-;; Proof finished.
-(save "IterateExt")
-
 ;; IterateInOut
-(set-goal "all f^,n,x^ (f^ ***n)(f^ x^)eqd f^((f^ ***n)x^)")
+(set-goal "allnc f^,n,x^ (f^ ***n)(f^ x^)eqd f^((f^ ***n)x^)")
 (assume "f^")
 (ind)
 (assume "x^")
@@ -1290,10 +1275,9 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "IterateInOut")
 
-;; (remove-program-constant "StrPath")
-;; (remove-token "path")
 (add-program-constant "StrPath" (py "(alpha=>alpha)=>alpha=>str alpha"))
 (add-infix-display-string "StrPath" "path" 'pair-op)
 
@@ -1303,7 +1287,7 @@
 
 (add-global-assumption
  "StrPathAxiom"
- (pf "all f^,x^ (f^ path x^) eqd (x^ :~:f^ path f^ x^)"))
+ (pf "allnc f^,x^ (f^ path x^)eqd(x^ :~:f^ path f^ x^)"))
 
 ;; Assume that f is sufficiently defined on P.  Then -- again on P --
 ;; f^ path x^ is structurally total.
@@ -1339,6 +1323,7 @@
 (use "Px")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTotalStrPath")
 
 (define eterm (proof-to-extracted-term))
@@ -1374,6 +1359,7 @@
 (intro 0 (pt "x"))
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrPath")
 
 (define eterm (proof-to-extracted-term))
@@ -1387,6 +1373,7 @@
 (use "StrCoTotalToCoSTotal")
 (use "CoTotalStrPath")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTConstFalse")
 
 (define eterm (proof-to-extracted-term))
@@ -1399,10 +1386,11 @@
 (use "StrCoTotalToCoSTotal")
 (use "CoTotalStrPath")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTConstTrue")
 
 ;; StrProjPath
-(set-goal "all f^,n,x^(n thof(f^ path x^)eqd(f^ ***n)x^)")
+(set-goal "allnc f^,n,x^(n thof(f^ path x^)eqd(f^ ***n)x^)")
 (assume "f^")
 (ind)
 (assume "x^")
@@ -1414,10 +1402,11 @@
 (ng)
 (use "IH")
 ;; Proof finished.
+;; (cdp)
 (save "StrProjPath")
 
 ;; StrHeadRestPath
-(set-goal "all f^,x^,n(
+(set-goal "allnc f^,x^,n(
  CoTotalStr(f^ path x^) -> Head(n rest(f^ path x^))eqd(f^ ***n)x^)")
 (assume "f^" "x^" "n" "CoTHyp")
 (simp "StrHeadRest")
@@ -1425,33 +1414,36 @@
 (use "StrCoTotalToCoSTotal")
 (use "CoTHyp")
 ;; Proof finished.
+;; (cdp)
 (save "StrHeadRestPath")
 
 ;; StrMapPath
 ;; Postponed.
 
 ;; StrHeadPath
-(set-goal "all f^,x^ Head(f^ path x^)eqd x^")
+(set-goal "allnc f^,x^ Head(f^ path x^)eqd x^")
 (assume "f^" "x^")
 (simp "StrPathAxiom")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrHeadPath")
 
 ;; StrTailPath
-(set-goal "all f^,x^ Tail(f^ path x^)eqd(f^ path f^ x^)")
+(set-goal "allnc f^,x^ Tail(f^ path x^)eqd(f^ path f^ x^)")
 (assume "f^" "x^")
 (simp (pf "(f^ path x^)eqd(x^ :~:f^ path f^ x^)"))
 (use "InitEqD")
 (use "StrPathAxiom")
 ;; Proof finished.
+;; (cdp)
 (save "StrTailPath")
 
 ;; StrLhNode
-(set-goal "all n,xstr^(CoSTotalStr xstr^ -> Lh(n node xstr^)=n)")
+(set-goal "allnc n,xstr^(CoSTotalStr xstr^ -> Lh(n node xstr^)eqd n)")
 (ind)
 (strip)
-(use "Truth")
+(use "InitEqD")
 (assume "n" "IH" "xstr^" "CoSTxstr")
 (inst-with-to "CoSTotalStrClause" (pt "xstr^") "CoSTxstr"
 	      "CoSTotalStrClauseInst")
@@ -1461,13 +1453,14 @@
 (ng)
 (simp "ListLhAppdPartial")
 (simp "IH")
-(use "Truth")
+(use "InitEqD")
 (use "Conj")
 (use "STotalListCons")
 (use "STotalListNil")
 (use "CoSTotalStrToSTotalNode")
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "StrLhNode")
 
 ;; ListHeadNodeSuccPath
@@ -1482,7 +1475,7 @@
 (assume "n" "IH" "x")
 (simp "StrPathAxiom")
 (ng)
-(assert "all xs^1,xs^2(
+(assert "allnc xs^1,xs^2(
      STotalList xs^1 -> Lh xs^1=Succ n -> Head(xs^1++xs^2)eqd Head xs^1)")
 (assume "xs^1" "xs^2" "STxs1")
 (elim "STxs1")
@@ -1497,14 +1490,16 @@
 (simp "ListHeadAppd")
 (drop "ListHeadAppd")
 (use "IH")
-(use "StrLhNode")
-;; ?_25:CoSTotalStr(f path f x)
+(simp "StrLhNode")
+(use "Truth")
+;; ?^26:CoSTotalStr(f path f x)
 (use "StrCoTotalToCoSTotal")
 (use "CoTotalStrPath")
 (use "CoSTotalStrToSTotalNode")
 (use "StrCoTotalToCoSTotal")
 (use "CoTotalStrPath")
 ;; Proof finished.
+;; (cdp)
 (save "ListHeadNodeSuccPath")
 
 ;; SeqPath (prefix display SPath) converts a sequence xseq :
@@ -1523,38 +1518,20 @@
  "(SeqStep alpha)xseq nx" "Succ lft nx pair xseq(Succ lft nx)")
 
 (set-totality-goal "SeqStep")
-(assume "xseq^1" "xseq^2" "EqPxseq1xseq2" "nx^1" "nx^2" "EqPnx1nx2")
-(ng #t)
-(use "EqPYprodPairConstr")
-(use "EqPNatSucc")
-(use "EqPYprodPairOne")
-(use "EqPnx1nx2")
-;; 5
-(use "EqPxseq1xseq2")
-(use "EqPNatSucc")
-(use "EqPYprodPairOne")
-(use "EqPnx1nx2")
+(assume "xseq^" "Txseq")
+(use "AllTotalElim")
+(assume "nx")
+(ng)
+(use "TotalYprodPairConstr")
+(use "NatTotalVar")
+(use "Txseq")
+(use "NatTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save-totality)
 
-;; SeqStepExt
-(set-totality-goal "SeqStep")
-(assume "xseq^1" "xseq^2" "EqPxseq1xseq2" "nx^1" "nx^2" "EqPnx1nx2")
-(ng #t)
-(use "EqPYprodPairConstr")
-(use "EqPNatSucc")
-(use "EqPYprodPairOne")
-(use "EqPnx1nx2")
-;; 5
-(use "EqPxseq1xseq2")
-(use "EqPNatSucc")
-(use "EqPYprodPairOne")
-(use "EqPnx1nx2")
-;; Proof finished.
-(save "SeqStepExt")
-
 ;; IterateSeqStep
-(set-goal "all xseq^,m^,n
+(set-goal "allnc xseq^,m^,n
  ((SeqStep alpha)xseq^ ***n)(m^ pair xseq^ m^)eqd(m^ +n pair xseq^(m^ +n))")
 (assume "xseq^" "m^")
 (ind)
@@ -1570,16 +1547,18 @@
 (ng)
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "IterateSeqStep")
 
 ;; StrProjPathSeqStep
-(set-goal "all xseq^,m^,n 
+(set-goal "allnc xseq^,m^,n 
      (n thof(SeqStep alpha)xseq^ path m^ pair xseq^ m^)eqd
      (m^ +n pair xseq^(m^ +n))")
 (assume "xseq^" "m^" "n")
 (simp "StrProjPath")
 (use "IterateSeqStep")
 ;; Proof finished.
+;; (cdp)
 (save "StrProjPathSeqStep")
 
 ;; (pp (term-to-type (pt "(SeqStep alpha)xseq path n pair x")))
@@ -1597,6 +1576,7 @@
 (ng)
 (use "CoTotalStrPath")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalNumSeqPath")
 
 (define eterm (proof-to-extracted-term))
@@ -1627,6 +1607,7 @@
 (use "StrMapCoTotal")
 (use "CoTotalNumSeqPath")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalSeqPath")
 
 (define eterm (proof-to-extracted-term))
@@ -1643,13 +1624,14 @@
 (simp "SeqPath0CompRule")
 (simp "StrProjMap")
 (simp "NumSeqPath0CompRule")
-;; ?_6:rht(n thof(SeqStep alpha)xseq path 0 pair xseq 0)eqd xseq n
+;; ?^6:rht(n thof(SeqStep alpha)xseq path 0 pair xseq 0)eqd xseq n
 (simp "StrProjPathSeqStep")
 (ng)
 (use "InitEqD")
 (use "StrCoTotalToCoSTotal")
 (use "CoTotalNumSeqPath")
 ;; Proof finished.
+;; (cdp)
 (save "StrProjSeqPath")
 
 (remove-var-name "f")
@@ -1677,7 +1659,8 @@
 (elim "Conj")
 (drop "Conj")
 (assume "fEq" "sEq")
-(assert "all ystr^((y^ :~:(CoRec alpha=>str beta)x^1 f^)eqd ystr^ ->
+;; (simp "StrCoRecRule")
+(assert "allnc ystr^((y^ :~:(CoRec alpha=>str beta)x^1 f^)eqd ystr^ ->
  (CoRec alpha=>str beta)x^ f^ eqd ystr^)")
  (assume "ystr^" "EqHyp")
  (simp (make-proof-in-aconst-form
@@ -1691,6 +1674,7 @@
 (use "Assertion")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrCoRecInR")
 
 ;; StrCoRecInL
@@ -1702,6 +1686,7 @@
 (elim "Conj")
 (drop "Conj")
 (assume "fEq" "sEq")
+;; (simp "StrCoRecRule")
 (simp (make-proof-in-aconst-form
        (alg-or-arrow-types-to-corec-aconst (py "alpha=>str beta"))))
 (ng #t)
@@ -1710,6 +1695,7 @@
 (ng #t)
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "StrCoRecInL")
 
 ;; Assume that f is sufficiently defined on P.  Then -- again on P --
@@ -1797,15 +1783,17 @@
 (use "Px")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "CoSTotalStrCoRec")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-;; (ppc neterm)
+;; (pp neterm)
 
 ;; [(gamma=>inf ysum gamma),gamma]
 ;;  (CoRec gamma=>inf)gamma(gamma=>inf ysum gamma)
 
+;; Added 2018-02-11
 ;; CoTotalStrCoRec
 (set-goal "allnc f^(
  allnc x^(
@@ -1895,6 +1883,7 @@
 (use "Px")
 (use "InitEqD")
 ;; Proof finished.
+;; (cdp)
 (save "CoTotalStrCoRec")
 
 (define eterm (proof-to-extracted-term))
@@ -1909,6 +1898,8 @@
 ;;      [case (str beta ysum gamma)
 ;;        (InL ystr -> y pair InL ystr)
 ;;        (InR gamma_1 -> y pair InR gamma_1)])])
+
+;; (display-default-varnames)
 
 (remove-var-name
  "f" "s" "ystr" "y" "nx" "xseq" "zstr" "z" "phi" "xxstr" "xstr" "xs" "x")
