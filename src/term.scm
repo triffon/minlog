@@ -1,4 +1,4 @@
-;; 2018-10-17.  term.scm
+;; 2019-08-20.  term.scm
 ;; 6. Terms
 ;; ========
 
@@ -336,23 +336,34 @@
 
 ;; Constructors, accessors and test for if-constructs:
 
+;; In make-term-in-if-form a test in pair form (@@) is converted into
+;; the same test in cons form (yprod).  This is needed since nbe
+;; internally works with (primitive) pairs.
+
 (define (make-term-in-if-form test alts . rest) ;rest empty or all-formula
-  (let* ((alg (term-to-type test))
-	 (name (alg-form-to-name alg))
-	 (typed-constr-names (alg-name-to-typed-constr-names name))
-	 (constr-types (map typed-constr-name-to-type typed-constr-names))
-	 (lengths-of-arg-types
-	  (map (lambda (x) (length (arrow-form-to-arg-types x)))
-	       constr-types))
-	 (types (map (lambda (alt l)
-		       (arrow-form-to-final-val-type (term-to-type alt) l))
-		     alts lengths-of-arg-types))
-	 (lub (apply types-lub types))
-	 (coerce-ops (map types-to-coercion
-			  types (make-list (length types) lub)))
-	 (lifted-alts (map (lambda (op alt) (op alt)) coerce-ops alts)))
-    (append (list 'term-in-if-form lub test lifted-alts)
-	    rest)))
+  (if
+   (term-in-pair-form? test)
+   (apply make-term-in-if-form
+	  (make-term-in-cons-form (term-in-pair-form-to-left test)
+				  (term-in-pair-form-to-right test))
+	  alts
+	  rest)
+   (let* ((alg (term-to-type test))
+	  (name (alg-form-to-name alg))
+	  (typed-constr-names (alg-name-to-typed-constr-names name))
+	  (constr-types (map typed-constr-name-to-type typed-constr-names))
+	  (lengths-of-arg-types
+	   (map (lambda (x) (length (arrow-form-to-arg-types x)))
+		constr-types))
+	  (types (map (lambda (alt l)
+			(arrow-form-to-final-val-type (term-to-type alt) l))
+		      alts lengths-of-arg-types))
+	  (lub (apply types-lub types))
+	  (coerce-ops (map types-to-coercion
+			   types (make-list (length types) lub)))
+	  (lifted-alts (map (lambda (op alt) (op alt)) coerce-ops alts)))
+     (append (list 'term-in-if-form lub test lifted-alts)
+	     rest))))
 
 (define term-in-if-form-to-test caddr)
 (define term-in-if-form-to-alts cadddr)
@@ -5265,6 +5276,7 @@ intDestr n | n > 0  = Left n
 		(term-in-const-form? op1)
 		(term-in-const-form? op2)
 		(term=? arg1 arg2)
+		(t-deg-one? (term-to-t-deg arg1))
 		(let ((name1 (const-to-name (term-in-const-form-to-const op1)))
 		      (name2 (const-to-name (term-in-const-form-to-const op2))))
 		  (or (and (string=? "PairOne" name1)
@@ -5532,9 +5544,8 @@ intDestr n | n > 0  = Left n
 		 term)))))
     (do ((t init (normalize-term-pi-with-rec-to-if
 		  (nbe-normalize-term-without-eta t))))
-	((term-in-beta-normal-form? t)
-	 ;; Code discarded 2016-06-27
-	 ;; ((term-in-if-normal-form? t)
+	((and (term-in-beta-normal-form? t) (term-in-if-normal-form? t))
+	 ;; Change 2019-08-16: (term-in-if-normal-form? t) added
 	 (term-to-eta-nf-with-simplified-simrec-appterms t)))))
 
 (define nt nbe-normalize-term)
