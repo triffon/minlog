@@ -2769,44 +2769,6 @@
 (deanimate "Lft")
 (deanimate "Rht")
 
-;; PVAR-TO-MR-PVAR-ALIST initially has
-;; (Pvar alpha) -> (Pvar alpha gamma)^
-;; Pvar2 -> (Pvar beta2)^2
-;; Pvar1 -> (Pvar beta1)^1
-;; Pvar  -> (Pvar beta)^
-
-(define PVAR-TO-MR-PVAR-ALIST
-  (list
-   (list (make-pvar (make-arity (make-tvar -1 "alpha"))
-		    -1 h-deg-zero n-deg-zero "")
-	 (make-pvar (make-arity (make-tvar -1 "alpha") (make-tvar -1 "gamma"))
-		    -1 h-deg-one n-deg-zero ""))
-   (list (make-pvar (make-arity)
-		    2 h-deg-zero n-deg-zero "")
-	 (make-pvar (make-arity (make-tvar 2 "beta"))
-		    2 h-deg-one n-deg-zero ""))
-   (list (make-pvar (make-arity)
-		    1 h-deg-zero n-deg-zero "")
-	 (make-pvar (make-arity (make-tvar 1 "beta"))
-		    1 h-deg-one n-deg-zero ""))
-   (list (make-pvar (make-arity)
-		    -1 h-deg-zero n-deg-zero "")
-	 (make-pvar (make-arity (make-tvar -1 "beta"))
-		    -1 h-deg-one n-deg-zero ""))))
-
-(define (PVAR-TO-MR-PVAR pvar)
-  (let ((info (assoc pvar PVAR-TO-MR-PVAR-ALIST)))
-    (if info
-	(cadr info)
-	(let* ((type (PVAR-TO-TVAR pvar))
-	       (arity (pvar-to-arity pvar))
-	       (types (arity-to-types arity))
-	       (newarity (apply make-arity (append types (list type))))
-	       (newpvar (arity-to-new-harrop-pvar newarity)))
-	      (set! PVAR-TO-MR-PVAR-ALIST
-		    (cons (list pvar newpvar) PVAR-TO-MR-PVAR-ALIST))
-	      newpvar))))
-
 ;; The following can be added only here, because PVAR-TO-MR-PVAR-ALIST
 ;; is needed.
 
@@ -3170,16 +3132,16 @@
 ;; (cdp)
 (save "EqPToEqPNc")
 
-;; TotalToTotalNc
-(set-goal "allnc alpha^(Total alpha^ -> TotalNc alpha^)")
-(assume "alpha^" "Talpha")
-(use "Talpha")
-;; Proof finished.
-;; (cdp)
-(save "TotalToTotalNc")
+;; ;; TotalToTotalNc
+;; (set-goal "allnc alpha^(Total alpha^ -> TotalNc alpha^)")
+;; (assume "alpha^" "Talpha")
+;; (use "Talpha")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "TotalToTotalNc")
 
-(add-theorem "TotalMRToTotalNc"
-	     (make-proof-in-aconst-form totalmr-to-totalnc-aconst))
+;; (add-theorem "TotalMRToTotalNc"
+;; 	     (make-proof-in-aconst-form totalmr-to-totalnc-aconst))
 
 (set! COMMENT-FLAG #t)
 
