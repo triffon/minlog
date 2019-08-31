@@ -1,4 +1,13 @@
-;; 2019-08-28.  log.txt
+;; 2019-08-31.  log.txt
+
+In pproof scm
+
+Definition of PVAR-TO-MR-PVAR-ALIST moved here from ets.scm
+
+In ets.scm
+
+Definition of PVAR-TO-MR-PVAR-ALIST moved to pproof.scm.
+totalmr-to-totalnc-aconst removed (not needed).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2019-08-28
