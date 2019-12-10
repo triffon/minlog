@@ -1,4 +1,4 @@
-;; 2019-08-20.  term.scm
+;; 2019-12-07.  term.scm
 ;; 6. Terms
 ;; ========
 
@@ -1637,10 +1637,10 @@
 ;; This confuses the parser who takes the semicolon as a comment
 ;; symbol.  Cure:
 
-(define (rename-parentheses string)
+(define (rename-parentheses-and-spaces string)
   (string-replace-substring
-   (string-replace-substring string "(" "lpar_")
-   ")" "_rpar"))
+   (string-replace-substring
+    (string-replace-substring string "(" "lpar_") ")" "_rpar") " " "__"))
 
 ;; lang can be either 'haskell or 'scheme
 
@@ -1651,7 +1651,8 @@
      ((term-in-var-form? term)
       (case lang
 	((scheme) (string->symbol
-		   (rename-parentheses (term-in-var-form-to-string term))))
+		   (rename-parentheses-and-spaces
+		    (term-in-var-form-to-string term))))
 	((haskell) (haskellify-var (term-in-var-form-to-var term)))))
      ((is-numeric-term-wrt-pos? term)
       (let* ((res (numeric-term-wrt-pos-to-number term)))
@@ -1692,7 +1693,7 @@
 	   (cons (if (zero? arity) (string->symbol name)
 		     (cons (string->symbol name) (list-head prevs arity)))
 		 (list-tail prevs arity))))
-	 ((string=? name "=") ;different treatment for differents algs in scheme
+	 ((string=? name "=") ;different treatment for diff. algs in scheme
 	  (case lang
 	    ((scheme)
 	     (let* ((finalg (arrow-form-to-arg-type (const-to-type const)))
@@ -1814,7 +1815,7 @@
 		     ((scheme)
 		      (list 'let
 			    (list (list (string->symbol
-					 (rename-parentheses
+					 (rename-parentheses-and-spaces
 					  (var-to-string var)))
 					(cadr prevs)))
 			    kernel-expr))
@@ -1827,7 +1828,7 @@
 			     (haskell-friendly-prevs
 			      (string-replace-substring
 			       (cadr prevs) var-name haskell-friendly-var)))
-			(string-append "(let " haskell-friendly-var
+			(string-append "\n (let " haskell-friendly-var
 				       " = " haskell-friendly-prevs
 				       " in " haskell-friendly-kernel ")"))))))
 		((= l 1) (car prevs))
@@ -2183,7 +2184,8 @@
 	(case lang
 	  ((scheme)
 	   (list 'lambda (list (string->symbol
-				(rename-parentheses var-string))) kernel-expr))
+				(rename-parentheses-and-spaces
+				 var-string))) kernel-expr))
 	  ((haskell)
 	   (let* ((haskell-friendly-var (haskellify-var var))
 		  (haskell-friendly-kernel
@@ -2412,7 +2414,7 @@
 			 (string-append lhs " -> " rhs ))))
 		    (clauses (map foreach-constr constr alts)))
 
-	       (string-append "(case " test-expr " of\n { "
+	       (string-append "(case " test-expr " of\n      { "
 			      (apply string-append-with-sep " ;\n " clauses)
 			      " })")))))
 	 (else (myerror "term-to-external-expr" "unknown if" term)))))
