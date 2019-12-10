@@ -1,13 +1,66 @@
-;; 2019-08-31.  log.txt
+;; 2019-12-10.  log.txt
+
+In term.scm
+
+In term-to-external-expr at (let \n added.  In addition in case
+expression 5 spaces added (5 = length of (let with empty space in
+front and the end.  rename-parentheses replaced by
+rename-parentheses-and-spaces .
+
+In psym.scm
+
+In terms-to-eqp-formula terms-to-eqpnc-formula term-to-ext-formula
+term-to-extnc-formula at the end of case (tag cotype) an else was
+missing.
+
+In formula.scm
+
+exi-form? and exi-mr-exi-form? modified to say #t also if the given
+formula is a totality version of an existential quantifier.
+
+In proof.scm
+
+make-proof-in-andr-elim-left-form make-proof-in-andr-elim-right-form
+make-proof-in-andl-elim-left-form make-proof-in-andl-elim-right-form
+make-proof-in-andnc-elim-left-form make-proof-in-andnc-elim-right-form
+changed: make-proof-in-impnc-intro-form replaced by
+make-proof-in-imp-intro-form.  Reason: psubsts are sharp.
+proof-to-expr changed to avoid var-names with semicolon.
 
 In pproof scm
 
-Definition of PVAR-TO-MR-PVAR-ALIST moved here from ets.scm
+Definition of PVAR-TO-MR-PVAR-ALIST moved here from ets.scm.  In
+context-and-term-to-realproof in case no proof is found we do not
+return #f but give an error message showing one subterm where no
+realproof could be found.
 
 In ets.scm
 
 Definition of PVAR-TO-MR-PVAR-ALIST moved to pproof.scm.
 totalmr-to-totalnc-aconst removed (not needed).
+exnctotal-intro-aconst corrected: now with TotalNc and n.c. pvar.
+STotalYsum STotalYsumNc SEqPYsum SEqPYsumNc added.  In
+coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux there are
+three occurrences of first-match supposed to take a normalized
+mr-formula.  The use of nf was missing in the case of an existential
+formula and a conjunction formula.
+
+In lib/rea.scm
+
+RealNNegAllPlusToNNeg RealLeAllPlusToLe RatUMinusRealUMinus
+RatPlusRealPlus RatAbsRealAbs RealZeroPlus RealLeZeroAbs added.
+
+In examples/analysis/sdcode.scm
+
+Proof of TwoTimesPlusEq adapted and simplified using TwoTimesPlusIntReal.
+
+In examples/analysis/sddiv.scm
+
+Algebra str renamed into ai.
+
+In examples/analysis/graydiv.scm
+
+Continued with Haskell translation and time measurement
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2019-08-28
