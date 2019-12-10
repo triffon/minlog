@@ -1,4 +1,4 @@
-;; 2019-08-20.  proof.scm
+;; 2019-12-07.  proof.scm
 ;; 10. Proofs
 ;; ==========
 
@@ -911,13 +911,13 @@
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
-	 (proj-left-proof ;of Pvar^'1 --> Pvar2 -> Pvar^'1
+	 (proj-left-proof ;of Pvar^'1 -> Pvar2 -> Pvar^'1
 	  (if (not (formula-of-nulltype? left))
 	      (myerror "make-proof-in-andr-elim-left-form"
 		       "formula of nulltype expected" left)
 	      (let ((u (formula-to-new-avar left))
 		    (v (formula-to-new-avar right)))
-		(make-proof-in-impnc-intro-form
+		(make-proof-in-imp-intro-form
 		 u (make-proof-in-imp-intro-form
 		    v (make-proof-in-avar-form u)))))))
     (apply mk-proof-in-elim-form
@@ -936,10 +936,10 @@
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
-	 (proj-right-proof ;of Pvar1 --> Pvar2 -> Pvar2
+	 (proj-right-proof ;of Pvar1 -> Pvar2 -> Pvar2
 	  (let ((u (formula-to-new-avar left))
 		(v (formula-to-new-avar right)))
-	    (make-proof-in-impnc-intro-form
+	    (make-proof-in-imp-intro-form
 	     u (make-proof-in-imp-intro-form
 		v (make-proof-in-avar-form v))))))
     (apply mk-proof-in-elim-form
@@ -958,11 +958,11 @@
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
-	 (proj-left-proof ;of Pvar1 -> Pvar2 --> Pvar1
+	 (proj-left-proof ;of Pvar1 -> Pvar2 -> Pvar1
 	  (let ((u (formula-to-new-avar left))
 		(v (formula-to-new-avar right)))
 	    (make-proof-in-imp-intro-form
-	     u (make-proof-in-impnc-intro-form
+	     u (make-proof-in-imp-intro-form
 		v (make-proof-in-avar-form u))))))
     (apply mk-proof-in-elim-form
 	   (make-proof-in-aconst-form aconst)
@@ -980,19 +980,41 @@
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
-	 (proj-right-proof ;of Pvar1 -> Pvar^'2 --> Pvar^'2
+	 (proj-right-proof ;of Pvar1 -> Pvar^'2 -> Pvar^'2
 	  (if (not (formula-of-nulltype? right))
 	      (myerror "make-proof-in-andl-elim-right-form"
 		       "formula of nulltype expected" right)
 	      (let ((u (formula-to-new-avar left))
 		    (v (formula-to-new-avar right)))
 		(make-proof-in-imp-intro-form
-		 u (make-proof-in-impnc-intro-form
+		 u (make-proof-in-imp-intro-form
 		    v (make-proof-in-avar-form v)))))))
     (apply mk-proof-in-elim-form
 	   (make-proof-in-aconst-form aconst)
 	   (append (map make-term-in-var-form free)
 		   (list proof proj-right-proof)))))
+
+(define (make-proof-in-andl-elim-left-form proof)
+  (let* ((fla (proof-to-formula proof))
+	 (left (if (andl-form? fla)
+		   (andl-form-to-left fla)
+		   (myerror "make-proof-in-andl-elim-left-form"
+			    "andl form expected" fla)))
+	 (right (andl-form-to-right fla))
+	 (imp-fla (make-imp fla left))
+	 (aconst (imp-formulas-to-elim-aconst imp-fla))
+	 (inst-formula (aconst-to-inst-formula aconst))
+	 (free (formula-to-free inst-formula))
+	 (proj-left-proof ;of Pvar1 -> Pvar2 -> Pvar1
+	  (let ((u (formula-to-new-avar left))
+		(v (formula-to-new-avar right)))
+	    (make-proof-in-imp-intro-form
+	     u (make-proof-in-imp-intro-form
+		v (make-proof-in-avar-form u))))))
+    (apply mk-proof-in-elim-form
+	   (make-proof-in-aconst-form aconst)
+	   (append (map make-term-in-var-form free)
+	   (list proof proj-left-proof)))))
 
 (define (make-proof-in-andnc-elim-left-form proof)
   (let* ((fla (proof-to-formula proof))
@@ -1005,14 +1027,14 @@
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
-	 (proj-left-proof ;of Pvar^'1 --> Pvar2 --> Pvar^'1
+	 (proj-left-proof ;of Pvar^'1 -> Pvar2 -> Pvar^'1
 	  (if (not (formula-of-nulltype? left))
 	      (myerror "make-proof-in-andnc-elim-left-form"
 		       "formula of nulltype expected" left)
 	      (let ((u (formula-to-new-avar left))
 		    (v (formula-to-new-avar right)))
-		(make-proof-in-impnc-intro-form
-		 u (make-proof-in-impnc-intro-form
+		(make-proof-in-imp-intro-form
+		 u (make-proof-in-imp-intro-form
 		    v (make-proof-in-avar-form u)))))))
     (apply mk-proof-in-elim-form
 	   (make-proof-in-aconst-form aconst)
@@ -1030,14 +1052,14 @@
 	 (aconst (imp-formulas-to-elim-aconst imp-fla))
 	 (inst-formula (aconst-to-inst-formula aconst))
 	 (free (formula-to-free inst-formula))
-	 (proj-right-proof ;of Pvar1 --> Pvar^'2 --> Pvar^'2
+	 (proj-right-proof ;of Pvar1 -> Pvar^'2 -> Pvar^'2
 	  (if (not (formula-of-nulltype? right))
 	      (myerror "make-proof-in-andnc-elim-right-form"
 		       "formula of nulltype expected" right)
 	  (let ((u (formula-to-new-avar left))
 		(v (formula-to-new-avar right)))
-		(make-proof-in-impnc-intro-form
-		 u (make-proof-in-impnc-intro-form
+		(make-proof-in-imp-intro-form
+		 u (make-proof-in-imp-intro-form
 		    v (make-proof-in-avar-form v)))))))
     (apply mk-proof-in-elim-form
 	   (make-proof-in-aconst-form aconst)
@@ -7519,9 +7541,8 @@
        ((proof-in-all-intro-form)
 	(let* ((var (proof-in-all-intro-form-to-var proof))
 	       (kernel (proof-in-all-intro-form-to-kernel proof))
-	       (string (var-to-string var)))
-	  (list 'lambda (list (string->symbol string))
-		(proof-to-expr kernel))))
+	       (var-expr (term-to-expr (make-term-in-var-form var))))
+	  (list 'lambda (list var-expr)	(proof-to-expr kernel))))
        ((proof-in-all-elim-form)
 	(let* ((op (proof-in-all-elim-form-to-op proof))
 	       (arg (proof-in-all-elim-form-to-arg proof)))
@@ -7529,9 +7550,8 @@
        ((proof-in-allnc-intro-form)
 	(let* ((var (proof-in-allnc-intro-form-to-var proof))
 	       (kernel (proof-in-allnc-intro-form-to-kernel proof))
-	       (string (var-to-string var)))
-	  (list 'lambda (list (string->symbol string))
-		(proof-to-expr kernel))))
+	       (var-expr (term-to-expr (make-term-in-var-form var))))
+	  (list 'lambda (list var-expr)	(proof-to-expr kernel))))
        ((proof-in-allnc-elim-form)
 	(let* ((op (proof-in-allnc-elim-form-to-op proof))
 	       (arg (proof-in-allnc-elim-form-to-arg proof)))
