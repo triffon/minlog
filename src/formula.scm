@@ -1,4 +1,4 @@
-;; 2019-08-20.  formula.scm
+;; 2019-12-07.  formula.scm
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -1421,16 +1421,18 @@
 	 (and (idpredconst-form? pred)
 	      (member
 	       (idpredconst-to-name pred)
-	       (list "ExNc" "ExL" "ExR" "ExD"))))))
+	       (list "ExNc" "ExL" "ExR" "ExD"
+		     "ExNcT" "ExLT" "ExRT" "ExDT"))))))
 
 (define (exi-mr-exi-form? formula)
-  (and (predicate-form? formula)
-       (let ((pred (predicate-form-to-predicate formula)))
-	 (and (idpredconst-form? pred)
-	      (member
-	       (idpredconst-to-name pred)
-	       (list "ExNc" "ExL" "ExR" "ExD"
-		"ExNcMR" "ExLMR" "ExRMR" "ExDMR"))))))
+  (or (exi-form? formula)
+      (and (predicate-form? formula)
+	   (let ((pred (predicate-form-to-predicate formula)))
+	     (and (idpredconst-form? pred)
+		  (member
+		   (idpredconst-to-name pred)
+		   (list "ExNcMR" "ExLMR" "ExRMR" "ExDMR"
+			 "ExNcTMR" "ExLTMR" "ExRTMR" "ExDTMR")))))))
 
 (define (exi-mr-exi-form-to-vars formula)
   (if (exi-mr-exi-form? formula)
