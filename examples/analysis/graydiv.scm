@@ -1,4 +1,4 @@
-;; 2019-08-27.  examples/analysis/graydiv.scm
+;; 2019-12-08.  examples/analysis/graydiv.scm
 
 (load "~/git/minlog/init.scm")
 
@@ -138,7 +138,7 @@
 (save "PMOneToCoG")
 
 (define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
+>(define neterm (rename-variables (nt eterm)))
 ;; (ppc neterm)
 
 ;; [boole]
@@ -165,7 +165,7 @@
 (define eterm (proof-to-extracted-term))
 (animate "PMOneToCoG")
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; (CoRec boole=>ag boole=>ah)True
 ;; ([boole]
@@ -890,6 +890,7 @@
 ;; Proof finished.
 ;; (cdp)
 (save "CoGShift")
+;; (set! COMMENT-FLAG #t)
 
 (add-var-name "gb" (py "ag yprod boole"))
 (add-var-name "hb" (py "ah yprod boole"))
@@ -915,7 +916,7 @@
 (animate "CoHClosure")
 
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [gb](CoRec ag yprod boole=>ag ah yprod boole=>ah)gb
 ;;  ([gb0][case gb0
@@ -1179,7 +1180,7 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [ag][case (DesYprod ag)
 ;;    (InL bg -> [case bg (boole pair ag0 -> [case boole
@@ -1817,6 +1818,7 @@
 ;; Proof finished.
 ;; (cdp)
 (save "CoGDivSatCoICl")
+;; (set! COMMENT-FLAG #t)
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -1845,6 +1847,7 @@
 (deanimate "CoGClosure")
 (deanimate "CoHClosure")
 
+;; (set! COMMENT-FLAG #f)
 ;; CoGDivAux
 (set-goal "allnc y(CoG y -> (1#4)<<=y -> allnc z(
  exr x(CoG x andi abs x<<=y andi z===x*RealUDiv y 3) -> CoG z))")
@@ -2179,6 +2182,7 @@
 ;; Proof finished.
 ;; (cdp)
 (save "CoGDivAux")
+;; (set! COMMENT-FLAG #t)
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -2226,9 +2230,177 @@
 ;; (cdp)
 (save "CoGDiv")
 
-(define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-;; (ppc neterm)
+(define CoGDiv-eterm (proof-to-extracted-term))
+(define CoGDiv-neterm (rename-variables (nt eterm)))
+;; (ppc CoGDiv-neterm)
 
+;; [ag,ag0](CoRec ag=>ag ah=>ah)ag0
+;;  ([ag1][case (cCoGDivSatCoICl ag1 ag)
+;;      (s pair ag2 -> [case (cSdDisj s)
+;;        (DummyL -> InR(InR(cCoGToCoH ag2)))
+;;        (Inr boole ->
+;; 	    InL(boole pair InR(cCoGPsdTimes ag2(cPsdUMinus boole))))])])
+;;  ([ah][case (cCoGDivSatCoICl(cCoHToCoG ah)ag)
+;;      (s pair ag1 -> [case (cSdDisj s)
+;;        (DummyL -> InR(InR(cCoGToCoH ag1)))
+;;        (Inr boole -> InL(boole pair InR(cCoGPsdTimes ag1 boole)))])])
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Haskell translation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; terms-to-haskell-program (written by Fredrik Nordvall-Forsberg)
+;; generates a Haskell file (here graydivtest.hs).  To run it, in a
+;; terminal type ghci sddivtest.hs.  In *Main> one can evaluate the
+;; Haskell functions in graydivtest.hs .  Time mesurement by :set +s .
+;; To quit type *Main> :q .
+
+;; Theorems of high level optimized first.
+;; Can we use util/reftree.el for this?
+
+;; (proof-to-expr (theorem-name-to-proof "CoGAverage"))
 ;; [ag,ag0]cCoGDivAux ag0 ag
 
+;; (display-animation)
+
+'(
+(animate "CoGDivAux")
+(animate "CoGDivSatCoICl")
+(animate "CoGDivSatCoIClAuxR")
+(animate "CoGDivSatCoIClAuxL")
+(animate "CoGToCoGQuad")
+(animate "CoGToCoGDouble")
+(animate "CoGNegToCoGPlusOne")
+(animate "CoGPosToCoGMinusOne")
+(animate "CoGShift")
+(animate "CoGAverage")
+(animate "CoGAvcToCoG")
+(animate "CoGAvcSatCoICl")
+(animate "CoGAvToAvc")
+;; From now on we animate what is left
+(animate "CoHToCoG")
+(animate "CoGToCoH")
+(animate "CoGU")
+(animate "IntPlusPsdToSdtwo")
+(animate "CoGClosure")
+(animate "CoHClosure")
+(animate "CoGPsdTimes")
+(animate "Lft")
+(animate "Rht")
+(animate "PsdUMinus")
+(animate "PsdToSdtwo")
+(animate "CoGAvcSatCoIClAuxJ")
+(animate "CoGAvcSatCoIClAuxK")
+(animate "SdtwoPsdToSdK")
+(animate "IntTimesSdtwoPsdToSdtwo")
+(animate "SdDisj")
+(animate "CoGCompat")
+(animate "CoGUMinus")
+(animate "CoGIntNOne")
+(animate "CoGOne")
+(animate "CoICompat")
+(animate "CoIUMinus")
+(animate "SdToPsd")
+(animate "PsdToDisj")
+(animate "RealToCoI")
+(animate "RealToCoIAux")
+;; Second round.
+(animate "CoGClauseInv")
+(animate "SdtwoPsdToSdtwoJ")
+(animate "SdtwoToSdK")
+(animate "SdtwoToSdtwoJ")
+(animate "CoHCompat")
+(animate "PMOneToCoG")
+(animate "CoIClauseInv")
+(animate "CoIClosure")
+(animate "SdUMinus")
+(animate "ApproxSplitZeroMinusPtFive")
+(animate "ApproxSplitZeroPtFive")
+(animate "ApproxSplit")
+(animate "CoHClauseInv")
+
+(terms-to-haskell-program
+ "~/temp/graydivtest.hs"
+ (list (list CoGDiv-eterm "cogdiv")
+       (list CoIToCoG-eterm "coitocog")
+       (list RealToCoI-eterm "realtocoi")
+       (list RatToCoI-eterm "rattocoi")
+       (list (pt "TakeG") "takeg")
+       (list (pt "ListGdToRat") "listgdtorat")))
+
+(deanimate "CoGDivAux")
+(deanimate "CoGDivSatCoICl")
+(deanimate "CoGDivSatCoIClAuxR")
+(deanimate "CoGDivSatCoIClAuxL")
+(deanimate "CoGToCoGQuad")
+(deanimate "CoGToCoGDouble")
+(deanimate "CoGNegToCoGPlusOne")
+(deanimate "CoGPosToCoGMinusOne")
+(deanimate "CoGShift")
+(deanimate "CoGAverage")
+(deanimate "CoGAvcToCoG")
+(deanimate "CoGAvcSatCoICl")
+(deanimate "CoGAvToAvc")
+;; From now on we animate what is left
+(deanimate "CoHToCoG")
+(deanimate "CoGToCoH")
+(deanimate "CoGU")
+(deanimate "IntPlusPsdToSdtwo")
+(deanimate "CoGClosure")
+(deanimate "CoHClosure")
+(deanimate "CoGPsdTimes")
+(deanimate "Lft")
+(deanimate "Rht")
+(deanimate "PsdUMinus")
+(deanimate "PsdToSdtwo")
+(deanimate "CoGAvcSatCoIClAuxJ")
+(deanimate "CoGAvcSatCoIClAuxK")
+(deanimate "SdtwoPsdToSdK")
+(deanimate "IntTimesSdtwoPsdToSdtwo")
+(deanimate "SdDisj")
+(deanimate "CoGCompat")
+(deanimate "CoGUMinus")
+(deanimate "CoGIntNOne")
+(deanimate "CoGOne")
+(deanimate "CoICompat")
+(deanimate "CoIUMinus")
+(deanimate "SdToPsd")
+(deanimate "PsdToDisj")
+(deanimate "RealToCoI")
+(deanimate "RealToCoIAux")
+;; Second round.
+(deanimate "CoGClauseInv")
+(deanimate "SdtwoPsdToSdtwoJ")
+(deanimate "SdtwoToSdK")
+(deanimate "SdtwoToSdtwoJ")
+(deanimate "CoHCompat")
+(deanimate "PMOneToCoG")
+(deanimate "CoIClauseInv")
+(deanimate "CoIClosure")
+(deanimate "SdUMinus")
+(deanimate "ApproxSplitZeroMinusPtFive")
+(deanimate "ApproxSplitZeroPtFive")
+(deanimate "ApproxSplit")
+(deanimate "CoHClauseInv")
+)
+
+;; In a terminal type
+;; ghci graydivtest.hs
+;; In Main> (for time measurement):
+;; :set +s
+
+;; *Main> takeg 19 (cogdiv (coitocog (rattocoi (1001 % 3001))) (coitocog (rattocoi (10001 % 20001))))
+
+;; GR,GL,GR,GR,GR,GR,GR,GR,GR,GR,GU,HL,GL,GL,GR,GR,GR,GL,GR
+;; (0.06 secs, 25,331,680 bytes)
+
+;; Similarly we have
+;; number of digits  runtime in seconds
+;; 25                0.06
+;; 50                0.14
+;; 75                0.27
+;; 100               0.47
+;; 250               2.61
+;; 500               9.62
+;; 750              23.77
+;; 1000             41,79
