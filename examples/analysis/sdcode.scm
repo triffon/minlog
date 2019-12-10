@@ -1,4 +1,4 @@
-;; 2019-08-26.
+;; 2019-11-27
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -560,23 +560,38 @@
 (set-goal "all as,M,i(Real(RealConstr as M) -> 
   RealConstr([n]2*(as n)+i)([p](M(PosS p)))===2*(RealConstr as M) +i)")
 (assume "as" "M" "i" "Rx")
-(ng #t)
 (use "RealEqSToEq")
 (use "TwoTimesPlusIntReal")
 (use "Rx")
 (autoreal)
-(assert "Real(2*RealConstr as M +i)")
-(autoreal)
-(ng #t)
-(use "Id")
-(ng #t)
-(intro 0)
+(use "RealEqSIntro")
 (assume "n")
-(ng #t)
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
 (save "TwoTimesPlusEq")
+
+;; ;; TwoTimesPlusEq
+;; (set-goal "all as,M,i(Real(RealConstr as M) -> 
+;;   RealConstr([n]2*(as n)+i)([p](M(PosS p)))===2*(RealConstr as M) +i)")
+;; (assume "as" "M" "i" "Rx")
+;; (ng #t)
+;; (use "RealEqSToEq")
+;; (use "TwoTimesPlusIntReal")
+;; (use "Rx")
+;; (autoreal)
+;; (assert "Real(2*RealConstr as M +i)")
+;; (autoreal)
+;; (ng #t)
+;; (use "Id")
+;; (ng #t)
+;; (intro 0)
+;; (assume "n")
+;; (ng #t)
+;; (use "Truth")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "TwoTimesPlusEq")
 
 ;; ApproxSplitZeroPtFive
 (set-goal "all x(Real x ->  x<<=(1#2) ori 0<<=x)")
