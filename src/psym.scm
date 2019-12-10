@@ -3701,7 +3701,7 @@
 	      (prev-right (terms-to-eqp-formula
 			   right-term1 right-term2 right-cotype)))
 	 (make-and prev-left prev-right)))
-      (myerror "terms-to-eqp-formula" "cotype expected" cotype))))
+      (else (myerror "terms-to-eqp-formula" "cotype expected" cotype)))))
 
 (define (cotype-to-eqp-cterm cotype)
   (let* ((type (cotype-to-type cotype))
@@ -4156,7 +4156,7 @@
 	      (prev-right (terms-to-eqpnc-formula
 			  right-term1 right-term2 right-cotype)))
 	 (make-and prev-left prev-right)))
-      (myerror "terms-to-eqpnc-formula" "cotype expected" cotype))))
+      (else (myerror "terms-to-eqpnc-formula" "cotype expected" cotype)))))
 
 (define (cotype-to-eqpnc-cterm cotype)
   (let* ((type (cotype-to-type cotype))
@@ -4459,7 +4459,7 @@
 	      (prev-left (term-to-ext-formula left-term left-cotype))
 	      (prev-right (term-to-ext-formula right-term right-cotype)))
 	 (make-and prev-left prev-right)))
-      (myerror "term-to-ext-formula" "cotype expected" cotype))))
+      (else (myerror "term-to-ext-formula" "cotype expected" cotype)))))
 
 (define (cotype-to-ext-cterm cotype)
   (let* ((type (cotype-to-type cotype))
@@ -4530,7 +4530,7 @@
 	      (prev-left (term-to-extnc-formula left-term left-cotype))
 	      (prev-right (term-to-extnc-formula right-term right-cotype)))
 	 (make-and prev-left prev-right)))
-      (myerror "term-to-extnc-formula" "cotype expected" cotype))))
+      (else (myerror "term-to-extnc-formula" "cotype expected" cotype)))))
 
 (define (cotype-to-extnc-cterm cotype)
   (let* ((type (cotype-to-type cotype))
