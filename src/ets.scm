@@ -1,4 +1,4 @@
-;; 2019-08-23.  ets.scm
+;; 2019-12-07.  ets.scm
 ;; 16. Extracted terms
 ;; ===================
 
@@ -2250,12 +2250,12 @@
 	 (varpartial (make-var tvar -1 t-deg-zero name))
 	 (varterm (make-term-in-var-form var))
 	 (varpartialterm (make-term-in-var-form varpartial))
-	 (pvar (make-pvar (make-arity tvar) -1 h-deg-zero n-deg-zero ""))
+	 (pvar (make-pvar (make-arity tvar) -1 h-deg-one n-deg-one ""))
 	 (exnc-fla (mk-exnc var (make-predicate-formula pvar varterm)))
 	 (expartial-fla
 	  (mk-exnc varpartial
-		  (mk-andnc (make-total varpartialterm)
-			   (make-predicate-formula pvar varpartialterm))))
+		  (mk-andnc (make-totalnc varpartialterm)
+			    (make-predicate-formula pvar varpartialterm))))
 	 (formula-of-exnctotal-intro-aconst (mk-imp expartial-fla exnc-fla)))
     (make-aconst "ExNcTotalIntro"
 		 'axiom formula-of-exnctotal-intro-aconst empty-subst)))
@@ -2768,6 +2768,43 @@
 
 (deanimate "Lft")
 (deanimate "Rht")
+
+(add-ids
+ (list (list "STotalYsum" (make-arity (py "alpha1 ysum alpha2")) "boole"))
+ '("allnc alpha1^ STotalYsum((InL alpha1 alpha2)alpha1^)" "STotalYsumInL")
+ '("allnc alpha2^ STotalYsum((InR alpha2 alpha1)alpha2^)" "STotalYsumInR"))
+
+(add-ids
+ (list (list "STotalYsumNc" (make-arity (py "alpha1 ysum alpha2"))))
+ '("allnc alpha1^ STotalYsumNc((InL alpha1 alpha2)alpha1^)" "STotalYsumNcInL")
+ '("allnc alpha2^ STotalYsumNc((InR alpha2 alpha1)alpha2^)" "STotalYsumNcInR"))
+
+(add-ids
+ (list
+  (list "SEqPYsum" (make-arity (py "alpha1 ysum alpha2")
+			       (py "alpha1 ysum alpha2")) "boole"))
+ '("allnc alpha1^,alpha1^0(
+     SEqPYsum((InL alpha1 alpha2)alpha1^)((InL alpha1 alpha2)alpha1^0))"
+   "SEqPYsumInL")
+ '("allnc alpha2^,alpha2^0(
+     SEqPYsum((InR alpha2 alpha1)alpha2^)((InR alpha2 alpha1)alpha2^0))"
+   "SEqPYsumInR"))
+
+(add-ids
+ (list
+  (list "SEqPYsumNc" (make-arity (py "alpha1 ysum alpha2")
+			         (py "alpha1 ysum alpha2"))))
+ '("allnc alpha1^,alpha1^0(
+     SEqPYsumNc((InL alpha1 alpha2)alpha1^)((InL alpha1 alpha2)alpha1^0))"
+   "SEqPYsumNcInL")
+ '("allnc alpha2^,alpha2^0(
+     SEqPYsumNc((InR alpha2 alpha1)alpha2^)((InR alpha2 alpha1)alpha2^0))"
+   "SEqPYsumNcInR"))
+
+;; Missing:
+;; STotalYprodNc
+;; SEqPYprod
+;; SEqPYprodNc
 
 ;; The following can be added only here, because PVAR-TO-MR-PVAR-ALIST
 ;; is needed.
@@ -4324,7 +4361,7 @@
 	    (append (make-substitution
 		     ex-vars (map make-term-in-var-form relevant-vars))
 		    (first-match (list aconst-fla-vars)
-				 aconst-fla-concl mr-fla)))
+				 aconst-fla-concl (nf mr-fla))))
 	   (aconst-fla-terms
 	    (map (lambda (v) (term-substitute (make-term-in-var-form v)
 					      osubst))
@@ -4349,7 +4386,7 @@
 	   (aconst-fla-concl
 	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
 	   (osubst (first-match (list (filter var? aconst-fla-vars-and-prems))
-				aconst-fla-concl mr-fla))
+				aconst-fla-concl (nf mr-fla)))
 	   (aconst-fla-terms-and-prem-proofs
 	    (map
 	     (lambda (x)
@@ -4370,6 +4407,104 @@
 	  (myerror
 	   "coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux"
 	   "Failed to prove" mr-fla "from" avar-or-var-list))))))
+
+;; Code discarded 2019-12-07
+;; (define (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
+;; 	 mr-fla avar-or-var-list)
+;;   (cond
+;;    ((ori-mr-ori-form? mr-fla)
+;;     (let* ((constr (term-in-const-form-to-const
+;; 		    (term-in-app-form-to-final-op
+;; 		     (term-in-app-form-to-arg
+;; 		      (car (predicate-form-to-args mr-fla))))))
+;; 	   (alg-name (alg-form-to-name
+;; 		      (arrow-form-to-final-val-type (const-to-type constr))))
+;; 	   (constr-names (map car (alg-name-to-typed-constr-names alg-name)))
+;; 	   (num (- (length constr-names)
+;; 		   (length (member (const-to-name constr) constr-names))))
+;; 	   (idpc (predicate-form-to-predicate mr-fla))
+;; 	   (aconst (number-and-idpredconst-to-intro-aconst num idpc))
+;; 	   (aconst-proof (make-proof-in-aconst-form aconst))
+;; 	   (aconst-fla (aconst-to-formula aconst))
+;; 	   (aconst-fla-concl
+;; 	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
+;; 	   (aconst-fla-vars (all-allnc-form-to-vars aconst-fla))
+;; 	   (osubst (first-match (list aconst-fla-vars)
+;; 				aconst-fla-concl (nf mr-fla)))
+;; 	   (aconst-fla-terms
+;; 	    (map (lambda (v) (term-substitute (make-term-in-var-form v) osubst))
+;; 		 aconst-fla-vars))
+;; 	   (aconst-inst-proof
+;; 	    (apply mk-proof-in-elim-form aconst-proof aconst-fla-terms))
+;; 	   (aconst-inst-fla-kernel (proof-to-formula aconst-inst-proof))
+;; 	   (aconst-inst-fla-prem
+;; 	    (imp-impnc-form-to-premise aconst-inst-fla-kernel))
+;; 	   (aconst-inst-fla-prem-proof
+;; 	    (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
+;; 	     aconst-inst-fla-prem avar-or-var-list)))
+;;       (mk-proof-in-elim-form aconst-inst-proof aconst-inst-fla-prem-proof)))
+;;    ((exi-mr-exi-form? mr-fla)
+;;     (let* ((idpc (predicate-form-to-predicate mr-fla))
+;; 	   (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+;; 	   (aconst-proof (make-proof-in-aconst-form aconst))
+;; 	   (aconst-fla (aconst-to-formula aconst))
+;; 	   (aconst-fla-vars (all-allnc-form-to-vars aconst-fla))
+;; 	   (aconst-fla-concl
+;; 	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
+;; 	   (ex-vars (set-minus aconst-fla-vars
+;; 			       (formula-to-free aconst-fla-concl)))
+;; 	   (relevant-vars
+;; 	    (list-head (filter var? avar-or-var-list) (length ex-vars)))
+;; 	   (osubst
+;; 	    (append (make-substitution
+;; 		     ex-vars (map make-term-in-var-form relevant-vars))
+;; 		    (first-match (list aconst-fla-vars)
+;; 				 aconst-fla-concl mr-fla)))
+;; 	   (aconst-fla-terms
+;; 	    (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 					      osubst))
+;; 		 aconst-fla-vars))
+;; 	   (aconst-inst-proof
+;; 	    (apply mk-proof-in-elim-form aconst-proof aconst-fla-terms))
+;; 	   (aconst-inst-fla-kernel (proof-to-formula aconst-inst-proof))
+;; 	   (aconst-inst-fla-prem
+;; 	    (imp-impnc-form-to-premise aconst-inst-fla-kernel))
+;; 	   (aconst-inst-fla-prem-proof
+;; 	    (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
+;; 	     aconst-inst-fla-prem
+;; 	     (multiset-minus avar-or-var-list relevant-vars))))
+;;       (mk-proof-in-elim-form aconst-inst-proof aconst-inst-fla-prem-proof)))
+;;    ((andi-mr-andi-form? mr-fla)
+;;     (let* ((idpc (predicate-form-to-predicate mr-fla))
+;; 	   (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+;; 	   (aconst-proof (make-proof-in-aconst-form aconst))
+;; 	   (aconst-fla (aconst-to-formula aconst))
+;; 	   (aconst-fla-vars-and-prems
+;; 	    (imp-impnc-all-allnc-form-to-vars-and-premises aconst-fla))
+;; 	   (aconst-fla-concl
+;; 	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
+;; 	   (osubst (first-match (list (filter var? aconst-fla-vars-and-prems))
+;; 				aconst-fla-concl mr-fla))
+;; 	   (aconst-fla-terms-and-prem-proofs
+;; 	    (map
+;; 	     (lambda (x)
+;; 	       (if
+;; 		(var? x)
+;; 		(term-substitute (make-term-in-var-form x) osubst)
+;; 		(coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
+;; 		 (formula-substitute x osubst) avar-or-var-list)))
+;; 	     aconst-fla-vars-and-prems)))
+;;       (apply mk-proof-in-elim-form
+;; 	     aconst-proof aconst-fla-terms-and-prem-proofs)))
+;;    (else ;finding a corresponding assumption
+;;     (let ((avar (list-search-positive avar-or-var-list
+;; 		  (lambda (a) (and (avar? a) (classical-formula=?
+;; 					      mr-fla (avar-to-formula a)))))))
+;;       (if (pair? avar)
+;; 	  (make-proof-in-avar-form avar)
+;; 	  (myerror
+;; 	   "coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux"
+;; 	   "Failed to prove" mr-fla "from" avar-or-var-list))))))
 
 ;; Here ends Kenji Miyamoto's new implementation
 
