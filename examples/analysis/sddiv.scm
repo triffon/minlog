@@ -1,4 +1,4 @@
-;; 2019-08-26.  examples/analysis/sddiv.scm
+;; 2019-12-08.  examples/analysis/sddiv.scm
 
 (load "~/git/minlog/init.scm")
 
@@ -65,12 +65,13 @@
 (use "RatEqvToRealEq")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIOne")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
-;; (CoRec rea=>str)1([x]SdR pair(InR rea str)x)
+;; (CoRec rea=>ai)1([x]SdR pair(InR rea ai)x)
 
 ;; CoIIntNOne
 (set-goal "CoI(IntN 1)")
@@ -121,12 +122,13 @@
 (use "RatEqvToRealEq")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIIntNOne")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
-;; (CoRec rea=>str)IntN 1([x]SdL pair(InR rea str)IntN 1)
+;; (CoRec rea=>ai)IntN 1([x]SdL pair(InR rea ai)x)
 
 ;; CoINegToCoIPlusOne
 (set-goal "allnc x(exr y(CoI y andi y<<=0 andi x===y+1) -> CoI x)")
@@ -340,13 +342,14 @@
 (use "RealEqElim0" (pt "y+1"))
 (use "Conj")
 ;; Proof finished.
+;; (cdp)
 (save "CoINegToCoIPlusOne")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
-;; [u](CoRec str=>str)u
+;; [u](CoRec ai=>ai)u
 ;;  ([u0][case (cCoIClosure u0)
 ;;      (s pair u1 -> 
 ;;      [case s
@@ -543,13 +546,14 @@
 (use "RatLeToRealLe")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "CoIPosToCoIMinusOne")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
-;; [u](CoRec str=>str)u
+;; [u](CoRec ai=>ai)u
 ;;  ([u0][case (cCoIClosure u0)
 ;;      (s pair u1 -> 
 ;;      [case s
@@ -681,6 +685,7 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoIToCoIDouble")
 
 (define eterm (proof-to-extracted-term))
@@ -724,6 +729,7 @@
 (use "Truth")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoIToCoIQuad")
 
 (define eterm (proof-to-extracted-term))
@@ -731,138 +737,6 @@
 (pp neterm)
 
 ;; [u]cCoICompat(cCoIToCoIDouble(cCoIToCoIDouble u))
-
-;; 2017-12-04.
-;; CoIDivSatCoIClAuxBdR CoIDivSatCoIClAuxBdL
-;; CoIDivSatCoIClAuxEqR CoIDivSatCoIClAuxEqL
-;; moved into examplesanalysisdiv.scm under the names
-;; DivAuxBdR DivAuxBdL DivAuxEqR DivAuxEqL
-
-;; CoIDivSatCoIClAuxBdR
-(set-goal "all x,y(0<<=x -> x<<=y -> abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y)")
-(assume "x" "y" "0<<=x" "x<<=y")
-(simpreal "RealAbsTimes")
-(simpreal "RealAbsTimes")
-(ng #t)
-(simpreal "RealTimesAssoc")
-(ng #t)
-(use "RealLeTrans" (pt "2*((1#2)*y)"))
-(use "RealLeMonTimes")
-(use "RealNNegPos")
-;; ?_18:abs(x+ ~((1#2)*y))<<=(1#2)*y
-(use "RealLeAbs")
-;; 19,20
-;; ?_19:x+ ~((1#2)*y)<<=(1#2)*y
-(use "RealLeTrans" (pt "y+ ~((1#2)*y)"))
-(use "RealLeMonPlus")
-(use "x<<=y")
-(use "RealLeRefl")
-(autoreal)
-(simpreal "RealPlusComm")
-(use "RealLePlusRInv")
-(autoreal)
-(simpreal "<-" "RealTimesPlusDistr")
-(assert "y+y===2*y")
- (simpreal (pf "2*y===(RealPlus 1 1)*y"))
- (simpreal "RealTimesPlusDistrLeft")
- (simpreal "RealOneTimes")
- (use "RealEqRefl")
- (autoreal)
- (ng)
- (use "RealEqRefl")
- (autoreal)
-(assume "y+y===2*y")
-(simpreal "y+y===2*y")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealOneTimes")
-(use "RealLeRefl")
-(autoreal)
-;; ?_20:~(x+ ~((1#2)*y))<<=(1#2)*y
-(simpreal "RealUMinusPlus")
-(simpreal "RealUMinusUMinus")
-(use "RealLePlusRInv")
-(autoreal)
-(use "RealLeTrans" (pt "0+(1#2)*y"))
-(simpreal "RealPlusComm")
-(simpreal "RealPlusZero")
-(use "RealLeRefl")
-(autoreal)
-(use "RealLeMonPlus")
-(use "0<<=x")
-(use "RealLeRefl")
-(autoreal)
-;; ?_16:2*((1#2)*y)<<=y
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealOneTimes")
-(use "RealLeRefl")
-(autoreal)
-;; Proof finished.
-(save "CoIDivSatCoIClAuxBdR")
-
-;; CoIDivSatCoIClAuxBdL
-(set-goal "all x,y(x<<=0 -> abs x<<=y -> abs(4*((1#2)*(x+(1#2)*y)))<<=y)")
-(assume "x" "y" "x<<=0" "abs x<<=y")
-(simpreal "RealAbsTimes")
-(simpreal "RealAbsTimes")
-(ng #t)
-(simpreal "RealTimesAssoc")
-(ng #t)
-(use "RealLeTrans" (pt "2*((1#2)*y)"))
-(use "RealLeMonTimes")
-(use "RatNNegToRealNNeg")
-(use "Truth")
-;; ?_18:abs(x+(1#2)*y)<<=(1#2)*y
-(use "RealLeAbs")
-;; 20,21
-;; ?_20:x+(1#2)*y<<=(1#2)*y
-(use "RealLeTrans" (pt "0+(1#2)*y"))
-(use "RealLeMonPlus")
-(use "x<<=0")
-(use "RealLeRefl")
-(autoreal)
-(simpreal "RealPlusComm")
-(simpreal "RealPlusZero")
-(use "RealLeRefl")
-(autoreal)
-;; ?_21:~(x+(1#2)*y)<<=(1#2)*y
-(simpreal "RealPlusComm")
-(simpreal "RealUMinusPlus")
-(use "RealLePlusRInv")
-(autoreal)
-(simpreal "<-" "RealTimesPlusDistr")
-(use "RealLeTrans" (pt "abs ~x"))
-(use "RealLeAbsId")
-(autoreal)
-(simpreal "RealAbsUMinus")
-(use "RealLeTrans" (pt "y"))
-(use "abs x<<=y")
-;; ?_53:y<<=(1#2)*(y+y)
-(assert "y+y===2*y")
- (simpreal (pf "2*y===(RealPlus 1 1)*y"))
- (simpreal "RealTimesPlusDistrLeft")
- (simpreal "RealOneTimes")
- (use "RealEqRefl")
- (autoreal)
- (ng)
- (use "RealEqRefl")
- (autoreal)
-(assume "y+y===2*y")
-(simpreal "y+y===2*y")
-(simpreal "RealTimesAssoc")
-(ng)
-(simpreal "RealOneTimes")
-(use "RealLeRefl")
-(autoreal)
-;; ?_16:2*((1#2)*y)<<=y
-(simpreal "RealTimesAssoc")
-(ng)
-(simpreal "RealOneTimes")
-(use "RealLeRefl")
-(autoreal)
-;; Proof finished.
-(save "CoIDivSatCoIClAuxBdL")
 
 ;; CoIDivSatCoIClAuxR
 (set-goal "allnc x,y(CoI x -> CoI y -> (1#4)<<=y -> abs x<<=y -> 0<<=x -> 
@@ -887,7 +761,7 @@
 (use "RealLeMonTimes")
 (use "RatNNegToRealNNeg")
 (use "Truth")
-(use "CoIDivSatCoIClAuxBdR")
+(use "DivAuxBdR")
 (use "0<<=x")
 (use "RealLeTrans" (pt "abs x"))
 (use "RealLeAbsId")
@@ -912,6 +786,7 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoIDivSatCoIClAuxR")
 
 (define eterm (proof-to-extracted-term))
@@ -943,7 +818,7 @@
 (use "RealLeMonTimes")
 (use "RatNNegToRealNNeg")
 (use "Truth")
-(use "CoIDivSatCoIClAuxBdL")
+(use "DivAuxBdL")
 (use "x<<=0")
 (use "xBd")
 ;; ?_20:abs(1#4)*y<<=(1#4)
@@ -966,6 +841,7 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoIDivSatCoIClAuxL")
 
 (define eterm (proof-to-extracted-term))
@@ -973,98 +849,6 @@
 (pp neterm)
 
 ;; [u,u0]cCoIToCoIQuad(cCoIAverage u(cCoICompat(cCoIClosureInv SdM u0)))
-
-;; CoIDivSatCoIClAuxEqR
-(set-goal "all x,y(Real x -> Real y -> (1#4)<<=y ->
- x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1))")
-(assume "x" "y" "Rx" "Ry" "yLBd")
-(assert "RealPos y 3")
- (simp (pf "3=PosS 2"))
- (use "RealLeToPos")
- (ng #t)
- (use "yLBd")
- (use "Truth")
-(assume "RealLeToPosInst")
-(assert "Real(RealUDiv y 3)")
- (use "RealUDivReal")
- (autoreal) 
- (use "RealPosAbs")
- (use "RealLeToPosInst")
-(assume "R1/y")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealTimesPlusDistr")
-(ng #t)
-(simpreal "RealTimesAssoc")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "<-" "RealTimesAssoc")
-(simpreal "RealTimesPlusDistrLeft")
-(simpreal "<-" "RealTimesIdUMinus")
-(simpreal (pf "(1#2)* ~y*RealUDiv y 3===RealUMinus(1#2)*y*RealUDiv y 3"))
-(simpreal "<-" "RealTimesAssoc")
-(simpreal "RealTimesUDiv")
-(ng #t)
-(simpreal "RealOneTimes")
-(use "RealEqTrans" (pt "x*RealUDiv y 3+RealPlus(IntN 1#2)(1#2)"))
-(ng #t)
-(simpreal "RealPlusZero")
-(use "RealEqRefl")
-(autoreal)
-(simpreal "<-" "RealPlusAssoc")
-(use "RealEqRefl")
-(autoreal)
-(use "RealLeToPosInst")
-(autoreal)
-;; ?_47:(1#2)* ~y*RealUDiv y 3=== ~(1#2)*y*RealUDiv y 3
-(use "RealTimesCompat")
-(simpreal "RealTimesUMinusId")
-(simpreal "RealTimesIdUMinus")
-(use "RealEqRefl")
-(autoreal)
-(use "RealEqRefl")
-(autoreal)
-;; Proof finished.
-(save "CoIDivSatCoIClAuxEqR")
-
-;; CoIDivSatCoIClAuxEqL
-(set-goal "all x,y(Real x -> Real y -> (1#4)<<=y ->
- x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+(1#2)*y))*RealUDiv y 3+IntN 1))")
-(assume "x" "y" "Rx" "Ry" "yLBd")
-(assert "RealPos y 3")
- (simp (pf "3=PosS 2"))
- (use "RealLeToPos")
- (ng #t)
- (use "yLBd")
- (use "Truth")
-(assume "RealLeToPosInst")
-(assert "Real(RealUDiv y 3)")
- (use "RealUDivReal")
- (autoreal) 
- (use "RealPosAbs")
- (use "RealLeToPosInst")
-(assume "R1/y")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealTimesPlusDistr")
-(ng #t)
-(simpreal "RealTimesAssoc")
-(simpreal "RealTimesAssoc")
-(ng #t)
-(simpreal "RealOneTimes")
-(simpreal "RealTimesPlusDistrLeft")
-(simpreal "<-" "RealTimesAssoc")
-(simpreal "RealTimesUDiv")
-(ng #t)
-(simpreal "<-" "RealPlusAssoc")
-(ng #t)
-(simpreal "RealPlusZero")
-(use "RealEqRefl")
-(autoreal)
-(use "RealLeToPosInst")
-(autoreal)
-;; Proof finished.
-(save "CoIDivSatCoIClAuxEqL")
 
 ;; (set! COMMENT-FLAG #f)
 ;; CoIDivSatCoICl
@@ -1122,14 +906,14 @@
 ;; ?_45:abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y andnc 
 ;;      x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
 (split)
-(use "CoIDivSatCoIClAuxBdR")
+(use "DivAuxBdR")
 (use "0<<=x")
 (use "RealLeTrans" (pt "abs x"))
 (use "RealLeAbsId")
 (autoreal)
 (use "xBd")
 ;; ?_52:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
-(use "CoIDivSatCoIClAuxEqR")
+(use "DivAuxEqR")
 (autoreal)
 (use "yLBd")
 ;; 14
@@ -1198,14 +982,14 @@
 ;; ?_118:abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y andnc 
 ;;       x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
 (split)
-(use "CoIDivSatCoIClAuxBdR")
+(use "DivAuxBdR")
 (use "0<<=x")
 (use "RealLeTrans" (pt "abs x"))
 (use "RealLeAbsId")
 (autoreal)
 (use "xBd")
 ;; ?_125:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
-(use "CoIDivSatCoIClAuxEqR")
+(use "DivAuxEqR")
 (autoreal)
 (use "yLBd")
 ;; 80
@@ -1281,14 +1065,14 @@
 ;; ?_198:abs(4*((1#2)*(x+ ~((1#2)*y))))<<=y andnc 
 ;;       x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
 (split)
-(use "CoIDivSatCoIClAuxBdR")
+(use "DivAuxBdR")
 (use "0<<=x")
 (use "RealLeTrans" (pt "abs x"))
 (use "RealLeAbsId")
 (autoreal)
 (use "xBd")
 ;; ?_205:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+ ~((1#2)*y)))*RealUDiv y 3+1)
-(use "CoIDivSatCoIClAuxEqR")
+(use "DivAuxEqR")
 (autoreal)
 (use "yLBd")
 ;; 153
@@ -1421,10 +1205,10 @@
 ;; ?_353:abs(4*((1#2)*(x+(1#2)*y)))<<=y andnc 
 ;;       x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+(1#2)*y))*RealUDiv y 3+IntN 1)
 (split)
-(use "CoIDivSatCoIClAuxBdL")
+(use "DivAuxBdL")
 (use "x<<=0")
 (use "xBd")
-(use "CoIDivSatCoIClAuxEqL")
+(use "DivAuxEqL")
 (autoreal)
 (use "yLBd")
 ;; 81
@@ -1475,10 +1259,10 @@
 ;; ?_401:abs(4*((1#2)*(x+(1#2)*y)))<<=y andnc 
 ;;       x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+(1#2)*y))*RealUDiv y 3+IntN 1)
 (split)
-(use "CoIDivSatCoIClAuxBdL")
+(use "DivAuxBdL")
 (use "x<<=0")
 (use "xBd")
-(use "CoIDivSatCoIClAuxEqL")
+(use "DivAuxEqL")
 (autoreal)
 (use "yLBd")
 ;; 15
@@ -1523,14 +1307,15 @@
 ;; ?_444:abs(4*((1#2)*(x+(1#2)*y)))<<=y andnc 
 ;;       x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+(1#2)*y))*RealUDiv y 3+IntN 1)
 (split)
-(use "CoIDivSatCoIClAuxBdL")
+(use "DivAuxBdL")
 (use "x<<=0")
 (use "xBd")
 ;; ?_451:x*RealUDiv y 3===(1#2)*(4*((1#2)*(x+(1#2)*y))*RealUDiv y 3+IntN 1)
-(use "CoIDivSatCoIClAuxEqL")
+(use "DivAuxEqL")
 (autoreal)
 (use "yLBd")
 ;; Proof finished.
+;; (cdp)
 (save "CoIDivSatCoICl")
 
 (define eterm (proof-to-extracted-term))
@@ -1640,13 +1425,14 @@
 (use "RealEqRefl")
 (autoreal)
 ;; Proof finished.
+;; (cdp)
 (save "CoIDivAux")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 
-;; [u,u0](CoRec str=>str)u0
+;; [u,u0](CoRec ai=>ai)u0
 ;;  ([u1][case (cCoIDivSatCoICl u1 u) (s pair u2 -> s pair InR u2)])
 
 ;; CoIDiv
@@ -1661,16 +1447,18 @@
 (use "CoIx")
 (split)
 (use "xBd")
+(assert "Real(RealUDiv y 3)")
+ (use "RealUDivReal")
+ (autoreal)
+ (use "RealPosAbs")
+ (simp (pf "3=PosS 2"))
+ (use "RealLeToPos")
+ (use "(1#4)<<=y")
+ (use "Truth")
+;; Assertion proved.
+(assume "Ry/3")
 (use "RealEqRefl")
-(use "RealTimesReal")
 (autoreal)
-(use "RealUDivReal")
-(autoreal)
-(use "RealPosAbs")
-(simp (pf "3=PosS 2"))
-(use "RealLeToPos")
-(use "(1#4)<<=y")
-(use "Truth")
 ;; Proof finished.
 ;; (cdp)
 (save "CoIDiv")
@@ -1681,28 +1469,20 @@
 (define CoIDiv-neterm (rename-variables (nt CoIDiv-eterm)))
 (ppc CoIDiv-neterm)
 
-;; [u,u0](CoRec str=>str)u
+;; [u,u0](CoRec ai=>ai)u
 ;;  ([u1][case (cCoIClosure u1)
 ;;      (s pair u2 -> [case s
-;;        (SdR -> [case (SdR pair cCoIDivSatCoIClAuxR u1 u0)
-;;          (s0 pair u3 -> s0 pair InR u3)])
+;;        (SdR -> SdR pair InR(cCoIDivSatCoIClAuxR u1 u0))
 ;;        (SdM -> [case (cCoIClosure u2)
 ;;          (s0 pair u3 -> [case s0
-;;            (SdR -> [case (SdR pair cCoIDivSatCoIClAuxR u1 u0)
-;;              (s1 pair u4 -> s1 pair InR u4)])
+;;            (SdR -> SdR pair InR(cCoIDivSatCoIClAuxR u1 u0))
 ;;            (SdM -> [case (cCoIClosure u3)
 ;;              (s1 pair u4 -> [case s1
-;;                (SdR -> [case (SdR pair cCoIDivSatCoIClAuxR u1 u0)
-;;                  (s2 pair u5 -> s2 pair InR u5)])
-;;                (SdM -> [case (SdM pair cCoIToCoIDouble u1)
-;;                  (s2 pair u5 -> s2 pair InR u5)])
-;;                (SdL -> [case (SdL pair cCoIDivSatCoIClAuxL u1 u0)
-;;                  (s2 pair u5 -> s2 pair InR u5)])])])
-;;            (SdL -> [case (SdL pair cCoIDivSatCoIClAuxL u1 u0)
-;;              (s1 pair u4 -> s1 pair InR u4)])])])
-;;        (SdL -> [case (SdL pair cCoIDivSatCoIClAuxL u1 u0)
-;;          (s0 pair u3 -> s0 pair InR u3)])])])
-
+;;                (SdR -> SdR pair InR(cCoIDivSatCoIClAuxR u1 u0))
+;;                (SdM -> SdM pair InR(cCoIToCoIDouble u1))
+;;                (SdL -> SdL pair InR(cCoIDivSatCoIClAuxL u1 u0))])])
+;;            (SdL -> SdL pair InR(cCoIDivSatCoIClAuxL u1 u0))])])
+;;        (SdL -> SdL pair InR(cCoIDivSatCoIClAuxL u1 u0))])])
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Haskell translation
@@ -1710,8 +1490,9 @@
 
 ;; terms-to-haskell-program (written by Fredrik Nordvall-Forsberg)
 ;; generates a Haskell file (here sddivtest.hs).  To run it, in a
-;; terminal type ghci sddivtest.hs.  Then in *Main> one can evaluate
-;; the Haskell functions in sddivtest.hs.  To quit type *Main> :q
+;; terminal type ghci sddivtest.hs.  In *Main> one can evaluate the
+;; Haskell functions in sddivtest.hs .  Time mesurement by :set +s .
+;; To quit type *Main> :q .
 
 '(
 (animate "RealToCoI")
@@ -1758,6 +1539,7 @@
        (list (pt "AiToReal") "aitoreal")
        (list (pt "TakeStr") "takestr")
        (list (pt "ListSdToRat") "listsdtorat")))
+;; ok, output written to file ~/temp/sddivtest.hs
 
 (deanimate "RealToCoI")
 (deanimate "RealToCoIAux")
@@ -1789,7 +1571,9 @@
 (deanimate "CoIAvcSatCoIClAuxJ")
 )
 
+;; In a terminal type
 ;; ghci sddivtest.hs
+
 ;; takestr 18 ((coidiv mptfive) ptfive)
 
 ;; SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL,SdL
@@ -1801,3 +1585,7 @@
 ;; takestr 18 (coidiv (rattocoi (2 % 7)) ptfive)
 
 ;; SdR,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR
+
+;; takestr 18 (coidiv (rattocoi (1001 % 3001)) (rattocoi (10001 % 20001)))
+
+;; SdR,SdR,SdL,SdR,SdL,SdR,SdL,SdR,SdL,SdR,SdM,SdR,SdL,SdL,SdR,SdL,SdR,SdR
