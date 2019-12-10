@@ -1,4 +1,4 @@
-;; 2019-08-21.  pproof.scm
+;; 2019-12-07.  pproof.scm
 ;; 11. Partial proofs
 ;; ==================
 
@@ -5868,8 +5868,10 @@
 	      (make-proof-in-aconst-form
 	       (theorem-name-to-aconst (string-append name "Real")))
 	      (car args) (cadr args) prev1 prev2))))
-	 (else #f))))
-     (else #f))))
+	 (else (myerror "context-and-term-to-realproof"
+			"not implemented for" name)))))
+     (else (myerror "context-and-term-to-realproof"
+		    "No realproof found for" term)))))
 
 (define (realproof)
   (let* ((num-goals (pproof-state-to-num-goals))
