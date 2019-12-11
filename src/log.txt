@@ -1,4 +1,11 @@
-;; 2019-12-10.  log.txt
+Done in dev branch 2019-12-11
+
+In examples/analysis/sddiv.scm
+
+Run times table added.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done in dev branch 2019-12-11.  log.txt
 
 In term.scm
 
