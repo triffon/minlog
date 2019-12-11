@@ -1586,6 +1586,20 @@
 
 ;; SdR,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR,SdL,SdM,SdR
 
-;; takestr 18 (coidiv (rattocoi (1001 % 3001)) (rattocoi (10001 % 20001)))
 
-;; SdR,SdR,SdL,SdR,SdL,SdR,SdL,SdR,SdL,SdR,SdM,SdR,SdL,SdL,SdR,SdL,SdR,SdR
+;; takestr 19 (coidiv (rattocoi (1001 % 3001)) (rattocoi (10001 % 20001)))
+
+;; SdR,SdR,SdL,SdR,SdL,SdR,SdL,SdR,SdL,SdR,SdM,SdR,SdL,SdL,SdR,SdL,SdR,SdR,SdL
+;; (0.04 secs, 20,315,816 bytes)
+
+;; Similarly we have
+;; number of digits  runtime in seconds
+;; 10                0.01
+;; 25                0.05
+;; 50                0.12
+;; 75                0.23
+;; 100               0.39
+;; 250               2.11
+;; 500               7,47
+;; 750              17,36
+;; 1000             38,48
