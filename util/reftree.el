@@ -2,7 +2,7 @@
 ;; reference tree for each lemma in a file.  Usage:
 
 ;; 1.  Copy reftree.el into an emacs buffer and evaluate the buffer
-;; (by M-x eval-current-buffer)
+;; (by M-x eval-buffer)
 
 ;; 2.  Go to buffer *scratch* (for instance)
 
@@ -11,6 +11,9 @@
 ;; 4.  Type M-x minlog-ref.  You will be asked for a file name.
 
 ;; 5.  The resulting reference tree appears in the present buffer.
+
+(defun cdddr (x)
+  (cdr (cddr x)))
 
 (defun nth0 (x)
   (car x))
@@ -25,7 +28,7 @@
   (car (cdddr x)))
 
 (defun nth4 (x)
-  (car (cdddr (cdr x))))
+  (car (cdr (cddr (cdr x)))))
 
 (defun read-next-sexp ()
   (let (end sexp)
@@ -205,4 +208,3 @@ Ignoring intial %s lemmata, the reference trees for the remaining
       ;; in the proof
       (print-lemmata (reverse (nth4 lemma)) (+ 3 indent) (1- level))))
 
-;(minlog-ref "/home/masahiko/system/minlog/section2-4/section2-4.scm" 1)
