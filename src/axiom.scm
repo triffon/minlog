@@ -1,4 +1,4 @@
-;; 2019-08-20.  axiom.scm
+;; 2020-04-06.  axiom.scm
 ;; 8. Assumption variables and axioms
 ;; ==================================
 ;; To be renamed into avars scheme, with the axioms section transferred
@@ -566,7 +566,7 @@
 			      "tpsubst as list of pairs expected"
 			      tpsubst)))
 	 (psubst (list-transform-positive tpsubst
-		  (lambda (x) (pvar-form? (car x)))))
+		   (lambda (x) (pvar-form? (car x)))))
 	 (tvars (map car tsubst))
 	 (pvars (map car psubst)))
     (if (not (string? name))
@@ -601,7 +601,8 @@
 	 (lambda (pvar cterm)
 	   (let ((fla (cterm-to-formula cterm)))
 	     (if (and (h-deg-zero? (pvar-to-h-deg pvar)) ;c.r. pvar
-		      (formula-of-nulltype? fla)) ;n.c. formula
+		      (formula-of-nulltype? fla) ;n.c. formula
+		      (not (string=? "Elim" name)))
 		 (myerror
 		  "check-aconst" name
 		  "not a sharp psubst: c.r. pvar" pvar
@@ -2484,6 +2485,42 @@
 	 (prevs (map check-bisim-cterm cterms)))
     #t))
 
+(define (formula-to-invarall-aconst formula)
+  (if (formula-with-mr-predicates? formula)
+      (myerror "formula-to-invarall-aconst"
+	       "mr-free formula expected" formula))
+  (if (formula-of-nulltype? formula)
+      (myerror "formula-to-invarall-aconst"
+	       "c.r. formula expected" formula))
+  (let* ((type (formula-to-et-type formula))
+	 (var (type-to-new-partial-var type))
+	 (varterm (make-term-in-var-form var))
+	 (mr-fla (real-and-formula-to-mr-formula varterm formula))
+	 (imp-fla (make-imp mr-fla formula))
+	 (vars (formula-to-free formula))
+	 (fla-of-invarall-aconst
+	  (apply mk-allnc var (append vars (list imp-fla)))))
+    (make-aconst "InvarAll" 'axiom fla-of-invarall-aconst empty-subst)))
+
+(define (formula-to-invarex-aconst formula var)
+  (if (formula-with-mr-predicates? formula)
+      (myerror "formula-to-invarex-aconst"
+	       "mr-free formula expected" formula))
+  (if (formula-of-nulltype? formula)
+      (myerror "formula-to-invarex-aconst"
+	       "c.r. formula expected" formula))
+  (if (not (equal? (formula-to-et-type formula) (var-to-type var)))
+      (myerror "formula-to-invarex-aconst"
+	       "et-type of formula" formula
+	       "should be equal to the type of" var))
+  (let* ((varterm (make-term-in-var-form var))
+	 (mr-fla (real-and-formula-to-mr-formula varterm formula))
+	 (exnc-fla (make-exnc var mr-fla))
+	 (imp-fla (make-imp formula exnc-fla))
+	 (vars (formula-to-free formula))
+	 (fla-of-invarex-aconst (apply mk-allnc (append vars (list imp-fla)))))
+    (make-aconst "InvarEx" 'axiom fla-of-invarex-aconst empty-subst)))
+
 ;; Theorems
 
 ;; A theorem is a special assumption constant.  We maintain an
@@ -2592,24 +2629,22 @@
 	   (apply myerror "allnc-intro with cvars" nc-viols))
        (if (pair? h-deg-viols)
 	   (apply myerror "h-deg violations at aconsts" h-deg-viols))
-       (if (final-substring? "Sound" string)
-	   (let* ((name (substring string 0 (- (string-length string)
-					       (string-length "Sound"))))
-		  (orig-proof (theorem-name-to-proof name)))
-	     (if (not (classical-formula=?
-		       formula
-		       (real-and-formula-to-mr-formula
-			(proof-to-extracted-term orig-proof)
-			(proof-to-formula orig-proof))))
-		 (myerror "add-theorem" "formula of theorem" formula
-			  "should be equal to the soundness formula"
-			  (proof-to-soundness-formula
-			   (theorem-name-to-proof name))
-			  "of theorem" name))))
        (let ((aconst (make-aconst string 'theorem formula empty-subst)))
 	 (set! THEOREMS (cons (list string aconst proof) THEOREMS))
 	 (if (not (member string (list "Id" "If")))
 	     (comment "ok, " string " has been added as a new theorem."))
+	 (if (and (final-substring? "Sound" string)
+		  (let* ((name (substring string 0 (- (string-length string)
+						      (string-length "Sound"))))
+			 (orig-proof (theorem-name-to-proof name)))
+		    (not (classical-formula=?
+			  formula
+			  (real-and-formula-to-mr-formula
+			   (proof-to-extracted-term orig-proof)
+			   (proof-to-formula orig-proof))))))
+	     (multiline-comment
+	      "Check equality of proven formula with the soundness formula."
+	      "Try animation of lemmas L (add a computation rule for cL)."))
 	 (if
 	  (and (final-substring? "Total" string)
 	       (pconst-name?
@@ -2636,7 +2671,8 @@
 			 " should have been added with t-deg zero"))
 	    (change-t-deg-to-one name))
 					;string not pconstname+Total
-	  (if (not (formula-of-nulltype? formula))
+	  (if (not (or (formula-with-mr-predicates? formula)
+		       (formula-of-nulltype? formula)))
 	      (let* ((pconst-name
 		      (theorem-or-global-assumption-name-to-pconst-name
 		       string))
@@ -2921,7 +2957,8 @@
 			    (cons (car l) res))))
 	      ((null? l) (set! THEOREMS (reverse res))))
 	  (comment "ok, theorem " string " is removed")
-	  (if (not (formula-of-nulltype? formula))
+	  (if (not (or (formula-with-mr-predicates? formula)
+		       (formula-of-nulltype? formula)))
 	      (remove-program-constant
 	       (theorem-or-global-assumption-name-to-pconst-name
 		string))))
@@ -3111,7 +3148,7 @@
 			(string-length COMMENT-STRING)
 			(- PP-WIDTH (string-length COMMENT-STRING))
 			(aconst-to-formula (cadr x))))
-		      (newline))
+		      (newline) (newline))
 		    shortened-relevant-thms)))
     (if (null? shortened-relevant-gas)
 	(comment "No global assumptions with name containing "
@@ -3126,7 +3163,7 @@
 			(string-length COMMENT-STRING)
 			(- PP-WIDTH (string-length COMMENT-STRING))
 			(aconst-to-formula (cadr x))))
-		      (newline))
+		      (newline) (newline))
 		    shortened-relevant-gas)))))
 
 
