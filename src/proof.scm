@@ -1,4 +1,4 @@
-;; 2019-12-07.  proof.scm
+;; 2020-04-06.  proof.scm
 ;; 10. Proofs
 ;; ==========
 
@@ -704,6 +704,15 @@
 	var
 	proof))
 
+(define (mk-proof-in-allnc-intro-form x . rest)
+  (if (null? rest)
+      x
+      (if (var-form? x)
+	  (let ((prev (apply mk-proof-in-nc-intro-form rest)))
+	    (make-proof-in-allnc-intro-form x prev))
+	  (myerror "mk-proof-in-allnc-intro-form"
+		   "object variable expected" x))))
+
 (define proof-in-allnc-intro-form-to-var caddr)
 (define proof-in-allnc-intro-form-to-kernel cadddr)
 
@@ -946,28 +955,6 @@
 	   (make-proof-in-aconst-form aconst)
 	   (append (map make-term-in-var-form free)
 		   (list proof proj-right-proof)))))
-
-(define (make-proof-in-andl-elim-left-form proof)
-  (let* ((fla (proof-to-formula proof))
-	 (left (if (andl-form? fla)
-		   (andl-form-to-left fla)
-		   (myerror "make-proof-in-andl-elim-left-form"
-			    "andl form expected" fla)))
-	 (right (andl-form-to-right fla))
-	 (imp-fla (make-imp fla left))
-	 (aconst (imp-formulas-to-elim-aconst imp-fla))
-	 (inst-formula (aconst-to-inst-formula aconst))
-	 (free (formula-to-free inst-formula))
-	 (proj-left-proof ;of Pvar1 -> Pvar2 -> Pvar1
-	  (let ((u (formula-to-new-avar left))
-		(v (formula-to-new-avar right)))
-	    (make-proof-in-imp-intro-form
-	     u (make-proof-in-imp-intro-form
-		v (make-proof-in-avar-form u))))))
-    (apply mk-proof-in-elim-form
-	   (make-proof-in-aconst-form aconst)
-	   (append (map make-term-in-var-form free)
-	   (list proof proj-left-proof)))))
 
 (define (make-proof-in-andl-elim-right-form proof)
   (let* ((fla (proof-to-formula proof))
@@ -8160,6 +8147,23 @@
 
 (define cdp check-and-display-proof)
 
+(define (check-proof . opt-proof-or-thm-name-and-ignore-deco-flag)
+  (if COMMENT-FLAG
+      (begin 
+	(set! COMMENT-FLAG #f)
+	(apply check-and-display-proof
+	       opt-proof-or-thm-name-and-ignore-deco-flag)
+	(set! COMMENT-FLAG #t)
+	(comment "ok, proof is correct."))
+      (begin
+	(apply check-and-display-proof
+	       opt-proof-or-thm-name-and-ignore-deco-flag)
+	(set! COMMENT-FLAG #t)
+	(comment "ok, proof is correct.")
+	(set! COMMENT-FLAG #f))))
+
+(define cp check-proof)
+
 ;; A flagged avar is a list (#t avar) or (#f avar).  The entries #t or
 ;; #f indicate whether this occurrence of an avar is above a c.i.
 ;; formula in a proof or not.
@@ -12507,3 +12511,14 @@
 		       (make-proof-in-aconst-form initeqd-aconst)
 		       lhs)
 		      eqd-fla))))))))
+
+;; Proofs always have the form (tag formula ...) where ... is a list
+;; with further information.  proof-to-proof-with-new-formula just
+;; changes the end formula into an equal one (classical-formula=?).
+
+(define (proof-to-proof-with-new-formula proof new-fla)
+  (if (classical-formula=? (proof-to-formula proof) new-fla)
+      (cons (car proof) (cons new-fla (cddr proof)))
+      (myerror "proof-to-proof-with-new-formula" "equal formulas expected"
+	       (proof-to-formula proof) new-fla)))
+
