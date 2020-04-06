@@ -1,4 +1,4 @@
-;; 2019-08-25.  examples/analysis/sdavaux.scm
+;; 2020-04-06.  examples/analysis/sdavaux.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -86,47 +86,90 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [u,u0]
 ;;  cIntPlusSdToSdtwo clft(cCoIClosure u)clft(cCoIClosure u0)pair 
 ;;  crht(cCoIClosure u)pair crht(cCoIClosure u0)
+
+(add-var-name "tuv" (py "sdtwo yprod ai yprod ai"))
+
+(add-sound "CoIAvToAvc")
+
+;; ok, CoIAvToAvcSound has been added as a new theorem:
+
+;; allnc x,y,u^(
+;;  CoIMR x u^ -> 
+;;  allnc u^0(
+;;   CoIMR y u^0 -> 
+;;   (ExRTMR int
+;;     sdtwo yprod ai yprod ai
+;;     (cterm (i,tuv^) 
+;;     (ExRTMR rea
+;;       sdtwo yprod ai yprod ai
+;;       (cterm (x0,tuv^0) 
+;;       (ExRTMR rea
+;;         sdtwo yprod ai yprod ai
+;;         (cterm (y0,tuv^1) 
+;;         (AndDMR (cterm (t^) SdtwoMR i t^)
+;;           (cterm ((ai yprod ai)^) 
+;;           (AndDMR (cterm (u^1) CoIMR x0 u^1)
+;;             (cterm (u^1) 
+;;             (AndLMR (cterm (u^2) CoIMR y0 u^2)
+;;               (cterm () (1#2)*(x+y)===(1#4)*(x0+y0+i)))
+;;             u^1))
+;;           (ai yprod ai)^))
+;;         tuv^1))
+;;       tuv^0))
+;;     tuv^))
+;;   (cCoIAvToAvc u^ u^0)))
+
+;; with computation rule
+
+;; cCoIAvToAvc eqd
+;; ([u,u0]
+;;   cIntPlusSdToSdtwo clft(cCoIClosure u)clft(cCoIClosure u0)pair 
+;;   crht(cCoIClosure u)pair crht(cCoIClosure u0))
+
+;; (cp "CoIAvToAvcSound")
+
+(deanimate "CoIAvToAvc")
 
 ;; For CoIAvcSatCoICl we need J,K.
 
 ;; CoIAvcSatCoIClAuxJ
 (set-goal "allnc d,e,i(Sd d -> Sd e -> Sdtwo i -> Sdtwo(J(d+e+i*2)))")
 (assume "d" "e" "i" "Sdd" "Sde" "Sdtwoi")
-(assert "exl s1 SdMR d s1")
-(use "SdMRIntro")
+(assert "exl s1 SdInj d s1")
+(use "SdInjIntro")
 (use "Sdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "s1" "s1Prop")
-(assert "exl s2 SdMR e s2")
-(use "SdMRIntro")
+(assert "exl s2 SdInj e s2")
+(use "SdInjIntro")
 (use "Sde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "s2" "s2Prop")
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "t" "tProp")
-(use "SdtwoMRElim"
+(use "SdtwoInjElim"
      (pt "IntToSdtwo(J(SdToInt s1+SdToInt s2+SdtwoToInt t*2))"))
 (simp (pf "J(SdToInt s1+SdToInt s2+SdtwoToInt t*2)=J(d+e+i*2)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^27:abs(J(d+e+i*2))<=2
 (use "JProp")
 (simp (pf "SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2"))
 (use "Truth")
 ;; ?^29:SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2
-(inst-with-to "SdMRId" (pt "d") (pt "s1") "s1Prop" "SdMRIdInst1")
-(inst-with-to "SdMRId" (pt "e") (pt "s2") "s2Prop" "SdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "SdMRIdInst1")
-(simp "SdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "SdInjId" (pt "d") (pt "s1") "s1Prop" "SdInjIdInst1")
+(inst-with-to "SdInjId" (pt "e") (pt "s2") "s2Prop" "SdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "SdInjIdInst1")
+(simp "SdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -134,31 +177,50 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [s,s0,t]IntToSdtwo(J(SdToInt s+SdToInt s0+SdtwoToInt t*2))
+
+(add-sound "CoIAvcSatCoIClAuxJ")
+;; ok, CoIAvcSatCoIClAuxJSound has been added as a new theorem:
+
+;; allnc d,e,i,s^(
+;;  SdMR d s^ -> 
+;;  allnc s^0(
+;;   SdMR e s^0 -> 
+;;   allnc t^(
+;;    SdtwoMR i t^ -> SdtwoMR(J(d+e+i*2))(cCoIAvcSatCoIClAuxJ s^ s^0 t^))))
+
+;; with computation rule
+
+;; cCoIAvcSatCoIClAuxJ eqd
+;; ([s,s0,t]IntToSdtwo(J(SdToInt s+SdToInt s0+SdtwoToInt t*2)))
+
+;; (cp "CoIAvcSatCoIClAuxJSound")
+
+(deanimate "CoIAvcSatCoIClAuxJ")
 
 ;; CoIAvcSatCoIClAuxK
 (set-goal "allnc d,e,i(Sd d -> Sd e -> Sdtwo i -> Sd(K(d+e+i*2)))")
 (assume "d" "e" "i" "Sdd" "Sde" "Sdtwoi")
-(assert "exl s1 SdMR d s1")
-(use "SdMRIntro")
+(assert "exl s1 SdInj d s1")
+(use "SdInjIntro")
 (use "Sdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "s1" "s1Prop")
-(assert "exl s2 SdMR e s2")
-(use "SdMRIntro")
+(assert "exl s2 SdInj e s2")
+(use "SdInjIntro")
 (use "Sde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "s2" "s2Prop")
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "t" "tProp")
-(use "SdMRElim" (pt "IntToSd(K(SdToInt s1+SdToInt s2+SdtwoToInt t*2))"))
+(use "SdInjElim" (pt "IntToSd(K(SdToInt s1+SdToInt s2+SdtwoToInt t*2))"))
 (simp (pf "K(SdToInt s1+SdToInt s2+SdtwoToInt t*2)=K(d+e+i*2)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^27:abs(K(d+e+i*2))<=1
 (use "KProp")
 ;; ?^28:abs(d+e+i*2)<=6
@@ -186,12 +248,12 @@
 (simp (pf "SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2"))
 (use "Truth")
 ;; ?^50:SdToInt s1+SdToInt s2+SdtwoToInt t*2=d+e+i*2
-(inst-with-to "SdMRId" (pt "d") (pt "s1") "s1Prop" "SdMRIdInst1")
-(inst-with-to "SdMRId" (pt "e") (pt "s2") "s2Prop" "SdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "SdMRIdInst1")
-(simp "SdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "SdInjId" (pt "d") (pt "s1") "s1Prop" "SdInjIdInst1")
+(inst-with-to "SdInjId" (pt "e") (pt "s2") "s2Prop" "SdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "SdInjIdInst1")
+(simp "SdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -199,9 +261,27 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [s,s0,t]IntToSd(K(SdToInt s+SdToInt s0+SdtwoToInt t*2))
+
+(add-sound "CoIAvcSatCoIClAuxK")
+;; ok, CoIAvcSatCoIClAuxKSound has been added as a new theorem:
+
+;; allnc d,e,i,s^(
+;;  SdMR d s^ -> 
+;;  allnc s^0(
+;;   SdMR e s^0 -> 
+;;   allnc t^(SdtwoMR i t^ -> SdMR(K(d+e+i*2))(cCoIAvcSatCoIClAuxK s^ s^0 t^))))
+
+;; with computation rule
+
+;; cCoIAvcSatCoIClAuxK eqd
+;; ([s,s0,t]IntToSd(K(SdToInt s+SdToInt s0+SdtwoToInt t*2)))
+
+;; (cp "CoIAvcSatCoIClAuxKSound")
+
+(deanimate "CoIAvcSatCoIClAuxK")
 
 ;; CoIAvcSatCoICl
 (set-goal "allnc i,x,y(Sdtwo i -> CoI x -> CoI y ->
@@ -307,7 +387,7 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [t,u,u0]
 ;;  cCoIAvcSatCoIClAuxJ clft(cCoIClosure u)clft(cCoIClosure u0)t pair 
@@ -318,6 +398,58 @@
 ;; latter two.  Both are composed, i.e., of the form s1u1 and s2u2.
 ;; Take their components s1,u1 and s2,u2.  Then we obtain the quadruple
 ;; J(s1,s2,t) pair K(s1,s2,t) pair u1 pair u2.
+
+(add-var-name "tsuv" (py "sdtwo yprod sd yprod ai yprod ai"))
+
+(add-sound "CoIAvcSatCoICl")
+;; ok, CoIAvcSatCoIClSound has been added as a new theorem:
+
+;; allnc i,x,y,t^(
+;;  SdtwoMR i t^ -> 
+;;  allnc u^(
+;;   CoIMR x u^ -> 
+;;   allnc u^0(
+;;    CoIMR y u^0 -> 
+;;    (ExRTMR int
+;;      sdtwo yprod sd yprod ai yprod ai
+;;      (cterm (j,tsuv^) 
+;;      (ExRTMR int
+;;        sdtwo yprod sd yprod ai yprod ai
+;;        (cterm (d,tsuv^0) 
+;;        (ExRTMR rea
+;;          sdtwo yprod sd yprod ai yprod ai
+;;          (cterm (x0,tsuv^1) 
+;;          (ExRTMR rea
+;;            sdtwo yprod sd yprod ai yprod ai
+;;            (cterm (y0,tsuv^2) 
+;;            (AndDMR (cterm (t^0) SdtwoMR j t^0)
+;;              (cterm ((sd yprod ai yprod ai)^) 
+;;              (AndDMR (cterm (s^) SdMR d s^)
+;;                (cterm ((ai yprod ai)^0) 
+;;                (AndDMR (cterm (u^1) CoIMR x0 u^1)
+;;                  (cterm (u^1) 
+;;                  (AndLMR (cterm (u^2) CoIMR y0 u^2)
+;;                    (cterm () (1#4)*(x+y+i)===(1#2)*((1#4)*(x0+y0+j)+d)))
+;;                  u^1))
+;;                (ai yprod ai)^0))
+;;              (sd yprod ai yprod ai)^))
+;;            tsuv^2))
+;;          tsuv^1))
+;;        tsuv^0))
+;;      tsuv^))
+;;    (cCoIAvcSatCoICl t^ u^ u^0))))
+
+;; with computation rule
+
+;; cCoIAvcSatCoICl eqd
+;; ([t,u,u0]
+;;   cCoIAvcSatCoIClAuxJ clft(cCoIClosure u)clft(cCoIClosure u0)t pair 
+;;   cCoIAvcSatCoIClAuxK clft(cCoIClosure u)clft(cCoIClosure u0)t pair 
+;;   crht(cCoIClosure u)pair crht(cCoIClosure u0))
+
+;; (cp "CoIAvcSatCoIClSound")
+
+(deanimate "CoIAvcSatCoICl")
 
 ;; SdtwoBoundReal
 (set-goal "all k(Sdtwo k -> RealAbs k<<=2)")
@@ -432,10 +564,10 @@
 (save "CoIAvcToCoI")
 
 (define eterm (proof-to-extracted-term))
-(add-var-name "tuv" (py "sdtwo yprod ai yprod ai"))
-(add-var-name "tsuv" (py "sdtwo yprod sd yprod ai yprod ai"))
+;; (add-var-name "tuv" (py "sdtwo yprod ai yprod ai"))
+;; (add-var-name "tsuv" (py "sdtwo yprod sd yprod ai yprod ai"))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [tuv]
 ;;  (CoRec sdtwo yprod ai yprod ai=>ai)tuv
@@ -443,6 +575,48 @@
 ;;    [let tsuv
 ;;      (cCoIAvcSatCoICl clft tuv0 clft crht tuv0 crht crht tuv0)
 ;;      (clft crht tsuv pair InR(clft tsuv pair crht crht tsuv))])
+
+(animate "Id") ;needed for add-sound since let is present
+(add-sound "CoIAvcToCoI")
+;; ok, CoIAvcToCoISound has been added as a new theorem:
+
+;; allnc z,tuv^(
+;;  (ExRTMR int
+;;    sdtwo yprod ai yprod ai
+;;    (cterm (i,tuv^0) 
+;;    (ExRTMR rea
+;;      sdtwo yprod ai yprod ai
+;;      (cterm (x,tuv^1) 
+;;      (ExRTMR rea
+;;        sdtwo yprod ai yprod ai
+;;        (cterm (y,tuv^2) 
+;;        (AndDMR (cterm (t^) SdtwoMR i t^)
+;;          (cterm ((ai yprod ai)^) 
+;;          (AndDMR (cterm (u^) CoIMR x u^)
+;;            (cterm (u^) 
+;;           (AndLMR (cterm (u^0) CoIMR y u^0) (cterm () z===(1#4)*(x+y+i)))u^))
+;;          (ai yprod ai)^))
+;;        tuv^2))
+;;      tuv^1))
+;;    tuv^0))
+;;  tuv^ -> 
+;;  CoIMR z(cCoIAvcToCoI tuv^))
+
+;; with computation rule
+
+;; cCoIAvcToCoI eqd
+;; ([tuv]
+;;   (CoRec sdtwo yprod ai yprod ai=>ai)tuv
+;;   ([tuv0]
+;;     clft crht(cCoIAvcSatCoICl clft tuv0 clft crht tuv0 crht crht tuv0)pair
+;;     (InR (sdtwo yprod ai yprod ai) ai)
+;;     (clft(cCoIAvcSatCoICl clft tuv0 clft crht tuv0 crht crht tuv0)pair 
+;;      crht crht(cCoIAvcSatCoICl clft tuv0 clft crht tuv0 crht crht tuv0))))
+
+;; (cp "CoIAvcToCoISound")
+
+(deanimate "CoIAvcToCoI")
+(deanimate "Id")
 
 ;; CoIAverage
 (set-goal "allnc x,y(CoI x -> CoI y -> CoI((1#2)*(x+y)))")
@@ -473,7 +647,7 @@
 
 (define CoIAverage-eterm (proof-to-extracted-term))
 (define CoIAverage-neterm (rename-variables (nt CoIAverage-eterm)))
-(pp CoIAverage-neterm)
+;; (pp CoIAverage-neterm)
 
 ;; [u,u0](cId sdtwo yprod ai yprod ai=>ai)cCoIAvcToCoI(cCoIAvToAvc u u0)
 
@@ -485,7 +659,7 @@
 (animate "IntPlusSdToSdtwo")
 
 (define CoIAverage-neterm (rename-variables (nt CoIAverage-eterm)))
-(ppc CoIAverage-neterm)
+;; (ppc CoIAverage-neterm)
 
 ;; [u,u0]
 ;;  [let tuv
@@ -516,4 +690,34 @@
 
 ;; To check which program constants are animated evaluate
 ;; (display-animation)
+
+;; (remove-theorem "CoIAverageSound")
+(animate "Id") ;since let appears
+(animate "Lft")
+(animate "Rht")
+
+(add-sound "CoIAverage")
+;; ok, CoIAverageSound has been added as a new theorem:
+
+;; allnc x,y,u^(
+;;  CoIMR x u^ -> 
+;;  allnc u^0(CoIMR y u^0 -> CoIMR((1#2)*(x+y))(cCoIAverage u^ u^0)))
+
+;; with computation rule
+
+;; cCoIAverage eqd
+;; ([u,u0]
+;;   cCoIAvcToCoI
+;;   ([if (cCoIAvToAvc u u0) ([t,(ai yprod ai)]t)]pair
+;;    [if (cCoIAvToAvc u u0)
+;;        ([t,(ai yprod ai)][if (ai yprod ai) ([u1,u2]u1)])]pair
+;;        [if (cCoIAvToAvc u u0)
+;; 	   ([t,(ai yprod ai)][if (ai yprod ai) ([u1,u2]u2)])]))
+
+;; (cp "CoIAverageSound")
+
+(deanimate "CoIAverage")
+(deanimate "Id")
+(deanimate "Lft")
+(deanimate "Rht")
 
