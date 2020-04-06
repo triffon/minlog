@@ -1,4 +1,4 @@
-;; 2019-08-25.  examples/analysis/digits.scm
+;; 2020-04-06.  examples/analysis/digits.scm
 
 ;; Dependency of files
 
@@ -44,9 +44,29 @@
 ;; 	IntNeg:	pos=>int
 ;; we add the algebra sd in the order positive (R), zero (M), negative (L)
 
-(add-alg "sd" '("SdR" "sd") '("SdM" "sd") '("SdL" "sd"))
+(add-algs "sd" '("SdR" "sd") '("SdM" "sd") '("SdL" "sd"))
 (add-var-name "s" (py "sd"))
 (add-totality "sd")
+
+;; This adds the predicate TotalSd with content of type sd and clauses
+;; TotalSdSdR:	TotalSd SdR
+;; TotalSdSdM:	TotalSd SdM
+;; TotalSdSdL:	TotalSd SdL
+
+(add-totalnc "sd")
+(add-co "TotalSd")
+(add-co "TotalSdNc")
+
+(add-mr-ids "TotalSd")
+(add-co "TotalSdMR")
+
+(add-eqp "sd")
+(add-eqpnc "sd")
+(add-co "EqPSd")
+(add-co "EqPSdNc")
+
+(add-mr-ids "EqPSd")
+(add-co "EqPSdMR")
 
 ;; SdTotalVar
 (set-goal "all s TotalSd s")
@@ -95,6 +115,8 @@
  '("Sd IntZero" "InitSdSdM")
  '("Sd(IntN One)" "InitSdSdL"))
 
+(add-mr-ids "Sd")
+
 ;; EfSd
 (set-goal "allnc d^(F -> Sd d^)")
 (assume "d^" "Absurd")
@@ -126,18 +148,52 @@
 ;; Proof finished.
 (save "SdUMinus")
 
+(add-sound "SdUMinus")
+;; ok, SdUMinusSound has been added as a new theorem:
+
+;; allnc d,s^(SdMR d s^ -> SdMR(~d)(cSdUMinus s^))
+
+;; with computation rule
+
+;; cSdUMinus eqd([s][if s SdL SdM SdR])
+
+;; (cdp "SdUMinusSound")
+(deanimate "SdUMinus")
+
 ;; Corresponding to (display-alg "int") int IntPos: pos=>int IntZero:
 ;; int IntNeg: pos=>int we add the algebra sdtwo in the order positive
 ;; (RT, RR for 1, 2), zero (MT), negative (LT, LL for -1, -2))
 
-(add-alg "sdtwo"
-	 '("RT" "sdtwo")
-	 '("RR" "sdtwo")
-	 '("MT" "sdtwo")
-	 '("LT" "sdtwo")
-	 '("LL" "sdtwo"))
+(add-algs "sdtwo"
+	  '("RT" "sdtwo")
+	  '("RR" "sdtwo")
+	  '("MT" "sdtwo")
+	  '("LT" "sdtwo")
+	  '("LL" "sdtwo"))
 (add-var-name "t" (py "sdtwo"))
 (add-totality "sdtwo")
+
+;; This adds the c.r. predicate TotalSdtwo of type sdtwo with clauses
+;; TotalSdtwoRT:	TotalSdtwo RT
+;; TotalSdtwoRR:	TotalSdtwo RR
+;; TotalSdtwoMT:	TotalSdtwo MT
+;; TotalSdtwoLT:	TotalSdtwo LT
+;; TotalSdtwoLL:	TotalSdtwo LL
+
+(add-totalnc "sdtwo")
+(add-co "TotalSdtwo")
+(add-co "TotalSdtwoNc")
+
+(add-mr-ids "TotalSdtwo")
+(add-co "TotalSdtwoMR")
+
+(add-eqp "sdtwo")
+(add-eqpnc "sdtwo")
+(add-co "EqPSdtwo")
+(add-co "EqPSdtwoNc")
+
+(add-mr-ids "EqPSdtwo")
+(add-co "EqPSdtwoMR")
 
 ;; SdtwoTotalVar
 (set-goal "all t TotalSdtwo t")
@@ -236,6 +292,8 @@
  '("Sdtwo(IntN One)" "InitSdtwoLT")
  '("Sdtwo(IntN(SZero One))" "InitSdtwoLL"))
 
+(add-mr-ids "Sdtwo")
+
 ;; EfSdtwo
 (set-goal "allnc d^(F -> Sdtwo d^)")
 (assume "d^" "Absurd")
@@ -271,9 +329,24 @@
 ;; Proof finished.
 (save "SdtwoIntUMinus")
 
+(add-sound "SdtwoIntUMinus")
+;; ok, SdtwoIntUMinusSound has been added as a new theorem:
+
+;; allnc i,t^(SdtwoMR i t^ -> SdtwoMR(~i)(cSdtwoIntUMinus t^))
+
+;; with computation rule
+
+;; cSdtwoIntUMinus eqd([t][if t LT LL MT RT RR])
+
+;; (cdp "SdtwoIntUMinusSound")
+(deanimate "SdtwoIntUMinus")
+
 ;; To handle digit calculations without abundant case distinctions we
-;; define (i) embeddings into the integers and (ii) realizability
-;; predicates SdMR and SdtwoMR.
+;; define (i) embeddings into the integers and (ii) inductive predicates
+;; SdInj and SdtwoInj representing the graph of the injections of the
+;; integers a with |a|<=1 (|a|<=2) into sd (sdtwo).  These predicates are
+;; the same as the realizability predicates SdMR and SdtwoMR.  However,
+;; usage of MR predicates is restricted to soundness proofs.
 
 (add-program-constant "SdToInt" (py "sd=>int"))
 
@@ -353,102 +426,121 @@
 ;; Proof finished.
 (save "IntTimesSdToSd")
 
-(add-mr-ids "Sd")
+(add-sound "IntTimesSdToSd")
+;; ok, IntTimesSdToSdSound has been added as a new theorem:
 
-(display-idpc "SdMR")
-;; SdMR	non-computational
-;; 	InitSdSdRMR:	SdMR 1 SdR
-;; 	InitSdSdMMR:	SdMR 0 SdM
-;; 	InitSdSdLMR:	SdMR(IntN 1)SdL
+;; allnc d,e,s^(
+;;  SdMR d s^ -> allnc s^0(SdMR e s^0 -> SdMR(d*e)(cIntTimesSdToSd s^ s^0)))
 
-;; EfSdMR
-(set-goal "allnc d^,s^(F -> SdMR d^ s^)")
+;; with computation rule
+
+;; cIntTimesSdToSd eqd([s,s0][if s s0 SdM [if s0 SdL SdM SdR]])
+
+;; (cdp "IntTimesSdToSdSound")
+(deanimate "IntTimesSdToSd")
+
+(add-ids (list (list "SdInj" (make-arity (py "int") (py "sd"))))
+	 '("SdInj 1 SdR" "InitSdSdRInj")
+	 '("SdInj 0 SdM" "InitSdSdMInj")
+	 '("SdInj(IntN 1)SdL" "InitSdSdLInj"))
+
+(display-idpc "SdInj")
+;; SdInj	non-computational
+;; 	InitSdSdRInj:	SdInj 1 SdR
+;; 	InitSdSdMInj:	SdInj 0 SdM
+;; 	InitSdSdLInj:	SdInj(IntN 1)SdL
+
+;; EfSdInj
+(set-goal "allnc d^,s^(F -> SdInj d^ s^)")
 (assume "d^" "s^" "Absurd")
 (simp (pf "d^ eqd IntP 1"))
 (simp (pf "s^ eqd SdR"))
-(use "InitSdSdRMR")
+(use "InitSdSdRInj")
 (use "EfEqD")
 (use "Absurd")
 (use "EfEqD")
 (use "Absurd")
 ;; Proof finished.
 ;; (cdp)
-(save "EfSdMR")
+(save "EfSdInj")
 
-;; SdMRId
-(set-goal "all d,s(SdMR d s -> SdToInt s=d)")
-(assume "d" "s" "SdMRds")
-(elim "SdMRds")
+;; SdInjId
+(set-goal "all d,s(SdInj d s -> SdToInt s=d)")
+(assume "d" "s" "SdInjds")
+(elim "SdInjds")
 (use "Truth")
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
-(save "SdMRId")
+(save "SdInjId")
 
-;; SdMRIntToSd
-(set-goal "all d(abs d<=1 -> SdMR d(IntToSd d))")
+;; SdInjIntToSd
+(set-goal "all d(abs d<=1 -> SdInj d(IntToSd d))")
 (cases)
 (assume "p" "pBd")
 (ng)
 (simp "pBd")
-(use "InitSdSdRMR")
+(use "InitSdSdRInj")
 (assume "Useless")
-(use "InitSdSdMMR")
+(use "InitSdSdMInj")
 (assume "p" "pBd")
 (ng)
 (simp "pBd")
-(use "InitSdSdLMR")
+(use "InitSdSdLInj")
 ;; Proof finished.
-(save "SdMRIntToSd")
+;; (cdp)
+(save "SdInjIntToSd")
 
-;; SdMRIntro
-(set-goal "allnc d(Sd d -> exl s SdMR d s)")
+;; SdInjIntro
+(set-goal "allnc d(Sd d -> exl s SdInj d s)")
 (assume "d" "Sdd")
 (elim "Sdd")
 (intro 0 (pt "SdR"))
-(use "InitSdSdRMR")
+(use "InitSdSdRInj")
 (intro 0 (pt "SdM"))
-(use "InitSdSdMMR")
+(use "InitSdSdMInj")
 (intro 0 (pt "SdL"))
-(use "InitSdSdLMR")
+(use "InitSdSdLInj")
 ;; Proof finished.
-(save "SdMRIntro")
+;; (cdp)
+(save "SdInjIntro")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [s]s
 
-(animate "SdMRIntro")
+(animate "SdInjIntro")
 
-;; SdMRElim
-(set-goal "allnc d all s(SdMR d s -> Sd d)")
+;; SdInjElim
+(set-goal "allnc d all s(SdInj d s -> Sd d)")
 (assume "d")
 (cases)
 ;; 3-5
-(assume "SdMRSdRd")
-(inst-with-to "SdMRId" (pt "d") (pt "SdR") "SdMRSdRd" "SdMRIdInst")
-(simp "<-" "SdMRIdInst")
+(assume "SdInjSdRd")
+(inst-with-to "SdInjId" (pt "d") (pt "SdR") "SdInjSdRd" "SdInjIdInst")
+(simp "<-" "SdInjIdInst")
 (use "InitSdSdR")
 ;; 4
-(assume "SdMRSdMd")
-(inst-with-to "SdMRId" (pt "d") (pt "SdM") "SdMRSdMd" "SdMRIdInst")
-(simp "<-" "SdMRIdInst")
+(assume "SdInjSdMd")
+(inst-with-to "SdInjId" (pt "d") (pt "SdM") "SdInjSdMd" "SdInjIdInst")
+(simp "<-" "SdInjIdInst")
 (use "InitSdSdM")
 ;; 5
-(assume "SdMRSdLd")
-(inst-with-to "SdMRId" (pt "d") (pt "SdL") "SdMRSdLd" "SdMRIdInst")
-(simp "<-" "SdMRIdInst")
+(assume "SdInjSdLd")
+(inst-with-to "SdInjId" (pt "d") (pt "SdL") "SdInjSdLd" "SdInjIdInst")
+(simp "<-" "SdInjIdInst")
 (use "InitSdSdL")
 ;; Proof finished.
-(save "SdMRElim")
+;; (cdp)
+(save "SdInjElim")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [s]s
 
-(animate "SdMRElim")
+(animate "SdInjElim")
 
 ;; We do the same for Sdtwo.
 
@@ -579,168 +671,176 @@
 ;; Proof finished.
 (save "IntToSdtwoToIntId")
 
-(add-mr-ids "Sdtwo")
+(add-ids (list (list "SdtwoInj" (make-arity (py "int") (py "sdtwo"))))
+	 '("SdtwoInj 1 RT" "InitSdtwoRTInj")
+	 '("SdtwoInj 2 RR" "InitSdtwoRRInj")
+	 '("SdtwoInj 0 MT" "InitSdtwoMTInj")
+	 '("SdtwoInj(IntN 1)LT" "InitSdtwoLTInj")
+	 '("SdtwoInj(IntN 2)LL" "InitSdtwoLLInj"))
 
-(display-idpc "SdtwoMR")
-;; SdtwoMR	non-computational
-;; 	InitSdtwoRTMR:	SdtwoMR 1 RT
-;; 	InitSdtwoRRMR:	SdtwoMR 2 RR
-;; 	InitSdtwoMTMR:	SdtwoMR 0 MT
-;; 	InitSdtwoLTMR:	SdtwoMR(IntN 1)LT
-;; 	InitSdtwoLLMR:	SdtwoMR(IntN 2)LL
+(display-idpc "SdtwoInj")
+;; SdtwoInj	non-computational
+;; 	InitSdtwoRTInj:	SdtwoInj 1 RT
+;; 	InitSdtwoRRInj:	SdtwoInj 2 RR
+;; 	InitSdtwoMTInj:	SdtwoInj 0 MT
+;; 	InitSdtwoLTInj:	SdtwoInj(IntN 1)LT
+;; 	InitSdtwoLLInj:	SdtwoInj(IntN 2)LL
 
-;; EfSdtwoMR
-(set-goal "allnc d,t(F -> SdtwoMR d t)")
+;; EfSdtwoInj
+(set-goal "allnc d,t(F -> SdtwoInj d t)")
 (assume "d" "t" "Absurd")
 (simp (pf "d=1"))
 (simp (pf "t=RT"))
-(use "InitSdtwoRTMR")
+(use "InitSdtwoRTInj")
 (use "EfAtom")
 (use "Absurd")
 (use "EfAtom")
 (use "Absurd")
 ;; Proof finished.
 ;; (cdp)
-(save "EfSdtwoMR")
+(save "EfSdtwoInj")
 
-;; SdtwoMRId
-(set-goal "all i,t(SdtwoMR i t -> SdtwoToInt t=i)")
-(assume "i" "t" "SdtwoMRsit")
-(elim "SdtwoMRsit")
+;; SdtwoInjId
+(set-goal "all i,t(SdtwoInj i t -> SdtwoToInt t=i)")
+(assume "i" "t" "SdtwoInjsit")
+(elim "SdtwoInjsit")
 (use "Truth")
 (use "Truth")
 (use "Truth")
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
-(save "SdtwoMRId")
+;; (cdp)
+(save "SdtwoInjId")
 
-;; SdtwoMRIntro
-(set-goal "allnc i(Sdtwo i -> exl t SdtwoMR i t)")
+;; SdtwoInjIntro
+(set-goal "allnc i(Sdtwo i -> exl t SdtwoInj i t)")
 (assume "i" "Sdtwoi")
 (elim "Sdtwoi")
 ;; 3-7
 (intro 0 (pt "RT"))
-(use "InitSdtwoRTMR")
+(use "InitSdtwoRTInj")
 ;; 4
 (intro 0 (pt "RR"))
-(use "InitSdtwoRRMR")
+(use "InitSdtwoRRInj")
 ;; 5
 (intro 0 (pt "MT"))
-(use "InitSdtwoMTMR")
+(use "InitSdtwoMTInj")
 ;; 6
 (intro 0 (pt "LT"))
-(use "InitSdtwoLTMR")
+(use "InitSdtwoLTInj")
 ;; 7
 (intro 0 (pt "LL"))
-(use "InitSdtwoLLMR")
+(use "InitSdtwoLLInj")
 ;; Proof finished.
-(save "SdtwoMRIntro")
+;; (cdp)
+(save "SdtwoInjIntro")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [t]t
 
-(animate "SdtwoMRIntro")
+(animate "SdtwoInjIntro")
 
-;; SdtwoMRElim
-(set-goal "allnc i all t(SdtwoMR i t -> Sdtwo i)")
+;; SdtwoInjElim
+(set-goal "allnc i all t(SdtwoInj i t -> Sdtwo i)")
 (assume "i")
 (cases)
 ;; 3-7
 (assume "SdtwoRTi")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "RT") "SdtwoRTi" "SdtwoMRIdInst")
-(simp "<-" "SdtwoMRIdInst")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "RT") "SdtwoRTi" "SdtwoInjIdInst")
+(simp "<-" "SdtwoInjIdInst")
 (use "InitSdtwoRT")
 ;; 4
 (assume "SdtwoRRi")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "RR") "SdtwoRRi" "SdtwoMRIdInst")
-(simp "<-" "SdtwoMRIdInst")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "RR") "SdtwoRRi" "SdtwoInjIdInst")
+(simp "<-" "SdtwoInjIdInst")
 (use "InitSdtwoRR")
 ;; 5
 (assume "SdtwoMTi")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "MT") "SdtwoMTi" "SdtwoMRIdInst")
-(simp "<-" "SdtwoMRIdInst")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "MT") "SdtwoMTi" "SdtwoInjIdInst")
+(simp "<-" "SdtwoInjIdInst")
 (use "InitSdtwoMT")
 ;; 6
 (assume "SdtwoLTi")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "LT") "SdtwoLTi" "SdtwoMRIdInst")
-(simp "<-" "SdtwoMRIdInst")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "LT") "SdtwoLTi" "SdtwoInjIdInst")
+(simp "<-" "SdtwoInjIdInst")
 (use "InitSdtwoLT")
 ;; 7
 (assume "SdtwoLLi")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "LL") "SdtwoLLi" "SdtwoMRIdInst")
-(simp "<-" "SdtwoMRIdInst")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "LL") "SdtwoLLi" "SdtwoInjIdInst")
+(simp "<-" "SdtwoInjIdInst")
 (use "InitSdtwoLL")
 ;; Proof finished.
-(save "SdtwoMRElim")
+;; (cdp)
+(save "SdtwoInjElim")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [t]t
 
-(animate "SdtwoMRElim")
+(animate "SdtwoInjElim")
 
-;; SdtwoMRIntToSdtwo
-(set-goal "all d(abs d<=2 -> SdtwoMR d(IntToSdtwo d))")
+;; SdtwoInjIntToSdtwo
+(set-goal "all d(abs d<=2 -> SdtwoInj d(IntToSdtwo d))")
 (cases)
 ;; 2-4
 (cases)
 (assume "Useless")
-(use "InitSdtwoRTMR")
+(use "InitSdtwoRTInj")
 (cases)
 (assume "Useless")
-(use "InitSdtwoRRMR")
+(use "InitSdtwoRRInj")
 (assume "p" "Absurd")
-(use "EfSdtwoMR")
+(use "EfSdtwoInj")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfSdtwoMR")
+(use "EfSdtwoInj")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfSdtwoMR")
+(use "EfSdtwoInj")
 (use "Absurd")
 ;; 3
 (assume "Useless")
-(use "InitSdtwoMTMR")
+(use "InitSdtwoMTInj")
 ;; 4
 (cases)
 (assume "Useless")
-(use "InitSdtwoLTMR")
+(use "InitSdtwoLTInj")
 (cases)
 (assume "Useless")
-(use "InitSdtwoLLMR")
+(use "InitSdtwoLLInj")
 (assume "p" "Absurd")
-(use "EfSdtwoMR")
+(use "EfSdtwoInj")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfSdtwoMR")
+(use "EfSdtwoInj")
 (use "Absurd")
 (assume "p" "Absurd")
-(use "EfSdtwoMR")
+(use "EfSdtwoInj")
 (use "Absurd")
 ;; Proof finished.
 ;; (cdp)
-(save "SdtwoMRIntToSdtwo")
+(save "SdtwoInjIntToSdtwo")
 
 ;; IntPlusSdToSdtwo
 (set-goal "allnc d,e(Sd d -> Sd e -> Sdtwo(d+e))")
 (assume "d" "e" "Sdd" "Sde")
-(assert "exl s1 SdMR d s1")
-(use "SdMRIntro")
+(assert "exl s1 SdInj d s1")
+(use "SdInjIntro")
 (use "Sdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "s1" "s1Prop")
-(assert "exl s2 SdMR e s2")
-(use "SdMRIntro")
+(assert "exl s2 SdInj e s2")
+(use "SdInjIntro")
 (use "Sde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "s2" "s2Prop")
-(use "SdtwoMRElim" (pt "IntToSdtwo(SdToInt s1+SdToInt s2)"))
+(use "SdtwoInjElim" (pt "IntToSdtwo(SdToInt s1+SdToInt s2)"))
 (simp (pf "SdToInt s1+SdToInt s2=d+e"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?_20:abs(d+e)<=2
 (use "IntLeTrans" (pt "abs d+abs e"))
 (use "IntLeAbsPlus")
@@ -752,44 +852,63 @@
 (use "Sde")
 (use "Truth")
 ;; ?_19:SdToInt s1+SdToInt s2=d+e
-(inst-with-to "SdMRId" (pt "d") (pt "s1") "s1Prop" "SdMRIdInst1")
-(inst-with-to "SdMRId" (pt "e") (pt "s2") "s2Prop" "SdMRIdInst2")
-(simp "SdMRIdInst1")
-(simp "SdMRIdInst2")
+(inst-with-to "SdInjId" (pt "d") (pt "s1") "s1Prop" "SdInjIdInst1")
+(inst-with-to "SdInjId" (pt "e") (pt "s2") "s2Prop" "SdInjIdInst2")
+(simp "SdInjIdInst1")
+(simp "SdInjIdInst2")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "IntPlusSdToSdtwo")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [s,s0]IntToSdtwo(SdToInt s+SdToInt s0)
+
+(add-sound "IntPlusSdToSdtwo")
+;; ok, IntPlusSdToSdtwoSound has been added as a new theorem:
+
+;; allnc d,e,s^(
+;;  SdMR d s^ -> 
+;;  allnc s^0(SdMR e s^0 -> SdtwoMR(d+e)(cIntPlusSdToSdtwo s^ s^0)))
+
+;; with computation rule
+
+;; cIntPlusSdToSdtwo eqd([s,s0]IntToSdtwo(SdToInt s+SdToInt s0))
+
+;; (cdp "IntPlusSdToSdtwoSound")
+
+(deanimate "IntPlusSdToSdtwo")
 
 ;; SdtwoToSdtwoToIntValue
 (set-goal "allnc i(Sdtwo i -> exl t SdtwoToInt t=i)")
 (assume "i" "Sdtwoi")
-(inst-with-to "SdtwoMRIntro" (pt "i") "Sdtwoi" "SdtwoMRIntroInst")
-(by-assume "SdtwoMRIntroInst" "t" "tProp")
+(inst-with-to "SdtwoInjIntro" (pt "i") "Sdtwoi" "SdtwoInjIntroInst")
+(by-assume "SdtwoInjIntroInst" "t" "tProp")
 (intro 0 (pt "t"))
-(use "SdtwoMRId")
+(use "SdtwoInjId")
 (use "tProp")
 ;; Proof finished.
+;; (cdp)
 (save "SdtwoToSdtwoToIntValue")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [t]t
 
 (animate "SdtwoToSdtwoToIntValue")
 
-;; For gray code we also need proper signed digits
+;; For Gray code we also need proper signed digits
 
 (add-ids
  (list (list "Psd" (make-arity (py "int")) "boole"))
  '("Psd(IntP One)" "InitPsdTrue")
  '("Psd(IntN One)" "InitPsdFalse"))
+
+(add-mr-ids "Psd")
 
 ;; EfPsd
 (set-goal "allnc d^(F -> Psd d^)")
@@ -820,6 +939,24 @@
 ;; Proof finished.
 (save "PsdToSd")
 
+(define eterm (proof-to-extracted-term))
+(define neterm (nt eterm))
+;; (pp neterm)
+;; [boole0][if boole0 SdR SdL]
+
+(add-sound "PsdToSd")
+;; ok, PsdToSdSound has been added as a new theorem:
+
+;; allnc d,boole^(PsdMR d boole^ -> SdMR d(cPsdToSd boole^))
+
+;; with computation rule
+
+;; cPsdToSd eqd([boole][if boole SdR SdL])
+
+;; (cdp "PsdToSdSound")
+
+(deanimate "PsdToSd")
+
 ;; PsdToSdtwo
 (set-goal "allnc d(Psd d -> Sdtwo d)")
 (assume "d" "Psdd")
@@ -827,7 +964,26 @@
 (use "InitSdtwoRT")
 (use "InitSdtwoLT")
 ;; Proof finished.
+;; (cdp)
 (save "PsdToSdtwo")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (nt eterm))
+;; (pp neterm)
+;; [boole0][if boole0 RT LT]
+
+(add-sound "PsdToSdtwo")
+;; ok, PsdToSdtwoSound has been added as a new theorem:
+
+;; allnc d,boole^(PsdMR d boole^ -> SdtwoMR d(cPsdToSdtwo boole^))
+
+;; with computation rule
+
+;; cPsdToSdtwo eqd([boole][if boole RT LT])
+
+;; (cdp "PsdToSdtwoSound")
+
+(deanimate "PsdToSdtwo")
 
 ;; PsdUMinus
 (set-goal "allnc d(Psd d -> Psd(~d))")
@@ -836,11 +992,34 @@
 (use "InitPsdFalse")
 (use "InitPsdTrue")
 ;; Proof finished.
+;; (cdp)
 (save "PsdUMinus")
 
+(define eterm (proof-to-extracted-term))
+(define neterm (nt eterm))
+;; (pp neterm)
+;; [boole0][if boole0 False True]
+
+(add-sound "PsdUMinus")
+;; > ok, PsdUMinusSound has been added as a new theorem:
+
+;; allnc d,boole^(PsdMR d boole^ -> PsdMR(~d)(cPsdUMinus boole^))
+
+;; with computation rule
+
+;; cPsdUMinus eqd([boole][if boole False True])
+;; ok, PsdUMinusSound has been added as a new theorem.
+
+;; (pp "PsdUMinusSound")
+
+(deanimate "PsdUMinus")
+
 ;; To handle digit calculations without abundant case distinctions we
-;; define (i) embeddings into the integers and (ii) the realizability
-;; predicate PsdMR.
+;; define (i) embeddings into the integers and (ii) the inductive
+;; predicate PsdInj representing the graph of the injection of the
+;; integers a with |a|=1 into boole.  This predicate is the same as
+;; the realizability predicate PsdMR.  However, usage of MR predicates
+;; is restricted to soundness proofs.
 
 (add-program-constant "BooleToInt" (py "boole=>int"))
 
@@ -880,6 +1059,7 @@
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "BooleToIntToBooleId")
 
 ;; IntToBooleToIntId
@@ -897,6 +1077,7 @@
 (simp "pProp")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "IntToBooleToIntId")
 
 (display-idpc "Psd")
@@ -904,111 +1085,119 @@
 ;; 	InitPsdTrue:	Psd 1
 ;; 	InitPsdFalse:	Psd(IntN 1)
 
-(add-mr-ids "Psd")
+(add-ids (list (list "PsdInj" (make-arity (py "int") (py "boole"))))
+	 '("PsdInj 1 True" "InitPsdTrueInj")
+	 '("PsdInj(IntN 1)False" "InitPsdFalseInj"))
 
-(display-idpc "PsdMR")
-;; PsdMR	non-computational
-;; 	InitPsdTrueMR:	PsdMR 1 True
-;; 	InitPsdFalseMR:	PsdMR(IntN 1)False
+(display-idpc "PsdInj")
+;; PsdInj	non-computational
+;; 	InitPsdTrueInj:	PsdInj 1 True
+;; 	InitPsdFalseInj:	PsdInj(IntN 1)False
 
-;; EfPsdMR
-(set-goal "allnc d^,boole^(F -> PsdMR d^ boole^)")
+;; EfPsdInj
+(set-goal "allnc d^,boole^(F -> PsdInj d^ boole^)")
 (assume "d^" "boole^" "Absurd")
 (simp (pf "d^ eqd IntP 1"))
 (simp (pf "boole^ eqd True"))
-(use "InitPsdTrueMR")
+(use "InitPsdTrueInj")
 (use "EfEqD")
 (use "Absurd")
 (use "EfEqD")
 (use "Absurd")
+;; Proof finished.
 ;; (cdp)
-(save "EfPsdMR")
+(save "EfPsdInj")
 
-;; PsdMRId
-(set-goal "all d,boole(PsdMR d boole -> BooleToInt boole=d)")
-(assume "d" "boole" "PsdMRHyp")
-(elim "PsdMRHyp")
+;; PsdInjId
+(set-goal "all d,boole(PsdInj d boole -> BooleToInt boole=d)")
+(assume "d" "boole" "PsdInjHyp")
+(elim "PsdInjHyp")
 (use "Truth")
 (use "Truth")
 ;; Proof finished.
-(save "PsdMRId")
+;; (cdp)
+(save "PsdInjId")
 
-;; PsdMRIntro
-(set-goal "allnc d(Psd d -> exl boole PsdMR d boole)")
+;; PsdInjIntro
+(set-goal "allnc d(Psd d -> exl boole PsdInj d boole)")
 (assume "d" "Psdd")
 (elim "Psdd")
 (intro 0 (pt "True"))
-(use "InitPsdTrueMR")
+(use "InitPsdTrueInj")
 (intro 0 (pt "False"))
-(use "InitPsdFalseMR")
+(use "InitPsdFalseInj")
 ;; Proof finished.
-(save "PsdMRIntro")
+;; (cdp)
+(save "PsdInjIntro")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [boole]boole
 
-(animate "PsdMRIntro")
+(animate "PsdInjIntro")
 
-;; PsdMRElim
-(set-goal "allnc d all boole(PsdMR d boole -> Psd d)")
+;; PsdInjElim
+(set-goal "allnc d all boole(PsdInj d boole -> Psd d)")
 (assume "d")
 (cases)
 ;; 3,4
-(assume "PsdMRTrue")
-(inst-with-to "PsdMRId" (pt "d") (pt "True") "PsdMRTrue" "PsdMRIdInst")
-(simp "<-" "PsdMRIdInst")
+(assume "PsdInjTrue")
+(inst-with-to "PsdInjId" (pt "d") (pt "True") "PsdInjTrue" "PsdInjIdInst")
+(simp "<-" "PsdInjIdInst")
 (use "InitPsdTrue")
 ;; 4
-(assume "PsdMRFalse")
-(inst-with-to "PsdMRId" (pt "d") (pt "False") "PsdMRFalse" "PsdMRIdInst")
-(simp "<-" "PsdMRIdInst")
+(assume "PsdInjFalse")
+(inst-with-to "PsdInjId" (pt "d") (pt "False") "PsdInjFalse" "PsdInjIdInst")
+(simp "<-" "PsdInjIdInst")
 (use "InitPsdFalse")
 ;; Proof finished.
-(save "PsdMRElim")
+; (cdp)
+(save "PsdInjElim")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [boole]boole
 
-;; (animate "SdMRElim")
+(animate "PsdInjElim")
 
 ;; PsdToBooleToIntValue
 (set-goal "allnc d(Psd d -> exl boole BooleToInt boole=d)")
 (assume "d" "Psdd")
-(inst-with-to "PsdMRIntro" (pt "d") "Psdd" "PsdMRIntroInst")
-(by-assume "PsdMRIntroInst" "boole" "booleProp")
+(inst-with-to "PsdInjIntro" (pt "d") "Psdd" "PsdInjIntroInst")
+(by-assume "PsdInjIntroInst" "boole" "booleProp")
 (intro 0 (pt "boole"))
-(use "PsdMRId")
+(use "PsdInjId")
 (use "booleProp")
 ;; Proof finished.
+;; (cdp)
 (save "PsdToBooleToIntValue")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; [boole]boole
+
 (animate "PsdToBooleToIntValue")
 
-;; PsdMRIntToBoole
-(set-goal "all d(abs d=1 -> PsdMR d(IntToBoole d))")
+;; PsdInjIntToBoole
+(set-goal "all d(abs d=1 -> PsdInj d(IntToBoole d))")
 (cases)
 (assume "p" "pProp")
 (ng)
 (simp "pProp")
-(use "InitPsdTrueMR")
+(use "InitPsdTrueInj")
 (assume "Absurd")
-(use "EfPsdMR")
+(use "EfPsdInj")
 (use "Absurd")
 (assume "p" "pProp")
 (ng)
 (simp "pProp")
-(use "InitPsdFalseMR")
+(use "InitPsdFalseInj")
 ;; Proof finished.
 ;; (cdp)
-(save "PsdMRIntToBoole")
+(save "PsdInjIntToBoole")
 
 ;; IntTimesSdtwoPsdToSdtwo
 (set-goal "allnc i,d(Sdtwo i -> Psd d -> Sdtwo(i*d))")
@@ -1060,7 +1249,37 @@
 (ng)
 (use "InitSdtwoRR")
 ;; Proof finished.
+;; (cdp)
 (save "IntTimesSdtwoPsdToSdtwo")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (nt eterm))
+;; (pp neterm)
+;; [t0,boole1]
+;;  [if t0
+;;    [if boole1 RT LT]
+;;    [if boole1 RR LL]
+;;    MT
+;;    [if boole1 LT RT]
+;;    [if boole1 LL RR]]
+
+(add-sound "IntTimesSdtwoPsdToSdtwo")
+;; ok, IntTimesSdtwoPsdToSdtwoSound has been added as a new theorem:
+
+;; allnc i,d,t^(
+;;  SdtwoMR i t^ -> 
+;;  allnc boole^(
+;;   PsdMR d boole^ -> SdtwoMR(i*d)(cIntTimesSdtwoPsdToSdtwo t^ boole^)))
+
+;; with computation rule
+
+;; cIntTimesSdtwoPsdToSdtwo eqd
+;; ([t,boole]
+;;[if t [if boole RT LT] [if boole RR LL] MT [if boole LT RT] [if boole LL RR]])
+
+;; (cdp "IntTimesSdtwoPsdToSdtwoSound")
+
+(deanimate "IntTimesSdtwoPsdToSdtwo")
 
 ;; RealTimesPsdPsd
 (set-goal "all d,x(Real x -> Psd d -> x*d*d===x)")
@@ -1086,6 +1305,7 @@
 (use "RealTimesPsdPsdEqS")
 (use "Psdd")
 ;; Proof finished.
+;; (cdp)
 (save "RealTimesPsdPsd")
 
 ;; IntPlusPsdToSdtwo
@@ -1099,13 +1319,31 @@
 (use "InitSdtwoMT")
 (use "InitSdtwoLL")
 ;; Proof finished.
+;; (cdp)
 (save "IntPlusPsdToSdtwo")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [boole,boole0][if boole [if boole0 RR MT] [if boole0 MT LL]]
+
+(add-sound "IntPlusPsdToSdtwo")
+
+;; ok, IntPlusPsdToSdtwoSound has been added as a new theorem:
+;; allnc d,e,boole^(
+;;  PsdMR d boole^ -> 
+;;  allnc boole^0(
+;;   PsdMR e boole^0 -> SdtwoMR(d+e)(cIntPlusPsdToSdtwo boole^ boole^0)))
+
+;; with computation rule
+
+;; cIntPlusPsdToSdtwo eqd
+;; ([boole,boole0][if boole [if boole0 RR MT] [if boole0 MT LL]])
+
+;; (cdp "IntPlusPsdToSdtwoSound")
+
+(deanimate "IntPlusPsdToSdtwo")
 
 ;; IntTimesPsdToPsd
 (set-goal "allnc d,e(Psd d -> Psd e -> Psd(d*e))")
@@ -1118,12 +1356,29 @@
 (use "InitPsdFalse")
 (use "InitPsdTrue")
 ;; Proof finished.
+;; (cdp)
 (save "IntTimesPsdToPsd")
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [boole,boole0][if boole boole0 [if boole0 False True]]
 ;; Corresponds to IntTimes (under BooleToInt IntToBoole)
+
+(add-sound "IntTimesPsdToPsd")
+;; ok, IntTimesPsdToPsdSound has been added as a new theorem:
+
+;; allnc d,e,boole^(
+;;  PsdMR d boole^ -> 
+;;  allnc boole^0(
+;;   PsdMR e boole^0 -> PsdMR(d*e)(cIntTimesPsdToPsd boole^ boole^0)))
+
+;; with computation rule
+
+;; cIntTimesPsdToPsd eqd([boole,boole0][if boole boole0 [if boole0 False True]])
+
+;; (cdp "IntTimesPsdToPsdSound")
+
+(deanimate "IntTimesPsdToPsd")
 
