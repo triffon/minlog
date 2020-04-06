@@ -1,3 +1,125 @@
+Done in dev branch 2020-04-06.
+
+In typ.scm
+
+cotype-to-co-free? added.
+
+In pconst.scm
+
+In constructor-type-to-product-type
+alg-to-uninst-destr-type-and-tsubst destruct-at default for
+prim-prod-flag changed to #f.
+
+In psym.scm
+
+In add-co RealFnEq added as possible equality.
+idpredconst-to-mr-idpredconst-for-mr-clauses corrected: realizers come last
+
+In term.scm
+
+term-in-projection-form? added
+
+In boole.scm
+
+Double definition of yprod-form? removed
+
+In axiom.scm
+
+check-aconst changed: in case of an Elim aconst substitution of a
+c.r. pvar by an n.c. cterm allowed.  add-theorem (and save) add a
+pconst for mr-free c.r. theorems only.  remove-theorem only removes
+added pconsts.  formula-to-invarall-aconst and
+formula-to-invarex-aconst added.  In search-about newline inserted
+between theorems.
+
+In proof.scm
+
+mk-proof-in-allnc-intro-form added.  check-proof (abbreviated cp)
+added with display switched off in check-and-display-proof.
+proof-to-proof-with-new-formula added.  It just changes the end
+formula into an equal one (in the sense of classical-formula=?).
+make-proof-in-andl-elim-left-form was defined twice.
+
+In ets.scm
+
+Drastic simplification of coidpredconst-to-closure-mr-proof (which
+had difficulties with RealEq in CoI) by making it dependent on
+previously proven theorems.  These prove that the destructor
+realizes the closure axiom for particular coidpcs.  Example:
+ClauseCoIMR in examples/analysis/sdcode.scm
+
+Drastic simplification of the problematic imp-formulas-to-mr-gfp-proof
+by making it dependent on previously proven theorems.  These prove
+that the corecursion operator realizes the greatest-fixed-point axiom
+for particula coidpcs.  Examples are GfpCoTotalNatMR (in nat.scm)
+GfpCoIMR (in examples/analysis/sdcode.scm)
+
+formula-with-mr-predicates? added.  In proof-to-extracted-term
+proof-to-extracted-term-aux axiom-to-extracted-term
+theorem-to-extracted-term global-assumption-to-extracted-term
+proof-to-soundness-proof proof-to-soundness-proof-aux it is
+required that the proven formula is mr-free and c. r.
+
+Let M prove A from c.r. assumptions u:C.  Given these data,
+proof-to-eqpnc-proof-aux returns a proof of eterm eqpnc_A eterm0
+from assumptions z_u eqpnc_C z0_u.  proof-to-eqpnc-proof-aux
+axiom-to-eqpnc-proof non-identity-axiom-to-eqpnc-proof
+global-assumption-to-eqpnc-proof added.
+
+add-sound added, to be applied to the name L of a cr theorem A.
+From its proof M a soundness proof of et(M) mr A is built.  Then cL
+mr A is saved under the name LSound.  The reason is that later
+the soundness proof for a theorem whose proof contains L will need
+LSound: cL mr L.  Hence this formula must be stored under LSound.
+To check the correctness of LSound we must animate cL.
+
+Superfluous soundness theorems removed
+
+In one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof allnc z
+with z the realizer variable moved one step inside, after the
+nc-idpc-formula.
+
+In imp-formulas-to-mr-elim-proof definition of mr-clauses
+corrected.  They they are now obtained by substituting the
+uninst-mr-clauses.  In andlr-formula-and-concl-to-andlr-elim-mr-proof
+order of abstractions corrected.
+
+In theorem-to-soundness-proof typo corrected: (cterm-fla) replaced by
+cterm-fla.  In case neterm is a projection the recursive call is done
+silently.  An extra Sound theorem is not needed.
+
+;; In lib/nat.scm
+
+Unused soundness proofs removed (for NatLtSuccCases OrElim).
+NatCasesExt and NatDestrExt added.  NatCoRec0 NatCoRec1L NatCoRec1R
+NatCoRecExt added.
+
+;; In lib/list.scm
+
+;; Unused soundness proofs removed (for ListAppendSTotal ListAppdSTotal).
+
+;; In examples/analysis/digits.scm
+
+Removal of MR: SdMR renamed into SdInj.  Reason: usage of MR
+predicates restricted to soundness proofs.  Soundness proofs added.
+
+;; In examples/analysis/sdcode.scm
+
+Removal of MR: SdMR renamed into SdInj.  Reason: usage of MR
+predicates restricted to soundness proofs.  AiCoRecExt added.
+Soundness proofs added.
+
+;; In examples/analysis/sdavaux.scm
+
+Removal of MR: SdMR renamed into SdInj.  Reason: usage of MR
+predicates restricted to soundness proofs.  Soundness proofs added.
+
+;; In examples/analysis/sddiv.scm
+
+Removal of MR: SdMR renamed into SdInj.  Reason: usage of MR
+predicates restricted to soundness proofs.  Soundness proofs added.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2019-12-11
 
 In examples/analysis/sddiv.scm
