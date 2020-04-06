@@ -1,4 +1,4 @@
-;; 2019-12-07.  term.scm
+;; 2020-04-06.  term.scm
 ;; 6. Terms
 ;; ========
 
@@ -605,6 +605,13 @@
 
 (define (synt-total? term)
   (t-deg-one? (term-to-t-deg term)))
+
+(define (term-in-projection-form? term)
+  (and (term-in-abst-form? term)
+       (let ((vars (term-in-abst-form-to-vars term))
+	     (kernel (term-in-abst-form-to-final-kernel term)))
+	 (and (term-in-var-form? kernel)
+	      (member (term-in-var-form-to-var kernel) vars)))))
 
 ;; Allow overloading of tokens (like + * for nat, pos, int, rat, rea
 ;; or :: ++ for list, str):
