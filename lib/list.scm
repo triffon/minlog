@@ -1,4 +1,4 @@
-;; 2019-08-23.  list.scm.
+;; 2020-04-06.  list.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -1090,22 +1090,6 @@
 ;; (pp (rename-variables (proof-to-extracted-term "ListAppendSTotal")))
 ;; [n,n0](Rec nat=>nat)n n0([n1,n2]Succ n2)
 
-;; ListAppendSTotalSound
-(set-goal (rename-variables
-	   (real-and-formula-to-mr-formula
-	    (nt (proof-to-extracted-term "ListAppendSTotal"))
-	    (proof-to-formula (theorem-name-to-proof "ListAppendSTotal")))))
-(assume "xs^1" "n^1" "STMRn1xs1" "xs^2" "n^2" "TMRn2xs2")
-(elim "STMRn1xs1")
-(use "TMRn2xs2")
-(assume "x^" "xs^" "n^" "STMRnxs" "IH")
-(ng #t)
-(use "STotalListConsMR")
-(use "IH")
-;; Proof finished.
-;; (cdp)
-(save "ListAppendSTotalSound")
-
 ;; ListAppendNil
 (set-goal "all xs xs:+:(Nil alpha)eqd xs")
 (ind)
@@ -1165,23 +1149,6 @@
 ;; allnc xs^(
 ;;  STotalList xs^ -> allnc xs^0(STotalList xs^0 -> STotalList(xs^ ++xs^0)))
 
-;; 2017-04-01.  Code preliminarily discarded.
-;; ;; ListAppdTotalSound
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "(ListAppd alpha)")
-;; 	    (proof-to-formula (theorem-name-to-proof "ListAppdTotal")))))
-;; (assume "xs^1" "xs^10" "TMRxs10xs1" "xs^2" "xs^20" "TMRxs20xs2")
-;; (elim "TMRxs10xs1")
-;; (use "TMRxs20xs2")
-;; (assume "x^" "x^0" "TMRx0x" "xs^" "xs^0" "TMRxs0xs" "IH")
-;; (ng #t)
-;; (use "TotalListConsMR")
-;; (use "TMRx0x")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save "ListAppdTotalSound")
-
 ;; ListAppdSTotal
 (set-goal (rename-variables
 	   (term-to-stotality-formula (pt "(ListAppd alpha)"))))
@@ -1196,22 +1163,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save "ListAppdSTotal")
-
-;; ListAppdSTotalSound
-(set-goal (rename-variables
-	   (real-and-formula-to-mr-formula
-	    (nt (proof-to-extracted-term "ListAppdSTotal"))
-	    (proof-to-formula (theorem-name-to-proof "ListAppdSTotal")))))
-(assume "xs^1" "n^1" "STMRn1xs1" "xs^2" "n^2" "TMRn2xs2")
-(elim "STMRn1xs1")
-(use "TMRn2xs2")
-(assume "x^" "xs^" "n^" "STMRnxs" "IH")
-(ng #t)
-(use "STotalListConsMR")
-(use "IH")
-;; Proof finished.
-;; (cdp)
-(save "ListAppdSTotalSound")
 
 ;; x: ++xs converts into x::xs.  However, xs1++x2: ++xs2 does not rewrite,
 ;; because ++ associates to the left.  But we can add the corresponding
@@ -1316,22 +1267,6 @@
 ;; (cdp)
 (save-totality)
 
-;; 2017-04-01.  Code preliminarily discarded.
-;; ;; ListLengthTotalSound
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "(ListLength alpha)")
-;; 	    (proof-to-formula (theorem-name-to-proof "ListLengthTotal")))))
-;; (assume "xs^1" "xs^10" "TMRxs10xs1")
-;; (elim "TMRxs10xs1")
-;; (use "TotalNatZeroMR")
-;; (assume "x^" "x^0" "TMRx0x" "xs^" "xs^0" "TMRxs0xs" "IH")
-;; (ng #t)
-;; (use "TotalNatSuccMR")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save "ListLengthTotalSound")
-
 ;; ListLengthSTotal
 (set-goal (rename-variables
 	   (term-to-stotality-formula (pt "(ListLength alpha)"))))
@@ -1349,23 +1284,6 @@
 
 (pp (rename-variables (proof-to-extracted-term "ListLengthSTotal")))
 ;; [n](Rec nat=>nat)n 0([n0,n1]Succ n1)
-
-;; 2017-04-01.  Code preliminarily discarded.
-;; ;; ListLengthSTotalSound
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (proof-to-extracted-term "ListLengthSTotal")
-;; 	    (proof-to-formula (theorem-name-to-proof "ListLengthSTotal")))))
-;; (assume "xs^1" "n^1" "STMRn1xs1")
-;; (elim "STMRn1xs1")
-;; (ng #t)
-;; (use "TotalNatZeroMR")
-;; (assume "x^" "xs^" "n^" "STMRnxs" "IH")
-;; (ng #t)
-;; (use "TotalNatSuccMR")
-;; (use "IH")
-;; ;; Proof finished.
-;; (save "ListLengthSTotalSound")
 
 ;; ListLhZeroToEqNil
 (set-goal "all xs(Lh xs=0 -> xs eqd(Nil alpha))")
@@ -1494,32 +1412,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
-
-;; 2017-04-01.  Code preliminarily discarded.
-;; ;; ListProjTotalSound
-;; (set-goal (rename-variables
-;; 	   (real-and-formula-to-mr-formula
-;; 	    (pt "(ListProj alpha)")
-;; 	    (proof-to-formula (theorem-name-to-proof "ListProjTotal")))))
-;; (assume "n^" "n^0" "TMRn0n")
-;; (elim "TMRn0n")
-;; (assume "xs^" "xs^0" "TMRxs0xs")
-;; (elim "TMRxs0xs")
-;; (ng #t)
-;; (use "InhabTotalMR")
-;; (assume "x^" "x^0" "TMRx0x" "xs^1" "xs^10" "TMRxs10xs1" "IH")
-;; (ng #t)
-;; (use "TMRx0x")
-;; (assume "n^1" "n^10" "TMRn10n1" "IHn1" "xs^1" "xs^10" "TMRxs10xs1")
-;; (elim  "TMRxs10xs1")
-;; (ng #t)
-;; (use "InhabTotalMR")
-;; (assume "x^" "x^0" "TMRx0x" "xs^2" "xs^20" "TMRx20x2" "IHxs2")
-;; (ng #t)
-;; (use "IHn1")
-;; (use "TMRx20x2")
-;; ;; Proof finished.
-;; (save "ListProjTotalSound")
 
 ;; ListProjAppdLeft
 (set-goal "all xs1,n,xs2(n<Lh xs1 -> (n thof(xs1++xs2))eqd(n thof xs1))")
