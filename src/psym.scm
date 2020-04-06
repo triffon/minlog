@@ -1,4 +1,4 @@
-;; 2018-08-20
+;; 2020-04-06.  psym.scm
 ;; 5. Predicates
 ;; =============
 
@@ -2457,9 +2457,9 @@
 			 (formula-to-et-type-for-mr-clauses
 			  formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
 			(mr-var (type-to-new-partial-var et-type))
-			(mr-vars (cons mr-var vars))
+			(mr-vars (append vars (list mr-var)))
 			(mr-formula
-			 (idpredconst-to-mr-idpredconst-for-mr-clauses
+			 (real-and-formula-to-mr-formula-for-mr-clauses
 			  (make-term-in-var-form mr-var) formula
 			  mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
 		   (list
@@ -4864,9 +4864,10 @@
 		(if (not (finalg? type))
 		    (myerror "add-co" "finitary algebra expected" type)))
 	       (else
-		(if (not (member eq-name (list "EqD" "CoEqPNc" "EqPNc")))
+		(if (not (member eq-name
+				 (list "EqD" "CoEqPNc" "EqPNc" "RealFnEq")))
 		    (myerror
-		     "add-co" "eq-name EqD, CoEqPNc or EqPNc expected"
+		     "add-co" "eq-name EqD, CoEqPNc, EqPNc or RealFnEq expected"
 		     eq-name)))))
 	    eq-names-list (arity-to-types arity)))
 	 filled-expanded-eq-names-lists arities))
