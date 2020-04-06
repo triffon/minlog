@@ -1,4 +1,4 @@
-;; 2019-12-08.  examples/analysis/sddiv.scm
+;; 2020-04-06.  examples/analysis/sddiv.scm
 
 (load "~/git/minlog/init.scm")
 
@@ -70,8 +70,25 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; (CoRec rea=>ai)1([x]SdR pair(InR rea ai)x)
+
+(add-sound "CoIOne")
+;; ok, CoIOne has been added as a new theorem.
+;; ok, program constant cCoIOne: ai
+;; of t-degree 0 and arity 0 added
+;; > (CoRec rea=>ai)1([x]SdR pair(InR rea ai)x)
+;; > ok, CoIOneSound has been added as a new theorem:
+
+;; CoIMR 1 cCoIOne
+
+;; with computation rule
+
+;; cCoIOne eqd(CoRec rea=>ai)1([x]SdR pair(InR rea ai)x)
+
+;; (cp "CoIOneSound")
+
+(deanimate "CoIOne")
 
 ;; CoIIntNOne
 (set-goal "CoI(IntN 1)")
@@ -127,8 +144,21 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; (CoRec rea=>ai)IntN 1([x]SdL pair(InR rea ai)x)
+
+(add-sound "CoIIntNOne")
+;; ok, CoIIntNOneSound has been added as a new theorem:
+
+;; CoIMR(IntN 1)cCoIIntNOne
+
+;; with computation rule
+
+;; cCoIIntNOne eqd(CoRec rea=>ai)IntN 1([x]SdL pair(InR rea ai)x)
+
+;; (cp "CoIIntNOneSound")
+
+(deanimate "CoIIntNOne")
 
 ;; CoINegToCoIPlusOne
 (set-goal "allnc x(exr y(CoI y andi y<<=0 andi x===y+1) -> CoI x)")
@@ -347,7 +377,7 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [u](CoRec ai=>ai)u
 ;;  ([u0][case (cCoIClosure u0)
@@ -356,6 +386,34 @@
 ;;        (SdR -> SdR pair InL cCoIOne)
 ;;        (SdM -> SdR pair InR u1)
 ;;        (SdL -> SdR pair InL u1)])])
+
+(add-sound "CoINegToCoIPlusOne")
+;; ok, CoINegToCoIPlusOneSound has been added as a new theorem:
+
+;; allnc x,u^(
+;;  (ExRTMR rea
+;;    ai
+;;    (cterm (y,u^0) 
+;;    (AndLMR (cterm (u^1) CoIMR y u^1) (cterm () y<<=0 andnc x===y+1))u^0))
+;;  u^ -> 
+;;  CoIMR x(cCoINegToCoIPlusOne u^))
+
+;; with computation rule
+
+;; cCoINegToCoIPlusOne eqd
+;; ([u]
+;;   (CoRec ai=>ai)u
+;;   ([u0]
+;;     [if (cCoIClosure u0)
+;;       ([s,u1]
+;;        [if s
+;;          (SdR pair(InL ai ai)cCoIOne)
+;;          (SdR pair(InR ai ai)u1)
+;;          (SdR pair(InL ai ai)u1)])]))
+
+;; (cp "CoINegToCoIPlusOneSound")
+
+(deanimate "CoINegToCoIPlusOne")
 
 ;; CoIPosToCoIMinusOne
 (set-goal "allnc x(exr y(CoI y andi 0<<=y andi x===y+ ~1) -> CoI x)")
@@ -551,7 +609,7 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [u](CoRec ai=>ai)u
 ;;  ([u0][case (cCoIClosure u0)
@@ -560,6 +618,34 @@
 ;;        (SdR -> SdL pair InL u1)
 ;;        (SdM -> SdL pair InR u1)
 ;;        (SdL -> SdL pair InL cCoIIntNOne)])])
+
+(add-sound "CoIPosToCoIMinusOne")
+;; ok, CoIPosToCoIMinusOneSound has been added as a new theorem:
+
+;; allnc x,u^(
+;;  (ExRTMR rea
+;;    ai
+;;    (cterm (y,u^0) 
+;;    (AndLMR (cterm (u^1) CoIMR y u^1) (cterm () 0<<=y andnc x===y+ ~1))u^0))
+;;  u^ -> 
+;;  CoIMR x(cCoIPosToCoIMinusOne u^))
+
+;; with computation rule
+
+;; cCoIPosToCoIMinusOne eqd
+;; ([u]
+;;   (CoRec ai=>ai)u
+;;   ([u0]
+;;     [if (cCoIClosure u0)
+;;       ([s,u1]
+;;        [if s
+;;          (SdL pair(InL ai ai)u1)
+;;          (SdL pair(InR ai ai)u1)
+;;          (SdL pair(InL ai ai)cCoIIntNOne)])]))
+
+;; (cp "CoIPosToCoIMinusOneSound")
+
+(deanimate "CoIPosToCoIMinusOne")
 
 ;; CoIToCoIDouble
 (set-goal "allnc x(CoI x -> abs x<<=(1#2) -> CoI(2*x))")
@@ -690,7 +776,7 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [u][case (cCoIClosure u)
 ;;    (s pair u0 -> 
@@ -698,6 +784,26 @@
 ;;      (SdR -> cCoICompat(cCoICompat(cCoICompat(cCoINegToCoIPlusOne u0))))
 ;;      (SdM -> cCoICompat u0)
 ;;      (SdL -> cCoICompat(cCoICompat(cCoICompat(cCoIPosToCoIMinusOne u0))))])]
+
+(add-sound "CoIToCoIDouble")
+;; ok, CoIToCoIDoubleSound has been added as a new theorem:
+
+;; allnc x,u^(CoIMR x u^ -> abs x<<=(1#2) -> CoIMR(2*x)(cCoIToCoIDouble u^))
+
+;; with computation rule
+
+;; cCoIToCoIDouble eqd
+;; ([u]
+;;   [if (cCoIClosure u)
+;;     ([s,u0]
+;;      [if s
+;;        (cCoICompat(cCoICompat(cCoICompat(cCoINegToCoIPlusOne u0))))
+;;        (cCoICompat u0)
+;;        (cCoICompat(cCoICompat(cCoICompat(cCoIPosToCoIMinusOne u0))))])])
+
+;; (cp "CoIToCoIDoubleSound")
+
+(deanimate "CoIToCoIDouble")
 
 ;; CoIToCoIQuad
 (set-goal "allnc x(CoI x -> abs x<<=(1#4) -> CoI(4*x))")
@@ -734,9 +840,26 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [u]cCoICompat(cCoIToCoIDouble(cCoIToCoIDouble u))
+
+(add-sound "CoIToCoIQuad")
+;; ok, CoIToCoIQuad has been added as a new theorem.
+;; ok, program constant cCoIToCoIQuad: ai=>ai
+;; of t-degree 0 and arity 0 added
+;; > > > [u]cCoICompat(cCoIToCoIDouble(cCoIToCoIDouble u))
+;; > ok, CoIToCoIQuadSound has been added as a new theorem:
+
+;; allnc x,u^(CoIMR x u^ -> abs x<<=(1#4) -> CoIMR(4*x)(cCoIToCoIQuad u^))
+
+;; with computation rule
+
+;; cCoIToCoIQuad eqd([u]cCoICompat(cCoIToCoIDouble(cCoIToCoIDouble u)))
+
+;; (cp "CoIToCoIQuadSound")
+
+(deanimate "CoIToCoIQuad")
 
 ;; CoIDivSatCoIClAuxR
 (set-goal "allnc x,y(CoI x -> CoI y -> (1#4)<<=y -> abs x<<=y -> 0<<=x -> 
@@ -791,11 +914,33 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [u,u0]
 ;;  cCoIToCoIQuad
 ;;  (cCoIAverage u(cCoIUMinus(cCoICompat(cCoICompat(cCoIClosureInv SdM u0)))))
+
+(add-sound "CoIDivSatCoIClAuxR")
+;; ok, CoIDivSatCoIClAuxRSound has been added as a new theorem:
+
+;; allnc x,y,u^(
+;;  CoIMR x u^ -> 
+;;  allnc u^0(
+;;   CoIMR y u^0 -> 
+;;   (1#4)<<=y -> 
+;;   abs x<<=y -> 
+;;   0<<=x -> CoIMR(4*((1#2)*(x+ ~((1#2)*y))))(cCoIDivSatCoIClAuxR u^ u^0)))
+
+;; with computation rule
+
+;; cCoIDivSatCoIClAuxR eqd
+;; ([u,u0]
+;;   cCoIToCoIQuad
+;;   (cCoIAverage u(cCoIUMinus(cCoICompat(cCoICompat(cCoIClosureInv SdM u0))))))
+
+;; (cp "CoIDivSatCoIClAuxRSound")
+
+(deanimate "CoIDivSatCoIClAuxR")
 
 ;; CoIDivSatCoIClAuxL
 (set-goal "allnc x,y(CoI x -> CoI y -> (1#4)<<=y -> abs x<<=y -> x<<=0 -> 
@@ -846,9 +991,29 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [u,u0]cCoIToCoIQuad(cCoIAverage u(cCoICompat(cCoIClosureInv SdM u0)))
+
+(add-sound "CoIDivSatCoIClAuxL")
+;; ok, CoIDivSatCoIClAuxLSound has been added as a new theorem:
+
+;; allnc x,y,u^(
+;;  CoIMR x u^ -> 
+;;  allnc u^0(
+;;   CoIMR y u^0 -> 
+;;   (1#4)<<=y -> 
+;;   abs x<<=y -> 
+;;   x<<=0 -> CoIMR(4*((1#2)*(x+(1#2)*y)))(cCoIDivSatCoIClAuxL u^ u^0)))
+
+;; with computation rule
+
+;; cCoIDivSatCoIClAuxL eqd
+;; ([u,u0]cCoIToCoIQuad(cCoIAverage u(cCoICompat(cCoIClosureInv SdM u0))))
+
+;; (cp "CoIDivSatCoIClAuxLSound")
+
+(deanimate "CoIDivSatCoIClAuxL")
 
 ;; (set! COMMENT-FLAG #f)
 ;; CoIDivSatCoICl
@@ -1320,16 +1485,22 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
-;; [u,u0][case (cCoIClosure u)
-;;    (s pair u1 -> [case s
+;; [u,u0]
+;;  [case (cCoIClosure u)
+;;    (s pair u1 -> 
+;;    [case s
 ;;      (SdR -> SdR pair cCoIDivSatCoIClAuxR u u0)
-;;      (SdM -> [case (cCoIClosure u1)
-;;        (s0 pair u2 -> [case s0
+;;      (SdM -> 
+;;      [case (cCoIClosure u1)
+;;        (s0 pair u2 -> 
+;;        [case s0
 ;;          (SdR -> SdR pair cCoIDivSatCoIClAuxR u u0)
-;;          (SdM -> [case (cCoIClosure u2)
-;;            (s1 pair u3 -> [case s1
+;;          (SdM -> 
+;;          [case (cCoIClosure u2)
+;;            (s1 pair u3 -> 
+;;            [case s1
 ;;              (SdR -> SdR pair cCoIDivSatCoIClAuxR u u0)
 ;;              (SdM -> SdM pair cCoIToCoIDouble u)
 ;;              (SdL -> SdL pair cCoIDivSatCoIClAuxL u u0)])])
@@ -1337,6 +1508,56 @@
 ;;      (SdL -> SdL pair cCoIDivSatCoIClAuxL u u0)])]
 
 ;; (set! COMMENT-FLAG #t)
+
+(add-sound "CoIDivSatCoICl")
+;; ok, CoIDivSatCoIClSound has been added as a new theorem:
+
+;; allnc x,y,u^(
+;;  CoIMR x u^ -> 
+;;  allnc u^0(
+;;   CoIMR y u^0 -> 
+;;   (1#4)<<=y -> 
+;;   abs x<<=y -> 
+;;   (ExRTMR int
+;;     sd yprod ai
+;;     (cterm (d,su^) 
+;;     (ExRTMR rea
+;;       sd yprod ai
+;;       (cterm (x0,su^0) 
+;;       (AndDMR (cterm (s^) SdMR d s^)
+;;         (cterm (u^1) 
+;;         (AndLMR (cterm (u^2) CoIMR x0 u^2)
+;;           (cterm () 
+;;           abs x0<<=y andnc x*RealUDiv y 3===(1#2)*(x0*RealUDiv y 3+d)))
+;;         u^1))
+;;       su^0))
+;;     su^))
+;;   (cCoIDivSatCoICl u^ u^0)))
+
+;; with computation rule
+
+;; cCoIDivSatCoICl eqd
+;; ([u,u0]
+;;   [if (cCoIClosure u)
+;;     ([s,u1]
+;;      [if s
+;;        (SdR pair cCoIDivSatCoIClAuxR u u0)
+;;        [if (cCoIClosure u1)
+;;         ([s0,u2]
+;;          [if s0
+;;            (SdR pair cCoIDivSatCoIClAuxR u u0)
+;;            [if (cCoIClosure u2)
+;;             ([s1,u3]
+;;              [if s1
+;;                (SdR pair cCoIDivSatCoIClAuxR u u0)
+;;                (SdM pair cCoIToCoIDouble u)
+;;                (SdL pair cCoIDivSatCoIClAuxL u u0)])]
+;;            (SdL pair cCoIDivSatCoIClAuxL u u0)])]
+;;        (SdL pair cCoIDivSatCoIClAuxL u u0)])])
+
+;; (cp "CoIDivSatCoIClSound")
+
+(deanimate "CoIDivSatCoICl")
 
 ;; CoIDivAux
 (set-goal "allnc y(CoI y -> (1#4)<<=y -> allnc z(
@@ -1430,10 +1651,37 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(ppc neterm)
+;; (ppc neterm)
 
 ;; [u,u0](CoRec ai=>ai)u0
 ;;  ([u1][case (cCoIDivSatCoICl u1 u) (s pair u2 -> s pair InR u2)])
+
+(add-sound "CoIDivAux")
+;; ok, CoIDivAuxSound has been added as a new theorem:
+
+;; allnc y,u^(
+;;  CoIMR y u^ -> 
+;;  (1#4)<<=y -> 
+;;  allnc z,u^0(
+;;   (ExRTMR rea
+;;     ai
+;;     (cterm (x,u^1) 
+;;     (AndLMR (cterm (u^2) CoIMR x u^2)
+;;       (cterm () abs x<<=y andnc z===x*RealUDiv y 3))
+;;     u^1))
+;;   u^0 -> 
+;;   CoIMR z(cCoIDivAux u^ u^0)))
+
+;; with computation rule
+
+;; cCoIDivAux eqd
+;; ([u,u0]
+;;   (CoRec ai=>ai)u0
+;;   ([u1][if (cCoIDivSatCoICl u1 u) ([s,u2]s pair(InR ai ai)u2)]))
+
+;; (cp "CoIDivAuxSound")
+
+(deanimate "CoIDivAux")
 
 ;; CoIDiv
 (set-goal "allnc x,y(CoI x -> CoI y -> (1#4)<<=y -> abs x<<=y ->
@@ -1463,11 +1711,28 @@
 ;; (cdp)
 (save "CoIDiv")
 
-(define CoIDiv-eterm (proof-to-extracted-term))
+(add-sound "CoIDiv")
+;; ok, CoIDivSound has been added as a new theorem:
+
+;; allnc x,y,u^(
+;;  CoIMR x u^ -> 
+;;  allnc u^0(
+;;   CoIMR y u^0 -> 
+;;   (1#4)<<=y -> abs x<<=y -> CoIMR(x*RealUDiv y 3)(cCoIDiv u^ u^0)))
+
+;; with computation rule
+
+;; cCoIDiv eqd([u,u0]cCoIDivAux u0 u)
+
+;; (cp "CoIDivSound")
+
+(deanimate "CoIDiv")
+
+(define CoIDiv-eterm (proof-to-extracted-term (theorem-name-to-proof "CoIDiv")))
 (animate "CoIDivAux")
 (animate "CoIDivSatCoICl")
 (define CoIDiv-neterm (rename-variables (nt CoIDiv-eterm)))
-(ppc CoIDiv-neterm)
+;; (ppc CoIDiv-neterm)
 
 ;; [u,u0](CoRec ai=>ai)u
 ;;  ([u1][case (cCoIClosure u1)
