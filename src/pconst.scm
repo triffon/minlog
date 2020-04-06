@@ -1,4 +1,4 @@
-;; 2019-08-23.  pconst.scm
+;; 2020-04-06.  pconst.scm
 ;; 4. Constants
 ;; ============
 
@@ -3051,16 +3051,16 @@
 		     (make-alg "ysumu" rel-simalg)))
 	       rel-simalgs f-or-types))
 	 (argtypes-without-irrel-alg-names
-	   (list-transform-positive argtypes
-	     (lambda (argtype) (null? (intersection (type-to-alg-names argtype)
-						    irrel-simalg-names)))))
+	  (list-transform-positive argtypes
+	    (lambda (argtype) (null? (intersection (type-to-alg-names argtype)
+						   irrel-simalg-names)))))
 	 (steptype-factors
 	  (map (lambda (argtype)
 		 (type-gen-substitute
 		  argtype
 		  (map list rel-simalgs rel-simalgs-plus-types)))
 	       argtypes-without-irrel-alg-names))
-	 (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag))))
+	 (prim-prod? (and (pair? opt-prim-prod-flag) (car opt-prim-prod-flag))))
     (apply (if prim-prod? mk-star mk-yprod) steptype-factors)))
 
 (define (alg-or-arrow-types-to-corec-consts . alg-or-arrow-types)
@@ -3532,7 +3532,7 @@
 	 (typed-constr-names ;only those for the present alg-name
 	  (alg-name-to-typed-constr-names alg-name))
 	 (constr-types (map typed-constr-name-to-type typed-constr-names))
-	 (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag)))
+	 (prim-prod? (and (pair? opt-prim-prod-flag) (car opt-prim-prod-flag)))
 	 (product-types
 	  (map (lambda (constr-type)
 		 (apply (if prim-prod? mk-star mk-yprod)
@@ -3601,8 +3601,8 @@
 	      (if
 	       (null? constr-args)
 	       (nbe-term-to-object injection-or-f '())
-	       (let* ((prim-prod? (or (null? opt-prim-prod-flag)
-				      (car opt-prim-prod-flag)))
+	       (let* ((prim-prod? (and (pair? opt-prim-prod-flag)
+				       (car opt-prim-prod-flag)))
 		      (prod-obj
 		       (if
 			prim-prod?
