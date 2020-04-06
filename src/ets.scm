@@ -1,4 +1,4 @@
-;; 2019-12-07.  ets.scm
+;; 2020-04-06.  ets.scm
 ;; 16. Extracted terms
 ;; ===================
 
@@ -593,6 +593,39 @@
 
 ;; Id -> [x]x in case unfold-let-flag is true.
 
+;; In proof-to-extracted-term it is checked that the proven formula is
+;; mr-free and c.r.
+
+(define (formula-with-mr-predicates? formula)
+  (case (tag formula)
+    ((atom) #f)
+    ((predicate)
+     (let ((pred (predicate-form-to-predicate formula)))
+       (cond
+	((pvar-form? pred) #f)
+	((predconst-form? pred)
+	 (member (predconst-to-name pred)
+		 (list "TotalMR" "CoTotalMR" "EqPMR" "CoEqPMR")))
+	((idpredconst-form? pred)
+	 (or (final-substring? "MR" (idpredconst-to-name pred))
+	     (let* ((cterms (idpredconst-to-cterms pred))
+		    (flas (map cterm-to-formula cterms)))
+	       (apply or-op (map formula-with-mr-predicates? flas)))))
+	(else (myerror "formula-with-mr-predicates?"
+		       "predicate expected" pred)))))
+    ((imp) (or (formula-with-mr-predicates? (imp-form-to-conclusion formula))
+	       (formula-with-mr-predicates? (imp-form-to-premise formula))))
+    ((impnc)
+     (or (formula-with-mr-predicates? (impnc-form-to-conclusion formula))
+	 (formula-with-mr-predicates? (impnc-form-to-premise formula))))
+    ((and) (or (formula-with-mr-predicates? (and-form-to-left formula))
+	       (formula-with-mr-predicates? (and-form-to-right formula))))
+    ((all) (formula-with-mr-predicates? (all-form-to-kernel formula)))
+    ((ex) (formula-with-mr-predicates? (ex-form-to-kernel formula)))
+    ((allnc) (formula-with-mr-predicates? (allnc-form-to-kernel formula)))
+    ((exca excl excu) (formula-with-mr-predicates? (unfold-formula formula)))
+    (else (myerror "formula-with-mr-predicates?" "formula expected" formula))))
+
 (define (proof-to-extracted-term . opt-proof-or-thm-name-and-unfold-let-flag)
   (if
    (null? opt-proof-or-thm-name-and-unfold-let-flag)
@@ -606,14 +639,12 @@
 		  (proof (if (proof-form? proof-or-thm-name)
 			     proof-or-thm-name
 			     (theorem-name-to-proof proof-or-thm-name))))
-	    (cond
-	     ((formula-of-nulltype? (proof-to-formula proof)) 'eps)
-	     ((string? proof-or-thm-name)
-	      (theorem-to-extracted-term
-	       (theorem-name-to-aconst proof-or-thm-name)
-	       #f)) ;no unfolding of cId
-	     (else (let ((avar-to-var (make-avar-to-var)))
-		     (proof-to-extracted-term-aux proof avar-to-var #f)))))
+	    (if (string? proof-or-thm-name)
+		(theorem-to-extracted-term
+		 (theorem-name-to-aconst proof-or-thm-name)
+		 #f) ;no unfolding of cId
+		(let ((avar-to-var (make-avar-to-var)))
+		  (proof-to-extracted-term-aux proof avar-to-var #f))))
 					;else first is the unfold-let-flag
 	  (let ((avar-to-var (make-avar-to-var)))
 	    (proof-to-extracted-term-aux (current-proof) avar-to-var first)))
@@ -622,9 +653,13 @@
 	    (let*  ((proof-or-thm-name first)
 		    (proof (if (proof-form? proof-or-thm-name)
 			       proof-or-thm-name
-			       (theorem-name-to-proof proof-or-thm-name))))
+			       (theorem-name-to-proof proof-or-thm-name)))
+		    (fla (proof-to-formula proof)))
 	      (cond
-	       ((formula-of-nulltype? (proof-to-formula proof)) 'eps)
+	       ((or (formula-with-mr-predicates? fla)
+		    (formula-of-nulltype? fla))
+		(myerror "proof-to-extracted-term"
+			 "mr-free c.r. formula expected" fla))
 	       ((string? proof-or-thm-name)
 		(theorem-to-extracted-term
 		 (theorem-name-to-aconst proof-or-thm-name)
@@ -635,6 +670,9 @@
 	    (myerror "proof-to-extracted-term"
 		     "proof or theorem name expected"
 		     first)))))))
+
+;; In proof-to-extracted-term-aux it is assumed that the proven
+;; formula is mr-free and c.r.
 
 (define (proof-to-extracted-term-aux proof avar-to-var unfold-let-flag)
   (case (tag proof)
@@ -653,39 +691,41 @@
 			(aconst-to-kind aconst))))))
     ((proof-in-imp-intro-form)
      (let* ((avar (proof-in-imp-intro-form-to-avar proof))
-	    (avar-type (formula-to-et-type (avar-to-formula avar)))
 	    (kernel (proof-in-imp-intro-form-to-kernel proof))
 	    (kernel-term (proof-to-extracted-term-aux
 			  kernel avar-to-var unfold-let-flag)))
-       (if (nulltype? avar-type)
+       (if (formula-of-nulltype? (avar-to-formula avar))
 	   kernel-term
 	   (make-term-in-abst-form (avar-to-var avar) kernel-term))))
     ((proof-in-imp-elim-form)
      (let* ((op (proof-in-imp-elim-form-to-op proof))
 	    (arg (proof-in-imp-elim-form-to-arg proof))
-	    (arg-type (formula-to-et-type (proof-to-formula arg)))
+	    (arg-fla (proof-to-formula arg))
 	    (op-term (proof-to-extracted-term-aux
 		      op avar-to-var unfold-let-flag)))
-       (if (nulltype? arg-type)
+       (if (formula-with-mr-predicates? arg-fla)
+	   (myerror "proof-to-extracted-term-aux"
+		    "mr-free formula expected" arg-fla))
+       (if (formula-of-nulltype? arg-fla)
 	   op-term
 	   (make-term-in-app-form
 	    op-term (proof-to-extracted-term-aux
 		     arg avar-to-var unfold-let-flag)))))
-    ((proof-in-impnc-intro-form)
+    ((proof-in-impnc-intro-form) ;obsolete
      (proof-to-extracted-term-aux
       (proof-in-impnc-intro-form-to-kernel proof)
       avar-to-var unfold-let-flag))
-    ((proof-in-impnc-elim-form)
+    ((proof-in-impnc-elim-form) ;obsolete
      (proof-to-extracted-term-aux
       (proof-in-impnc-elim-form-to-op proof) avar-to-var unfold-let-flag))
     ((proof-in-and-intro-form)
      (let* ((left (proof-in-and-intro-form-to-left proof))
 	    (right (proof-in-and-intro-form-to-right proof))
-	    (left-type (formula-to-et-type (proof-to-formula left)))
-	    (right-type (formula-to-et-type (proof-to-formula right))))
-       (if (nulltype? left-type)
+	    (left-fla (proof-to-formula left))
+	    (right-fla (proof-to-formula right)))
+       (if (formula-of-nulltype? left-fla)
 	   (proof-to-extracted-term-aux right avar-to-var unfold-let-flag)
-	   (if (nulltype? right-type)
+	   (if (formula-of-nulltype? right-fla)
 	       (proof-to-extracted-term-aux
 		left avar-to-var unfold-let-flag)
 	       (make-term-in-pair-form
@@ -695,24 +735,32 @@
 		 right avar-to-var unfold-let-flag))))))
     ((proof-in-and-elim-left-form)
      (let* ((kernel (proof-in-and-elim-left-form-to-kernel proof))
-	    (formula (proof-to-formula kernel))
-	    (left-type (formula-to-et-type (and-form-to-left formula)))
-	    (right-type (formula-to-et-type (and-form-to-right formula)))
-	    (kernel-term (proof-to-extracted-term-aux
-			  kernel avar-to-var unfold-let-flag)))
-       (if (or (nulltype? left-type) (nulltype? right-type))
-	   kernel-term
-	   (make-term-in-lcomp-form kernel-term))))
+	    (kernel-fla (proof-to-formula kernel))
+	    (left-fla (and-form-to-left kernel-fla))
+	    (right-fla (and-form-to-right kernel-fla)))
+       (if (formula-with-mr-predicates? right-fla)
+	   (myerror "proof-to-extracted-term-aux"
+		    "mr-free formula expected" right-fla))
+       (let ((kernel-term (proof-to-extracted-term-aux
+			   kernel avar-to-var unfold-let-flag)))
+	 (if (or (formula-of-nulltype? left-fla)
+		 (formula-of-nulltype? right-fla))
+	     kernel-term
+	     (make-term-in-lcomp-form kernel-term)))))
     ((proof-in-and-elim-right-form)
      (let* ((kernel (proof-in-and-elim-right-form-to-kernel proof))
-	    (formula (proof-to-formula kernel))
-	    (left-type (formula-to-et-type (and-form-to-left formula)))
-	    (right-type (formula-to-et-type (and-form-to-right formula)))
-	    (kernel-term (proof-to-extracted-term-aux
-			  kernel avar-to-var unfold-let-flag)))
-       (if (or (nulltype? left-type) (nulltype? right-type))
-	   kernel-term
-	   (make-term-in-rcomp-form kernel-term))))
+	    (kernel-fla (proof-to-formula kernel))
+	    (left-fla (and-form-to-left kernel-fla))
+	    (right-fla (and-form-to-right kernel-fla)))
+       (if (formula-with-mr-predicates? left-fla)
+	   (myerror "proof-to-extracted-term-aux"
+		    "mr-free formula expected" left-fla))
+       (let ((kernel-term (proof-to-extracted-term-aux
+			   kernel avar-to-var unfold-let-flag)))
+	 (if (or (formula-of-nulltype? left-fla)
+		 (formula-of-nulltype? right-fla))
+	     kernel-term
+	     (make-term-in-rcomp-form kernel-term)))))
     ((proof-in-all-intro-form)
      (let ((var (proof-in-all-intro-form-to-var proof))
 	   (kernel (proof-in-all-intro-form-to-kernel proof)))
@@ -732,7 +780,14 @@
     (else (myerror "proof-to-extracted-term-aux"
 		   "proof tag expected" (tag proof)))))
 
+;; In axiom-to-extracted-term it is checked that the proven formula is
+;; mr-free and c.r.
+
 (define (axiom-to-extracted-term aconst)
+  (let ((fla (aconst-to-formula aconst)))
+    (if (or (formula-with-mr-predicates? fla) (formula-of-nulltype? fla))
+	(myerror "axiom-to-extracted-term"
+		 "mr-free c.r. formula expected" fla)))
   (let ((name (aconst-to-name aconst)))
     (cond
      ((string=? "Ind" name)
@@ -908,7 +963,14 @@
 	(car args)))
      (else (myerror "axiom-to-extracted-term" "axiom expected" name)))))
 
+;; In theorem--to-extracted-term it is checked that the proven formula
+;; is mr-free and c.r.
+
 (define (theorem-to-extracted-term aconst . opt-unfold-let-flag)
+  (let ((fla (aconst-to-formula aconst)))
+    (if (or (formula-with-mr-predicates? fla) (formula-of-nulltype? fla))
+	(myerror "theorem-to-extracted-term"
+		 "mr-free c.r. formula expected" fla)))
   (if
    (null? opt-unfold-let-flag)
    (theorem-to-extracted-term aconst #f)
@@ -1025,7 +1087,14 @@
       (else (make-term-in-const-form
 	     (theorem-or-global-assumption-to-pconst aconst)))))))
 
+;; In global-assumption-to-extracted-term it is checked that the
+;; assumed formula is mr-free and c.r.
+
 (define (global-assumption-to-extracted-term aconst avar-to-var)
+  (let ((fla (aconst-to-formula aconst)))
+    (if (or (formula-with-mr-predicates? fla) (formula-of-nulltype? fla))
+	(myerror "global-assumption-to-extracted-term"
+		 "mr-free c.r. formula expected" fla)))
   (let* ((name (aconst-to-name aconst))
 	 (info (assoc name GLOBAL-ASSUMPTIONS)))
     (if
@@ -4003,14 +4072,17 @@
 	 (mr-concl-vars (formula-to-free mr-concl))
 	 (mr-concl-rest-vars (set-minus mr-concl-vars mr-prem-vars))
 	 (mr-prem-avar (formula-to-new-avar mr-prem)) ;of w mr I xs
-	 (mr-clauses
-	  (cdr (imp-form-to-premises
-		(all-form-to-kernel
-		 (aconst-to-inst-formula mr-elim-aconst)))))
+	 ;; (mr-clauses
+	 ;;  (cdr (imp-form-to-premises
+	 ;; 	(all-form-to-kernel
+	 ;; 	 (aconst-to-inst-formula mr-elim-aconst)))))
 	 (uninst-mr-clauses
 	  (cdr (imp-form-to-premises
 		(all-form-to-kernel
 		 (aconst-to-uninst-formula mr-elim-aconst)))))
+	 (tpsubst (aconst-to-tpsubst mr-elim-aconst))
+	 (mr-clauses (map (lambda (x) (formula-substitute x tpsubst))
+			  uninst-mr-clauses))
 	 (mr-clause-proofs
 	  (map ;as many as we have avars u0: w0 mr K0 ... ui: eps mr Ki ... 
 					;u{k-1}: w{k-1} mr K{k-1}
@@ -4125,32 +4197,34 @@
 ;; Thus we use andlr-formula-and-concl-to-andlr-elim-mr-proof
 
 (define (andlr-formula-and-concl-to-andlr-elim-mr-proof andlr-formula concl)
-  (let* ((andlr-vars (formula-to-free andlr-formula))
-	 (andlr-type (formula-to-et-type andlr-formula))
-	 (real-var (type-to-new-partial-var andlr-type)) ;a
-	 (real-term (make-term-in-var-form real-var))
-	 (mr-andlr-fla ;a mr X andl Y^ or a mr X^ andr Y
-	  (real-and-formula-to-mr-formula-aux real-term andlr-formula))
-	 (mr-andlr-fla-avar (formula-to-new-avar mr-andlr-fla)) ;w
+  (let* ((andlr-type (formula-to-et-type andlr-formula))
+	 (z (type-to-new-partial-var andlr-type))
+	 (z-term (make-term-in-var-form z))
+	 (mr-andlr-fla ;z mr A andnc B or A andnc z mr B
+	  (real-and-formula-to-mr-formula-aux z-term andlr-formula)) ;w
 	 (concl-type (formula-to-et-type concl))
 	 (f (type-to-new-partial-var (make-arrow andlr-type concl-type)))
-	 (f-term (make-term-in-var-form f)) ;f
-	 (app-term (make-term-in-app-form f-term real-term)) ;fa
-	 (mr-concl ;fa mr concl
+	 (f-term (make-term-in-var-form f))
+	 (app-term (make-term-in-app-form f-term z-term)) ;fz
+	 (mr-concl ;fz mr concl
 	  (real-and-formula-to-mr-formula-aux app-term concl))
 	 (imp-fla (make-imp mr-andlr-fla mr-concl))
 	 (elim-aconst (imp-formulas-to-elim-aconst imp-fla))
-	 (intro-proof (make-proof-in-aconst-form elim-aconst))
-	 (elim-proof
-	  (apply mk-proof-in-elim-form
-		 intro-proof
-		 (append (map make-term-in-var-form
-			      (append andlr-vars (list f)))
-			 (list real-term
-			       (make-proof-in-avar-form mr-andlr-fla-avar))))))
-    (apply mk-proof-in-intro-form
-	   (append andlr-vars
-		   (list real-var mr-andlr-fla-avar f elim-proof)))))
+	 (elim-aconst-fla (aconst-to-formula elim-aconst))
+	 (vars (allnc-form-to-vars elim-aconst-fla))
+	 (elim-vars-proof (apply mk-proof-in-elim-form
+				 (make-proof-in-aconst-form elim-aconst)
+				 (map make-term-in-var-form vars)))
+	 (mr-prem (imp-form-to-premise (proof-to-formula elim-vars-proof)))
+	 (mr-prem-avar (formula-to-new-avar mr-prem))
+	 (elim-proof (make-proof-in-imp-elim-form
+		      elim-vars-proof (make-proof-in-avar-form mr-prem-avar)))
+	 (intro-proof-f (make-proof-in-allnc-intro-form f elim-proof))
+	 (intro-proof-avar (make-proof-in-imp-intro-form
+			    mr-prem-avar intro-proof-f))
+	 (rest-vars (remove f vars)))
+    (apply mk-proof-in-allnc-intro-form
+	   (append rest-vars (list intro-proof-avar)))))
 
 (define (one-clause-nc-idpc-formula-and-concl-to-elim-mr-proof
 	 one-clause-nc-idpc-formula concl)
@@ -4159,256 +4233,186 @@
 	 (real (make-term-in-var-form real-var))
 	 (mr-concl (real-and-formula-to-mr-formula-aux real concl))
 	 (imp-mr-formula (make-imp one-clause-nc-idpc-formula mr-concl))
-	 (mr-aconst (imp-formulas-to-elim-aconst imp-mr-formula)))
-    (make-proof-in-aconst-form mr-aconst)))
+	 (mr-aconst (imp-formulas-to-elim-aconst imp-mr-formula))
+	 (free (formula-to-free one-clause-nc-idpc-formula))
+	 (inst-free (formula-to-free (aconst-to-inst-formula mr-aconst)))
+	 (z (rac inst-free))
+	 (mr-aconst-proof (make-proof-in-aconst-form mr-aconst))
+	 (avar (formula-to-new-avar one-clause-nc-idpc-formula))
+	 (elim-proof (apply mk-proof-in-elim-form
+			    mr-aconst-proof
+			    (append (map make-term-in-var-form inst-free)
+				    (list (make-proof-in-avar-form avar))))))
+    (apply mk-proof-in-intro-form
+	   (append free (list avar z elim-proof)))))
+
+;; Drastic simplification of coidpredconst-to-closure-mr-proof (which
+;; had difficulties with RealEq in CoI) by making it dependent on
+;; previously proven theorems.  These prove that the destructor
+;; realizes the closure axiom for particular coidpcs.  Example:
+;; ClauseCoIMR in examples/analysis/sdcode.scm
 
 (define (coidpredconst-to-closure-mr-proof coidpc)
-  (let* ((closure-aconst (coidpredconst-to-closure-aconst coidpc))
-	 (coidpc-name (idpredconst-to-name coidpc))
-	 (orig-idpc-name (substring coidpc-name 2 (string-length coidpc-name)))
-	 (num-clauses (length (idpredconst-name-to-clauses orig-idpc-name)))
-	 (tpsubst (idpredconst-to-tpsubst coidpc))
-	 (goal-formula (proof-to-soundness-formula
-			(make-proof-in-aconst-form
-			 (aconst-substitute closure-aconst tpsubst))))
-	 (goal-vars (all-allnc-form-to-vars goal-formula))
-	 (goal-kernel (all-allnc-form-to-final-kernel goal-formula))
-	 (goal-prem (imp-impnc-form-to-premise goal-kernel))
-	 (goal-prem-avar (formula-to-new-avar goal-prem))
-	 (goal-concl (imp-impnc-form-to-conclusion goal-kernel))
-	 (mr-coidpc (idpredconst-to-mr-idpredconst coidpc))
-	 (mr-closure-aconst (coidpredconst-to-closure-aconst mr-coidpc))
-	 (mr-closure-concl-proof
-	  (apply mk-proof-in-elim-form
-		 (make-proof-in-aconst-form mr-closure-aconst)
-		 (append (map make-term-in-var-form goal-vars)
-			 (list (make-proof-in-avar-form goal-prem-avar)))))
-	 (nc-or-prem (proof-to-formula mr-closure-concl-proof))
-	 (ncor-imp-mror-proof (coidpredconst-to-closure-mr-proof-aux
-			       (proof-to-formula mr-closure-concl-proof)
-			       goal-concl num-clauses)))
-    (apply mk-proof-in-intro-form
-	   (append goal-vars
-		   (list goal-prem-avar
-			 (mk-proof-in-elim-form
-			  ncor-imp-mror-proof mr-closure-concl-proof))))))
+  (let* ((coidpc-name (idpredconst-to-name coidpc))
+	 (name (string-append "Clause" coidpc-name "MR"))
+	 (info (assoc name THEOREMS))
+	 (aconst (if info (cadr info)
+		     (myerror "coidpredconst-to-closure-mr-proof"
+			      "theorem" name "missing"))))
+    (make-proof-in-aconst-form aconst)))
 
-;; Auxiliary procedure of coidpredconst-to-closure-mr-proof.  This
-;; procedure generates a proof that the conclusion of the mr-closure
-;; axiom (ornc formula) implies the conclusion of the realizability
-;; statement (ormr formula).
-(define (coidpredconst-to-closure-mr-proof-aux
-	 ornc-prem ormr-concl num-clauses . opt-index)
-  (let ((i (if (pair? opt-index) (car opt-index) 1)))
-    (if (< i num-clauses) ;check that ornc-prem contains ornc to elim
-	(let* ((elim-aconst
-		(imp-formulas-to-elim-aconst (mk-imp ornc-prem ormr-concl)))
-	       (elim-fla (aconst-to-formula elim-aconst))
-	       (elim-fla-vars (all-allnc-form-to-vars elim-fla))
-	       (elim-fla-terms (map make-term-in-var-form elim-fla-vars))
-	       (elim-kernel (all-allnc-form-to-final-kernel elim-fla))
-	       (elim-prems (imp-impnc-form-to-premises elim-kernel))
-	       (elim-first-prem (car elim-prems))
-	       (elim-first-prem-avar (formula-to-new-avar elim-first-prem))
-	       (elim-step-flas (cdr elim-prems))
-	       (lft-proof
-		(coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
-		 (car elim-step-flas)))
-	       (new-ornc-prem (imp-impnc-form-to-premise (cadr elim-step-flas)))
-	       (rht-proof
-		(coidpredconst-to-closure-mr-proof-aux
-		 new-ornc-prem ormr-concl num-clauses (1+ i)))
-	       (elim-inst-proof
-		(mk-proof-in-intro-form
-		 elim-first-prem-avar
-		 (apply mk-proof-in-elim-form
-			(make-proof-in-aconst-form elim-aconst)
-			(append elim-fla-terms
-				(list (make-proof-in-avar-form
-				       elim-first-prem-avar)
-				      lft-proof rht-proof))))))
-	  elim-inst-proof)
-	(coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
-	 (make-imp ornc-prem ormr-concl)))))
+;; Code discarded 2020-03-31
+;; Kenji Miyamoto's implementation of the general case.
 
-;; Auxiliary procedure of coidpredconst-to-closure-mr-proof-aux.  It
-;; generates a proof that one disjunct of the nc formula implies the
-;; conclusion in mr formula by iterated use of elimination axioms.
-(define (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
-	 imp-fla . opt-avar-or-var-list)
-  (let ((prem (imp-impnc-form-to-premise imp-fla)))
-    (if (eqd-form? prem)
-	(let* ((eqd-args (predicate-form-to-args prem))
-	       (real-var (term-in-var-form-to-var (car eqd-args)))
-	       (prem-avar (formula-to-new-avar prem))
-	       (inst-compat-proof
-		(apply
-		 mk-proof-in-elim-form
-		 (cons
-		  (eqd-compat-rev-at
-		   (make-allnc real-var
-			     (imp-impnc-form-to-final-conclusion imp-fla)))
-		  eqd-args)))
-	       (ormr-goal
-		(let ((compat-proof-prems
-		       (imp-impnc-form-to-premises
-			(proof-to-formula inst-compat-proof))))
-		  (list-ref compat-proof-prems
-			    (1- (length compat-proof-prems)))))
-	       (ormr-goal-proof
-		 (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
-		  ormr-goal
-		  (set-minus opt-avar-or-var-list (formula-to-free prem)))))
-	  (mk-proof-in-intro-form
-	   prem-avar
-	   (apply mk-proof-in-elim-form
-		  inst-compat-proof
-		  (list (make-proof-in-avar-form prem-avar) ormr-goal-proof))))
-	(let* ((elim-aconst (imp-formulas-to-elim-aconst imp-fla))
-	       (imp-prem (imp-impnc-form-to-premise imp-fla))
-	       (imp-prem-avar (formula-to-new-avar imp-prem))
-	       (elim-fla (aconst-to-formula elim-aconst))
-	       (all-vars (all-allnc-form-to-vars elim-fla))
-	       (elim-prems
-		(imp-impnc-form-to-premises
-		 (all-allnc-form-to-final-kernel elim-fla)))
-	       (step-fla (cadr elim-prems))
-	       (step-fla-vars
-		(if (all-allnc-form? step-fla)
-		    (all-allnc-form-to-vars step-fla) '()))
-	       (step-kernel (all-allnc-form-to-final-kernel step-fla))
-	       (new-avars-and-imp-fla
-		(cond
-		 ((andi-form? imp-prem)
-		  (list (list (formula-to-new-avar
-			       (imp-impnc-form-to-premise step-kernel)))
-			(imp-impnc-form-to-conclusion step-kernel)))
-		 ((exi-form? imp-prem) (list '() step-kernel))
-		 (else
-		  (myerror
-		   "coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof"
-		   imp-fla "formula of premise andnc or exnc expected"))))
-	       (new-avars (car new-avars-and-imp-fla))
-	       (step-proof
-		(apply
-		 mk-proof-in-intro-form
-		 (append
-		  step-fla-vars new-avars
-		  (list
-		   (apply
-		    coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
-		    (cadr new-avars-and-imp-fla)
-		    (append opt-avar-or-var-list step-fla-vars new-avars)))))))
-	  (mk-proof-in-intro-form
-	   imp-prem-avar
-	   (apply mk-proof-in-elim-form
-		  (make-proof-in-aconst-form elim-aconst)
-		  (append (map make-term-in-var-form all-vars)
-			  (list (make-proof-in-avar-form imp-prem-avar)
-				step-proof))))))))
+;; (define (coidpredconst-to-closure-mr-proof coidpc)
+;;   (let* ((closure-aconst (coidpredconst-to-closure-aconst coidpc))
+;; 	 (coidpc-name (idpredconst-to-name coidpc))
+;; 	 (orig-idpc-name (substring coidpc-name 2 (string-length coidpc-name)))
+;; 	 (num-clauses (length (idpredconst-name-to-clauses orig-idpc-name)))
+;; 	 (tpsubst (idpredconst-to-tpsubst coidpc))
+;; 	 (goal-formula (proof-to-soundness-formula
+;; 			(make-proof-in-aconst-form
+;; 			 (aconst-substitute closure-aconst tpsubst))))
+;; 	 (goal-vars (all-allnc-form-to-vars goal-formula))
+;; 	 (goal-kernel (all-allnc-form-to-final-kernel goal-formula))
+;; 	 (goal-prem (imp-impnc-form-to-premise goal-kernel))
+;; 	 (goal-prem-avar (formula-to-new-avar goal-prem))
+;; 	 (goal-concl (imp-impnc-form-to-conclusion goal-kernel))
+;; 	 (mr-coidpc (idpredconst-to-mr-idpredconst coidpc))
+;; 	 (mr-closure-aconst (coidpredconst-to-closure-aconst mr-coidpc))
+;; 	 (mr-closure-concl-proof
+;; 	  (apply mk-proof-in-elim-form
+;; 		 (make-proof-in-aconst-form mr-closure-aconst)
+;; 		 (append (map make-term-in-var-form goal-vars)
+;; 			 (list (make-proof-in-avar-form goal-prem-avar)))))
+;; 	 (nc-or-prem (proof-to-formula mr-closure-concl-proof))
+;; 	 (ncor-imp-mror-proof (coidpredconst-to-closure-mr-proof-aux
+;; 			       (proof-to-formula mr-closure-concl-proof)
+;; 			       goal-concl num-clauses)))
+;;     (apply mk-proof-in-intro-form
+;; 	   (append goal-vars
+;; 		   (list goal-prem-avar
+;; 			 (mk-proof-in-elim-form
+;; 			  ncor-imp-mror-proof mr-closure-concl-proof))))))
 
-;; Auxiliary procedure of
-;; coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof.  The
-;; conclusion (mr formula) is derived by iterated introduction axioms
-;; from the assumptions.
-(define (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
-	 mr-fla avar-or-var-list)
-  (cond
-   ((ori-mr-ori-form? mr-fla)
-    (let* ((constr (term-in-const-form-to-const
-		    (term-in-app-form-to-final-op
-		     (term-in-app-form-to-arg
-		      (car (predicate-form-to-args mr-fla))))))
-	   (alg-name (alg-form-to-name
-		      (arrow-form-to-final-val-type (const-to-type constr))))
-	   (constr-names (map car (alg-name-to-typed-constr-names alg-name)))
-	   (num (- (length constr-names)
-		   (length (member (const-to-name constr) constr-names))))
-	   (idpc (predicate-form-to-predicate mr-fla))
-	   (aconst (number-and-idpredconst-to-intro-aconst num idpc))
-	   (aconst-proof (make-proof-in-aconst-form aconst))
-	   (aconst-fla (aconst-to-formula aconst))
-	   (aconst-fla-concl
-	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
-	   (aconst-fla-vars (all-allnc-form-to-vars aconst-fla))
-	   (osubst (first-match (list aconst-fla-vars)
-				aconst-fla-concl (nf mr-fla)))
-	   (aconst-fla-terms
-	    (map (lambda (v) (term-substitute (make-term-in-var-form v) osubst))
-		 aconst-fla-vars))
-	   (aconst-inst-proof
-	    (apply mk-proof-in-elim-form aconst-proof aconst-fla-terms))
-	   (aconst-inst-fla-kernel (proof-to-formula aconst-inst-proof))
-	   (aconst-inst-fla-prem
-	    (imp-impnc-form-to-premise aconst-inst-fla-kernel))
-	   (aconst-inst-fla-prem-proof
-	    (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
-	     aconst-inst-fla-prem avar-or-var-list)))
-      (mk-proof-in-elim-form aconst-inst-proof aconst-inst-fla-prem-proof)))
-   ((exi-mr-exi-form? mr-fla)
-    (let* ((idpc (predicate-form-to-predicate mr-fla))
-	   (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	   (aconst-proof (make-proof-in-aconst-form aconst))
-	   (aconst-fla (aconst-to-formula aconst))
-	   (aconst-fla-vars (all-allnc-form-to-vars aconst-fla))
-	   (aconst-fla-concl
-	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
-	   (ex-vars (set-minus aconst-fla-vars
-			       (formula-to-free aconst-fla-concl)))
-	   (relevant-vars
-	    (list-head (filter var? avar-or-var-list) (length ex-vars)))
-	   (osubst
-	    (append (make-substitution
-		     ex-vars (map make-term-in-var-form relevant-vars))
-		    (first-match (list aconst-fla-vars)
-				 aconst-fla-concl (nf mr-fla))))
-	   (aconst-fla-terms
-	    (map (lambda (v) (term-substitute (make-term-in-var-form v)
-					      osubst))
-		 aconst-fla-vars))
-	   (aconst-inst-proof
-	    (apply mk-proof-in-elim-form aconst-proof aconst-fla-terms))
-	   (aconst-inst-fla-kernel (proof-to-formula aconst-inst-proof))
-	   (aconst-inst-fla-prem
-	    (imp-impnc-form-to-premise aconst-inst-fla-kernel))
-	   (aconst-inst-fla-prem-proof
-	    (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
-	     aconst-inst-fla-prem
-	     (multiset-minus avar-or-var-list relevant-vars))))
-      (mk-proof-in-elim-form aconst-inst-proof aconst-inst-fla-prem-proof)))
-   ((andi-mr-andi-form? mr-fla)
-    (let* ((idpc (predicate-form-to-predicate mr-fla))
-	   (aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	   (aconst-proof (make-proof-in-aconst-form aconst))
-	   (aconst-fla (aconst-to-formula aconst))
-	   (aconst-fla-vars-and-prems
-	    (imp-impnc-all-allnc-form-to-vars-and-premises aconst-fla))
-	   (aconst-fla-concl
-	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
-	   (osubst (first-match (list (filter var? aconst-fla-vars-and-prems))
-				aconst-fla-concl (nf mr-fla)))
-	   (aconst-fla-terms-and-prem-proofs
-	    (map
-	     (lambda (x)
-	       (if
-		(var? x)
-		(term-substitute (make-term-in-var-form x) osubst)
-		(coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
-		 (formula-substitute x osubst) avar-or-var-list)))
-	     aconst-fla-vars-and-prems)))
-      (apply mk-proof-in-elim-form
-	     aconst-proof aconst-fla-terms-and-prem-proofs)))
-   (else ;finding a corresponding assumption
-    (let ((avar (list-search-positive avar-or-var-list
-		  (lambda (a) (and (avar? a) (classical-formula=?
-					      mr-fla (avar-to-formula a)))))))
-      (if (pair? avar)
-	  (make-proof-in-avar-form avar)
-	  (myerror
-	   "coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux"
-	   "Failed to prove" mr-fla "from" avar-or-var-list))))))
+;; ;; Auxiliary procedure of coidpredconst-to-closure-mr-proof.  This
+;; ;; procedure generates a proof that the conclusion of the mr-closure
+;; ;; axiom (ornc formula) implies the conclusion of the realizability
+;; ;; statement (ormr formula).
+;; (define (coidpredconst-to-closure-mr-proof-aux
+;; 	 ornc-prem ormr-concl num-clauses . opt-index)
+;;   (let ((i (if (pair? opt-index) (car opt-index) 1)))
+;;     (if (< i num-clauses) ;check that ornc-prem contains ornc to elim
+;; 	(let* ((elim-aconst
+;; 		(imp-formulas-to-elim-aconst (mk-imp ornc-prem ormr-concl)))
+;; 	       (elim-fla (aconst-to-formula elim-aconst))
+;; 	       (elim-fla-vars (all-allnc-form-to-vars elim-fla))
+;; 	       (elim-fla-terms (map make-term-in-var-form elim-fla-vars))
+;; 	       (elim-kernel (all-allnc-form-to-final-kernel elim-fla))
+;; 	       (elim-prems (imp-impnc-form-to-premises elim-kernel))
+;; 	       (elim-first-prem (car elim-prems))
+;; 	       (elim-first-prem-avar (formula-to-new-avar elim-first-prem))
+;; 	       (elim-step-flas (cdr elim-prems))
+;; 	       (lft-proof
+;; 		(coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
+;; 		 (car elim-step-flas)))
+;; 	       (new-ornc-prem (imp-impnc-form-to-premise (cadr elim-step-flas)))
+;; 	       (rht-proof
+;; 		(coidpredconst-to-closure-mr-proof-aux
+;; 		 new-ornc-prem ormr-concl num-clauses (1+ i)))
+;; 	       (elim-inst-proof
+;; 		(mk-proof-in-intro-form
+;; 		 elim-first-prem-avar
+;; 		 (apply mk-proof-in-elim-form
+;; 			(make-proof-in-aconst-form elim-aconst)
+;; 			(append elim-fla-terms
+;; 				(list (make-proof-in-avar-form
+;; 				       elim-first-prem-avar)
+;; 				      lft-proof rht-proof))))))
+;; 	  elim-inst-proof)
+;; 	(coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
+;; 	 (make-imp ornc-prem ormr-concl)))))
 
-;; Code discarded 2019-12-07
+;; ;; Auxiliary procedure of coidpredconst-to-closure-mr-proof-aux.  It
+;; ;; generates a proof that one disjunct of the nc formula implies the
+;; ;; conclusion in mr formula by iterated use of elimination axioms.
+;; (define (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
+;; 	 imp-fla . opt-avar-or-var-list)
+;;   (let ((prem (imp-impnc-form-to-premise imp-fla)))
+;;     (if (eqd-form? prem)
+;; 	(let* ((eqd-args (predicate-form-to-args prem))
+;; 	       (real-var (term-in-var-form-to-var (car eqd-args)))
+;; 	       (prem-avar (formula-to-new-avar prem))
+;; 	       (inst-compat-proof
+;; 		(apply
+;; 		 mk-proof-in-elim-form
+;; 		 (cons
+;; 		  (eqd-compat-rev-at
+;; 		   (make-allnc real-var
+;; 			     (imp-impnc-form-to-final-conclusion imp-fla)))
+;; 		  eqd-args)))
+;; 	       (ormr-goal
+;; 		(let ((compat-proof-prems
+;; 		       (imp-impnc-form-to-premises
+;; 			(proof-to-formula inst-compat-proof))))
+;; 		  (list-ref compat-proof-prems
+;; 			    (1- (length compat-proof-prems)))))
+;; 	       (ormr-goal-proof
+;; 		 (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
+;; 		  ormr-goal
+;; 		  (set-minus opt-avar-or-var-list (formula-to-free prem)))))
+;; 	  (mk-proof-in-intro-form
+;; 	   prem-avar
+;; 	   (apply mk-proof-in-elim-form
+;; 		  inst-compat-proof
+;; 		  (list (make-proof-in-avar-form prem-avar) ormr-goal-proof))))
+;; 	(let* ((elim-aconst (imp-formulas-to-elim-aconst imp-fla))
+;; 	       (imp-prem (imp-impnc-form-to-premise imp-fla))
+;; 	       (imp-prem-avar (formula-to-new-avar imp-prem))
+;; 	       (elim-fla (aconst-to-formula elim-aconst))
+;; 	       (all-vars (all-allnc-form-to-vars elim-fla))
+;; 	       (elim-prems
+;; 		(imp-impnc-form-to-premises
+;; 		 (all-allnc-form-to-final-kernel elim-fla)))
+;; 	       (step-fla (cadr elim-prems))
+;; 	       (step-fla-vars
+;; 		(if (all-allnc-form? step-fla)
+;; 		    (all-allnc-form-to-vars step-fla) '()))
+;; 	       (step-kernel (all-allnc-form-to-final-kernel step-fla))
+;; 	       (new-avars-and-imp-fla
+;; 		(cond
+;; 		 ((andi-form? imp-prem)
+;; 		  (list (list (formula-to-new-avar
+;; 			       (imp-impnc-form-to-premise step-kernel)))
+;; 			(imp-impnc-form-to-conclusion step-kernel)))
+;; 		 ((exi-form? imp-prem) (list '() step-kernel))
+;; 		 (else
+;; 		  (myerror
+;; 		   "coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof"
+;; 		   imp-fla "formula of premise andnc or exnc expected"))))
+;; 	       (new-avars (car new-avars-and-imp-fla))
+;; 	       (step-proof
+;; 		(apply
+;; 		 mk-proof-in-intro-form
+;; 		 (append
+;; 		  step-fla-vars new-avars
+;; 		  (list
+;; 		   (apply
+;; 		    coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof
+;; 		    (cadr new-avars-and-imp-fla)
+;; 		    (append opt-avar-or-var-list step-fla-vars new-avars)))))))
+;; 	  (mk-proof-in-intro-form
+;; 	   imp-prem-avar
+;; 	   (apply mk-proof-in-elim-form
+;; 		  (make-proof-in-aconst-form elim-aconst)
+;; 		  (append (map make-term-in-var-form all-vars)
+;; 			  (list (make-proof-in-avar-form imp-prem-avar)
+;; 				step-proof))))))))
+
+;; ;; Auxiliary procedure of
+;; ;; coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof.  The
+;; ;; conclusion (mr formula) is derived by iterated introduction axioms
+;; ;; from the assumptions.
 ;; (define (coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux
 ;; 	 mr-fla avar-or-var-list)
 ;;   (cond
@@ -4459,7 +4463,7 @@
 ;; 	    (append (make-substitution
 ;; 		     ex-vars (map make-term-in-var-form relevant-vars))
 ;; 		    (first-match (list aconst-fla-vars)
-;; 				 aconst-fla-concl mr-fla)))
+;; 				 aconst-fla-concl (nf mr-fla))))
 ;; 	   (aconst-fla-terms
 ;; 	    (map (lambda (v) (term-substitute (make-term-in-var-form v)
 ;; 					      osubst))
@@ -4484,7 +4488,7 @@
 ;; 	   (aconst-fla-concl
 ;; 	    (imp-impnc-all-allnc-form-to-final-conclusion aconst-fla))
 ;; 	   (osubst (first-match (list (filter var? aconst-fla-vars-and-prems))
-;; 				aconst-fla-concl mr-fla))
+;; 				aconst-fla-concl (nf mr-fla)))
 ;; 	   (aconst-fla-terms-and-prem-proofs
 ;; 	    (map
 ;; 	     (lambda (x)
@@ -4506,1110 +4510,1409 @@
 ;; 	   "coidpredconst-imp-fla-and-opt-avar-or-var-list-to-proof-aux"
 ;; 	   "Failed to prove" mr-fla "from" avar-or-var-list))))))
 
-;; Here ends Kenji Miyamoto's new implementation
+;; Here ends Kenji Miyamoto's implementation of the general case.
 
-(define (imp-formulas-to-mr-gfp-proof . imp-formulas)
-  (let* ((gfp-aconst (apply imp-formulas-to-gfp-aconst imp-formulas))
-	 (arrow-types (map formula-to-et-type imp-formulas))
-	 (et-type (arrow-form-to-val-type (car arrow-types)))
-	 (prem-type (arrow-form-to-arg-type (car arrow-types)))
-	 (corec-consts
-	   (apply alg-or-arrow-types-to-corec-consts arrow-types))
-	 (corec-term (make-term-in-const-form (car corec-consts)))
-	 (mr-formula ;; this is the goal formula to prove
-	  (real-and-formula-to-mr-formula-aux
-	   corec-term (aconst-to-formula gfp-aconst)))
-	 (mr-vars (all-allnc-form-to-vars mr-formula))
-	 (mr-kernel (all-allnc-form-to-final-kernel mr-formula))
-	 (mr-competitor (imp-impnc-form-to-premise mr-kernel))
-	 (mr-costeps-and-final-concl
-	  ;; list of a var (realizer) and a formula for each costeps and
-	  ;; a formula for the final concl of the form CoI u \vec{x}
-	  ;; Eg. ((var_1 costep-fla_1) ... (var_k costep-fla_k) concl-fla)
-	  (letrec
-	      ((fla-to-costeps-and-concl
-		(lambda (fla)
-		  (if (predicate-form? fla)
-		      (list fla)
-		      (let*
-			  ((var (all-allnc-form-to-var fla)) ;realizer
-			   (kernel (all-allnc-form-to-final-kernel fla))
-			   (prem (imp-impnc-form-to-premise kernel))
-			   (concl (imp-impnc-form-to-conclusion kernel)))
-			(cons (list var prem)
-			      (fla-to-costeps-and-concl concl)))))))
-	    (fla-to-costeps-and-concl
-	     (imp-impnc-form-to-conclusion mr-kernel))))
-	 (simul-num (- (length mr-costeps-and-final-concl) 1))
-	 (mr-concl (list-ref mr-costeps-and-final-concl simul-num)) ;last elem
-	 (mr-costeps (list-head mr-costeps-and-final-concl simul-num))
-	 (mr-costep-realizer-vars (map car mr-costeps))
-	 (mr-costep-flas (map cadr mr-costeps))
-	 (mr-coidpredconst (predicate-form-to-predicate mr-concl))
-	 (mr-coidpredconst-args (predicate-form-to-args mr-concl))
-	 (mr-competitor-avar (formula-to-new-avar mr-competitor))
-	 (mr-costep-avars (map formula-to-new-avar mr-costep-flas))
-	 (mr-imp-formulas
-	   (letrec
-	       ((imp-fla-to-mr-imp-fla
-		 (lambda (fla)
-		   (let*
-		       ((coidpc-fla (imp-impnc-form-to-conclusion fla))
-			(prem-fla (imp-impnc-form-to-premise fla))
-			(args (predicate-form-to-args coidpc-fla))
-			(et-arrow-type (formula-to-et-type fla))
-			(corec-arrow-types
-			 (cons et-arrow-type
-			       (remove et-arrow-type arrow-types)))
-			(concl-et-type (arrow-form-to-val-type et-arrow-type))
-			(prem-et-type (arrow-form-to-arg-type et-arrow-type))
-			(ex-var (type-to-new-partial-var prem-et-type))
-			(real-term (make-term-in-var-form
-				    (type-to-new-partial-var concl-et-type)))
-			(corec-term
-			 (apply mk-term-in-app-form
-				(make-term-in-const-form
-				 (apply alg-or-arrow-types-to-corec-const
-					corec-arrow-types))
-				(map make-term-in-var-form
-				     (cons ex-var mr-costep-realizer-vars))))
-			(eqd-fla (make-eqd real-term corec-term))
-			(prem-mr-fla
-			 (real-and-formula-to-mr-formula
-			  (make-term-in-var-form ex-var) prem-fla))
-			(exnc-fla
-			 (make-exnc ex-var (make-andnc eqd-fla prem-mr-fla))))
-		     (make-imp exnc-fla (real-and-formula-to-mr-formula
-					real-term coidpc-fla))))))
-	     (map imp-fla-to-mr-imp-fla imp-formulas)))
-	 (mr-gfp-aconst (apply imp-formulas-to-gfp-aconst mr-imp-formulas))
-	 (mr-gfp-formula (aconst-to-formula mr-gfp-aconst))
-	 (mr-gfp-inst-formula (aconst-to-inst-formula mr-gfp-aconst))
-	 (mr-gfp-uninst-formula (aconst-to-uninst-formula mr-gfp-aconst))
-	 (mr-gfp-prem (imp-impnc-form-to-premise
-		       (all-allnc-form-to-final-kernel mr-gfp-formula)))
-	 (mr-gfp-costep-formulas
-	  (imp-impnc-form-to-premises (imp-impnc-form-to-conclusion
-				       (all-allnc-form-to-final-kernel
-					(aconst-to-formula mr-gfp-aconst)))))
-	 (mr-gfp-arg-terms
-	  (let* ((tsubst (make-substitution
-			  (map term-in-var-form-to-var
-			       (predicate-form-to-args
-				(imp-impnc-all-allnc-form-to-final-conclusion
-				 mr-gfp-formula)))
-			  (predicate-form-to-args mr-concl)))
-		 (arg-terms (map make-term-in-var-form
-				 (all-allnc-form-to-vars mr-gfp-formula))))
-	    (map (lambda (t) (term-substitute t tsubst)) arg-terms)))
-	 (prem-and-costeps-imp-concl-proof
-	  (apply mk-proof-in-elim-form
-		 (make-proof-in-aconst-form mr-gfp-aconst) mr-gfp-arg-terms))
-	 ;; we prepare a proof of the premise (competitor) of mr-gfp
-	 (eqd-intro-proof
-	  (make-proof-in-aconst-form
-	    (number-and-idpredconst-to-intro-aconst
-	     0 (idpredconst-name-and-types-and-cterms-to-idpredconst
-		"EqD" (list et-type) '()))))
-	 (mr-gfp-competitor-proof ; wrong! --> okay? (2014-05-26)
-	   (let* ((exnc-prem (imp-impnc-form-to-premise
-			     (proof-to-formula
-			      prem-and-costeps-imp-concl-proof)))
-		  (exnc-var (exnc-form-to-var exnc-prem))
-		  (real-var (car (reverse mr-vars)))
-		  (exnc-kernel (exnc-form-to-kernel exnc-prem))
-		  (cterm (make-cterm exnc-var exnc-kernel))
-		  (exnc-intro-proof
-		   (make-proof-in-aconst-form
-		    (number-and-idpredconst-to-intro-aconst
-		     0 (idpredconst-name-and-types-and-cterms-to-idpredconst
-			"ExNc" (list prem-type) (list cterm)))))
-		  (exnc-intro-fla (proof-to-formula exnc-intro-proof))
-		  (exnc-proof-vars (all-allnc-form-to-vars exnc-intro-fla))
-		  (eqd-imp-mr-gfp-prem-proof
-		   (apply mk-proof-in-elim-form
-			  exnc-intro-proof
-			  (map
-			   make-term-in-var-form
-			   (reverse
-			    (cons real-var (cdr (reverse exnc-proof-vars)))))))
-		  (andnc-proof
-		   (let* ((andnc-fla
-			   (imp-impnc-form-to-premise
-			    (proof-to-formula
-			     eqd-imp-mr-gfp-prem-proof)))
-			  (lft-fla (andnc-form-to-left andnc-fla))
-			  (rgt-fla (andnc-form-to-right andnc-fla))
-			  (eqd-arg
-			   (car (predicate-form-to-args lft-fla)))
-			  (andnc-intro-proof
-			   (make-proof-in-aconst-form
-			    (number-and-idpredconst-to-intro-aconst
-			     0
-			     (idpredconst-name-and-types-and-cterms-to-idpredconst
-			      "AndNc" '()
-			      (map make-cterm
-				   (list lft-fla rgt-fla))))))
-			  (andnc-intro-fla (proof-to-formula andnc-intro-proof))
-			  (andnc-vars (all-allnc-form-to-vars andnc-intro-fla))
-			  (eqd-inst-proof
-			   (make-proof-in-allnc-elim-form eqd-intro-proof eqd-arg))
-			  (subst
-			   (caar
-			    (apply
-			     huet-unifiers
-			     '() andnc-vars '()
-			     (map
-			      list
-			      (imp-impnc-all-allnc-form-to-premises andnc-intro-fla)
-			      (list (proof-to-formula eqd-inst-proof)
-				    (avar-to-formula mr-competitor-avar))))))
-			  (terms
-			   (map (lambda (v) (term-substitute
-					     (make-term-in-var-form v)
-					     subst))
-				andnc-vars)))
-		     (apply
-		      mk-proof-in-elim-form
-		      andnc-intro-proof
-		      (append terms
-			      (list eqd-inst-proof
-				    (make-proof-in-avar-form mr-competitor-avar))))))
-		  (andnc-fla (proof-to-formula andnc-proof))
-		  (subst
-		   (caar (apply
-			  huet-unifiers
-			  (formula-to-free andnc-fla)
-			  (set-minus (all-allnc-form-to-vars exnc-intro-fla)
-				     (formula-to-free andnc-fla))
-			  '()
-			  (map list
-			       (imp-impnc-all-allnc-form-to-premises
-				exnc-intro-fla)
-			       (list andnc-fla)))))
-		  (terms
-		   (map (lambda (v) (term-substitute (make-term-in-var-form v)
-						     subst))
-			(all-allnc-form-to-vars exnc-intro-fla)
-			))
-		  )
-	     (apply
-	      mk-proof-in-elim-form
-	      exnc-intro-proof (append terms (list andnc-proof)))))
-	 (costeps-imp-concl-proof
-	  (mk-proof-in-elim-form
-	   prem-and-costeps-imp-concl-proof mr-gfp-competitor-proof))
-	 (costep-proofs
-	  ;; from mr costeps, we are going to prove mr-gfp-costeps.
-	  ;; It is important to know the corresponding assumption
-	  ;; in the mr costep avars.
-	  (imp-formulas-to-mr-gfp-proof-aux
-	   mr-costep-avars
-	   (imp-impnc-form-to-premises
-	    (proof-to-formula costeps-imp-concl-proof))))
-	 (concl-proof
-	  (apply mk-proof-in-elim-form
-		 costeps-imp-concl-proof costep-proofs)))
-    (apply mk-proof-in-nc-intro-form
-	   (append mr-vars (list mr-competitor-avar)
-		   (zip mr-costep-realizer-vars mr-costep-avars)
-		   (list concl-proof)))))
+;; Drastic simplification of the problematic
+;; imp-formulas-to-mr-gfp-proof by making it dependent on previously
+;; proven theorems.  These prove that the corecursion operator
+;; realizes the greatest-fixed-point axiom for particula coidpcs.
+;; Examples are GfpCoTotalNatMR (in nat.scm) GfpCoIMR (in
+;; examples/analysis/sdcode.scm)
 
-(define (term-to-eqd-proof term)
-  (let* ((type (term-to-type term))
-	 (idpc (make-idpredconst "EqD" (list type) '()))
-	 (aconst (number-and-idpredconst-to-intro-aconst 0 idpc)))
-    (mk-proof-in-elim-form (make-proof-in-aconst-form aconst) term)))
+(define (imp-formulas-to-mr-gfp-proof imp-formula . imp-formulas)
+  (if (pair? imp-formulas)
+      (myerror "imp-formulas-to-mr-gfp-proof"
+	       "not implemented for simultaneaous coinductive definitions"))
+  (let* ((concl (imp-form-to-conclusion imp-formula)) ;CoTotalNat m^
+	 (pred (predicate-form-to-predicate concl))
+	 (args (predicate-form-to-args concl))
+	 (given-vars (map term-in-var-form-to-var args)) ;(m^)
+	 (coidpc-name (idpredconst-to-name pred))
+	 (name (string-append "Gfp" coidpc-name "MR"))
+	 (info (assoc name THEOREMS))
+	 (aconst (if info (cadr info)
+		     (myerror "imp-formulas-to-mr-gfp-proof"
+			      "theorem" name "missing")))
+	 (gfp-mr-fla (aconst-to-uninst-formula aconst))
+	 (vars-and-z (all-allnc-form-to-vars gfp-mr-fla)) ;(n^,z^)
+	 (rev-vars-and-z (reverse vars-and-z))
+	 (z (car rev-vars-and-z))
+	 (vars (reverse (cdr rev-vars-and-z))) ;(n^)
+	 (kernel (all-allnc-form-to-final-kernel gfp-mr-fla))
+	 (prem (imp-form-to-premise kernel)) ;XMR n^ z^
+	 (tvar (var-to-type z))
+	 (pvar (predicate-form-to-predicate prem)) ;XMR
+	 (given-prem (imp-form-to-premise imp-formula)) ;A(m^)
+	 (prem-type (formula-to-et-type given-prem))
+	 (tsubst (make-subst tvar prem-type))
+	 (y ;t-deg-one if given-prem of ExLT, ExRT, ExDT form
+	  (if (and (predicate-form? given-prem)
+		   (let ((pred (predicate-form-to-predicate given-prem)))
+		     (and (idpredconst-form? pred)
+			  (member (idpredconst-to-name pred)
+				  (list  "ExLT"  "ExRT" "ExDT")))))
+	      (type-to-new-var prem-type)
+	      (type-to-new-partial-var prem-type)))
+	 (mr-fla (real-and-formula-to-mr-formula-aux
+		  (make-term-in-var-form y) given-prem))
+	 (cterm (apply make-cterm (append given-vars (list y mr-fla))))
+	 (psubst (make-subst pvar cterm))
+	 (subst-aconst (aconst-substitute aconst (append tsubst psubst))))
+    (make-proof-in-aconst-form subst-aconst)))
 
-(define (imp-formulas-to-mr-gfp-proof-aux mr-costep-avars goals)
-  (map
-   (lambda (mr-costep-avar goal)
-     (let* ((goal-vars (all-allnc-form-to-vars goal))
-	    (goal-kernel (all-allnc-form-to-final-kernel goal))
-	    (goal-prem (imp-impnc-form-to-premise goal-kernel))
-	    (goal-prem-avar (formula-to-new-avar goal-prem))
-	    (goal-prem-predicate (predicate-form-to-predicate goal-prem))
-	    (goal-concl (imp-impnc-form-to-conclusion goal-kernel))
-	    (exnc-elim-aconst
-	     (imp-formulas-to-elim-aconst (make-imp goal-prem goal-concl)))
-	    (exnc-elim-proof (make-proof-in-aconst-form exnc-elim-aconst))
-	    (exnc-elim-fla (aconst-to-formula exnc-elim-aconst))
-	    (exnc-elim-subst
-	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-	      exnc-elim-fla (list goal-prem) goal-concl))
-	    (exnc-elim-vars (all-allnc-form-to-vars exnc-elim-fla))
-	    (exnc-elim-inst-terms
-	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
-					       exnc-elim-subst))
-		  exnc-elim-vars))
-	    (exnc-elim-inst-kernel
-	     (formula-substitute (all-allnc-form-to-final-kernel exnc-elim-fla)
-				 exnc-elim-subst))
-	    (exnc-elim-inst-step
-	     (cadr (imp-impnc-form-to-premises exnc-elim-inst-kernel)))
-	    (exnc-elim-inst-step-vars
-	     (all-allnc-form-to-vars exnc-elim-inst-step))
-	    (exnc-elim-inst-step-kernel
-	     (all-allnc-form-to-final-kernel exnc-elim-inst-step))
-	    (exnc-elim-inst-step-prem
-	     (imp-impnc-form-to-premise exnc-elim-inst-step-kernel))
-	    (exnc-elim-inst-step-prem-avar
-	     (formula-to-new-avar exnc-elim-inst-step-prem))
-	    (exnc-elim-inst-step-concl
-	     (imp-impnc-form-to-conclusion exnc-elim-inst-step-kernel))
-	    (andnc-elim-aconst
-	     (imp-formulas-to-elim-aconst
-	      (make-imp exnc-elim-inst-step-prem exnc-elim-inst-step-concl)))
-	    (andnc-elim-fla (aconst-to-formula andnc-elim-aconst))
-	    (andnc-elim-vars (all-allnc-form-to-vars andnc-elim-fla))
-	    (andnc-elim-subst
-	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-	      andnc-elim-fla
-	      (list exnc-elim-inst-step-prem) exnc-elim-inst-step-concl))
-	    (andnc-elim-inst-terms
-	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
-					       andnc-elim-subst))
-		  andnc-elim-vars))
-	    (andnc-eilm-inst-kernel
-	     (formula-substitute (all-allnc-form-to-final-kernel andnc-elim-fla)
-				 andnc-elim-subst))
-	    (andnc-elim-inst-kernel-step
-	     (cadr (imp-impnc-form-to-premises andnc-eilm-inst-kernel)))
-	    (andnc-elim-inst-kernel-step-prems
-	     (imp-impnc-form-to-premises andnc-elim-inst-kernel-step))
-	    (andnc-elim-inst-kernel-step-prem-avars
-	     (map formula-to-new-avar andnc-elim-inst-kernel-step-prems))
-	    (andnc-elim-inst-kernel-step-concl
-	     (imp-impnc-form-to-final-conclusion andnc-elim-inst-kernel-step))
-	    (mr-costep (avar-to-formula mr-costep-avar))
-	    (mr-costep-vars (all-allnc-form-to-vars mr-costep))
-	    (mr-costep-subst
-	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-	      mr-costep (list (cadr andnc-elim-inst-kernel-step-prems))))
-	    (mr-costep-inst-terms
-	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
-					       mr-costep-subst))
-		  mr-costep-vars))
-	    (mr-costep-inst-kernel
-	     (formula-substitute (all-allnc-form-to-final-kernel mr-costep)
-				 mr-costep-subst))
-	    (mr-costep-inst-kernel-concl
-	     (imp-impnc-form-to-conclusion mr-costep-inst-kernel))
-	    (mr-costep-concl-proof
-	     (apply mk-proof-in-elim-form
-		    (make-proof-in-avar-form mr-costep-avar)
-		    (append mr-costep-inst-terms
-			    (list (make-proof-in-avar-form
-				   (cadr andnc-elim-inst-kernel-step-prem-avars))))))
-	    (disj-imp-disj-fla (make-impnc mr-costep-inst-kernel-concl
-					   andnc-elim-inst-kernel-step-concl))
-	    (andnc-elim-inst-kernel-step-eqd-prem-args
-	     (predicate-form-to-args (car andnc-elim-inst-kernel-step-prems)))
-	    (eqd-compat-repl-var (term-in-var-form-to-var
-				  (car andnc-elim-inst-kernel-step-eqd-prem-args)))
-	    (corec-eqd-compat-rev-at-allnc-fla
-	     (make-allnc eqd-compat-repl-var
-			 (make-eqd
-			  (car andnc-elim-inst-kernel-step-eqd-prem-args)
-			  (nt
-			   (undelay-delayed-corec
-			    (cadr andnc-elim-inst-kernel-step-eqd-prem-args) 1)))))
-	    (corec-unfold-eqd-proof
-	     (make-proof-in-aconst-form
-	      (global-assumption-name-to-aconst
-	       (alg-or-arrow-types-to-unfolded-corec-eqd-global-assumption-name
-		(apply make-arrow (map var-to-type
-				       (list (car exnc-elim-inst-step-vars)
-					     eqd-compat-repl-var)))))))
-	    (corec-eqd-proof
-	     (let* ((corec-args
-		     (term-in-app-form-to-args
-		      (cadr andnc-elim-inst-kernel-step-eqd-prem-args)))
-		    (corec-and-unfolded
-		     (predicate-form-to-args (proof-to-formula ;;corec-eqd-proof-3)))
-					      corec-unfold-eqd-proof)))
-		    (corec-var1 (type-to-new-partial-var
-				 (term-to-type (car corec-and-unfolded))))
-		    (corec-var2 (type-to-new-partial-var
-				 (term-to-type (car corec-and-unfolded))))
-		    (corec-term1 (make-term-in-var-form corec-var1))
-		    (corec-term2 (make-term-in-var-form corec-var2))
-		    (arg-terms
-		     (map (lambda (t) (nt (apply mk-term-in-app-form (cons t corec-args))))
-			  (cons (make-term-in-var-form corec-var1)
-				(cdr corec-and-unfolded))))
-		    (unfolded-term (cadr corec-and-unfolded))
-		    (unfolded-term-vars (term-in-abst-form-to-vars unfolded-term))
-		    (unfolded-term-body (term-in-abst-form-to-final-kernel unfolded-term))
-		    (eqd-concl-term
-		     (let* ((tsubst (make-substitution unfolded-term-vars corec-args))
-			    )
-		       (term-substitute unfolded-term-body tsubst)))
-		    (eqd-elim-aconst
-		     (imp-formulas-to-elim-aconst
-		      (make-imp
-		       (make-eqd corec-term1 corec-term2)
-		       (apply
-			make-eqd
-			(map
-			 (lambda (t)
-			   (apply mk-term-in-app-form t corec-args))
-			 (list corec-term1 corec-term2))))))
-		    (last-imp-proof
-		     (apply mk-proof-in-elim-form
-			    (make-proof-in-aconst-form eqd-elim-aconst)
-			    (append
-			     corec-and-unfolded
-			     corec-args
-			     (list corec-unfold-eqd-proof))))
-		    (last-prem
-		     (imp-impnc-form-to-premise
-		      (proof-to-formula last-imp-proof)))
-		    (last-vars (all-allnc-form-to-vars last-prem))
-		    (last-kernel-eqd-term
-		     (car (predicate-form-to-args
-			   (all-allnc-form-to-final-kernel last-prem))))
-		    )
-	       (mk-proof-in-elim-form
-		last-imp-proof
-		(apply mk-proof-in-nc-intro-form
-		       (snoc last-vars (term-to-eqd-proof last-kernel-eqd-term))))))
-	    (andnc-elim-inst-kernel-step-concl-inst
-	     (formula-substitute
-	      andnc-elim-inst-kernel-step-concl
-	      (make-subst (term-in-var-form-to-var
-			   (car andnc-elim-inst-kernel-step-eqd-prem-args))
-			  (nt
-			   (undelay-delayed-corec
-			    (cadr andnc-elim-inst-kernel-step-eqd-prem-args) 1)))))
-	    (eqd-compat-proof
-	     (eqd-compat-rev-at
-	      (make-allnc (term-in-var-form-to-var
-			   (car andnc-elim-inst-kernel-step-eqd-prem-args))
-			  andnc-elim-inst-kernel-step-concl-inst)))
-	    (eqd-compat-fla (proof-to-formula eqd-compat-proof))
-	    (eqd-compat-vars (all-allnc-form-to-vars eqd-compat-fla))
-	    (eqd-compat-subst
-	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-	      eqd-compat-fla (list (car andnc-elim-inst-kernel-step-prems))))
-	    (eqd-compat-terms
-	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
-					       eqd-compat-subst))
-		  eqd-compat-vars))
-	    (disj-imp-disj-inst-fla
-	     (make-imp
-	      mr-costep-inst-kernel-concl
-	      (formula-substitute (cadr (imp-impnc-form-to-premises
-					 (all-allnc-form-to-final-kernel
-					  eqd-compat-fla)))
-				  eqd-compat-subst)))
-	    (elim-term
-	     (car (predicate-form-to-args mr-costep-inst-kernel-concl)))
-	    (elim-term-type (term-to-type elim-term))
-	    (elim-var (type-to-new-partial-var elim-term-type))
-	    (gen-subst
-	     (make-subst elim-term (make-term-in-var-form elim-var)))
-	    (disj-imp-disj-inst-proof
-	     (let* ((inst-goal
-		     (make-allnc elim-var
-				 (formula-gen-substitute disj-imp-disj-inst-fla
-							 gen-subst))))
-	       (mk-proof-in-elim-form
-		(coidpredconst-to-closure-mr-proof-or-elim inst-goal #t)
-		elim-term)))
-	    (disj-inst-proof
-	     (mk-proof-in-elim-form disj-imp-disj-inst-proof mr-costep-concl-proof))
-	    (disj-inst-fla
-	     (imp-impnc-form-to-conclusion disj-imp-disj-inst-fla))
-	    (mr-costep-inst-kernel-concl-avar
-	     (formula-to-new-avar mr-costep-inst-kernel-concl))
-	    (andnc-elim-concl-subst
-	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-	      andnc-elim-fla (list exnc-elim-inst-step-prem)))
-	    (andnc-elim-concl-terms2
-	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
-					       andnc-elim-concl-subst))
-		  andnc-elim-vars))
-	    (term-eqd-unfolded-proof
-	     (let* ((term1 (car (predicate-form-to-args (car andnc-elim-inst-kernel-step-prems))))
-		    (term2
-		     (cadr
-		      (predicate-form-to-args (proof-to-formula corec-eqd-proof))))
-		    (goal-eqd-allnc-fla
-		     (make-allnc (term-in-var-form-to-var term1)
-				 (make-eqd term1 term2)))
-		    )
-	       (apply mk-proof-in-elim-form
-		      (eqd-compat-rev-at goal-eqd-allnc-fla)
-		      (list
-		       term1
-		       (cadr (predicate-form-to-args (car andnc-elim-inst-kernel-step-prems)))
-		       (make-proof-in-avar-form
-			(car andnc-elim-inst-kernel-step-prem-avars))
-		       corec-eqd-proof))))
-	    (term-eqd-unfolded-fla
-	     (proof-to-formula term-eqd-unfolded-proof))
-	    (disj-proof-4
-	     (let*
-		 ((args (map nt (predicate-form-to-args term-eqd-unfolded-fla)))
-		  (gen-subst (make-subst (cadr args) (car args)))
-		  (disj-fla-2
-		   (formula-gen-substitute disj-inst-fla gen-subst))
-		  (eqd-compat-allnc-fla
-		   (make-allnc (term-in-var-form-to-var (car args))
-			       disj-fla-2))
-		  (compat-proof (eqd-compat-rev-at eqd-compat-allnc-fla)))
-	       (apply mk-proof-in-elim-form
-		      compat-proof
-		      (append args
-			      (list term-eqd-unfolded-proof
-				    disj-inst-proof)))))
-	    (andnc-elim-concl-proof
-	     (apply
-	      mk-proof-in-elim-form
-	      (make-proof-in-aconst-form andnc-elim-aconst)
-	      (append
-	       andnc-elim-concl-terms2
-	       (list
-		(make-proof-in-avar-form exnc-elim-inst-step-prem-avar)
-		(apply
-		 mk-proof-in-nc-intro-form
-		 (append
-		  andnc-elim-inst-kernel-step-prem-avars
-		  (list disj-proof-4)))))))
-	    (exnc-elim-concl-proof
-	     (apply
-	      mk-proof-in-elim-form
-	      (make-proof-in-aconst-form exnc-elim-aconst)
-	      (append
-	       exnc-elim-inst-terms
-	       (list
-		(make-proof-in-avar-form goal-prem-avar)
-		(apply
-		 mk-proof-in-nc-intro-form
-		 (append
-		  exnc-elim-inst-step-vars
-		  (list
-		   exnc-elim-inst-step-prem-avar
-		   andnc-elim-concl-proof))))))))
-       (apply
-	mk-proof-in-nc-intro-form
-	(append goal-vars (list goal-prem-avar exnc-elim-concl-proof)))))
-   mr-costep-avars goals))
+;; Code discarded 2020-03-31
+;; Kenji Miyamoto's implementation of the general case
 
-(define (alg-or-arrow-types-to-unfolded-corec-eqd-global-assumption-name
-	 . alg-or-arrow-types)
-  (let* ((name
-	  (apply string-append
-		 (cons "EQD-COREC-" (map type-to-string alg-or-arrow-types))))
-	 (info (assoc name GLOBAL-ASSUMPTIONS)))
-    (if (pair? info)
-	name
-	(let* ((consts
-		(apply alg-or-arrow-types-to-corec-consts alg-or-arrow-types))
-	       (corec-term (make-term-in-const-form (car consts)))
-	       (unfolded-corec-term (nt (undelay-delayed-corec corec-term 1))))
-	  (add-global-assumption name (make-eqd corec-term unfolded-corec-term))
-	  name))))
+;; (define (imp-formulas-to-mr-gfp-proof . imp-formulas)
+;;   (let* ((gfp-aconst (apply imp-formulas-to-gfp-aconst imp-formulas))
+;; 	 (arrow-types (map formula-to-et-type imp-formulas))
+;; 	 (et-type (arrow-form-to-val-type (car arrow-types)))
+;; 	 (prem-type (arrow-form-to-arg-type (car arrow-types)))
+;; 	 (corec-consts
+;; 	   (apply alg-or-arrow-types-to-corec-consts arrow-types))
+;; 	 (corec-term (make-term-in-const-form (car corec-consts)))
+;; 	 (mr-formula ;; this is the goal formula to prove
+;; 	  (real-and-formula-to-mr-formula-aux
+;; 	   corec-term (aconst-to-formula gfp-aconst)))
+;; 	 (mr-vars (all-allnc-form-to-vars mr-formula))
+;; 	 (mr-kernel (all-allnc-form-to-final-kernel mr-formula))
+;; 	 (mr-competitor (imp-impnc-form-to-premise mr-kernel))
+;; 	 (mr-costeps-and-final-concl
+;; 	  ;; list of a var (realizer) and a formula for each costeps and
+;; 	  ;; a formula for the final concl of the form CoI u \vec{x}
+;; 	  ;; Eg. ((var_1 costep-fla_1) ... (var_k costep-fla_k) concl-fla)
+;; 	  (letrec
+;; 	      ((fla-to-costeps-and-concl
+;; 		(lambda (fla)
+;; 		  (if (predicate-form? fla)
+;; 		      (list fla)
+;; 		      (let*
+;; 			  ((var (all-allnc-form-to-var fla)) ;realizer
+;; 			   (kernel (all-allnc-form-to-final-kernel fla))
+;; 			   (prem (imp-impnc-form-to-premise kernel))
+;; 			   (concl (imp-impnc-form-to-conclusion kernel)))
+;; 			(cons (list var prem)
+;; 			      (fla-to-costeps-and-concl concl)))))))
+;; 	    (fla-to-costeps-and-concl
+;; 	     (imp-impnc-form-to-conclusion mr-kernel))))
+;; 	 (simul-num (- (length mr-costeps-and-final-concl) 1))
+;; 	 (mr-concl (list-ref mr-costeps-and-final-concl simul-num)) ;last elem
+;; 	 (mr-costeps (list-head mr-costeps-and-final-concl simul-num))
+;; 	 (mr-costep-realizer-vars (map car mr-costeps))
+;; 	 (mr-costep-flas (map cadr mr-costeps))
+;; 	 (mr-coidpredconst (predicate-form-to-predicate mr-concl))
+;; 	 (mr-coidpredconst-args (predicate-form-to-args mr-concl))
+;; 	 (mr-competitor-avar (formula-to-new-avar mr-competitor))
+;; 	 (mr-costep-avars (map formula-to-new-avar mr-costep-flas))
+;; 	 (mr-imp-formulas
+;; 	   (letrec
+;; 	       ((imp-fla-to-mr-imp-fla
+;; 		 (lambda (fla)
+;; 		   (let*
+;; 		       ((coidpc-fla (imp-impnc-form-to-conclusion fla))
+;; 			(prem-fla (imp-impnc-form-to-premise fla))
+;; 			(args (predicate-form-to-args coidpc-fla))
+;; 			(et-arrow-type (formula-to-et-type fla))
+;; 			(corec-arrow-types
+;; 			 (cons et-arrow-type
+;; 			       (remove et-arrow-type arrow-types)))
+;; 			(concl-et-type (arrow-form-to-val-type et-arrow-type))
+;; 			(prem-et-type (arrow-form-to-arg-type et-arrow-type))
+;; 			(ex-var (type-to-new-partial-var prem-et-type))
+;; 			(real-term (make-term-in-var-form
+;; 				    (type-to-new-partial-var concl-et-type)))
+;; 			(corec-term
+;; 			 (apply mk-term-in-app-form
+;; 				(make-term-in-const-form
+;; 				 (apply alg-or-arrow-types-to-corec-const
+;; 					corec-arrow-types))
+;; 				(map make-term-in-var-form
+;; 				     (cons ex-var mr-costep-realizer-vars))))
+;; 			(eqd-fla (make-eqd real-term corec-term))
+;; 			(prem-mr-fla
+;; 			 (real-and-formula-to-mr-formula
+;; 			  (make-term-in-var-form ex-var) prem-fla))
+;; 			(exnc-fla
+;; 			 (make-exnc ex-var (make-andnc eqd-fla prem-mr-fla))))
+;; 		     (make-imp exnc-fla (real-and-formula-to-mr-formula
+;; 					real-term coidpc-fla))))))
+;; 	     (map imp-fla-to-mr-imp-fla imp-formulas)))
+;; 	 (mr-gfp-aconst (apply imp-formulas-to-gfp-aconst mr-imp-formulas))
+;; 	 (mr-gfp-formula (aconst-to-formula mr-gfp-aconst))
+;; 	 (mr-gfp-inst-formula (aconst-to-inst-formula mr-gfp-aconst))
+;; 	 (mr-gfp-uninst-formula (aconst-to-uninst-formula mr-gfp-aconst))
+;; 	 (mr-gfp-prem (imp-impnc-form-to-premise
+;; 		       (all-allnc-form-to-final-kernel mr-gfp-formula)))
+;; 	 (mr-gfp-costep-formulas
+;; 	  (imp-impnc-form-to-premises (imp-impnc-form-to-conclusion
+;; 				       (all-allnc-form-to-final-kernel
+;; 					(aconst-to-formula mr-gfp-aconst)))))
+;; 	 (mr-gfp-arg-terms
+;; 	  (let* ((tsubst (make-substitution
+;; 			  (map term-in-var-form-to-var
+;; 			       (predicate-form-to-args
+;; 				(imp-impnc-all-allnc-form-to-final-conclusion
+;; 				 mr-gfp-formula)))
+;; 			  (predicate-form-to-args mr-concl)))
+;; 		 (arg-terms (map make-term-in-var-form
+;; 				 (all-allnc-form-to-vars mr-gfp-formula))))
+;; 	    (map (lambda (t) (term-substitute t tsubst)) arg-terms)))
+;; 	 (prem-and-costeps-imp-concl-proof
+;; 	  (apply mk-proof-in-elim-form
+;; 		 (make-proof-in-aconst-form mr-gfp-aconst) mr-gfp-arg-terms))
+;; 	 ;; we prepare a proof of the premise (competitor) of mr-gfp
+;; 	 (eqd-intro-proof
+;; 	  (make-proof-in-aconst-form
+;; 	    (number-and-idpredconst-to-intro-aconst
+;; 	     0 (idpredconst-name-and-types-and-cterms-to-idpredconst
+;; 		"EqD" (list et-type) '()))))
+;; 	 (mr-gfp-competitor-proof ; wrong! --> okay? (2014-05-26)
+;; 	   (let* ((exnc-prem (imp-impnc-form-to-premise
+;; 			     (proof-to-formula
+;; 			      prem-and-costeps-imp-concl-proof)))
+;; 		  (exnc-var (exnc-form-to-var exnc-prem))
+;; 		  (real-var (car (reverse mr-vars)))
+;; 		  (exnc-kernel (exnc-form-to-kernel exnc-prem))
+;; 		  (cterm (make-cterm exnc-var exnc-kernel))
+;; 		  (exnc-intro-proof
+;; 		   (make-proof-in-aconst-form
+;; 		    (number-and-idpredconst-to-intro-aconst
+;; 		     0 (idpredconst-name-and-types-and-cterms-to-idpredconst
+;; 			"ExNc" (list prem-type) (list cterm)))))
+;; 		  (exnc-intro-fla (proof-to-formula exnc-intro-proof))
+;; 		  (exnc-proof-vars (all-allnc-form-to-vars exnc-intro-fla))
+;; 		  (eqd-imp-mr-gfp-prem-proof
+;; 		   (apply mk-proof-in-elim-form
+;; 			  exnc-intro-proof
+;; 			  (map
+;; 			   make-term-in-var-form
+;; 			   (reverse
+;; 			    (cons real-var (cdr (reverse exnc-proof-vars)))))))
+;; 		  (andnc-proof
+;; 		   (let* ((andnc-fla
+;; 			   (imp-impnc-form-to-premise
+;; 			    (proof-to-formula
+;; 			     eqd-imp-mr-gfp-prem-proof)))
+;; 			  (lft-fla (andnc-form-to-left andnc-fla))
+;; 			  (rgt-fla (andnc-form-to-right andnc-fla))
+;; 			  (eqd-arg
+;; 			   (car (predicate-form-to-args lft-fla)))
+;; 			  (andnc-intro-proof
+;; 			   (make-proof-in-aconst-form
+;; 			    (number-and-idpredconst-to-intro-aconst
+;; 			     0
+;; 			     (idpredconst-name-and-types-and-cterms-to-idpredconst
+;; 			      "AndNc" '()
+;; 			      (map make-cterm
+;; 				   (list lft-fla rgt-fla))))))
+;; 			  (andnc-intro-fla (proof-to-formula andnc-intro-proof))
+;; 			  (andnc-vars (all-allnc-form-to-vars andnc-intro-fla))
+;; 			  (eqd-inst-proof
+;; 			   (make-proof-in-allnc-elim-form eqd-intro-proof eqd-arg))
+;; 			  (subst
+;; 			   (caar
+;; 			    (apply
+;; 			     huet-unifiers
+;; 			     '() andnc-vars '()
+;; 			     (map
+;; 			      list
+;; 			      (imp-impnc-all-allnc-form-to-premises andnc-intro-fla)
+;; 			      (list (proof-to-formula eqd-inst-proof)
+;; 				    (avar-to-formula mr-competitor-avar))))))
+;; 			  (terms
+;; 			   (map (lambda (v) (term-substitute
+;; 					     (make-term-in-var-form v)
+;; 					     subst))
+;; 				andnc-vars)))
+;; 		     (apply
+;; 		      mk-proof-in-elim-form
+;; 		      andnc-intro-proof
+;; 		      (append terms
+;; 			      (list eqd-inst-proof
+;; 				    (make-proof-in-avar-form mr-competitor-avar))))))
+;; 		  (andnc-fla (proof-to-formula andnc-proof))
+;; 		  (subst
+;; 		   (caar (apply
+;; 			  huet-unifiers
+;; 			  (formula-to-free andnc-fla)
+;; 			  (set-minus (all-allnc-form-to-vars exnc-intro-fla)
+;; 				     (formula-to-free andnc-fla))
+;; 			  '()
+;; 			  (map list
+;; 			       (imp-impnc-all-allnc-form-to-premises
+;; 				exnc-intro-fla)
+;; 			       (list andnc-fla)))))
+;; 		  (terms
+;; 		   (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 						     subst))
+;; 			(all-allnc-form-to-vars exnc-intro-fla)
+;; 			))
+;; 		  )
+;; 	     (apply
+;; 	      mk-proof-in-elim-form
+;; 	      exnc-intro-proof (append terms (list andnc-proof)))))
+;; 	 (costeps-imp-concl-proof
+;; 	  (mk-proof-in-elim-form
+;; 	   prem-and-costeps-imp-concl-proof mr-gfp-competitor-proof))
+;; 	 (costep-proofs
+;; 	  ;; from mr costeps, we are going to prove mr-gfp-costeps.
+;; 	  ;; It is important to know the corresponding assumption
+;; 	  ;; in the mr costep avars.
+;; 	  (imp-formulas-to-mr-gfp-proof-aux
+;; 	   mr-costep-avars
+;; 	   (imp-impnc-form-to-premises
+;; 	    (proof-to-formula costeps-imp-concl-proof))))
+;; 	 (concl-proof
+;; 	  (apply mk-proof-in-elim-form
+;; 		 costeps-imp-concl-proof costep-proofs)))
+;;     (apply mk-proof-in-nc-intro-form
+;; 	   (append mr-vars (list mr-competitor-avar)
+;; 		   (zip mr-costep-realizer-vars mr-costep-avars)
+;; 		   (list concl-proof)))))
 
-;; It automates a unification problem frequently required in proof construction.
-;; Assume formula is all/allnc_\vec{x}(A_0 ->/--> .. ->/--> A_k),
-;; prem-flas is a list of B_0, ..., B_l where l < k, and
-;; opt-goal-fla is optionally a formula.
-;; This procedure finds a substitution from \vec{x} to terms \vec{t}
-;; such that A_{l+1} ->/--> ... ->/--> A_k is derived from proofs
-;; of formula and prem-flas by means of all/allnc elim and imp/impnc elim.
-(define (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-	 formula prem-flas . opt-goal-fla)
-  (let* ((vars (all-allnc-form-to-vars formula))
-	 (kernel (all-allnc-form-to-final-kernel formula))
-	 (prems (imp-impnc-form-to-premises kernel))
-	 (concl (imp-impnc-form-to-final-conclusion kernel))
-	 (unif-pairs
-	  (let* ((rel-prems (list-head prems (length prem-flas)))
-		 (prem-pairs
-		  (map (lambda (fla0 fla1) (list (nf fla0) (nf fla1)))
-		       rel-prems prem-flas)))
-	    (if (pair? opt-goal-fla)
-		(cons (list concl (car opt-goal-fla)) prem-pairs)
-		prem-pairs)))
-	 (sig-vars
-	  (set-minus (apply union (map formula-to-free (map cadr unif-pairs)))
-		     vars))
-	 (huet (apply huet-unifiers sig-vars vars '() (cons #t unif-pairs))))
-    (if (pair? huet) (caar huet) #f)))
+;; (define (term-to-eqd-proof term)
+;;   (let* ((type (term-to-type term))
+;; 	 (idpc (make-idpredconst "EqD" (list type) '()))
+;; 	 (aconst (number-and-idpredconst-to-intro-aconst 0 idpc)))
+;;     (mk-proof-in-elim-form (make-proof-in-aconst-form aconst) term)))
 
-(define (str-gfp-proof-helper formula assumption)
-  (let*
-      ((mr-or-fla (avar-to-formula assumption))
-       (mr-or-elim-term (car (predicate-form-to-args mr-or-fla)))
-       (mr-or-elim-var (type-to-new-partial-var (term-to-type mr-or-elim-term)))
-       (mr-or-imp-fla
-	(formula-gen-substitute (make-imp mr-or-fla formula)
-				(make-subst mr-or-elim-term
-					    (make-term-in-var-form mr-or-elim-var))))
-       (mr-or-elim-aconst (imp-formulas-to-elim-aconst mr-or-imp-fla))
-       (mr-or-elim-fla (aconst-to-formula mr-or-elim-aconst))
-       (mr-or-elim-vars (all-allnc-form-to-vars mr-or-elim-fla))
-       (mr-or-elim-kernel (all-allnc-form-to-final-kernel mr-or-elim-fla))
-       (mr-or-elim-prems (imp-impnc-form-to-premises mr-or-elim-kernel))
-       (mr-or-elim-concl (imp-impnc-form-to-conclusion mr-or-elim-kernel))
-       (mr-or-elim-subst
-	(append (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-		 mr-or-elim-fla (list mr-or-fla))
-		(make-subst mr-or-elim-var mr-or-elim-term)))
-       (mr-or-elim-terms
-	(map
-	 (lambda (v) (term-substitute (make-term-in-var-form v) mr-or-elim-subst))
-	 mr-or-elim-vars))
-       (mr-or-elim-step-flas
-	(map (lambda (fla) (formula-substitute fla mr-or-elim-subst))
-	     (cdr mr-or-elim-prems)))
-       (mr-or-elim-first-step-proof
-	(let* ((first-fla (car mr-or-elim-step-flas))
-	       (first-vars (all-allnc-form-to-vars first-fla))
-	       (first-kernel (all-allnc-form-to-final-kernel first-fla))
-	       (first-prem (imp-impnc-form-to-premise first-kernel))
-	       (first-prem-avar (formula-to-new-avar first-prem))
-	       (first-concl (imp-impnc-form-to-conclusion first-kernel))
-	       (first-ornc-intro-aconst
-		(number-and-idpredconst-to-intro-aconst
-		 0 (predicate-form-to-predicate first-concl)))
-	       (first-ornc-intro-fla (aconst-to-formula first-ornc-intro-aconst))
-	       (first-ornc-intro-vars (all-allnc-form-to-vars first-ornc-intro-fla))
-	       (first-ornc-intro-kernel
-		(all-allnc-form-to-final-kernel first-ornc-intro-fla))
-	       (first-ornc-intro-prem
-		(imp-impnc-form-to-premise first-ornc-intro-kernel))
-	       (first-ornc-intro-concl
-		(imp-impnc-form-to-conclusion first-ornc-intro-kernel))
-	       (first-ornc-intro-subst
-		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-		 first-ornc-intro-fla (list first-prem)))
-	       (first-ornc-intro-terms
-		(map
-		 (lambda (v)
-		   (term-substitute (make-term-in-var-form v)
-				    first-ornc-intro-subst))
-		 first-ornc-intro-vars)))
-	  (apply
-	   mk-proof-in-nc-intro-form
-	   (append
-	    first-vars
-	    (list
-	     first-prem-avar
-	     (apply
-	      mk-proof-in-elim-form
-	      (make-proof-in-aconst-form first-ornc-intro-aconst)
-	      (append first-ornc-intro-terms
-		      (list (make-proof-in-avar-form first-prem-avar)))))))))
-       (mr-or-elim-second-step-proof
-	(let* ((second-fla (cadr mr-or-elim-step-flas))
-	       (second-vars (all-allnc-form-to-vars second-fla))
-	       (second-kernel (all-allnc-form-to-final-kernel second-fla))
-	       (second-prem (imp-impnc-form-to-premise second-kernel))
-	       (second-prem-avar (formula-to-new-avar second-prem))
-	       (second-concl (imp-impnc-form-to-conclusion second-kernel))
-	       (second-ornc-intro-aconst
-		(number-and-idpredconst-to-intro-aconst
-		 1 (predicate-form-to-predicate second-concl)))
-	       (second-ornc-intro-fla
-		(aconst-to-formula second-ornc-intro-aconst))
-	       (second-ornc-intro-vars
-		(all-allnc-form-to-vars second-ornc-intro-fla))
-	       (second-ornc-intro-kernel
-		(all-allnc-form-to-final-kernel second-ornc-intro-fla))
-	       (second-ornc-intro-prem
-		(imp-impnc-form-to-premise second-ornc-intro-kernel))
-	       (second-ornc-intro-concl
-		(imp-impnc-form-to-conclusion second-ornc-intro-kernel))
-	       (second-ornc-intro-subst
-		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-		 second-ornc-intro-fla '() second-concl))
-	       (second-ornc-intro-terms
-		(map (lambda (v) (term-substitute (make-term-in-var-form v)
-		 				  second-ornc-intro-subst))
-		     second-ornc-intro-vars))
-	       (second-exnc-goal
-		(formula-substitute second-ornc-intro-prem second-ornc-intro-subst))
-	       (second-exnc-intro-aconst
-		(number-and-idpredconst-to-intro-aconst
-		 0 (predicate-form-to-predicate second-exnc-goal)))
-	       (second-exnc-intro-fla (aconst-to-formula second-exnc-intro-aconst))
-	       (second-exnc-intro-vars (all-allnc-form-to-vars second-exnc-intro-fla))
-	       (second-exnc-intro-kernel
-		(all-allnc-form-to-final-kernel second-exnc-intro-fla))
-	       (second-exnc-intro-prem
-		(imp-impnc-form-to-premise second-exnc-intro-kernel))
-	       (second-exnc-intro-concl
-		(imp-impnc-form-to-conclusion second-exnc-intro-kernel))
-	       (second-exnc-vars-and-conjs
-		(and-andi-ex-exi-formula-to-vars-and-conjuncts
-		 second-exnc-intro-concl))
-	       (second-exnc-vars (car second-exnc-vars-and-conjs))
-	       (second-exnc-conjs (cadr second-exnc-vars-and-conjs))
-	       (second-exnc-intro-concl-vars
-		(exnc-form-to-vars second-exnc-intro-concl))
-	       (second-exnc-intro-concl-kernel
-		(exnc-form-to-final-kernel second-exnc-intro-concl))
-	       (second-exnc-intro-subst
-		(let* ((rconj (andnc-form-to-right second-exnc-intro-prem))
-		       (unif-var (term-in-var-form-to-var
-				  (car (predicate-form-to-args rconj)))))
-		  (caar
-		   (apply huet-unifiers
-			  (remove unif-var (formula-to-free second-exnc-intro-prem))
-			  (list unif-var)
-			  '()
-			  (list #t (list second-prem rconj))))))
-	       (second-andnc-goal
-		(formula-substitute second-exnc-intro-prem second-exnc-intro-subst))
-	       (second-exnc-intro-terms
-		(map (lambda (v) (term-substitute (make-term-in-var-form v)
-						  second-exnc-intro-subst))
-		     second-exnc-intro-vars))
-	       (second-andnc-intro-aconst
-		(number-and-idpredconst-to-intro-aconst
-		 0 (predicate-form-to-predicate second-andnc-goal)))
-	       (second-andnc-intro-fla (aconst-to-formula second-andnc-intro-aconst))
-	       (second-andnc-intro-vars
-		(all-allnc-form-to-vars second-andnc-intro-fla))
-	       (second-andnc-intro-subst
-		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-		 second-andnc-intro-fla '() second-andnc-goal))
-	       (second-andnc-intro-terms
-		(map (lambda (v) (term-substitute (make-term-in-var-form v)
-						  second-andnc-intro-subst))
-		     second-andnc-intro-vars))
-	       (second-andnc-intro-kernel
-		(all-allnc-form-to-final-kernel second-andnc-intro-fla))
-	       (second-andnc-intro-prems
-		(imp-impnc-form-to-premises second-andnc-intro-kernel))
-	       (second-eqd-goal (formula-substitute (car second-andnc-intro-prems)
-						    second-andnc-intro-subst))
-	       (second-eqd-proof
-		(mk-proof-in-elim-form
-		 (make-proof-in-aconst-form
-		  (number-and-idpredconst-to-intro-aconst
-		   0 (predicate-form-to-predicate second-eqd-goal)))
-		 (term-substitute
-		  (cadr (predicate-form-to-args second-eqd-goal))
-		  second-exnc-intro-subst)))
-	       (second-mr-competitor-goal
-		(formula-substitute (cadr second-andnc-intro-prems)
-				    second-andnc-intro-subst))
-	       (second-mr-competitor-proof
-		(make-proof-in-avar-form second-prem-avar))
-	       (second-andnc-eqd-fla
-		(formula-substitute (car second-exnc-conjs) second-exnc-intro-subst))
-	       (second-andnc-subst
-		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-		 second-andnc-intro-fla
-		 (list second-eqd-goal second-prem)))
-	       (second-andnc-proof
-		(apply mk-proof-in-elim-form
-		       (make-proof-in-aconst-form second-andnc-intro-aconst)
-		       (append second-andnc-intro-terms
-			       (list second-eqd-proof second-mr-competitor-proof))))
-	       (exnc-proof-acasca
-		(make-proof-in-avar-form
-		 (formula-to-new-avar second-exnc-goal)))
-	       (second-exnc-proof
-		(apply mk-proof-in-elim-form
-		       (make-proof-in-aconst-form second-exnc-intro-aconst)
-		       (append second-exnc-intro-terms
-			       (list second-andnc-proof))))
-	       (exnc-subst2
-		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-		 second-exnc-intro-fla
-		 (list
-		  (formula-substitute
-		   (make-andnc second-andnc-eqd-fla second-prem)
-		   second-andnc-subst))
-		 second-exnc-goal))
-	       (exnc-proof-terms2
-		(map (lambda (v) (term-substitute (make-term-in-var-form v)
-						  exnc-subst2))
-		     second-exnc-intro-vars)))
-	  (apply mk-proof-in-nc-intro-form
-		 (append
-		  second-vars
-		  (list second-prem-avar
-			(apply
-			 mk-proof-in-elim-form
-			 (make-proof-in-aconst-form second-ornc-intro-aconst)
-			 (append
-			  second-ornc-intro-terms
-			  (list second-exnc-proof)))))))))
-    (apply mk-proof-in-elim-form
-	   (make-proof-in-aconst-form mr-or-elim-aconst)
-	   (append mr-or-elim-terms
-		   (list (make-proof-in-avar-form assumption)
-			 mr-or-elim-first-step-proof
-			 mr-or-elim-second-step-proof)))))
+;; (define (imp-formulas-to-mr-gfp-proof-aux mr-costep-avars goals)
+;;   (map
+;;    (lambda (mr-costep-avar goal)
+;;      (let* ((goal-vars (all-allnc-form-to-vars goal))
+;; 	    (goal-kernel (all-allnc-form-to-final-kernel goal))
+;; 	    (goal-prem (imp-impnc-form-to-premise goal-kernel))
+;; 	    (goal-prem-avar (formula-to-new-avar goal-prem))
+;; 	    (goal-prem-predicate (predicate-form-to-predicate goal-prem))
+;; 	    (goal-concl (imp-impnc-form-to-conclusion goal-kernel))
+;; 	    (exnc-elim-aconst
+;; 	     (imp-formulas-to-elim-aconst (make-imp goal-prem goal-concl)))
+;; 	    (exnc-elim-proof (make-proof-in-aconst-form exnc-elim-aconst))
+;; 	    (exnc-elim-fla (aconst-to-formula exnc-elim-aconst))
+;; 	    (exnc-elim-subst
+;; 	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 	      exnc-elim-fla (list goal-prem) goal-concl))
+;; 	    (exnc-elim-vars (all-allnc-form-to-vars exnc-elim-fla))
+;; 	    (exnc-elim-inst-terms
+;; 	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 					       exnc-elim-subst))
+;; 		  exnc-elim-vars))
+;; 	    (exnc-elim-inst-kernel
+;; 	     (formula-substitute (all-allnc-form-to-final-kernel exnc-elim-fla)
+;; 				 exnc-elim-subst))
+;; 	    (exnc-elim-inst-step
+;; 	     (cadr (imp-impnc-form-to-premises exnc-elim-inst-kernel)))
+;; 	    (exnc-elim-inst-step-vars
+;; 	     (all-allnc-form-to-vars exnc-elim-inst-step))
+;; 	    (exnc-elim-inst-step-kernel
+;; 	     (all-allnc-form-to-final-kernel exnc-elim-inst-step))
+;; 	    (exnc-elim-inst-step-prem
+;; 	     (imp-impnc-form-to-premise exnc-elim-inst-step-kernel))
+;; 	    (exnc-elim-inst-step-prem-avar
+;; 	     (formula-to-new-avar exnc-elim-inst-step-prem))
+;; 	    (exnc-elim-inst-step-concl
+;; 	     (imp-impnc-form-to-conclusion exnc-elim-inst-step-kernel))
+;; 	    (andnc-elim-aconst
+;; 	     (imp-formulas-to-elim-aconst
+;; 	      (make-imp exnc-elim-inst-step-prem exnc-elim-inst-step-concl)))
+;; 	    (andnc-elim-fla (aconst-to-formula andnc-elim-aconst))
+;; 	    (andnc-elim-vars (all-allnc-form-to-vars andnc-elim-fla))
+;; 	    (andnc-elim-subst
+;; 	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 	      andnc-elim-fla
+;; 	      (list exnc-elim-inst-step-prem) exnc-elim-inst-step-concl))
+;; 	    (andnc-elim-inst-terms
+;; 	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 					       andnc-elim-subst))
+;; 		  andnc-elim-vars))
+;; 	    (andnc-eilm-inst-kernel
+;; 	     (formula-substitute (all-allnc-form-to-final-kernel andnc-elim-fla)
+;; 				 andnc-elim-subst))
+;; 	    (andnc-elim-inst-kernel-step
+;; 	     (cadr (imp-impnc-form-to-premises andnc-eilm-inst-kernel)))
+;; 	    (andnc-elim-inst-kernel-step-prems
+;; 	     (imp-impnc-form-to-premises andnc-elim-inst-kernel-step))
+;; 	    (andnc-elim-inst-kernel-step-prem-avars
+;; 	     (map formula-to-new-avar andnc-elim-inst-kernel-step-prems))
+;; 	    (andnc-elim-inst-kernel-step-concl
+;; 	     (imp-impnc-form-to-final-conclusion andnc-elim-inst-kernel-step))
+;; 	    (mr-costep (avar-to-formula mr-costep-avar))
+;; 	    (mr-costep-vars (all-allnc-form-to-vars mr-costep))
+;; 	    (mr-costep-subst
+;; 	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 	      mr-costep (list (cadr andnc-elim-inst-kernel-step-prems))))
+;; 	    (mr-costep-inst-terms
+;; 	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 					       mr-costep-subst))
+;; 		  mr-costep-vars))
+;; 	    (mr-costep-inst-kernel
+;; 	     (formula-substitute (all-allnc-form-to-final-kernel mr-costep)
+;; 				 mr-costep-subst))
+;; 	    (mr-costep-inst-kernel-concl
+;; 	     (imp-impnc-form-to-conclusion mr-costep-inst-kernel))
+;; 	    (mr-costep-concl-proof
+;; 	     (apply mk-proof-in-elim-form
+;; 		    (make-proof-in-avar-form mr-costep-avar)
+;; 		    (append mr-costep-inst-terms
+;; 			    (list (make-proof-in-avar-form
+;; 				   (cadr andnc-elim-inst-kernel-step-prem-avars))))))
+;; 	    (disj-imp-disj-fla (make-impnc mr-costep-inst-kernel-concl
+;; 					   andnc-elim-inst-kernel-step-concl))
+;; 	    (andnc-elim-inst-kernel-step-eqd-prem-args
+;; 	     (predicate-form-to-args (car andnc-elim-inst-kernel-step-prems)))
+;; 	    (eqd-compat-repl-var (term-in-var-form-to-var
+;; 				  (car andnc-elim-inst-kernel-step-eqd-prem-args)))
+;; 	    (corec-eqd-compat-rev-at-allnc-fla
+;; 	     (make-allnc eqd-compat-repl-var
+;; 			 (make-eqd
+;; 			  (car andnc-elim-inst-kernel-step-eqd-prem-args)
+;; 			  (nt
+;; 			   (undelay-delayed-corec
+;; 			    (cadr andnc-elim-inst-kernel-step-eqd-prem-args) 1)))))
+;; 	    (corec-unfold-eqd-proof
+;; 	     (make-proof-in-aconst-form
+;; 	      (global-assumption-name-to-aconst
+;; 	       (alg-or-arrow-types-to-unfolded-corec-eqd-global-assumption-name
+;; 		(apply make-arrow (map var-to-type
+;; 				       (list (car exnc-elim-inst-step-vars)
+;; 					     eqd-compat-repl-var)))))))
+;; 	    (corec-eqd-proof
+;; 	     (let* ((corec-args
+;; 		     (term-in-app-form-to-args
+;; 		      (cadr andnc-elim-inst-kernel-step-eqd-prem-args)))
+;; 		    (corec-and-unfolded
+;; 		     (predicate-form-to-args (proof-to-formula ;;corec-eqd-proof-3)))
+;; 					      corec-unfold-eqd-proof)))
+;; 		    (corec-var1 (type-to-new-partial-var
+;; 				 (term-to-type (car corec-and-unfolded))))
+;; 		    (corec-var2 (type-to-new-partial-var
+;; 				 (term-to-type (car corec-and-unfolded))))
+;; 		    (corec-term1 (make-term-in-var-form corec-var1))
+;; 		    (corec-term2 (make-term-in-var-form corec-var2))
+;; 		    (arg-terms
+;; 		     (map (lambda (t) (nt (apply mk-term-in-app-form (cons t corec-args))))
+;; 			  (cons (make-term-in-var-form corec-var1)
+;; 				(cdr corec-and-unfolded))))
+;; 		    (unfolded-term (cadr corec-and-unfolded))
+;; 		    (unfolded-term-vars (term-in-abst-form-to-vars unfolded-term))
+;; 		    (unfolded-term-body (term-in-abst-form-to-final-kernel unfolded-term))
+;; 		    (eqd-concl-term
+;; 		     (let* ((tsubst (make-substitution unfolded-term-vars corec-args))
+;; 			    )
+;; 		       (term-substitute unfolded-term-body tsubst)))
+;; 		    (eqd-elim-aconst
+;; 		     (imp-formulas-to-elim-aconst
+;; 		      (make-imp
+;; 		       (make-eqd corec-term1 corec-term2)
+;; 		       (apply
+;; 			make-eqd
+;; 			(map
+;; 			 (lambda (t)
+;; 			   (apply mk-term-in-app-form t corec-args))
+;; 			 (list corec-term1 corec-term2))))))
+;; 		    (last-imp-proof
+;; 		     (apply mk-proof-in-elim-form
+;; 			    (make-proof-in-aconst-form eqd-elim-aconst)
+;; 			    (append
+;; 			     corec-and-unfolded
+;; 			     corec-args
+;; 			     (list corec-unfold-eqd-proof))))
+;; 		    (last-prem
+;; 		     (imp-impnc-form-to-premise
+;; 		      (proof-to-formula last-imp-proof)))
+;; 		    (last-vars (all-allnc-form-to-vars last-prem))
+;; 		    (last-kernel-eqd-term
+;; 		     (car (predicate-form-to-args
+;; 			   (all-allnc-form-to-final-kernel last-prem))))
+;; 		    )
+;; 	       (mk-proof-in-elim-form
+;; 		last-imp-proof
+;; 		(apply mk-proof-in-nc-intro-form
+;; 		       (snoc last-vars (term-to-eqd-proof last-kernel-eqd-term))))))
+;; 	    (andnc-elim-inst-kernel-step-concl-inst
+;; 	     (formula-substitute
+;; 	      andnc-elim-inst-kernel-step-concl
+;; 	      (make-subst (term-in-var-form-to-var
+;; 			   (car andnc-elim-inst-kernel-step-eqd-prem-args))
+;; 			  (nt
+;; 			   (undelay-delayed-corec
+;; 			    (cadr andnc-elim-inst-kernel-step-eqd-prem-args) 1)))))
+;; 	    (eqd-compat-proof
+;; 	     (eqd-compat-rev-at
+;; 	      (make-allnc (term-in-var-form-to-var
+;; 			   (car andnc-elim-inst-kernel-step-eqd-prem-args))
+;; 			  andnc-elim-inst-kernel-step-concl-inst)))
+;; 	    (eqd-compat-fla (proof-to-formula eqd-compat-proof))
+;; 	    (eqd-compat-vars (all-allnc-form-to-vars eqd-compat-fla))
+;; 	    (eqd-compat-subst
+;; 	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 	      eqd-compat-fla (list (car andnc-elim-inst-kernel-step-prems))))
+;; 	    (eqd-compat-terms
+;; 	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 					       eqd-compat-subst))
+;; 		  eqd-compat-vars))
+;; 	    (disj-imp-disj-inst-fla
+;; 	     (make-imp
+;; 	      mr-costep-inst-kernel-concl
+;; 	      (formula-substitute (cadr (imp-impnc-form-to-premises
+;; 					 (all-allnc-form-to-final-kernel
+;; 					  eqd-compat-fla)))
+;; 				  eqd-compat-subst)))
+;; 	    (elim-term
+;; 	     (car (predicate-form-to-args mr-costep-inst-kernel-concl)))
+;; 	    (elim-term-type (term-to-type elim-term))
+;; 	    (elim-var (type-to-new-partial-var elim-term-type))
+;; 	    (gen-subst
+;; 	     (make-subst elim-term (make-term-in-var-form elim-var)))
+;; 	    (disj-imp-disj-inst-proof
+;; 	     (let* ((inst-goal
+;; 		     (make-allnc elim-var
+;; 				 (formula-gen-substitute disj-imp-disj-inst-fla
+;; 							 gen-subst))))
+;; 	       (mk-proof-in-elim-form
+;; 		(coidpredconst-to-closure-mr-proof-or-elim inst-goal #t)
+;; 		elim-term)))
+;; 	    (disj-inst-proof
+;; 	     (mk-proof-in-elim-form disj-imp-disj-inst-proof mr-costep-concl-proof))
+;; 	    (disj-inst-fla
+;; 	     (imp-impnc-form-to-conclusion disj-imp-disj-inst-fla))
+;; 	    (mr-costep-inst-kernel-concl-avar
+;; 	     (formula-to-new-avar mr-costep-inst-kernel-concl))
+;; 	    (andnc-elim-concl-subst
+;; 	     (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 	      andnc-elim-fla (list exnc-elim-inst-step-prem)))
+;; 	    (andnc-elim-concl-terms2
+;; 	     (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 					       andnc-elim-concl-subst))
+;; 		  andnc-elim-vars))
+;; 	    (term-eqd-unfolded-proof
+;; 	     (let* ((term1 (car (predicate-form-to-args (car andnc-elim-inst-kernel-step-prems))))
+;; 		    (term2
+;; 		     (cadr
+;; 		      (predicate-form-to-args (proof-to-formula corec-eqd-proof))))
+;; 		    (goal-eqd-allnc-fla
+;; 		     (make-allnc (term-in-var-form-to-var term1)
+;; 				 (make-eqd term1 term2)))
+;; 		    )
+;; 	       (apply mk-proof-in-elim-form
+;; 		      (eqd-compat-rev-at goal-eqd-allnc-fla)
+;; 		      (list
+;; 		       term1
+;; 		       (cadr (predicate-form-to-args (car andnc-elim-inst-kernel-step-prems)))
+;; 		       (make-proof-in-avar-form
+;; 			(car andnc-elim-inst-kernel-step-prem-avars))
+;; 		       corec-eqd-proof))))
+;; 	    (term-eqd-unfolded-fla
+;; 	     (proof-to-formula term-eqd-unfolded-proof))
+;; 	    (disj-proof-4
+;; 	     (let*
+;; 		 ((args (map nt (predicate-form-to-args term-eqd-unfolded-fla)))
+;; 		  (gen-subst (make-subst (cadr args) (car args)))
+;; 		  (disj-fla-2
+;; 		   (formula-gen-substitute disj-inst-fla gen-subst))
+;; 		  (eqd-compat-allnc-fla
+;; 		   (make-allnc (term-in-var-form-to-var (car args))
+;; 			       disj-fla-2))
+;; 		  (compat-proof (eqd-compat-rev-at eqd-compat-allnc-fla)))
+;; 	       (apply mk-proof-in-elim-form
+;; 		      compat-proof
+;; 		      (append args
+;; 			      (list term-eqd-unfolded-proof
+;; 				    disj-inst-proof)))))
+;; 	    (andnc-elim-concl-proof
+;; 	     (apply
+;; 	      mk-proof-in-elim-form
+;; 	      (make-proof-in-aconst-form andnc-elim-aconst)
+;; 	      (append
+;; 	       andnc-elim-concl-terms2
+;; 	       (list
+;; 		(make-proof-in-avar-form exnc-elim-inst-step-prem-avar)
+;; 		(apply
+;; 		 mk-proof-in-nc-intro-form
+;; 		 (append
+;; 		  andnc-elim-inst-kernel-step-prem-avars
+;; 		  (list disj-proof-4)))))))
+;; 	    (exnc-elim-concl-proof
+;; 	     (apply
+;; 	      mk-proof-in-elim-form
+;; 	      (make-proof-in-aconst-form exnc-elim-aconst)
+;; 	      (append
+;; 	       exnc-elim-inst-terms
+;; 	       (list
+;; 		(make-proof-in-avar-form goal-prem-avar)
+;; 		(apply
+;; 		 mk-proof-in-nc-intro-form
+;; 		 (append
+;; 		  exnc-elim-inst-step-vars
+;; 		  (list
+;; 		   exnc-elim-inst-step-prem-avar
+;; 		   andnc-elim-concl-proof))))))))
+;;        (apply
+;; 	mk-proof-in-nc-intro-form
+;; 	(append goal-vars (list goal-prem-avar exnc-elim-concl-proof)))))
+;;    mr-costep-avars goals))
 
-(define (coidpredconst-to-closure-mr-proof-or-intro
-	 formula gfp-info-or-f . assumptions)
-  (let* ((vars-and-kernel ;; no check needed?
-	  (all-allnc-form-to-vars-and-final-kernel formula))
-	 (vars (car vars-and-kernel))
-	 (kernel (cadr vars-and-kernel))
-	 (prems (imp-impnc-form-to-premises kernel))
-	 (prem-avars (map formula-to-new-avar prems))
-	 (concl (imp-impnc-form-to-final-conclusion kernel))
-	 (relevant-avars
-	  (filter (lambda (a)
-		    (classical-formula=? (avar-to-formula a) formula))
-		  (filter avar-form? assumptions))))
+;; (define (alg-or-arrow-types-to-unfolded-corec-eqd-global-assumption-name
+;; 	 . alg-or-arrow-types)
+;;   (let* ((name
+;; 	  (apply string-append
+;; 		 (cons "EQD-COREC-" (map type-to-string alg-or-arrow-types))))
+;; 	 (info (assoc name GLOBAL-ASSUMPTIONS)))
+;;     (if (pair? info)
+;; 	name
+;; 	(let* ((consts
+;; 		(apply alg-or-arrow-types-to-corec-consts alg-or-arrow-types))
+;; 	       (corec-term (make-term-in-const-form (car consts)))
+;; 	       (unfolded-corec-term (nt (undelay-delayed-corec corec-term 1))))
+;; 	  (add-global-assumption name (make-eqd corec-term unfolded-corec-term))
+;; 	  name))))
+
+;; ;; It automates a unification problem frequently required in proof construction.
+;; ;; Assume formula is all/allnc_\vec{x}(A_0 ->/--> .. ->/--> A_k),
+;; ;; prem-flas is a list of B_0, ..., B_l where l < k, and
+;; ;; opt-goal-fla is optionally a formula.
+;; ;; This procedure finds a substitution from \vec{x} to terms \vec{t}
+;; ;; such that A_{l+1} ->/--> ... ->/--> A_k is derived from proofs
+;; ;; of formula and prem-flas by means of all/allnc elim and imp/impnc elim.
+;; (define (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 	 formula prem-flas . opt-goal-fla)
+;;   (let* ((vars (all-allnc-form-to-vars formula))
+;; 	 (kernel (all-allnc-form-to-final-kernel formula))
+;; 	 (prems (imp-impnc-form-to-premises kernel))
+;; 	 (concl (imp-impnc-form-to-final-conclusion kernel))
+;; 	 (unif-pairs
+;; 	  (let* ((rel-prems (list-head prems (length prem-flas)))
+;; 		 (prem-pairs
+;; 		  (map (lambda (fla0 fla1) (list (nf fla0) (nf fla1)))
+;; 		       rel-prems prem-flas)))
+;; 	    (if (pair? opt-goal-fla)
+;; 		(cons (list concl (car opt-goal-fla)) prem-pairs)
+;; 		prem-pairs)))
+;; 	 (sig-vars
+;; 	  (set-minus (apply union (map formula-to-free (map cadr unif-pairs)))
+;; 		     vars))
+;; 	 (huet (apply huet-unifiers sig-vars vars '() (cons #t unif-pairs))))
+;;     (if (pair? huet) (caar huet) #f)))
+
+;; (define (str-gfp-proof-helper formula assumption)
+;;   (let*
+;;       ((mr-or-fla (avar-to-formula assumption))
+;;        (mr-or-elim-term (car (predicate-form-to-args mr-or-fla)))
+;;        (mr-or-elim-var (type-to-new-partial-var (term-to-type mr-or-elim-term)))
+;;        (mr-or-imp-fla
+;; 	(formula-gen-substitute (make-imp mr-or-fla formula)
+;; 				(make-subst mr-or-elim-term
+;; 					    (make-term-in-var-form mr-or-elim-var))))
+;;        (mr-or-elim-aconst (imp-formulas-to-elim-aconst mr-or-imp-fla))
+;;        (mr-or-elim-fla (aconst-to-formula mr-or-elim-aconst))
+;;        (mr-or-elim-vars (all-allnc-form-to-vars mr-or-elim-fla))
+;;        (mr-or-elim-kernel (all-allnc-form-to-final-kernel mr-or-elim-fla))
+;;        (mr-or-elim-prems (imp-impnc-form-to-premises mr-or-elim-kernel))
+;;        (mr-or-elim-concl (imp-impnc-form-to-conclusion mr-or-elim-kernel))
+;;        (mr-or-elim-subst
+;; 	(append (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 		 mr-or-elim-fla (list mr-or-fla))
+;; 		(make-subst mr-or-elim-var mr-or-elim-term)))
+;;        (mr-or-elim-terms
+;; 	(map
+;; 	 (lambda (v) (term-substitute (make-term-in-var-form v) mr-or-elim-subst))
+;; 	 mr-or-elim-vars))
+;;        (mr-or-elim-step-flas
+;; 	(map (lambda (fla) (formula-substitute fla mr-or-elim-subst))
+;; 	     (cdr mr-or-elim-prems)))
+;;        (mr-or-elim-first-step-proof
+;; 	(let* ((first-fla (car mr-or-elim-step-flas))
+;; 	       (first-vars (all-allnc-form-to-vars first-fla))
+;; 	       (first-kernel (all-allnc-form-to-final-kernel first-fla))
+;; 	       (first-prem (imp-impnc-form-to-premise first-kernel))
+;; 	       (first-prem-avar (formula-to-new-avar first-prem))
+;; 	       (first-concl (imp-impnc-form-to-conclusion first-kernel))
+;; 	       (first-ornc-intro-aconst
+;; 		(number-and-idpredconst-to-intro-aconst
+;; 		 0 (predicate-form-to-predicate first-concl)))
+;; 	       (first-ornc-intro-fla (aconst-to-formula first-ornc-intro-aconst))
+;; 	       (first-ornc-intro-vars (all-allnc-form-to-vars first-ornc-intro-fla))
+;; 	       (first-ornc-intro-kernel
+;; 		(all-allnc-form-to-final-kernel first-ornc-intro-fla))
+;; 	       (first-ornc-intro-prem
+;; 		(imp-impnc-form-to-premise first-ornc-intro-kernel))
+;; 	       (first-ornc-intro-concl
+;; 		(imp-impnc-form-to-conclusion first-ornc-intro-kernel))
+;; 	       (first-ornc-intro-subst
+;; 		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 		 first-ornc-intro-fla (list first-prem)))
+;; 	       (first-ornc-intro-terms
+;; 		(map
+;; 		 (lambda (v)
+;; 		   (term-substitute (make-term-in-var-form v)
+;; 				    first-ornc-intro-subst))
+;; 		 first-ornc-intro-vars)))
+;; 	  (apply
+;; 	   mk-proof-in-nc-intro-form
+;; 	   (append
+;; 	    first-vars
+;; 	    (list
+;; 	     first-prem-avar
+;; 	     (apply
+;; 	      mk-proof-in-elim-form
+;; 	      (make-proof-in-aconst-form first-ornc-intro-aconst)
+;; 	      (append first-ornc-intro-terms
+;; 		      (list (make-proof-in-avar-form first-prem-avar)))))))))
+;;        (mr-or-elim-second-step-proof
+;; 	(let* ((second-fla (cadr mr-or-elim-step-flas))
+;; 	       (second-vars (all-allnc-form-to-vars second-fla))
+;; 	       (second-kernel (all-allnc-form-to-final-kernel second-fla))
+;; 	       (second-prem (imp-impnc-form-to-premise second-kernel))
+;; 	       (second-prem-avar (formula-to-new-avar second-prem))
+;; 	       (second-concl (imp-impnc-form-to-conclusion second-kernel))
+;; 	       (second-ornc-intro-aconst
+;; 		(number-and-idpredconst-to-intro-aconst
+;; 		 1 (predicate-form-to-predicate second-concl)))
+;; 	       (second-ornc-intro-fla
+;; 		(aconst-to-formula second-ornc-intro-aconst))
+;; 	       (second-ornc-intro-vars
+;; 		(all-allnc-form-to-vars second-ornc-intro-fla))
+;; 	       (second-ornc-intro-kernel
+;; 		(all-allnc-form-to-final-kernel second-ornc-intro-fla))
+;; 	       (second-ornc-intro-prem
+;; 		(imp-impnc-form-to-premise second-ornc-intro-kernel))
+;; 	       (second-ornc-intro-concl
+;; 		(imp-impnc-form-to-conclusion second-ornc-intro-kernel))
+;; 	       (second-ornc-intro-subst
+;; 		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 		 second-ornc-intro-fla '() second-concl))
+;; 	       (second-ornc-intro-terms
+;; 		(map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 		 				  second-ornc-intro-subst))
+;; 		     second-ornc-intro-vars))
+;; 	       (second-exnc-goal
+;; 		(formula-substitute second-ornc-intro-prem second-ornc-intro-subst))
+;; 	       (second-exnc-intro-aconst
+;; 		(number-and-idpredconst-to-intro-aconst
+;; 		 0 (predicate-form-to-predicate second-exnc-goal)))
+;; 	       (second-exnc-intro-fla (aconst-to-formula second-exnc-intro-aconst))
+;; 	       (second-exnc-intro-vars (all-allnc-form-to-vars second-exnc-intro-fla))
+;; 	       (second-exnc-intro-kernel
+;; 		(all-allnc-form-to-final-kernel second-exnc-intro-fla))
+;; 	       (second-exnc-intro-prem
+;; 		(imp-impnc-form-to-premise second-exnc-intro-kernel))
+;; 	       (second-exnc-intro-concl
+;; 		(imp-impnc-form-to-conclusion second-exnc-intro-kernel))
+;; 	       (second-exnc-vars-and-conjs
+;; 		(and-andi-ex-exi-formula-to-vars-and-conjuncts
+;; 		 second-exnc-intro-concl))
+;; 	       (second-exnc-vars (car second-exnc-vars-and-conjs))
+;; 	       (second-exnc-conjs (cadr second-exnc-vars-and-conjs))
+;; 	       (second-exnc-intro-concl-vars
+;; 		(exnc-form-to-vars second-exnc-intro-concl))
+;; 	       (second-exnc-intro-concl-kernel
+;; 		(exnc-form-to-final-kernel second-exnc-intro-concl))
+;; 	       (second-exnc-intro-subst
+;; 		(let* ((rconj (andnc-form-to-right second-exnc-intro-prem))
+;; 		       (unif-var (term-in-var-form-to-var
+;; 				  (car (predicate-form-to-args rconj)))))
+;; 		  (caar
+;; 		   (apply huet-unifiers
+;; 			  (remove unif-var (formula-to-free second-exnc-intro-prem))
+;; 			  (list unif-var)
+;; 			  '()
+;; 			  (list #t (list second-prem rconj))))))
+;; 	       (second-andnc-goal
+;; 		(formula-substitute second-exnc-intro-prem second-exnc-intro-subst))
+;; 	       (second-exnc-intro-terms
+;; 		(map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 						  second-exnc-intro-subst))
+;; 		     second-exnc-intro-vars))
+;; 	       (second-andnc-intro-aconst
+;; 		(number-and-idpredconst-to-intro-aconst
+;; 		 0 (predicate-form-to-predicate second-andnc-goal)))
+;; 	       (second-andnc-intro-fla (aconst-to-formula second-andnc-intro-aconst))
+;; 	       (second-andnc-intro-vars
+;; 		(all-allnc-form-to-vars second-andnc-intro-fla))
+;; 	       (second-andnc-intro-subst
+;; 		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 		 second-andnc-intro-fla '() second-andnc-goal))
+;; 	       (second-andnc-intro-terms
+;; 		(map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 						  second-andnc-intro-subst))
+;; 		     second-andnc-intro-vars))
+;; 	       (second-andnc-intro-kernel
+;; 		(all-allnc-form-to-final-kernel second-andnc-intro-fla))
+;; 	       (second-andnc-intro-prems
+;; 		(imp-impnc-form-to-premises second-andnc-intro-kernel))
+;; 	       (second-eqd-goal (formula-substitute (car second-andnc-intro-prems)
+;; 						    second-andnc-intro-subst))
+;; 	       (second-eqd-proof
+;; 		(mk-proof-in-elim-form
+;; 		 (make-proof-in-aconst-form
+;; 		  (number-and-idpredconst-to-intro-aconst
+;; 		   0 (predicate-form-to-predicate second-eqd-goal)))
+;; 		 (term-substitute
+;; 		  (cadr (predicate-form-to-args second-eqd-goal))
+;; 		  second-exnc-intro-subst)))
+;; 	       (second-mr-competitor-goal
+;; 		(formula-substitute (cadr second-andnc-intro-prems)
+;; 				    second-andnc-intro-subst))
+;; 	       (second-mr-competitor-proof
+;; 		(make-proof-in-avar-form second-prem-avar))
+;; 	       (second-andnc-eqd-fla
+;; 		(formula-substitute (car second-exnc-conjs) second-exnc-intro-subst))
+;; 	       (second-andnc-subst
+;; 		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 		 second-andnc-intro-fla
+;; 		 (list second-eqd-goal second-prem)))
+;; 	       (second-andnc-proof
+;; 		(apply mk-proof-in-elim-form
+;; 		       (make-proof-in-aconst-form second-andnc-intro-aconst)
+;; 		       (append second-andnc-intro-terms
+;; 			       (list second-eqd-proof second-mr-competitor-proof))))
+;; 	       (exnc-proof-acasca
+;; 		(make-proof-in-avar-form
+;; 		 (formula-to-new-avar second-exnc-goal)))
+;; 	       (second-exnc-proof
+;; 		(apply mk-proof-in-elim-form
+;; 		       (make-proof-in-aconst-form second-exnc-intro-aconst)
+;; 		       (append second-exnc-intro-terms
+;; 			       (list second-andnc-proof))))
+;; 	       (exnc-subst2
+;; 		(all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 		 second-exnc-intro-fla
+;; 		 (list
+;; 		  (formula-substitute
+;; 		   (make-andnc second-andnc-eqd-fla second-prem)
+;; 		   second-andnc-subst))
+;; 		 second-exnc-goal))
+;; 	       (exnc-proof-terms2
+;; 		(map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 						  exnc-subst2))
+;; 		     second-exnc-intro-vars)))
+;; 	  (apply mk-proof-in-nc-intro-form
+;; 		 (append
+;; 		  second-vars
+;; 		  (list second-prem-avar
+;; 			(apply
+;; 			 mk-proof-in-elim-form
+;; 			 (make-proof-in-aconst-form second-ornc-intro-aconst)
+;; 			 (append
+;; 			  second-ornc-intro-terms
+;; 			  (list second-exnc-proof)))))))))
+;;     (apply mk-proof-in-elim-form
+;; 	   (make-proof-in-aconst-form mr-or-elim-aconst)
+;; 	   (append mr-or-elim-terms
+;; 		   (list (make-proof-in-avar-form assumption)
+;; 			 mr-or-elim-first-step-proof
+;; 			 mr-or-elim-second-step-proof)))))
+
+;; (define (coidpredconst-to-closure-mr-proof-or-intro
+;; 	 formula gfp-info-or-f . assumptions)
+;;   (let* ((vars-and-kernel ;; no check needed?
+;; 	  (all-allnc-form-to-vars-and-final-kernel formula))
+;; 	 (vars (car vars-and-kernel))
+;; 	 (kernel (cadr vars-and-kernel))
+;; 	 (prems (imp-impnc-form-to-premises kernel))
+;; 	 (prem-avars (map formula-to-new-avar prems))
+;; 	 (concl (imp-impnc-form-to-final-conclusion kernel))
+;; 	 (relevant-avars
+;; 	  (filter (lambda (a)
+;; 		    (classical-formula=? (avar-to-formula a) formula))
+;; 		  (filter avar-form? assumptions))))
+;;     (cond
+;;      ((pair? relevant-avars)
+;;       (make-proof-in-avar-form (car relevant-avars)))
+;;      ((all-allnc-form? formula)
+;;       (apply mk-proof-in-nc-intro-form
+;; 	     (append (all-allnc-form-to-vars formula)
+;; 		     (list (apply coidpredconst-to-closure-mr-proof-or-intro
+;; 				  (all-allnc-form-to-final-kernel formula)
+;; 				  gfp-info-or-f assumptions)))))
+;;      ((imp-impnc-form? formula)
+;;       (let* ((prems (imp-impnc-form-to-premises formula))
+;; 	     (prem-avars (map formula-to-new-avar prems)))
+;; 	(apply mk-proof-in-nc-intro-form
+;; 	       (append prem-avars
+;; 		       (list (apply coidpredconst-to-closure-mr-proof-or-intro
+;; 				    (imp-impnc-form-to-conclusion formula)
+;; 				    gfp-info-or-f
+;; 				    (append assumptions prem-avars)))))))
+;;      ((and (ori-mr-ori-form? concl)
+;; 	   (integer? (car assumptions)))
+;;       (let* ((idpc (predicate-form-to-predicate concl))
+;; 	     (intro-aconst (number-and-idpredconst-to-intro-aconst
+;; 			    (car assumptions) idpc))
+;; 	     (intro-fla (aconst-to-formula intro-aconst))
+;; 	     (flex-vars (all-allnc-form-to-vars intro-fla))
+;; 	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
+;; 	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
+;; 	     (intro-final-concl
+;; 	       (imp-impnc-form-to-final-conclusion intro-kernel))
+;; 	     (subst
+;; 	       (caar (apply huet-unifiers
+;; 			    (formula-to-free formula) flex-vars '()
+;; 			    (list #t (list formula intro-final-concl)))))
+;; 	     (terms
+;; 	       (map
+;; 		(lambda (v) (term-substitute (make-term-in-var-form v) subst))
+;; 		flex-vars))
+;; 	     (subst-prems
+;; 	       (map (lambda (f) (formula-substitute f subst))
+;; 		    intro-prems))
+;; 	     (subst-prem-proofs
+;; 	       (map
+;; 		(lambda (f)
+;; 		  (apply
+;; 		   coidpredconst-to-closure-mr-proof-or-intro
+;; 		   f gfp-info-or-f (cdr assumptions)))
+;; 		subst-prems)))
+;; 	(apply mk-proof-in-nc-intro-form
+;; 	       (append vars prem-avars
+;; 		       (list (apply mk-proof-in-elim-form
+;; 				    (make-proof-in-aconst-form intro-aconst)
+;; 				    (append terms subst-prem-proofs)))))))
+;;      ((and (ori-mr-ori-form? concl)
+;; 	   (not (integer? (car assumptions))))
+;;       (str-gfp-proof-helper concl (car assumptions)))
+;;      ((exi-mr-exi-form? concl)
+;;       (let* ((idpc (predicate-form-to-predicate concl))
+;; 	     (intro-aconst
+;; 	      (number-and-idpredconst-to-intro-aconst 0 idpc))
+;; 	     (intro-fla (nf (aconst-to-formula intro-aconst)))
+;; 	     (flex-vars (all-allnc-form-to-vars intro-fla))
+;; 	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
+;; 	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
+;; 	     (intro-prem (car intro-prems))
+;; 	     (intro-final-concl
+;; 	       (imp-impnc-form-to-final-conclusion intro-kernel))
+;; 	     (intro-prem-exi-vars
+;; 	       (exi-mr-exi-form-to-vars intro-prem))
+;; 	     (intro-prem-exi-kernel
+;; 	       (exi-mr-exi-form-to-final-kernel intro-prem))
+;; 	     (vars-and-conjs
+;; 	       (and-andi-ex-exi-formula-to-vars-and-conjuncts
+;; 		intro-prem-exi-kernel))
+;; 	     (prem-vars (car vars-and-conjs))
+;; 	     (conjs (cadr vars-and-conjs))
+;; 	     (avar-flas (map nf (map avar-to-formula assumptions)))
+;; 	     (subst
+;; 	      (if (= (length conjs) (length assumptions))
+;; 		  (caar
+;; 		   (apply huet-unifiers
+;; 			  (apply union (map formula-to-free avar-flas))
+;; 			  (append flex-vars prem-vars intro-prem-exi-vars) '()
+;; 			  (cons
+;; 			   #t
+;; 			   (map list conjs avar-flas))))
+;; 		  (let* ((eqd-fla
+;; 			  (rac ((repeated rdc (length intro-prem-exi-vars))
+;; 				((repeated cdr (length assumptions)) conjs))))
+;; 			 (eqd-term-pair (predicate-form-to-args eqd-fla))
+;; 			 (sig-vars (term-to-free (car eqd-term-pair)))
+;; 			 (flex-vars (set-minus
+;; 				     (term-to-free (cadr eqd-term-pair))
+;; 				     sig-vars)))
+;; 		    (caar (apply huet-unifiers sig-vars flex-vars '()
+;; 				 (cons #t (cons eqd-term-pair '())))))))
+;; 	     (terms
+;; 	      (map
+;; 	       (lambda (v) (term-substitute (make-term-in-var-form v) subst))
+;; 	       flex-vars))
+;; 	     (subst-prems
+;; 	      (map (lambda (f) (formula-substitute f subst))
+;; 		   intro-prems))
+;; 	     (subst-prem-proofs
+;; 	      (map
+;; 	       (lambda (f)
+;; 		 (apply
+;; 		  coidpredconst-to-closure-mr-proof-or-intro
+;; 		  f gfp-info-or-f assumptions))
+;; 	       subst-prems)))
+;; 	(apply mk-proof-in-nc-intro-form
+;; 	       (append vars prem-avars
+;; 		       (list
+;; 			(apply mk-proof-in-elim-form
+;; 			       (make-proof-in-aconst-form intro-aconst)
+;; 			       (append terms subst-prem-proofs)))))))
+;;      ((ex-form? concl)
+;;       (let* ((intro-aconst (ex-formula-to-ex-intro-aconst concl))
+;; 	     (intro-fla (aconst-to-formula intro-aconst))
+;; 	     (intro-vars (all-allnc-form-to-vars intro-fla))
+;; 	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
+;; 	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
+;; 	     (subst
+;; 	      (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
+;; 	       intro-fla '() concl))
+;;      	     (terms
+;;      	      (map
+;;      	       (lambda (v)
+;;      		 (term-substitute (make-term-in-var-form v) subst))
+;; 	       intro-vars))
+;;      	     (subst-prems
+;;      	      (map (lambda (f) (formula-substitute f subst))
+;;      		   intro-prems))
+;;      	     (subst-prem-proofs
+;;      	      (map
+;;      	       (lambda (f)
+;;      		 (apply
+;;      		  coidpredconst-to-closure-mr-proof-or-intro
+;;      		  f gfp-info-or-f assumptions))
+;;      	       subst-prems)))
+;;      	(apply mk-proof-in-nc-intro-form
+;;      	       (append vars prem-avars
+;;      		       (list
+;;      			(apply mk-proof-in-elim-form
+;;      			       (make-proof-in-aconst-form intro-aconst)
+;;      			       (append terms subst-prem-proofs)))))))
+;;      ((andi-mr-andi-form? concl)
+;;       (let* ((idpc (predicate-form-to-predicate concl))
+;; 	     (intro-aconst (number-and-idpredconst-to-intro-aconst
+;; 			    0 idpc))
+;; 	     (intro-fla (aconst-to-formula intro-aconst))
+;; 	     (flex-vars (all-allnc-form-to-vars intro-fla))
+;; 	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
+;; 	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
+;; 	     (intro-final-concl
+;; 	      (imp-impnc-form-to-final-conclusion intro-kernel))
+;; 	     (subst
+;; 	      (caar (apply huet-unifiers
+;; 			   (formula-to-free formula)
+;; 			   flex-vars '()
+;; 			   (list #t (list formula intro-final-concl)))))
+;; 	     (terms
+;; 	      (map
+;; 	       (lambda (v)
+;; 		 (term-substitute (make-term-in-var-form v) subst))
+;; 	       flex-vars))
+;; 	     (subst-prems
+;; 	      (map (lambda (f) (formula-substitute f subst))
+;; 		   intro-prems))
+;; 	     (subst-prem-proof-1
+;; 	      (coidpredconst-to-closure-mr-proof-or-intro
+;; 	       (car subst-prems) gfp-info-or-f (car assumptions)))
+;; 	     (subst-prem-proof-2
+;; 	      (apply coidpredconst-to-closure-mr-proof-or-intro
+;; 		     (cadr subst-prems) gfp-info-or-f (cdr assumptions)))
+;; 	     (subst-prem-proofs
+;; 	      (list subst-prem-proof-1 subst-prem-proof-2)))
+;; 	(apply mk-proof-in-nc-intro-form
+;; 	       (append vars prem-avars
+;; 		       (list
+;; 			(apply mk-proof-in-elim-form
+;; 			       (make-proof-in-aconst-form intro-aconst)
+;; 			       (append terms subst-prem-proofs)))))))
+;;      ((and-form? concl)
+;;       ; make-proof-in-and-intro-form
+;;       (let* ((lfla (and-form-to-left concl))
+;; 	     (rfla (and-form-to-right concl))
+;; 	     (lasm (if (pair? assumptions) (car assumptions) '()))
+;; 	     (rasms (if (pair? assumptions) (cdr assumptions) '()))
+;; 	     (lproof (coidpredconst-to-closure-mr-proof-or-intro
+;; 		      lfla gfp-info-or-f lasm))
+;; 	     (rproof (apply coidpredconst-to-closure-mr-proof-or-intro
+;; 			    rfla gfp-info-or-f rasms)))
+;; 	(apply mk-proof-in-nc-intro-form
+;; 	       (append vars prem-avars
+;; 		       (list
+;; 			(make-proof-in-and-intro-form lproof rproof))))))
+;;      ((and (eqd-form? concl)
+;; 	   (apply term=? (map nt (predicate-form-to-args concl))))
+;;       (let* ((idpc (predicate-form-to-predicate concl))
+;; 	     (intro-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
+;; 	     (term (car (predicate-form-to-args concl))))
+;; 	(apply mk-proof-in-nc-intro-form
+;; 	       (append vars prem-avars
+;; 		       (list
+;; 			(mk-proof-in-elim-form
+;; 			 (make-proof-in-aconst-form intro-aconst)
+;; 			 term))))))
+;;      ((classical-formula=? concl truth)
+;;       (make-proof-in-aconst-form truth-aconst))
+;;      (else
+;;       (myerror "coidpredconst-to-closure-mr-proof-or-intro"
+;; 	       "No proof found for" concl
+;; 	       "from assumptions"
+;; 	       assumptions)))))
+
+;; (define (coidpredconst-to-closure-mr-proof-or-elim
+;; 	 formula gfp-info-or-f . assumptions)
+;;   (cond
+;;    ((all-allnc-form? formula)
+;;     (let* ((vars (all-allnc-form-to-vars formula)))
+;;       (apply mk-proof-in-nc-intro-form
+;; 	     (append vars
+;; 		     (list (apply coidpredconst-to-closure-mr-proof-or-elim
+;; 			    (all-allnc-form-to-final-kernel formula)
+;; 			    gfp-info-or-f assumptions))))))
+;;    ((imp-impnc-form? formula)
+;;     (let* ((prems (imp-impnc-form-to-premises formula))
+;; 	   (avars (map formula-to-new-avar prems))
+;; 	   (concl (imp-impnc-form-to-final-conclusion formula)))
+;;       (apply
+;;        mk-proof-in-nc-intro-form
+;;        (append
+;; 	avars
+;; 	(list
+;; 	 (apply
+;; 	  coidpredconst-to-closure-mr-proof-or-elim
+;; 	  concl gfp-info-or-f (append assumptions avars)))))))
+;;    ((eqd-form? (avar-to-formula (rac assumptions)))
+;;     (apply coidpredconst-to-closure-mr-proof-or-intro
+;; 	   formula gfp-info-or-f assumptions))
+;;    (else
+;;     (let* ((last-prem (avar-to-formula (rac assumptions)))
+;; 	   (concl (imp-impnc-form-to-final-conclusion formula))
+;; 	   (elim-proof
+;; 	    (cond ((ex-form? last-prem)
+;; 		   (make-proof-in-aconst-form
+;; 		    (ex-formula-and-concl-to-ex-elim-aconst last-prem
+;; 							    concl)))
+;; 		  ((and-form? last-prem)
+;; 		   (and-formula-and-concl-to-and-elim-proof last-prem
+;; 							    concl))
+;; 		  (else
+;; 		   (let ((imp-formula
+;; 			  (if (not (term? gfp-info-or-f))
+;; 			      (make-imp last-prem concl)
+;; 			      (let* ((elim-var
+;; 				      (type-to-new-partial-var
+;; 				       (term-to-type gfp-info-or-f)))
+;; 				     (gen-subst
+;; 				      (make-subst
+;; 				       gfp-info-or-f
+;; 				       (make-term-in-var-form elim-var))))
+;; 				(formula-gen-substitute
+;; 				 (make-imp last-prem concl)
+;; 				 gen-subst)))))
+;; 		     (make-proof-in-aconst-form
+;; 		      (imp-formulas-to-elim-aconst imp-formula))))))
+;; 	   (elim-fla (proof-to-formula elim-proof))
+;; 	   (elim-kernel (all-allnc-form-to-final-kernel elim-fla))
+;; 	   (elim-prem (imp-impnc-form-to-premise elim-kernel))
+;; 	   (elim-concl (imp-impnc-form-to-final-conclusion elim-kernel))
+;; 	   (flex-vars (all-allnc-form-to-vars elim-fla))
+;; 	   (sig-vars (set-minus (formula-to-free concl) flex-vars))
+;; 	   (subst (caar (apply huet-unifiers sig-vars flex-vars '()
+;; 			       (list #t (list last-prem elim-prem)
+;; 				     (list concl elim-concl)))))
+;; 	   (terms
+;; 	    (map (lambda (v) (term-substitute (make-term-in-var-form v)
+;; 					      subst))
+;; 		 flex-vars))
+;; 	   (step-formulas
+;; 	    (map (lambda (fla) (formula-substitute fla subst))
+;; 		 (cdr (imp-impnc-form-to-premises elim-kernel))))
+;; 	   (updated-assumptions (rdc assumptions))
+;; 	   (step-proofs
+;; 	    (cond
+;; 	     ((ori-mr-ori-form? last-prem)
+;; 	      (map
+;; 	       (lambda (fla i)
+;; 		 (apply coidpredconst-to-closure-mr-proof-or-elim
+;; 			fla gfp-info-or-f (snoc updated-assumptions i)))
+;; 	       step-formulas (list 0 1)))
+;; 	     ((exi-mr-exi-form? last-prem)
+;; 	      (list
+;; 	       (apply coidpredconst-to-closure-mr-proof-or-elim
+;; 		      (car step-formulas) gfp-info-or-f updated-assumptions)))
+;; 	     ((ex-form? last-prem)
+;; 	      (list
+;; 	       (apply coidpredconst-to-closure-mr-proof-or-elim
+;; 		      (car step-formulas) gfp-info-or-f updated-assumptions)))
+;; 	     ((or (and-form? last-prem) (andi-mr-andi-form? last-prem))
+;; 	      (let*
+;; 		  ((step-fla (car step-formulas))
+;; 		   (step-vars (all-allnc-form-to-vars step-fla))
+;; 		   (step-kernel (all-allnc-form-to-final-kernel step-fla))
+;; 		   (step-prems (imp-impnc-all-allnc-form-to-premises step-kernel))
+;; 		   (last-step-prem (rac step-prems))
+;; 		   (elim-intro-switch? (and (eqd-form? last-step-prem))))
+;; 		(list
+;; 		 (if
+;; 		  elim-intro-switch?
+;; 		  (let*
+;; 		      ((step-prem-avars (map formula-to-new-avar step-prems))
+;; 		       (step-concl (imp-impnc-form-to-final-conclusion step-kernel))
+;; 		       (eqd-args (predicate-form-to-args last-step-prem))
+;; 		       (lterm (car eqd-args))
+;; 		       (rterm (cadr eqd-args))
+;; 		       (real-var (term-in-var-form-to-var lterm))
+;; 		       (real-subst (make-subst real-var rterm))
+;; 		       (compat-proof
+;; 			(eqd-compat-rev-at (make-all real-var step-concl)))
+;; 		       (compat-prem (formula-substitute step-concl real-subst))
+;; 		       (compat-prem-proof
+;; 			(apply coidpredconst-to-closure-mr-proof-or-intro
+;; 			       (nf compat-prem) gfp-info-or-f
+;; 			       (snoc updated-assumptions (car step-prem-avars))))
+;; 		       (compat-concl-proof
+;; 			(apply
+;; 			 mk-proof-in-elim-form
+;; 			 compat-proof
+;; 			 (append
+;; 			  eqd-args
+;; 			  (list (make-proof-in-avar-form
+;; 				 (cadr step-prem-avars))
+;; 				compat-prem-proof)))))
+;; 		    (apply mk-proof-in-nc-intro-form
+;; 			   (append step-prem-avars
+;; 				   (list compat-concl-proof))))
+;; 		  (apply coidpredconst-to-closure-mr-proof-or-elim
+;; 			 step-fla gfp-info-or-f updated-assumptions)))))
+;; 	     (else
+;; 	      (apply coidpredconst-to-closure-mr-proof-or-elim
+;; 		     last-prem gfp-info-or-f updated-assumptions)))))
+;;       (apply
+;;        mk-proof-in-elim-form
+;;        elim-proof
+;;        (append terms
+;; 	       (cons (make-proof-in-avar-form (rac assumptions))
+;; 		     step-proofs)))))))
+
+;; Here ends Kenji Miyamoto's implementation of the general case.
+
+;; Let M prove A from c.r. assumptions u:C.  Given these data,
+;; proof-to-eqpnc-proof-aux returns a proof of eterm eqpnc_A eterm0 from
+;; assumptions z_u eqpnc_C z0_u
+
+(define (proof-to-eqpnc-proof-aux
+	 proof avar-or-ga-to-var avar-or-ga-to-var0 avar-or-ga-to-eqpnc-avar)
+  (case (tag proof)
+    ((proof-in-avar-form)
+     (let* ((avar (proof-in-avar-form-to-avar proof))
+	    (eqpnc-avar (avar-or-ga-to-eqpnc-avar avar)))
+       (make-proof-in-avar-form eqpnc-avar)))
+    ((proof-in-aconst-form)
+     (let ((aconst (proof-in-aconst-form-to-aconst proof)))
+       (case (aconst-to-kind aconst)
+	 ((axiom) (axiom-to-eqpnc-proof aconst))
+	 ((theorem) (theorem-to-eqpnc-proof aconst))
+	 ((global-assumption) (global-assumption-to-eqpnc-proof
+			       aconst avar-or-ga-to-eqpnc-avar))
+	 (else (myerror	"proof-to-eqpnc-proof-aux" "unknown kind of aconst"
+			(aconst-to-kind aconst))))))
+    ((proof-in-imp-intro-form)
+     (let* ((avar (proof-in-imp-intro-form-to-avar proof))
+	    (kernel (proof-in-imp-intro-form-to-kernel proof))
+	    (avar-fla (avar-to-formula avar))
+	    (avar-type (formula-to-et-type avar-fla))
+	    (prev (proof-to-eqpnc-proof-aux
+		   kernel avar-or-ga-to-var avar-or-ga-to-var0
+		   avar-or-ga-to-eqpnc-avar)))
+       (if (formula-of-nulltype? avar-fla)
+	   prev
+	   (make-proof-in-imp-intro-form
+	    (avar-or-ga-to-eqpnc-avar avar) prev))))
+    ((proof-in-imp-elim-form)
+     (let* ((op (proof-in-imp-elim-form-to-op proof))
+	    (arg (proof-in-imp-elim-form-to-arg proof))
+	    (arg-fla (proof-to-formula arg))
+	    (prev-op
+	     (proof-to-eqpnc-proof-aux
+	      op avar-or-ga-to-var avar-or-ga-to-var0
+	      avar-or-ga-to-eqpnc-avar)))
+       (if (formula-of-nulltype? arg-fla)
+	   prev-op
+	   (let* ((prev-arg (proof-to-eqpnc-proof-aux
+			     arg avar-or-ga-to-var avar-or-ga-to-var0
+			     avar-or-ga-to-eqpnc-avar))
+		  (eterm (proof-to-extracted-term-aux
+			  arg avar-or-ga-to-eqpnc-var #t));unfold-let-flag #t
+		  (eterm0 (proof-to-extracted-term-aux
+			   arg avar-or-ga-to-eqpnc-var0 #t)))
+	     (mk-proof-in-elim-form prev-op eterm eterm0 prev-arg)))))
+    ((proof-in-allnc-intro-form)
+     (let ((kernel (proof-in-allnc-intro-form-to-kernel proof)))
+       (proof-to-eqpnc-proof-aux
+	kernel avar-or-ga-to-var avar-or-ga-to-var0 avar-or-ga-to-eqpnc-avar)))
+    ((proof-in-allnc-elim-form)
+     (let ((op (proof-in-allnc-elim-form-to-op proof)))
+       (proof-to-eqpnc-proof-aux
+	op avar-or-ga-to-var avar-or-ga-to-var0 avar-or-ga-to-eqpnc-avar)))
+    (else (myerror "proof-to-eqpnc-proof" "not implemented fpr proof with tag"
+		   (tag proof)))))
+
+;; In axiom-to-eqpnc-proof the cases [x]x and [x,f](f x) for eterm are
+;; treated separately.  Then non-identity-axiom-to-eqpnc-proof is called.
+
+(define (axiom-to-eqpnc-proof aconst)
+  (let ((eterm (axiom-to-extracted-term aconst)))
+    (if
+     (term-in-abst-form? eterm) ;[x]x or [x,f](f x)
+     (let* ((var (term-in-abst-form-to-var eterm))
+	    (kernel (term-in-abst-form-to-kernel eterm))
+	    (x (var-to-new-partial-var var))
+	    (y (var-to-new-partial-var var))
+	    (xterm (make-term-in-var-form x))
+	    (yterm (make-term-in-var-form y))
+	    (eqpncxy (terms-to-eqpnc-formula xterm yterm))
+	    (u (formula-to-new-avar eqpncxy)))
+       (cond
+	((term-in-var-form? kernel) ;identity [x]x
+	 (make-proof-in-allnc-intro-form
+	  x (make-proof-in-allnc-intro-form
+	     y (make-proof-in-imp-intro-form
+		u (make-proof-in-avar-form u)))))
+	((term-in-abst-form? kernel) ;almost identity [x,f](f x)
+	 (let* ((kernel-var (term-in-var-form-to-var kernel))
+		(f (var-to-new-partial-var kernel-var))
+		(g (var-to-new-partial-var kernel-var))
+		(fterm (make-term-in-var-form f))
+		(gterm (make-term-in-var-form g))
+		(fx (make-term-in-app-form fterm xterm))
+		(gy (make-term-in-app-form gterm yterm))
+		(eqpncfxgy (terms-to-eqpnc-formula fx gy))
+		(eqpncfg (mk-allnc x y (make-imp eqpncxy eqpncfxgy)))
+		(v (formula-to-new-avar eqpncfg))
+		(elim-proof (mk-proof-in-elim-form
+			     (make-proof-in-avar-form v)
+			     xterm yterm
+			     (make-proof-in-avar-form u))))
+		
+	   (make-proof-in-allnc-intro-form
+	    x (make-proof-in-allnc-intro-form
+	       y (make-proof-in-imp-intro-form
+		  u (make-proof-in-allnc-intro-form
+		     f (make-proof-in-allnc-intro-form
+			g (make-proof-in-imp-intro-form
+			   v elim-proof))))))))
+	(else (myerror "axiom-to-eqpnc-proof" "[x]x or [x,f](f x) expected"
+		       eterm))))
+     (non-identity-axiom-to-eqpnc-proof aconst))))
+
+;; In non-identity-axiom-to-eqpnc-proof it is assumed that the cases
+;; [x]x and [x,f](f x) have been treated separately before.
+
+(define (non-identity-axiom-to-eqpnc-proof aconst)
+  (let ((name (aconst-to-name aconst)))
     (cond
-     ((pair? relevant-avars)
-      (make-proof-in-avar-form (car relevant-avars)))
-     ((all-allnc-form? formula)
-      (apply mk-proof-in-nc-intro-form
-	     (append (all-allnc-form-to-vars formula)
-		     (list (apply coidpredconst-to-closure-mr-proof-or-intro
-				  (all-allnc-form-to-final-kernel formula)
-				  gfp-info-or-f assumptions)))))
-     ((imp-impnc-form? formula)
-      (let* ((prems (imp-impnc-form-to-premises formula))
-	     (prem-avars (map formula-to-new-avar prems)))
-	(apply mk-proof-in-nc-intro-form
-	       (append prem-avars
-		       (list (apply coidpredconst-to-closure-mr-proof-or-intro
-				    (imp-impnc-form-to-conclusion formula)
-				    gfp-info-or-f
-				    (append assumptions prem-avars)))))))
-     ((and (ori-mr-ori-form? concl)
-	   (integer? (car assumptions)))
-      (let* ((idpc (predicate-form-to-predicate concl))
-	     (intro-aconst (number-and-idpredconst-to-intro-aconst
-			    (car assumptions) idpc))
-	     (intro-fla (aconst-to-formula intro-aconst))
-	     (flex-vars (all-allnc-form-to-vars intro-fla))
-	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
-	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
-	     (intro-final-concl
-	       (imp-impnc-form-to-final-conclusion intro-kernel))
-	     (subst
-	       (caar (apply huet-unifiers
-			    (formula-to-free formula) flex-vars '()
-			    (list #t (list formula intro-final-concl)))))
-	     (terms
-	       (map
-		(lambda (v) (term-substitute (make-term-in-var-form v) subst))
-		flex-vars))
-	     (subst-prems
-	       (map (lambda (f) (formula-substitute f subst))
-		    intro-prems))
-	     (subst-prem-proofs
-	       (map
-		(lambda (f)
-		  (apply
-		   coidpredconst-to-closure-mr-proof-or-intro
-		   f gfp-info-or-f (cdr assumptions)))
-		subst-prems)))
-	(apply mk-proof-in-nc-intro-form
-	       (append vars prem-avars
-		       (list (apply mk-proof-in-elim-form
-				    (make-proof-in-aconst-form intro-aconst)
-				    (append terms subst-prem-proofs)))))))
-     ((and (ori-mr-ori-form? concl)
-	   (not (integer? (car assumptions))))
-      (str-gfp-proof-helper concl (car assumptions)))
-     ((exi-mr-exi-form? concl)
-      (let* ((idpc (predicate-form-to-predicate concl))
-	     (intro-aconst
-	      (number-and-idpredconst-to-intro-aconst 0 idpc))
-	     (intro-fla (nf (aconst-to-formula intro-aconst)))
-	     (flex-vars (all-allnc-form-to-vars intro-fla))
-	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
-	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
-	     (intro-prem (car intro-prems))
-	     (intro-final-concl
-	       (imp-impnc-form-to-final-conclusion intro-kernel))
-	     (intro-prem-exi-vars
-	       (exi-mr-exi-form-to-vars intro-prem))
-	     (intro-prem-exi-kernel
-	       (exi-mr-exi-form-to-final-kernel intro-prem))
-	     (vars-and-conjs
-	       (and-andi-ex-exi-formula-to-vars-and-conjuncts
-		intro-prem-exi-kernel))
-	     (prem-vars (car vars-and-conjs))
-	     (conjs (cadr vars-and-conjs))
-	     (avar-flas (map nf (map avar-to-formula assumptions)))
-	     (subst
-	      (if (= (length conjs) (length assumptions))
-		  (caar
-		   (apply huet-unifiers
-			  (apply union (map formula-to-free avar-flas))
-			  (append flex-vars prem-vars intro-prem-exi-vars) '()
-			  (cons
-			   #t
-			   (map list conjs avar-flas))))
-		  (let* ((eqd-fla
-			  (rac ((repeated rdc (length intro-prem-exi-vars))
-				((repeated cdr (length assumptions)) conjs))))
-			 (eqd-term-pair (predicate-form-to-args eqd-fla))
-			 (sig-vars (term-to-free (car eqd-term-pair)))
-			 (flex-vars (set-minus
-				     (term-to-free (cadr eqd-term-pair))
-				     sig-vars)))
-		    (caar (apply huet-unifiers sig-vars flex-vars '()
-				 (cons #t (cons eqd-term-pair '())))))))
-	     (terms
+     ((or (string=? "Ind" name) (string=? "Elim" name))
+      (let* ((all-fla (car (aconst-to-repro-data aconst)))
+	     (var (all-form-to-var all-fla))
+	     (kernel (all-form-to-kernel all-fla))
+	     (type (var-to-type var))
+	     (finalg (if (finalg? type)
+			 type
+			 (myerror "non-identity-axiom-to-eqpnc-proof"
+				  "finalg expected" type)))
+	     (finalg-string (finalg-to-string finalg)) ;ListNat
+	     (recext-name (string-append finalg-string "RecExt"))
+	     (info (assoc recext-name THEOREMS))
+	     (recext-aconst (if info
+				(theorem-name-to-aconst recext-name)
+				(myerror "non-identity-axiom-to-eqpnc-proof"
+					 "theorem" recext-name "missing")))
+	     (tvars (formula-to-tvars (aconst-to-formula recext-aconst)))
+	     (tvar (if (pair? tvars) (car tvars)
+		       (myerror "non-identity-axiom-to-eqpnc-proof"
+				"type variable expected in"
+				(aconst-to-formula recext-aconst))))
+	     (et-type (formula-to-et-type kernel))
+	     (tsubst (make-subst tvar et-type))
+	     (subst-recext-aconst (aconst-substitute recext-aconst tsubst)))
+	(make-proof-in-aconst-form subst-recext-aconst)))
+     ((string=? "Cases" name)
+      (let* ((if-term (term-in-abst-form-to-final-kernel
+		       (cases-aconst-to-if-term aconst)))
+	     (test (term-in-if-form-to-test if-term))
+	     (type (var-to-type test))
+	     (finalg (if (finalg? type)
+			 type
+			 (myerror "non-identity-axiom-to-eqpnc-proof"
+				  "finalg expected" type)))
+	     (finalg-string (finalg-to-string finalg)) ;ListNat
+	     (casesext-name (string-append finalg-string "CasesExt"))
+	     (info (assoc casesext-name THEOREMS))
+	     (casesext-aconst (if info
+				  (theorem-name-to-aconst casesext-name)
+				  (myerror "non-identity-axiom-to-eqpnc-proof"
+					   "theorem" casesext-name "missing")))
+	     (tvars (formula-to-tvars (aconst-to-formula casesext-aconst)))
+	     (tvar (if (pair? tvars) (car tvars)
+		       (myerror "non-identity-axiom-to-eqpnc-proof"
+				"type variable expected in"
+				(aconst-to-formula casesext-aconst))))
+	     (et-type (term-to-type if-term))
+	     (tsubst (make-subst tvar et-type))
+	     (subst-casesext-aconst (aconst-substitute casesext-aconst tsubst)))
+	(make-proof-in-aconst-form subst-casesext-aconst)))
+     ((string=? "Intro" name)
+      (let* ((number-and-idpc (aconst-to-repro-data aconst))
+	     (number (car number-and-idpc))
+	     (idpc (cadr number-and-idpc))
+	     (alg (idpredconst-to-et-type idpc))
+	     (eqpnc-idpc (alg-to-eqpnc-idpredconst alg))
+	     (eqpnc-intro-aconst
+	      (number-and-idpredconst-to-intro-aconst number eqpnc-idpc)))
+	(make-proof-in-aconst-form eqpnc-intro-aconst)))
+     ((string=? "Closure" name)
+      (let* ((tpsubst (aconst-to-tpsubst aconst))
+     	     (tsubst
 	      (map
-	       (lambda (v) (term-substitute (make-term-in-var-form v) subst))
-	       flex-vars))
-	     (subst-prems
-	      (map (lambda (f) (formula-substitute f subst))
-		   intro-prems))
-	     (subst-prem-proofs
+	       (lambda (x)
+		 (if (pvar-form? (car x))
+		     (list (PVAR-TO-TVAR (car x))
+			   (formula-to-et-type (cterm-to-formula (cadr x))))
+		     x))
+	       tpsubst))
+     	     (uninst-fla (aconst-to-uninst-formula aconst))
+     	     (kernel (all-allnc-form-to-final-kernel uninst-fla))
+     	     (prem (imp-form-to-premise kernel))
+     	     (uninst-alg ;nat or list alpha
+	      (if (not (formula-of-nulltype? prem))
+		  (formula-to-et-type prem)
+		  (myerror "non-identity-axiom-to-eqpnc-proof"
+			   "formula with computational content expected" prem)))
+	     (finalg-name (alg-form-to-name uninst-alg))
+	     (destrext-name (string-append finalg-name "DestrExt"))
+	     (info (assoc destrext-name THEOREMS))
+	     (destrext-aconst (if info
+				  (theorem-name-to-aconst destrext-name)
+				  (myerror "non-identity-axiom-to-eqpnc-proof"
+					   "theorem" destrext-name "missing")))
+	     (subst-destrext-aconst (aconst-substitute destrext-aconst tsubst)))
+	(make-proof-in-aconst-form subst-destrext-aconst)))
+     ((string=? "Gfp" name)
+      (let* ((tpsubst (aconst-to-tpsubst aconst))
+     	     (tsubst
 	      (map
-	       (lambda (f)
-		 (apply
-		  coidpredconst-to-closure-mr-proof-or-intro
-		  f gfp-info-or-f assumptions))
-	       subst-prems)))
-	(apply mk-proof-in-nc-intro-form
-	       (append vars prem-avars
-		       (list
-			(apply mk-proof-in-elim-form
-			       (make-proof-in-aconst-form intro-aconst)
-			       (append terms subst-prem-proofs)))))))
-     ((ex-form? concl)
-      (let* ((intro-aconst (ex-formula-to-ex-intro-aconst concl))
-	     (intro-fla (aconst-to-formula intro-aconst))
-	     (intro-vars (all-allnc-form-to-vars intro-fla))
-	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
-	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
-	     (subst
-	      (all-allnc-form-and-prems-and-opt-goal-fla-to-unifier
-	       intro-fla '() concl))
-     	     (terms
-     	      (map
-     	       (lambda (v)
-     		 (term-substitute (make-term-in-var-form v) subst))
-	       intro-vars))
-     	     (subst-prems
-     	      (map (lambda (f) (formula-substitute f subst))
-     		   intro-prems))
-     	     (subst-prem-proofs
-     	      (map
-     	       (lambda (f)
-     		 (apply
-     		  coidpredconst-to-closure-mr-proof-or-intro
-     		  f gfp-info-or-f assumptions))
-     	       subst-prems)))
-     	(apply mk-proof-in-nc-intro-form
-     	       (append vars prem-avars
-     		       (list
-     			(apply mk-proof-in-elim-form
-     			       (make-proof-in-aconst-form intro-aconst)
-     			       (append terms subst-prem-proofs)))))))
-     ((andi-mr-andi-form? concl)
-      (let* ((idpc (predicate-form-to-predicate concl))
-	     (intro-aconst (number-and-idpredconst-to-intro-aconst
-			    0 idpc))
-	     (intro-fla (aconst-to-formula intro-aconst))
-	     (flex-vars (all-allnc-form-to-vars intro-fla))
-	     (intro-kernel (all-allnc-form-to-final-kernel intro-fla))
-	     (intro-prems (imp-impnc-form-to-premises intro-kernel))
-	     (intro-final-concl
-	      (imp-impnc-form-to-final-conclusion intro-kernel))
-	     (subst
-	      (caar (apply huet-unifiers
-			   (formula-to-free formula)
-			   flex-vars '()
-			   (list #t (list formula intro-final-concl)))))
-	     (terms
-	      (map
-	       (lambda (v)
-		 (term-substitute (make-term-in-var-form v) subst))
-	       flex-vars))
-	     (subst-prems
-	      (map (lambda (f) (formula-substitute f subst))
-		   intro-prems))
-	     (subst-prem-proof-1
-	      (coidpredconst-to-closure-mr-proof-or-intro
-	       (car subst-prems) gfp-info-or-f (car assumptions)))
-	     (subst-prem-proof-2
-	      (apply coidpredconst-to-closure-mr-proof-or-intro
-		     (cadr subst-prems) gfp-info-or-f (cdr assumptions)))
-	     (subst-prem-proofs
-	      (list subst-prem-proof-1 subst-prem-proof-2)))
-	(apply mk-proof-in-nc-intro-form
-	       (append vars prem-avars
-		       (list
-			(apply mk-proof-in-elim-form
-			       (make-proof-in-aconst-form intro-aconst)
-			       (append terms subst-prem-proofs)))))))
-     ((and-form? concl)
-      ; make-proof-in-and-intro-form
-      (let* ((lfla (and-form-to-left concl))
-	     (rfla (and-form-to-right concl))
-	     (lasm (if (pair? assumptions) (car assumptions) '()))
-	     (rasms (if (pair? assumptions) (cdr assumptions) '()))
-	     (lproof (coidpredconst-to-closure-mr-proof-or-intro
-		      lfla gfp-info-or-f lasm))
-	     (rproof (apply coidpredconst-to-closure-mr-proof-or-intro
-			    rfla gfp-info-or-f rasms)))
-	(apply mk-proof-in-nc-intro-form
-	       (append vars prem-avars
-		       (list
-			(make-proof-in-and-intro-form lproof rproof))))))
-     ((and (eqd-form? concl)
-	   (apply term=? (map nt (predicate-form-to-args concl))))
-      (let* ((idpc (predicate-form-to-predicate concl))
-	     (intro-aconst (number-and-idpredconst-to-intro-aconst 0 idpc))
-	     (term (car (predicate-form-to-args concl))))
-	(apply mk-proof-in-nc-intro-form
-	       (append vars prem-avars
-		       (list
-			(mk-proof-in-elim-form
-			 (make-proof-in-aconst-form intro-aconst)
-			 term))))))
-     ((classical-formula=? concl truth)
-      (make-proof-in-aconst-form truth-aconst))
-     (else
-      (myerror "coidpredconst-to-closure-mr-proof-or-intro"
-	       "No proof found for" concl
-	       "from assumptions"
-	       assumptions)))))
+	       (lambda (x)
+		 (if (pvar-form? (car x))
+		     (list (PVAR-TO-TVAR (car x))
+			   (formula-to-et-type (cterm-to-formula (cadr x))))
+		     x))
+	       tpsubst))
+     	     (inst-fla (aconst-to-inst-formula aconst))
+	     (et-type (formula-to-et-type inst-fla))
+	     (alg (arrow-form-to-final-val-type et-type))
+	     (finalg-name (if (alg-form? alg)
+			      (alg-form-to-name alg)
+			      (myerror "axiom-to-extracted-term"
+				       "algebra form expected" alg)))
+	     (corecext-name (string-append finalg-name "CoRecExt"))
+	     (info (assoc corecext-name THEOREMS))
+	     (corecext-aconst (if info
+				  (theorem-name-to-aconst corecext-name)
+				  (myerror "non-identity-axiom-to-eqpnc-proof"
+					   "theorem" corecext-name "missing")))
+	     (subst-corecext-aconst (aconst-substitute corecext-aconst tsubst)))
+	(make-proof-in-aconst-form subst-corecext-aconst)))
+     ((string=? "Ex-Intro" name)
+      (myerror "non-identity-axiom-to-eqpnc-proof" "not implemented for"
+	       "Ex-Intro"))
+     ((string=? "Ex-Elim" name)
+      (myerror "non-identity-axiom-to-eqpnc-proof" "not implemented for"
+	       "Ex-Elim"))
+     (else (myerror "non-identity-axiom-to-eqpnc-proof" "unexpected axiom"
+		    name)))))
 
-(define (coidpredconst-to-closure-mr-proof-or-elim
-	 formula gfp-info-or-f . assumptions)
-  (cond
-   ((all-allnc-form? formula)
-    (let* ((vars (all-allnc-form-to-vars formula)))
-      (apply mk-proof-in-nc-intro-form
-	     (append vars
-		     (list (apply coidpredconst-to-closure-mr-proof-or-elim
-			    (all-allnc-form-to-final-kernel formula)
-			    gfp-info-or-f assumptions))))))
-   ((imp-impnc-form? formula)
-    (let* ((prems (imp-impnc-form-to-premises formula))
-	   (avars (map formula-to-new-avar prems))
-	   (concl (imp-impnc-form-to-final-conclusion formula)))
-      (apply
-       mk-proof-in-nc-intro-form
-       (append
-	avars
-	(list
-	 (apply
-	  coidpredconst-to-closure-mr-proof-or-elim
-	  concl gfp-info-or-f (append assumptions avars)))))))
-   ((eqd-form? (avar-to-formula (rac assumptions)))
-    (apply coidpredconst-to-closure-mr-proof-or-intro
-	   formula gfp-info-or-f assumptions))
-   (else
-    (let* ((last-prem (avar-to-formula (rac assumptions)))
-	   (concl (imp-impnc-form-to-final-conclusion formula))
-	   (elim-proof
-	    (cond ((ex-form? last-prem)
-		   (make-proof-in-aconst-form
-		    (ex-formula-and-concl-to-ex-elim-aconst last-prem
-							    concl)))
-		  ((and-form? last-prem)
-		   (and-formula-and-concl-to-and-elim-proof last-prem
-							    concl))
-		  (else
-		   (let ((imp-formula
-			  (if (not (term? gfp-info-or-f))
-			      (make-imp last-prem concl)
-			      (let* ((elim-var
-				      (type-to-new-partial-var
-				       (term-to-type gfp-info-or-f)))
-				     (gen-subst
-				      (make-subst
-				       gfp-info-or-f
-				       (make-term-in-var-form elim-var))))
-				(formula-gen-substitute
-				 (make-imp last-prem concl)
-				 gen-subst)))))
-		     (make-proof-in-aconst-form
-		      (imp-formulas-to-elim-aconst imp-formula))))))
-	   (elim-fla (proof-to-formula elim-proof))
-	   (elim-kernel (all-allnc-form-to-final-kernel elim-fla))
-	   (elim-prem (imp-impnc-form-to-premise elim-kernel))
-	   (elim-concl (imp-impnc-form-to-final-conclusion elim-kernel))
-	   (flex-vars (all-allnc-form-to-vars elim-fla))
-	   (sig-vars (set-minus (formula-to-free concl) flex-vars))
-	   (subst (caar (apply huet-unifiers sig-vars flex-vars '()
-			       (list #t (list last-prem elim-prem)
-				     (list concl elim-concl)))))
-	   (terms
-	    (map (lambda (v) (term-substitute (make-term-in-var-form v)
-					      subst))
-		 flex-vars))
-	   (step-formulas
-	    (map (lambda (fla) (formula-substitute fla subst))
-		 (cdr (imp-impnc-form-to-premises elim-kernel))))
-	   (updated-assumptions (rdc assumptions))
-	   (step-proofs
-	    (cond
-	     ((ori-mr-ori-form? last-prem)
-	      (map
-	       (lambda (fla i)
-		 (apply coidpredconst-to-closure-mr-proof-or-elim
-			fla gfp-info-or-f (snoc updated-assumptions i)))
-	       step-formulas (list 0 1)))
-	     ((exi-mr-exi-form? last-prem)
-	      (list
-	       (apply coidpredconst-to-closure-mr-proof-or-elim
-		      (car step-formulas) gfp-info-or-f updated-assumptions)))
-	     ((ex-form? last-prem)
-	      (list
-	       (apply coidpredconst-to-closure-mr-proof-or-elim
-		      (car step-formulas) gfp-info-or-f updated-assumptions)))
-	     ((or (and-form? last-prem) (andi-mr-andi-form? last-prem))
-	      (let*
-		  ((step-fla (car step-formulas))
-		   (step-vars (all-allnc-form-to-vars step-fla))
-		   (step-kernel (all-allnc-form-to-final-kernel step-fla))
-		   (step-prems (imp-impnc-all-allnc-form-to-premises step-kernel))
-		   (last-step-prem (rac step-prems))
-		   (elim-intro-switch? (and (eqd-form? last-step-prem))))
-		(list
-		 (if
-		  elim-intro-switch?
-		  (let*
-		      ((step-prem-avars (map formula-to-new-avar step-prems))
-		       (step-concl (imp-impnc-form-to-final-conclusion step-kernel))
-		       (eqd-args (predicate-form-to-args last-step-prem))
-		       (lterm (car eqd-args))
-		       (rterm (cadr eqd-args))
-		       (real-var (term-in-var-form-to-var lterm))
-		       (real-subst (make-subst real-var rterm))
-		       (compat-proof
-			(eqd-compat-rev-at (make-all real-var step-concl)))
-		       (compat-prem (formula-substitute step-concl real-subst))
-		       (compat-prem-proof
-			(apply coidpredconst-to-closure-mr-proof-or-intro
-			       (nf compat-prem) gfp-info-or-f
-			       (snoc updated-assumptions (car step-prem-avars))))
-		       (compat-concl-proof
-			(apply
-			 mk-proof-in-elim-form
-			 compat-proof
-			 (append
-			  eqd-args
-			  (list (make-proof-in-avar-form
-				 (cadr step-prem-avars))
-				compat-prem-proof)))))
-		    (apply mk-proof-in-nc-intro-form
-			   (append step-prem-avars
-				   (list compat-concl-proof))))
-		  (apply coidpredconst-to-closure-mr-proof-or-elim
-			 step-fla gfp-info-or-f updated-assumptions)))))
-	     (else
-	      (apply coidpredconst-to-closure-mr-proof-or-elim
-		     last-prem gfp-info-or-f updated-assumptions)))))
-      (apply
-       mk-proof-in-elim-form
-       elim-proof
-       (append terms
-	       (cons (make-proof-in-avar-form (rac assumptions))
-		     step-proofs)))))))
+(define (global-assumption-to-eqpnc-proof aconst avar-or-ga-to-eqpnc-avar)
+  (let* ((name (aconst-to-name aconst))
+	 (info (assoc name GLOBAL-ASSUMPTIONS)))
+    (if info
+	(if (or (string=? "Efq" name) (string=? "EfqLog" name))
+	    (efq-ga-to-efq-ga-proof aconst)
+	    (let ((eqpnc-avar (avar-or-ga-to-eqpnc-avar aconst)))
+	      (make-proof-in-avar-form eqpnc-avar)))
+	(myerror "global-assumption-to-eqpnc-proof"
+		 "global assumption expected" name))))
 
 (define (make-avar-or-ga-to-var)
   ;; returns a procedure assigning to assumption variables or
@@ -5670,6 +5973,62 @@
 			       (cons (list x mr-avar) ga-assoc-list))
 			 mr-avar))))))))
 
+;; 2020-04-05.  add-sound is applied to the name L of a cr theorem A.
+;; From its proof M a soundness proof of et(M) mr A is built.  Then cL
+;; mr A is saved under the name LSound.  The reason is that later
+;; the soundness proof for a theorem whose proof contains L will need
+;; LSound: cL mr L.  Hence this formula must be stored under LSound.
+;; To check the correctness of LSound we must animate cL.
+
+(define (add-sound thm-name)
+  (let* ((info (assoc thm-name THEOREMS))
+	 (proof (if info
+		    (theorem-name-to-proof thm-name)
+		    (myerror "add-sound" "theorem" thm-name "missing")))
+	 (sname (string-append thm-name "Sound"))) ;LSound
+    (if
+     (is-used? sname '() 'theorem)
+     *the-non-printing-object*
+     (let* ((sproof (proof-to-soundness-proof proof))
+	    (pconst-name (theorem-or-global-assumption-name-to-pconst-name
+			  thm-name)) ;cL
+	    (fla (aconst-to-formula (theorem-name-to-aconst thm-name)))
+	    (uninst-type (formula-to-et-type fla))
+	    (eterm (proof-to-extracted-term proof))
+	    (neterm (nt eterm)))
+       (if COMMENT-FLAG
+	   (begin (set! COMMENT-FLAG #f)
+		  (if (not (assoc pconst-name PROGRAM-CONSTANTS))
+		      (add-program-constant pconst-name uninst-type))
+		  (add-computation-rule
+		   (make-term-in-const-form (pconst-name-to-pconst pconst-name))
+		   neterm)
+		  (set! COMMENT-FLAG #t))
+	   (begin (if (not (assoc pconst-name PROGRAM-CONSTANTS))
+		      (add-program-constant pconst-name uninst-type))
+		  (add-computation-rule
+		   (make-term-in-const-form (pconst-name-to-pconst pconst-name))
+		   neterm)))
+       (let* ((pconst (pconst-name-to-pconst pconst-name))
+	      (pconst-term (make-term-in-const-form pconst))
+	      (new-sfla (rename-variables
+			 (real-and-formula-to-mr-formula-aux pconst-term fla)))
+	      (new-sproof (proof-to-proof-with-new-formula sproof new-sfla))
+	      (saconst (make-aconst sname 'theorem new-sfla empty-subst)))
+	 (set! THEOREMS (cons (list sname saconst new-sproof) THEOREMS))
+	 (comment "ok, " sname " has been added as a new theorem:")
+	 (if COMMENT-FLAG
+	     (begin
+	       (newline)
+	       (pp sname)
+	       (newline)
+	       (comment "with computation rule")
+	       (newline)
+	       (pp (string-append "c" thm-name "0CompRule")))))))))
+
+;; In proof-to-soundness-proof it is checked that the proven formula
+;; is mr-free and c.r.
+
 (define (proof-to-soundness-proof . opt-proof-or-thm-name)
   (if (null? opt-proof-or-thm-name)
       (proof-to-soundness-proof (current-proof))
@@ -5679,32 +6038,313 @@
 			   (theorem-name-to-proof proof-or-thm-name))
 			  (else (myerror "proof-to-soundness-proof"
 					 "proof or theorem name expected"
-					 proof-or-thm-name)))))
-	(if (formula-of-nulltype? (proof-to-formula proof))
-	    proof
-	    (let* ((avar-or-ga-to-var (make-avar-or-ga-to-var))
-		   (avar-or-ga-to-mr-avar (make-avar-or-ga-to-mr-avar
-					   avar-or-ga-to-var)))
+					 proof-or-thm-name))))
+	     (avars (proof-to-free-avars proof))
+	     (cr-avars (list-transform-positive avars
+			 (lambda (avar) (not (formula-of-nulltype?
+					      (avar-to-formula avar)))))))
+	(if (formula-with-mr-predicates? (proof-to-formula proof))
+	    (myerror "proof-to-soundness-proof"
+		     "mr-free formula expected" (proof-to-formula proof)))
+	(if (not (null? cr-avars))
+	    (myerror "proof-to-soundness-proof" "unexpected c.r. avar"
+		     (avar-to-formula (car cr-avar-flas))))
+	(let* ((avar-or-ga-to-var (make-avar-or-ga-to-var))
+	       (avar-or-ga-to-mr-avar (make-avar-or-ga-to-mr-avar
+				       avar-or-ga-to-var)))
+	  (if (formula-of-nulltype? (proof-to-formula proof))
+	      (proof-to-soundness-proof-aux-nc
+	       proof avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)
 	      (proof-to-soundness-proof-aux
 	       proof avar-or-ga-to-var avar-or-ga-to-mr-avar))))))
 
+;; In proof-to-soundness-proof-aux-nc it is assumed that the proven formula
+;; is mr-free.
+
+(define (proof-to-soundness-proof-aux-nc
+	 proof avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)
+  (if (formula-with-mr-predicates? (proof-to-formula proof))
+      (myerror "proof-to-soundness-proof-aux-nc"
+  	       "mr-free formula expected" (proof-to-formula proof)))
+  (cond
+   ((proof-in-avar-form? proof) proof)
+   ((proof-in-aconst-form? proof) proof)
+   ((proof-in-imp-intro-form? proof)
+    (let* ((avar (proof-in-imp-intro-form-to-avar proof))
+	   (kernel (proof-in-imp-intro-form-to-kernel proof))
+	   (avar-fla (avar-to-formula avar))
+	   (kernel-fla (proof-to-formula kernel)))
+      (if (not (formula-of-nulltype? avar-fla)) ;need InvarEx here
+	  (let* ((kernel-avars (proof-to-free-avars kernel))
+		 (kernel-cr-avars
+		  (list-transform-positive kernel-avars
+		    (lambda (avar) (not (formula-of-nulltype?
+					 (avar-to-formula avar))))))
+		 (new-cr-avars (adjoin-wrt avar=? avar cr-avars))
+		 (kernel-proof (proof-to-soundness-proof-aux-nc
+				kernel avar-or-ga-to-var avar-or-ga-to-mr-avar
+				new-cr-avars))
+		 (var (avar-or-ga-to-var avar)) ;z
+		 (mr-avar (avar-or-ga-to-mr-avar avar)) ;umr: z mr A
+		 (mr-fla (avar-to-formula mr-avar)) ;z mr A
+		 (invarex-aconst ;allnc xs(A -> exnc z(z mr A))
+		  (formula-to-invarex-aconst avar-fla var))
+		 (invarex-fla (aconst-to-formula invarex-aconst))
+		 (vars-invarex (all-allnc-form-to-vars invarex-fla)) ;xs
+		 (kernel-invarex ;A -> exnc z(z mr A)
+		  (all-allnc-form-to-final-kernel invarex-fla))
+		 (exnc-fla (imp-form-to-conclusion kernel-invarex))
+		 (imp-fla ;exnc z(z mr A)-> B
+		  (make-imp exnc-fla kernel-fla))
+		 (exnc-elim-aconst (imp-formulas-to-elim-aconst imp-fla))
+		 (exnc-elim-fla (aconst-to-formula exnc-elim-aconst))
+		 (vars-exnc-elim (all-allnc-form-to-vars exnc-elim-fla))
+		 (vars-avar (formula-to-free avar-fla))
+		 (exnc-proof ;of exnc z(z mr A) from u:A
+		  (apply mk-proof-in-elim-form
+			 (make-proof-in-aconst-form invarex-aconst)
+			 (append (map make-term-in-var-form vars-avar)
+				 (list (make-proof-in-avar-form avar)))))
+		 (allimp-proof ;of allnc z(z mr A -> B)
+		  (make-proof-in-allnc-intro-form
+		   var (make-proof-in-imp-intro-form
+			mr-avar kernel-proof))))
+		(make-proof-in-imp-intro-form
+		 avar (apply
+		       mk-proof-in-elim-form
+		       (make-proof-in-aconst-form exnc-elim-aconst)
+		       (append (map make-term-in-var-form vars-exnc-elim)
+			       (list exnc-proof allimp-proof)))))
+					;else (formula-of-nulltype? avar-fla)
+	  (let ((kernel-proof
+		 (proof-to-soundness-proof-aux-nc
+		  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))
+	    (make-proof-in-imp-intro-form avar kernel-proof)))))
+   ((proof-in-imp-elim-form? proof)
+    (let* ((op (proof-in-imp-elim-form-to-op proof))
+	   (arg (proof-in-imp-elim-form-to-arg proof))
+	   (arg-fla (proof-to-formula arg)))
+      (if (null? cr-avars)
+	  (if (not (formula-of-nulltype? arg-fla))
+	      (let ((arg-proof (proof-to-soundness-proof-aux
+				arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+		(make-proof-in-imp-elim-form op arg-proof))
+	      proof)
+	  (let* ((op-avars (proof-to-free-avars op))
+		 (op-cr-avars (list-transform-positive op-avars
+				(lambda (avar) (not (formula-of-nulltype?
+						     (avar-to-formula avar))))))
+		 (op-proof (proof-to-soundness-proof-aux-nc
+			    op avar-or-ga-to-var avar-or-ga-to-mr-avar
+			    op-cr-avars)))
+	    (if (not (formula-of-nulltype? arg-fla)) ;need InvarAll here
+		(let* ((arg-proof (proof-to-soundness-proof-aux
+				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
+		       (eterm
+			(proof-to-extracted-term-aux
+			 arg avar-or-ga-to-var #t)) ;unfold-let-flag true here
+		       (invarall-aconst (formula-to-invarall-aconst arg-fla))
+		       (invarall-fla (aconst-to-formula invarall-aconst))
+		       (vars-avar (formula-to-free arg-fla))
+		       (invarall-proof
+			(apply mk-proof-in-elim-form
+			       (make-proof-in-aconst-form invarall-aconst)
+			       eterm
+			       (append
+				(map make-term-in-var-form vars-avar)
+				(list arg-proof)))))
+		  (make-proof-in-imp-elim-form op-proof invarall-proof))
+					;else (formula-of-nulltype? arg-fla)
+		(let* ((arg-avars (proof-to-free-avars arg))
+		       (arg-cr-avars
+			(list-transform-positive arg-avars
+			  (lambda (avar) (not (formula-of-nulltype?
+					       (avar-to-formula avar))))))
+		       (arg-proof (proof-to-soundness-proof-aux-nc
+				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar
+				   arg-cr-avars)))
+		  (make-proof-in-imp-elim-form op-proof arg-proof)))))))
+   ((proof-in-impnc-intro-form? proof) ;as in imp-intro vase
+    (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
+	   (kernel (proof-in-impnc-intro-form-to-kernel proof))
+	   (avar-fla (avar-to-formula avar))
+	   (kernel-fla (proof-to-formula kernel)))
+      (if (not (formula-of-nulltype? avar-fla)) ;need InvarEx here
+	  (let* ((kernel-avars (proof-to-free-avars kernel))
+		 (kernel-cr-avars
+		  (list-transform-positive kernel-avars
+		    (lambda (avar) (not (formula-of-nulltype?
+					 (avar-to-formula avar))))))
+		 (new-cr-avars (adjoin-wrt avar=? avar cr-avars))
+		 (kernel-proof (proof-to-soundness-proof-aux-nc
+				kernel avar-or-ga-to-var avar-or-ga-to-mr-avar
+				new-cr-avars))
+		 (var (avar-or-ga-to-var avar)) ;z
+		 (mr-avar (avar-or-ga-to-mr-avar avar)) ;umr: z mr A
+		 (mr-fla (avar-to-formula mr-avar)) ;z mr A
+		 (invarex-aconst ;allnc xs(A -> exnc z(z mr A))
+		  (formula-to-invarex-aconst avar-fla var))
+		 (invarex-fla (aconst-to-formula invarex-aconst))
+		 (vars-invarex (all-allnc-form-to-vars invarex-fla)) ;xs
+		 (kernel-invarex ;A -> exnc z(z mr A)
+		  (all-allnc-form-to-final-kernel invarex-fla))
+		 (exnc-fla (imp-form-to-conclusion kernel-invarex))
+		 (imp-fla ;exnc z(z mr A)-> B
+		  (make-imp exnc-fla kernel-fla))
+		 (exnc-elim-aconst (imp-formulas-to-elim-aconst imp-fla))
+		 (exnc-elim-fla (aconst-to-formula exnc-elim-aconst))
+		 (vars-exnc-elim (all-allnc-form-to-vars exnc-elim-fla))
+		 (vars-avar (formula-to-free avar-fla))
+		 (exnc-proof ;of exnc z(z mr A) from u:A
+		  (apply mk-proof-in-elim-form
+			 (make-proof-in-aconst-form invarex-aconst)
+			 (append (map make-term-in-var-form vars-avar)
+				 (list (make-proof-in-avar-form avar)))))
+		 (allimp-proof ;of allnc z(z mr A -> B)
+		  (make-proof-in-allnc-intro-form
+		   var (make-proof-in-imp-intro-form
+			mr-avar kernel-proof))))
+		(make-proof-in-imp-intro-form
+		 avar (apply
+		       mk-proof-in-elim-form
+		       (make-proof-in-aconst-form exnc-elim-aconst)
+		       (append (map make-term-in-var-form vars-exnc-elim)
+			       (list exnc-proof allimp-proof)))))
+					;else (formula-of-nulltype? avar-fla)
+	  (let ((kernel-proof
+		 (proof-to-soundness-proof-aux-nc
+		  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))
+	    (make-proof-in-imp-intro-form avar kernel-proof)))))
+   ((proof-in-impnc-elim-form? proof) ;as for imp-elim
+    (let* ((op (proof-in-impnc-elim-form-to-op proof))
+	   (arg (proof-in-impnc-elim-form-to-arg proof))
+	   (arg-fla (proof-to-formula arg)))
+      (if (null? cr-avars)
+	  (if (not (formula-of-nulltype? arg-fla))
+	      (let ((arg-proof (proof-to-soundness-proof-aux
+				arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+		(make-proof-in-imp-elim-form op arg-proof))
+	      proof)
+	  (let* ((op-avars (proof-to-free-avars op))
+		 (op-cr-avars (list-transform-positive op-avars
+				(lambda (avar) (not (formula-of-nulltype?
+						     (avar-to-formula avar))))))
+		 (op-proof (proof-to-soundness-proof-aux-nc
+			    op avar-or-ga-to-var avar-or-ga-to-mr-avar
+			    op-cr-avars)))
+	    (if (not (formula-of-nulltype? arg-fla)) ;need InvarAll here
+		(let* ((arg-proof (proof-to-soundness-proof-aux
+				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
+		       (eterm
+			(proof-to-extracted-term-aux
+			 arg avar-or-ga-to-var #t)) ;unfold-let-flag true here
+		       (invarall-aconst (formula-to-invarall-aconst arg-fla))
+		       (invarall-fla (aconst-to-formula invarall-aconst))
+		       (vars-avar (formula-to-free arg-fla))
+		       (invarall-proof
+			(apply mk-proof-in-elim-form
+			       (make-proof-in-aconst-form invarall-aconst)
+			       eterm
+			       (append
+				(map make-term-in-var-form vars-avar)
+				(list arg-proof)))))
+		  (make-proof-in-imp-elim-form op-proof invarall-proof))
+					;else (formula-of-nulltype? arg-fla)
+		(let* ((arg-avars (proof-to-free-avars arg))
+		       (arg-cr-avars
+			(list-transform-positive arg-avars
+			  (lambda (avar) (not (formula-of-nulltype?
+					       (avar-to-formula avar))))))
+		       (arg-proof (proof-to-soundness-proof-aux-nc
+				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar
+				   arg-cr-avars)))
+		  (make-proof-in-imp-elim-form op-proof arg-proof)))))))
+   ((proof-in-and-intro-form? proof)
+    (let* ((left (proof-in-and-intro-form-to-left proof))
+	   (right (proof-in-and-intro-form-to-right proof))
+	   (left-proof
+	    (let* ((avars (proof-to-free-avars left))
+		   (cr-avars
+		    (list-transform-positive avars
+		      (lambda (avar) (not (formula-of-nulltype?
+					   (avar-to-formula avar)))))))
+	      (proof-to-soundness-proof-aux-nc
+	       left avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))
+	   (right-proof
+	    (let* ((avars (proof-to-free-avars right))
+		   (cr-avars
+		    (list-transform-positive avars
+		      (lambda (avar) (not (formula-of-nulltype?
+					   (avar-to-formula avar)))))))
+	      (proof-to-soundness-proof-aux-nc
+	       right avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars))))
+      (make-proof-in-and-intro-form left-proof right-proof)))
+   ((proof-in-and-elim-left-form? proof)
+    (let ((kernel (proof-in-and-elim-left-form-to-kernel proof)))
+      (if (not (formula-of-nulltype? (proof-to-formula kernel)))
+	  (let ((kernel-proof (proof-to-soundness-proof-aux
+			       kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+	    (make-proof-in-and-elim-left-form kernel-proof))
+	  (let ((kernel-proof (proof-to-soundness-proof-aux-nc
+			       kernel avar-or-ga-to-var avar-or-ga-to-mr-avar
+			       cr-avars)))
+	    (make-proof-in-and-elim-left-form kernel-proof)))))
+   ((proof-in-and-elim-right-form? proof)
+    (let ((kernel (proof-in-and-elim-right-form-to-kernel proof)))
+      (if (not (formula-of-nulltype? (proof-to-formula kernel)))
+	  (let ((kernel-proof (proof-to-soundness-proof-aux
+			       kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+	    (make-proof-in-and-elim-right-form kernel-proof))
+	  (let ((kernel-proof (proof-to-soundness-proof-aux-nc
+			       kernel avar-or-ga-to-var avar-or-ga-to-mr-avar
+			       cr-avars)))
+	    (make-proof-in-and-elim-right-form kernel-proof)))))
+   ((proof-in-all-intro-form? proof)
+    (let* ((var (proof-in-all-intro-form-to-var proof))
+	   (kernel (proof-in-all-intro-form-to-kernel proof))
+	   (kernel-proof
+	    (proof-to-soundness-proof-aux-nc
+	     kernel avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))
+      (mk-proof-in-nc-intro-form var kernel-proof)))
+   ((proof-in-all-elim-form? proof)
+    (let* ((op (proof-in-all-elim-form-to-op proof))
+	   (op-proof (proof-to-soundness-proof-aux-nc
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars))
+	   (arg (proof-in-all-elim-form-to-arg proof)))
+      (mk-proof-in-elim-form op-proof arg)))
+   ((proof-in-allnc-intro-form? proof)
+    (let* ((var (proof-in-allnc-intro-form-to-var proof))
+	   (kernel (proof-in-allnc-intro-form-to-kernel proof))
+	   (kernel-proof
+	    (proof-to-soundness-proof-aux-nc
+	     kernel avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))
+      (mk-proof-in-nc-intro-form var kernel-proof)))
+   ((proof-in-allnc-elim-form? proof)
+    (let* ((op (proof-in-allnc-elim-form-to-op proof))
+	   (op-proof (proof-to-soundness-proof-aux-nc
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars))
+	   (arg (proof-in-allnc-elim-form-to-arg proof)))
+      (mk-proof-in-elim-form op-proof arg)))
+   (else (myerror "proof-to-soundness-proof-aux-nc"
+		  "unexpected proof with tag" (tag proof)))))
+
+;; In proof-to-soundness-proof-aux it is assumed that the proven formula
+;; is mr-free.
+
 (define (proof-to-soundness-proof-aux
 	 proof avar-or-ga-to-var avar-or-ga-to-mr-avar)
+  (if (formula-with-mr-predicates? (proof-to-formula proof))
+      (myerror "proof-to-soundness-proof-aux"
+  	       "mr-free formula expected" (proof-to-formula proof)))
   (cond
    ((proof-in-avar-form? proof)
     (let ((avar (proof-in-avar-form-to-avar proof)))
-      (if (not (formula-of-nulltype? (proof-to-formula proof)))
-	  (make-proof-in-avar-form (avar-or-ga-to-mr-avar avar))
-	  proof)))
+      (make-proof-in-avar-form (avar-or-ga-to-mr-avar avar))))
    ((proof-in-aconst-form? proof)
     (let ((aconst (proof-in-aconst-form-to-aconst proof)))
       (case (aconst-to-kind aconst)
-	((axiom) (if (not (formula-of-nulltype? (proof-to-formula proof)))
-		     (axiom-to-soundness-proof aconst)
-		     proof))
-	((theorem) (if (not (formula-of-nulltype? (proof-to-formula proof)))
-		       (theorem-to-soundness-proof aconst)
-		       proof))
+	((axiom) (axiom-to-soundness-proof aconst))
+	((theorem) (theorem-to-soundness-proof aconst))
 	((global-assumption) (global-assumption-to-soundness-proof
 			      aconst avar-or-ga-to-mr-avar))
 	(else (myerror
@@ -5714,6 +6354,7 @@
     (let* ((avar (proof-in-imp-intro-form-to-avar proof))
 	   (kernel (proof-in-imp-intro-form-to-kernel proof))
 	   (avar-fla (avar-to-formula avar))
+	   (kernel-fla (proof-to-formula kernel))
 	   (kernel-proof (proof-to-soundness-proof-aux
 			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
       (if (not (formula-of-nulltype? avar-fla))
@@ -5721,6 +6362,7 @@
 	    (make-proof-in-allnc-intro-form
 	     (avar-or-ga-to-var avar)
 	     (make-proof-in-imp-intro-form mr-avar kernel-proof)))
+					;else (formula-of-nulltype? avar-fla))
 	  (make-proof-in-imp-intro-form avar kernel-proof))))
    ((proof-in-imp-elim-form? proof)
     (let* ((op (proof-in-imp-elim-form-to-op proof))
@@ -5729,24 +6371,84 @@
 	   (op-proof (proof-to-soundness-proof-aux
 		      op avar-or-ga-to-var avar-or-ga-to-mr-avar)))
       (if (not (formula-of-nulltype? arg-fla))
-	  (mk-proof-in-elim-form
-	   op-proof
-	   (proof-to-extracted-term-aux
-	    arg avar-or-ga-to-var #t) ;unfold-let-flag is true here
-	   (proof-to-soundness-proof-aux
-	    arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
-	  (mk-proof-in-elim-form op-proof arg))))
+	  (let ((arg-proof (proof-to-soundness-proof-aux
+			    arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+	    (mk-proof-in-elim-form
+	     op-proof
+	     (proof-to-extracted-term-aux
+	      arg avar-or-ga-to-var #t) ;unfold-let-flag is true here
+	     arg-proof))
+	  (let* ((avars (proof-to-free-avars arg))
+		 (cr-avars
+		  (list-transform-positive avars
+		    (lambda (avar) (not (formula-of-nulltype?
+					 (avar-to-formula avar))))))
+		 (arg-proof
+		  (proof-to-soundness-proof-aux-nc
+		   arg avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))
+	    (make-proof-in-imp-elim-form op-proof arg-proof)))))
+   ((proof-in-impnc-intro-form? proof) ;as in imp-intro case
+    (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
+	   (kernel (proof-in-impnc-intro-form-to-kernel proof))
+	   (avar-fla (avar-to-formula avar))
+	   (kernel-fla (proof-to-formula kernel))
+	   (kernel-proof (proof-to-soundness-proof-aux
+			  kernel avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (if (not (formula-of-nulltype? avar-fla))
+	  (let ((mr-avar (avar-or-ga-to-mr-avar avar)))
+	    (make-proof-in-allnc-intro-form
+	     (avar-or-ga-to-var avar)
+	     (make-proof-in-imp-intro-form mr-avar kernel-proof)))
+					;else (formula-of-nulltype? avar-fla))
+	  (make-proof-in-imp-intro-form avar kernel-proof))))
+   ((proof-in-impnc-elim-form? proof) ;as in imp-elim case
+    (let* ((op (proof-in-impnc-elim-form-to-op proof))
+	   (arg (proof-in-impnc-elim-form-to-arg proof))
+	   (arg-fla (proof-to-formula arg))
+	   (op-proof (proof-to-soundness-proof-aux
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+      (if (not (formula-of-nulltype? arg-fla))
+	  (let ((arg-proof (proof-to-soundness-proof-aux
+			    arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
+	    (mk-proof-in-elim-form
+	     op-proof
+	     (proof-to-extracted-term-aux
+	      arg avar-or-ga-to-var #t) ;unfold-let-flag is true here
+	     arg-proof))
+	  (let* ((avars (proof-to-free-avars arg))
+		 (cr-avars
+		  (list-transform-positive avars
+		    (lambda (avar) (not (formula-of-nulltype?
+					 (avar-to-formula avar))))))
+		 (arg-proof
+		  (proof-to-soundness-proof-aux-nc
+		   arg avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))
+	    (make-proof-in-imp-elim-form op-proof arg-proof)))))
    ((proof-in-and-intro-form? proof)
     (let* ((left (proof-in-and-intro-form-to-left proof))
 	   (right (proof-in-and-intro-form-to-right proof))
-	   (left-proof (if (formula-of-nulltype? (proof-to-formula left))
-			   left
-			   (proof-to-soundness-proof-aux
-			    left avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-	   (right-proof (if (formula-of-nulltype? (proof-to-formula right))
-			    right
-			    (proof-to-soundness-proof-aux
-			     right avar-or-ga-to-var avar-or-ga-to-mr-avar))))
+	   (left-proof
+	    (if (not (formula-of-nulltype? (proof-to-formula left)))
+		(proof-to-soundness-proof-aux
+		 left avar-or-ga-to-var avar-or-ga-to-mr-avar)
+		(let* ((avars (proof-to-free-avars left))
+		       (cr-avars
+			(list-transform-positive avars
+			  (lambda (avar) (not (formula-of-nulltype?
+					       (avar-to-formula avar)))))))
+		  (proof-to-soundness-proof-aux-nc
+		   left avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars))))
+	   (right-proof
+	    (if (not (formula-of-nulltype? (proof-to-formula right)))
+		(proof-to-soundness-proof-aux
+		 right avar-or-ga-to-var avar-or-ga-to-mr-avar)
+		(let* ((avars (proof-to-free-avars right))
+		       (cr-avars
+			(list-transform-positive avars
+			  (lambda (avar) (not (formula-of-nulltype?
+					       (avar-to-formula avar)))))))
+		  (proof-to-soundness-proof-aux-nc
+		   right avar-or-ga-to-var avar-or-ga-to-mr-avar cr-avars)))))
       (make-proof-in-and-intro-form left-proof right-proof)))
    ((proof-in-and-elim-left-form? proof)
     (let* ((kernel (proof-in-and-elim-left-form-to-kernel proof))
@@ -5830,6 +6532,10 @@
 		 'axiom formula-of-allnctotal-elim-mr-aconst empty-subst)))
 
 (define (axiom-to-soundness-proof aconst)
+  (let ((fla (aconst-to-formula aconst)))
+    (if (or (formula-with-mr-predicates? fla) (formula-of-nulltype? fla))
+	(myerror "axiom-to-soundness-proof"
+		 "mr-free c.r. formula expected" fla)))
   (let ((name (aconst-to-name aconst)))
     (cond
      ((string=? "Ind" name)
@@ -5973,6 +6679,10 @@
      (else (myerror "axiom-to-soundness-proof" "unexpected axiom" name)))))
 
 (define (theorem-to-soundness-proof aconst)
+  (let ((fla (aconst-to-formula aconst)))
+    (if (or (formula-with-mr-predicates? fla) (formula-of-nulltype? fla))
+	(myerror "theorem-to-soundness-proof"
+		 "mr-free c.r. formula expected" fla)))
   (let* ((thm-name (aconst-to-name aconst))
 	 (tpsubst (aconst-to-tpsubst aconst))
 	 (tsubst (list-transform-positive tpsubst
@@ -6079,13 +6789,16 @@
 				  (mr-var (type-to-new-partial-var et-type))
 				  (mr-fla (real-and-formula-to-mr-formula
 					   (make-term-in-var-form mr-var)
-					   (cterm-fla))))
+					   cterm-fla)))
 			     (apply make-cterm
-				    mr-var (append cterm-vars (list mr-fla)))))
-			  (pvar-to-cterm cr-pvar)))
+				    mr-var (append cterm-vars (list mr-fla))))
+			   (pvar-to-cterm cr-pvar))))
 		      crit-cr-pvars))
 		(mr-psubst (make-substitution-wrt
-			    pvar-cterm-equal? crit-cr-pvars mr-cterms))
+			    pvar-cterm-equal?
+			    (map PVAR-TO-MR-PVAR crit-cr-pvars) mr-cterms))
+		(nc-psubst (list-transform-positive psubst
+			     (lambda (x) (member (car x) nc-pvars))))
 		(crit-tvars (map PVAR-TO-TVAR crit-cr-pvars))
 		(crit-et-types
 		 (map (lambda (mr-cterm)
@@ -6094,18 +6807,25 @@
 		(mr-tsubst (make-substitution crit-tvars crit-et-types))
 		(subst-mr-aconst
 		 (aconst-substitute
-		  mr-aconst (append tsubst mr-tsubst psubst mr-psubst))))
+		  mr-aconst (append tsubst mr-tsubst nc-psubst mr-psubst))))
 	   (make-proof-in-aconst-form subst-mr-aconst))
 	 (let* ((inst-proof (theorem-aconst-to-inst-proof aconst))
 		(free (formula-to-free (proof-to-formula inst-proof)))
 		(closed-inst-proof
-		 (apply mk-proof-in-intro-form
-			(append free (list inst-proof)))))
-	   (comment "proof-to-soundness-proof : recursive call at "
-		    (aconst-to-name aconst))
+		 (apply mk-proof-in-allnc-intro-form
+			(append free (list inst-proof))))
+		(eterm (proof-to-extracted-term inst-proof))
+		(neterm (nt eterm)))
+	   (if (not (term-in-projection-form? neterm))
+	       (comment "proof-to-soundness-proof : recursive call at "
+			(aconst-to-name aconst)))
 	   (proof-to-soundness-proof closed-inst-proof))))))))
 
 (define (global-assumption-to-soundness-proof aconst avar-or-ga-to-mr-avar)
+  (let ((fla (aconst-to-formula aconst)))
+    (if (or (formula-with-mr-predicates? fla) (formula-of-nulltype? fla))
+	(myerror "global-assumption--to-soundness-proof"
+		 "mr-free c.r. formula expected" fla)))
   (let* ((name (aconst-to-name aconst))
 	 (info (assoc name GLOBAL-ASSUMPTIONS)))
     (if info
@@ -6116,12 +6836,67 @@
 	(myerror "global-assumption-to-soundness-proof"
 		 "global assumption expected" name))))
 
-(define (proof-to-soundness-formula proof)
-  (real-and-formula-to-mr-formula
-   (proof-to-extracted-term proof)
-   (proof-to-formula proof)))
-
 (set! COMMENT-FLAG #f)
+
+;; Added 2020-04-01
+(add-sound "Lft")
+(add-sound "Rht")
+(deanimate "Lft")
+(deanimate "Rht")
+
+(define (proof-to-soundness-formula proof)
+  (rename-variables
+   (formula-to-beta-nf
+    (real-and-formula-to-mr-formula
+     (proof-to-extracted-term proof)
+     (proof-to-formula proof)))))
+
+;; We formulate axioms on the predicate constants TotalNc TotalMR used
+;; to prove TotalVarSound AllncTotalIntroSound AllncTotalElimSound.
+;; For closed ground types these axioms can be proved.
+
+;; (define totalmr-to-totalnc-left-aconst
+;;   (make-aconst
+;;    "TotalMRToTotalNcLeft"
+;;    'axiom
+;;    (pf "allnc alpha^1,alpha^2(TotalMR alpha^1 alpha^2 -> TotalNc alpha^1)")
+;;    empty-subst))
+
+;; (define totalmr-to-totalnc-right-aconst
+;;   (make-aconst
+;;    "TotalMRToTotalNcRight"
+;;    'axiom
+;;    (pf "allnc alpha^1,alpha^2(TotalMR alpha^1 alpha^2 -> TotalNc alpha^2)")
+;;    empty-subst))
+
+;; (define totalmr-to-eqd-aconst
+;;   (make-aconst
+;;    "TotalMRToEqD"
+;;    'axiom
+;;    (pf "allnc alpha^1,alpha^2(
+;;         TotalMR alpha^1 alpha^2 -> alpha^1 eqd alpha^2)")
+;;    empty-subst))
+
+(define totalmr-to-eqd-aconst
+  (make-aconst
+   "TotalMRToEqD"
+   'axiom
+   (pf "allnc alpha^1,alpha^2(TotalMR alpha^1 alpha^2 ->
+        exnc alpha(alpha eqd alpha^1 andnc alpha eqd alpha^2))")
+   empty-subst))
+
+(add-theorem "TotalMRToEqD"
+	     (make-proof-in-aconst-form totalmr-to-eqd-aconst))
+
+(define totalnc-to-totalmr-aconst
+  (make-aconst
+   "TotalNcToTotalMR"
+   'axiom
+   (pf "allnc alpha^(TotalNc alpha^ -> TotalMR alpha^ alpha^)")
+   empty-subst))
+
+(add-theorem "TotalNcToTotalMR"
+	     (make-proof-in-aconst-form totalnc-to-totalmr-aconst))
 
 ;; TotalVar
 (set-goal "all alpha Total alpha")
@@ -6131,18 +6906,6 @@
 ;; Proof finished
 ;; (cdp)
 (save "TotalVar")
-
-;; (pp (rename-variables (nt (proof-to-extracted-term))))
-;; [alpha]alpha
-
-(define sproof (proof-to-soundness-proof (current-proof)))
-
-;; TotalVarSound
-(set-goal (rename-variables (nf (proof-to-formula sproof))))
-(use sproof)
-;; Proof finished.
-;; (cdp)
-(save "TotalVarSound")
 
 ;; ExDTotalElim
 (set-goal "exd alpha (Pvar alpha)alpha -> 
@@ -6160,62 +6923,34 @@
 ;; (pp (rename-variables (nt (proof-to-extracted-term))))
 ;; [(alpha yprod gamma)](alpha yprod gamma)
 
-(define sproof (proof-to-soundness-proof (current-proof)))
-
-;; ExDTotalElimSound
-(set-goal (rename-variables (nf (proof-to-formula sproof))))
-(use-with sproof)
+;; ExLTotalElim
+(set-goal "exl alpha (Pvar alpha)^ alpha -> 
+           exr alpha^(Total alpha^ andl (Pvar alpha)^ alpha^)")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha" "alphaProp")
+(intro 0 (pt "alpha"))
+(split)
+(use "TotalVar")
+(use "alphaProp")
 ;; Proof finished.
 ;; (cdp)
-(save "ExDTotalElimSound")
-
-;; 2017-06-01.  Code preliminarily discarded.
-;; ;; ExLTotalElim
-;; (set-goal "exl alpha (Pvar alpha)^ alpha -> 
-;;            exl alpha^(TotalNc alpha^ andnc (Pvar alpha)^ alpha^)")
-;; (assume "ExHyp")
-;; (by-assume "ExHyp" "alpha" "alphaProp")
-;; (intro 0 (pt "alpha"))
-;; (split)
-;; (use "TotalNcIntro")
-;; (use "alphaProp")
-;; ;; Proof finished.
-;; (save "ExLTotalElim")
+(save "ExLTotalElim")
 
 ;; (pp (rename-variables (nt (proof-to-extracted-term))))
 ;; [alpha]alpha
 
-;; (define sproof (proof-to-soundness-proof (current-proof)))
-
-;; ;; ExLTotalElimSound
-;; (set-goal (rename-variables (nf (proof-to-formula sproof))))
-;; (use-with sproof)
-;; ;; Proof finished.
-;; (save "ExLTotalElimSound")
-
-;; 2017-06-01.  Code preliminarily discarded.
-;; ;; ExRTotalElim
-;; (set-goal "exr alpha (Pvar alpha)alpha -> 
-;;            exr alpha^(TotalNc alpha^ andr (Pvar alpha)alpha^)")
-;; (assume "ExHyp")
-;; (by-assume "ExHyp" "alpha" "alphaProp")
-;; (intro 0 (pt "alpha"))
-;; (split)
-;; (use "TotalNcIntro")
-;; (use "alphaProp")
-;; ;; Proof finished.
-;; (save "ExRTotalElim")
-
-;; (pp (rename-variables (nt (proof-to-extracted-term))))
-;; [gamma]gamma
-
-;; (define sproof (proof-to-soundness-proof (current-proof)))
-
-;; ;; ExRTotalElimSound
-;; (set-goal (rename-variables (nf (proof-to-formula sproof))))
-;; (use-with sproof)
-;; ;; Proof finished.
-;; (save "ExRTotalElimSound")
+;; ExRTotalElim
+(set-goal "exr alpha (Pvar alpha)alpha -> 
+           exr alpha^(TotalNc alpha^ andr (Pvar alpha)alpha^)")
+(assume "ExHyp")
+(by-assume "ExHyp" "alpha" "alphaProp")
+(intro 0 (pt "alpha"))
+(split)
+(use "TotalVar")
+(use "alphaProp")
+;; Proof finished.
+;; (cdp)
+(save "ExRTotalElim")
 
 ;; ExNcTotalElim
 (set-goal "exnc alpha (Pvar alpha)alpha -> 
@@ -6229,104 +6964,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save "ExNcTotalElim")
-
-;; 2017-04-01.  Code preliminarily discarded.
-;; The problem is in the formulation of AllTotalIntroSound, with eqd.
-;; Can we also proof it with CoEqPNc ?
-
-;; AllTotalIntroSoundCoEqPNc
-;; (set-goal "all (alpha=>gamma)^(
-;;  all alpha^0,alpha^1(
-;;   TotalNc alpha^1 andnc CoEqPNc alpha^1 alpha^0 -> 
-;;   (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0) -> 
-;;  all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0)")
-;; (assume "(alpha=>gamma)^" "MRHyp")
-;; (use "AllTotalIntro")
-;; (assume "alpha^" "Talpha")
-;; (use "MRHyp")
-;; (split)
-;; (use "TotalToTotalNc")
-;; (use "Talpha")
-;;   (alpha=>gamma)^  MRHyp:all alpha^0,alpha^1(
-;;                           TotalNc alpha^1 andnc CoEqPNc alpha^1 alpha^0 -> 
-;;                           (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)
-;;                           alpha^0)
-;;   {alpha^}  Talpha:Total alpha^
-;; -----------------------------------------------------------------------------
-;; ?_7:CoEqPNc alpha^ alpha^
-;; (use "InitEqD")
-;; (admit) ;then the proof is finished.
-
-;; Need an axiom
-;; all alpha^(Total alpha^ -> CoEqPNc alpha^ alpha^)
-;; or even more detailed ones (provable e.g. for nat)
-;; EqPRefl
-;; (pp (pf "allnc alpha^(Total alpha^ -> EqP alpha^ alpha^)"))
-;; EqPToCoEqP
-;; (pp (pf "allnc alpha^1,alpha^2(EqP alpha^1 alpha^2 -> CoEqP alpha^1 alpha^2)"))
-;; CoEqPToCoEqPNc
-;; (pp (pf "all alpha^1,alpha^2(CoEqP alpha^1 alpha^2 -> CoEqPNc alpha^1 alpha^2)"))
-
-;; AllTotalIntroSound
-;; (set-goal "all (alpha=>gamma)^(
-;;  all alpha^0,alpha^1(
-;;   TotalNc alpha^1 andnc alpha^1 eqd alpha^0 -> 
-;;   (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0) -> 
-;;  all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0)")
-;; (assume "(alpha=>gamma)^" "MRHyp")
-;; (use "AllTotalIntro")
-;; (assume "alpha^" "Talpha")
-;; (use "MRHyp")
-;; (split)
-;; (use "TotalToTotalNc")
-;; (use "Talpha")
-;; (use "InitEqD")
-;; Proof finished.
-;; (save "AllTotalIntroSound")
-
-;; AllTotalElimSound
-;; (set-goal "all (alpha=>gamma)^(
-;;  all alpha_0 (Pvar gamma alpha)^((alpha=>gamma)^ alpha_0)alpha_0 -> 
-;;  all alpha^0,alpha^1(
-;;   TotalNc alpha^1 andnc alpha^1 eqd alpha^0 -> 
-;;   (Pvar gamma alpha)^((alpha=>gamma)^ alpha^1)alpha^0))")
-;; (assume "(alpha=>gamma)^" "THyp" "alpha^" "alpha^1" "Conj")
-;; (simp "Conj")
-;; (use-with
-;;  "AllTotalElim"
-;;  (make-cterm (pv "alpha^0")
-;; 	     (pf "(Pvar gamma alpha)^((alpha=>gamma)^ alpha^0)alpha^0"))
-;;  "?" (pt "alpha^") "?")
-;; (use "THyp")
-;; (use "TotalNcToTotal")
-;; (simp "<-" "Conj")
-;; (use "Conj")
-;; Proof finished.
-;; (save "AllTotalElimSound")
-
-;; AllncTotalIntroSound
-(set-goal "all gamma^(
- all alpha^0(Total alpha^0 -> (Pvar alpha gamma)^ alpha^0 gamma^) -> 
- all alpha_0 (Pvar alpha gamma)^ alpha_0 gamma^)")
-(assume "gamma^" "AllHyp" "alpha")
-(use "AllHyp")
-(use "TotalVar")
-;; Proof finished.
-;; (cdp)
-(save "AllncTotalIntroSound")
-
-;; AllncTotalElimSound
-(set-goal "all gamma^(
- all alpha_0 (Pvar alpha gamma)^ alpha_0 gamma^ -> 
- all alpha^0(Total alpha^0 -> (Pvar alpha gamma)^ alpha^0 gamma^))")
-(assume "gamma^" "AllHyp")
-(use-with "AllTotalElim"
-	  (make-cterm (pv "alpha^") (pf "(Pvar alpha gamma)^ alpha^ gamma^"))
-	  "?")
-(use "AllHyp")
-;; Proof finished.
-;; (cdp)
-(save "AllncTotalElimSound")
 
 ;; ExRMRIntro is exactly InitExRMR.  The converse is proved via elim:
 
@@ -6347,12 +6984,13 @@
 ;; Same for ExDT ExLT ExRT
 
 ;; ExDTMRElim
-(set-goal "all (alpha yprod gamma)^(
+(set-goal "allnc (alpha yprod gamma)^(
      (ExDTMR (cterm (alpha,gamma^) (Pvar alpha gamma)^ alpha gamma^))
      (alpha yprod gamma)^ -> 
      (Pvar alpha gamma)^(lft(alpha yprod gamma)^)
      (rht(alpha yprod gamma)^))")
 (assume "(alpha yprod gamma)^" "ExDTMRHyp")
+(ng)
 (elim "ExDTMRHyp")
 (ng)
 (assume "alpha" "gamma^" "Hyp")
@@ -6360,20 +6998,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save "ExDTMRElim")
-
-;; ;; ExDTMRElim
-;; (set-goal "all (alpha yprod gamma)^(
-;;      (ExDTMR (cterm (gamma^,alpha) (Pvar gamma alpha)^ gamma^ alpha))
-;;      (alpha yprod gamma)^ -> 
-;;      (Pvar gamma alpha)^(rht(alpha yprod gamma)^)
-;;      (lft(alpha yprod gamma)^))")
-;; (assume "(alpha yprod gamma)^" "ExDTMRHyp")
-;; (elim "ExDTMRHyp")
-;; (ng)
-;; (assume "alpha" "gamma^" "Hyp")
-;; (use "Hyp")
-;; ;; Proof finished.
-;; (save "ExDTMRElim")
 
 ;; ExLTMRElim
 (set-goal "allnc alpha((ExLTMR (cterm (alpha) (Pvar alpha)^ alpha))alpha ->
@@ -6387,7 +7011,7 @@
 (save "ExLTMRElim")
 
 ;; ExRTMRElim
-(set-goal "all alpha,gamma^((ExRTMR alpha
+(set-goal "allnc alpha,gamma^((ExRTMR alpha
   gamma
   (cterm (alpha_1,gamma^0) (Pvar alpha gamma)^ alpha_1 gamma^0))
   gamma^ ->
@@ -6428,7 +7052,7 @@
 (save "AndDMRElim")
 
 ;; AndLMRElim
-(set-goal "all beta1^(
+(set-goal "allnc beta1^(
  (AndLMR (cterm (beta1^0) (Pvar beta1)^ beta1^0) (cterm () Pvar^2))beta1^ ->
  (Pvar beta1)^ beta1^ andnc Pvar^2)")
 (assume "beta1^" "AndLMRHyp")
@@ -6441,30 +7065,8 @@
 ;; (cdp)
 (save "AndLMRElim")
 
-;; ;; AndLMRElimLeft
-;; (set-goal "all beta1^(
-;;  (AndLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar2))beta1^ ->
-;;  (Pvar beta1)^1 beta1^)")
-;; (assume "beta1^" "AndLMRHyp")
-;; (elim "AndLMRHyp")
-;; (assume "beta1^1" "Hyp1" "Hyp2")
-;; (use "Hyp1")
-;; ;; Proof finished.
-;; (save "AndLMRElimLeft")
-
-;; ;; AndLMRElimRight
-;; (set-goal "all beta1^(
-;;  (AndLMR (cterm (beta1^0) (Pvar beta1)^1 beta1^0) (cterm () Pvar^2))beta1^ ->
-;;  Pvar^2)")
-;; (assume "beta1^" "AndLMRHyp")
-;; (elim "AndLMRHyp")
-;; (assume "beta1^1" "Hyp1" "Hyp2")
-;; (use "Hyp2")
-;; ;; Proof finished.
-;; (save "AndLMRElimRight")
-
 ;; AndRMRElim
-(set-goal "all beta2^(
+(set-goal "allnc beta2^(
  (AndRMR (cterm () Pvar^1) (cterm (beta2^0) (Pvar beta2)^ beta2^0))beta2^ ->
   Pvar^1 andnc (Pvar beta2)^ beta2^)")
 (assume "beta2^" "AndRMRHyp")
@@ -6507,7 +7109,7 @@
 (save "OrDMRElim")
 
 ;; OrLMRElim
-(set-goal "all (beta1 ysumu)^(
+(set-goal "allnc (beta1 ysumu)^(
  (OrLMR (cterm (beta1^0) (Pvar beta1)^ beta1^0) (cterm () Pvar^))
  (beta1 ysumu)^ ->
  exnc beta1^((Pvar beta1)^ beta1^ andnc (beta1 ysumu)^ eqd Inl beta1^) ornc
@@ -6577,3 +7179,4 @@
 (save "OrUMRElim")
 
 (set! COMMENT-FLAG #t)
+
