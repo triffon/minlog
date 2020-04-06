@@ -1,4 +1,4 @@
-;; 2019-08-20.  boole.scm
+;; 2020-04-06.  boole.scm
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -889,11 +889,6 @@
 
 (define (yprod-form-to-right-type yprod-type)
   (cadr (alg-form-to-types yprod-type)))
-
-(define (yprod-form? x)
-  (and (alg-form? x)
-       (string=? "yprod" (alg-form-to-name x))
-       (= 2 (length (alg-form-to-types x)))))
 
 (define (mk-yprod . x)
   (cond ((null? x) (make-alg "unit"))
