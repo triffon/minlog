@@ -1,4 +1,4 @@
-;; 2019-08-24.  nat.scm
+;; 2020-04-06.  nat.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -1818,14 +1818,6 @@
 ;; (cdp)
 (save-totality)
 
-;; (cdp (proof-to-soundness-proof))
-;; (pp (rename-variables (proof-to-formula (proof-to-soundness-proof))))
-;; allnc n^,n^0(
-;;  TotalNatMR n^ n^0 -> 
-;;  allnc m^,n^1(
-;;   TotalNatMR m^ n^1 -> 
-;;   TotalNatMR(n^ +m^)((Rec nat=>nat)n^1 n^0([n^2,n^3]Succ n^3))))
-
 ;; NatPlusEqP
 (set-goal "allnc n^1,n^2(EqPNat n^1 n^2 -> allnc m^1,m^2(EqPNat m^1 m^2 ->
  EqPNat(n^1+m^1)(n^2+m^2)))")
@@ -1929,9 +1921,6 @@
 ;; Proof finished
 ;; (cdp)
 (save-totality)
-
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
 
 ;; Alternative, with AllTotalElim
 ;; (set-totality-goal "NatTimes")
@@ -2157,9 +2146,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
-
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
 
 ;; ;; Alternative, with AllTotalElim
 ;; (set-totality-goal "NatLt")
@@ -2394,9 +2380,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
-
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
 
 ;; ;; Alternative, with AllTotalElim
 ;; (set-totality-goal "NatLe")
@@ -2635,44 +2618,6 @@
 
 (animate "NatLtSuccCases")
 
-(define sproof (proof-to-soundness-proof))
-;; (cdp sproof)
-;; (pp (rename-variables (nf (proof-to-formula sproof))))
-
-;; allnc n,m(
-;;  n<Succ m -> 
-;;  allnc beta^(
-;;   (n<m -> (Pvar beta)^ beta^) -> 
-;;   allnc beta^0(
-;;    (n=m -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<m) beta^ beta^0])))
-
-;; (define nsproof (np sproof))
-;; (cdp nsproof)
-;; (proof-to-expr-with-formulas nsproof)
-
-(set-goal (rename-variables (nf (proof-to-formula sproof))))
-(use-with sproof)
-;; Proof finished.
-;; (cdp)
-(save "NatLtSuccCasesSound")
-
-;; (pp "NatLtSuccCasesSound")
-
-;; allnc n,m(
-;;  n<Succ m -> 
-;;  allnc beta^(
-;;   (n<m -> (Pvar beta)^ beta^) -> 
-;;   allnc beta^0(
-;;    (n=m -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<m) beta^ beta^0])))
-
-;; Remark.  (use sproof) does not work:
-;; use2-closed-proof-intern
-;; more terms expected, to be substituted for
-;; n
-;; m
-;; alpha185^1340
-;; alpha185^1341
-
 ;; NatLeCases
 (set-goal "all n,m(n<=m -> (n<m -> Pvar) -> (n=m -> Pvar) -> Pvar)")
 (assume "n" "m" "n<=m")
@@ -2698,17 +2643,6 @@
 
 (animate "NatLeCases")
 
-(define sproof (proof-to-soundness-proof))
-;; (cdp sproof)
-(pp (rename-variables (nf (proof-to-formula sproof))))
-
-;; allnc n,m(
-;;  n<=m -> 
-;;  allnc beta^(
-;;   (n<m -> (Pvar beta)^ beta^) -> 
-;;   allnc beta^0(
-;;    (n=m -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<m) beta^ beta^0])))
-
 ;; NatLeLtCases
 (set-goal "all n,m((n<=m -> Pvar) -> (m<n -> Pvar) -> Pvar)")
 (assume "n" "m")
@@ -2731,19 +2665,6 @@
 ;; [n,n0,beta,beta_0][if (n<=n0) beta beta_0]
 
 (animate "NatLeLtCases")
-
-;; (define sproof (proof-to-soundness-proof))
-;; (cdp sproof)
-;; (pp (rename-variables (nf (proof-to-formula sproof))))
-
-;; allnc n,m,beta^(
-;;  (n<=m -> (Pvar beta)^ beta^) -> 
-;;  allnc beta^0(
-;;   (m<n -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<=m) beta^ beta^0]))
-
-;; (define nsproof (np sproof))
-;; (cdp nsproof)
-;; (proof-to-expr-with-formulas nsproof)
 
 ;; NatLeLin
 (set-goal "all n,m((n<=m -> Pvar) -> (m<=n -> Pvar) -> Pvar)")
@@ -2768,19 +2689,6 @@
 ;; [n,n0,beta,beta_0][if (n<=n0) beta beta_0]
 
 (animate "NatLeLin")
-
-;; (define sproof (proof-to-soundness-proof))
-;; (cdp sproof)
-;; (pp (rename-variables (nf (proof-to-formula sproof))))
-
-;; allnc n,m,beta^(
-;;  (n<=m -> (Pvar beta)^ beta^) -> 
-;;  allnc beta^0(
-;;   (m<=n -> (Pvar beta)^ beta^0) -> (Pvar beta)^[if (n<=m) beta^ beta^0]))
-
-;; (define nsproof (np sproof))
-;; (cdp nsproof)
-;; (proof-to-expr-with-formulas nsproof)
 
 ;; NatLtToLePred
 (set-goal "all n,m(n<m -> n<=Pred m)")
@@ -2906,9 +2814,6 @@
 ;; (cdp)
 (save-totality)
 
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
-
 ;; ;; Alternative, with AllTotalElim
 ;; (set-totality-goal "Pred")
 ;; (use "AllTotalElim")
@@ -2945,9 +2850,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
-
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
 
 ;; ;; Alternative, with AllTotalElim
 ;; (set-totality-goal "NatMinus")
@@ -3036,9 +2938,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
-
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
 
 ;; ;; Alternative, with AllTotalElim
 ;; (set-totality-goal "NatMax")
@@ -3237,9 +3136,6 @@
 ;; (cdp)
 (save-totality)
 
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
-
 ;; ;; Alternative, with AllTotalElim
 ;; (set-totality-goal "NatMin")
 ;; (assert "allnc nat^(
@@ -3397,23 +3293,6 @@
 ;; (cdp)
 (save "NatIfTotal")
 
-;; (define sproof (proof-to-soundness-proof))
-;; (cdp sproof)
-;; (pp (rename-variables (nf (proof-to-formula sproof))))
-
-;; allnc n^,n^0(
-;;  TotalNatMR n^ n^0 -> 
-;;  allnc alpha^,(nat=>alpha)^0,x^(
-;;   TotalMR alpha^ x^ -> 
-;;   allnc (nat=>alpha)^1(
-;;    allnc m^,n^1(
-;;     TotalNatMR m^ n^1 -> TotalMR((nat=>alpha)^0 m^)((nat=>alpha)^1 n^1)) -> 
-;;    TotalMR[if n^ alpha^ (nat=>alpha)^0][if n^0 x^ (nat=>alpha)^1])))
-
-;; (define nsproof (np sproof))
-;; (cdp nsproof)
-;; (proof-to-expr-with-formulas nsproof)
-
 ;; NatEqTotal
 (set-goal "allnc n^(
  TotalNat n^ -> allnc m^(TotalNat m^ -> TotalBoole(n^ =m^)))")
@@ -3433,9 +3312,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save "NatEqTotal")
-
-;; (cdp (proof-to-soundness-proof))
-;; (proof-to-expr-with-formulas (np (proof-to-soundness-proof)))
 
 ;; ;; Alternative, with AllTotalElim
 ;; (set-goal "allnc n^(
@@ -3575,18 +3451,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save "OrElim")
-
-(define sproof (proof-to-soundness-proof))
-;; (cdp sproof)
-;; (proof-to-expr-with-formulas sproof)
-;; (define nsproof (np sproof))
-;; (proof-to-expr-with-formulas nsproof)
-
-(set-goal (rename-variables (nf (proof-to-formula sproof))))
-(use-with sproof)
-;; Proof finished.
-;; (cdp)
-(save "OrElimSound")
 
 ;; IfAndb
 (set-goal "all boole1,boole2 [if boole1 boole2 False]=(boole1 andb boole2)")
@@ -4966,6 +4830,7 @@
 ;; 1
 
 (add-var-name "x" (py "alpha"))
+(add-var-name "xs" (py "nat=>alpha"))
 (add-var-name "f" (py "nat=>alpha=>alpha"))
 
 (set-goal (rename-variables (term-to-totality-formula (pt "(Rec nat=>alpha)"))))
@@ -4987,7 +4852,7 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 (animate "NatRecTotal")
 
@@ -5041,11 +4906,254 @@
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 ;; (Rec nat=>alpha)
 
 (animate "NatRecExt")
 ;; ok, computation rule (cNatRecExt alpha) -> (Rec nat=>alpha) added
+
+;; NatCasesExt
+(set-goal (rename-variables
+	   (nf (terms-to-eqp-formula
+		(pt "[n,x,xs][if n x xs]")
+		(pt "[n,x,xs][if n x xs]")))))
+
+;; allnc n^(
+;;      TotalNat n^ -> 
+;;      allnc x^,x^0(
+;;       EqP x^ x^0 -> 
+;;       allnc xs^,xs^0(
+;;        allnc n^0(TotalNat n^0 -> EqP(xs^ n^0)(xs^0 n^0)) -> 
+;;        EqP[if n^ x^ xs^][if n^ x^0 xs^0])))
+
+(assert "allnc x^,x^0(
+  EqP x^ x^0 -> 
+  allnc xs^,xs^0(
+   allnc n^0(TotalNat n^0 -> EqP(xs^ n^0)(xs^0 n^0)) -> 
+   allnc n^(
+    TotalNat n^ -> EqP[if n^ x^ xs^][if n^ x^0 xs^0])))")
+
+(assume "x^1" "x^2" "EqPx1x2" "xs^1" "xs^2" "EqPxs1xs2" "n^" "Tn")
+(elim "Tn")
+;; 5,6
+(ng #t)
+(use "EqPx1x2")
+;; 6
+(assume "n^1" "Tn1" "IH")
+(ng #t)
+(use "EqPxs1xs2")
+(use "Tn1")
+;; Assertion proved.
+(assume "Assertion"
+	"n^" "Tn" "x^1" "x^2" "EqPx1x2" "xs^1" "xs^2" "EqPxs1xs2")
+(use "Assertion")
+(use "EqPx1x2")
+(use "EqPxs1xs2")
+(use "Tn")
+;; Proof finished.
+;; (cdp)
+(save "NatCasesExt")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [n,x,xs][if n x xs]
+
+(animate "NatCasesExt")
+;; ok, computation rule (cNatCasesExt alpha) -> [n0,x1,xs2][if n0 x1 xs2] added
+
+;; NatDestrExt
+(set-goal (rename-variables
+	   (nf (terms-to-eqp-formula
+		(pt "(Destr nat)")
+		(pt "(Destr nat)")))))
+
+;; allnc n^(
+;;      TotalNat n^ -> 
+;;      (REqPUysum (cterm (n^0,n^1) EqPNat n^0 n^1))(Des n^)(Des n^))
+
+(assume "n^" "Tn")
+(elim "Tn")
+;; 3,4
+(ng)
+(use "REqPUysumDummyL")
+;; 4
+(assume "n^1" "Tn1" "IH")
+(ng)
+(use "REqPUysumInrUysum")
+(use "EqPNatRefl")
+(use "Tn1")
+;; Proof finished.
+;; (cdp)
+(save "NatDestrExt")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [n][if n (DummyL nat) ([n0]Inr(cEqPNatRefl n0))]
+
+(animate "EqPNatRefl")
+;; ok, computation rule cEqPNatRefl -> [n0](Rec nat=>nat)n0 0([n1]Succ) added
+
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [n][if n (DummyL nat) ([n0]Inr((Rec nat=>nat)n0 0([n1]Succ)))]
+
+(animate "NatDestrExt")
+
+;; ok, computation rule cNatDestrExt ->
+;; [n0][if n0 (DummyL nat) ([n1]Inr((Rec nat=>nat)n1 0([n2]Succ)))] added
+
+(add-var-name "w" (py "gamma"))
+(add-var-name "g" (py "gamma=>uysum(nat ysum gamma)"))
+
+;; We need NatCoRec0 NatCoRec1L NatCoRec1R from testsoundness19.scm
+
+;; NatCoRec0
+(set-goal "all g^,w^(g^ w^ eqd(DummyL nat ysum gamma) ->
+ (CoRec gamma=>nat)w^ g^ eqd Zero)")
+(assume "g^" "w^" "EqHyp")
+(simp-with (make-proof-in-aconst-form
+	    (alg-or-arrow-types-to-corec-aconst (py "gamma=>nat"))))
+(ng)
+(simp-with "EqHyp")
+(ng)
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "NatCoRec0")
+
+;; NatCoRec1L
+(set-goal "all g^,w^,n^(g^ w^ eqd((Inr((InL nat gamma)n^))) ->
+ (CoRec gamma=>nat)w^ g^ eqd Succ n^)")
+(assume "g^" "w^" "n^" "EqHyp")
+(simp-with (make-proof-in-aconst-form
+	    (alg-or-arrow-types-to-corec-aconst (py "gamma=>nat"))))
+(ng)
+(simp-with "EqHyp")
+(ng)
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "NatCoRec1L")
+
+;; NatCoRec1R
+(set-goal "all g^,w^,w^1(g^ w^ eqd((Inr((InR gamma nat)w^1))) ->
+ (CoRec gamma=>nat)w^ g^ eqd Succ((CoRec gamma=>nat)w^1 g^))")
+(assume "g^" "w^" "w^1" "EqHyp1")
+(assert "all n^(Succ((CoRec gamma=>nat)w^1 g^) eqd n^ ->
+ (CoRec gamma=>nat)w^ g^ eqd n^)")
+ (assume "n^" "EqHyp2")
+ (simp-with (make-proof-in-aconst-form
+ 	    (alg-or-arrow-types-to-corec-aconst (py "gamma=>nat"))))
+ (ng)
+ (simp "EqHyp1")
+ (ng)
+ (use "EqHyp2")
+(assume "Assertion")
+(use "Assertion")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "NatCoRec1R")
+
+;; NatCoRecExt
+(set-goal "allnc g^1,g^2(
+     allnc w^1,w^2(
+      EqP w^1 w^2 -> 
+      g^1 w^1 eqd(DummyL nat ysum gamma) andnc 
+      g^2 w^2 eqd(DummyL nat ysum gamma) orr 
+      exr n^1,n^2(
+       g^1 w^1 eqd Inr((InL nat gamma)n^1) andr 
+       g^2 w^2 eqd Inr((InL nat gamma)n^2) andr CoEqPNat n^1 n^2) ord 
+      exr w^3,w^4(
+       g^1 w^1 eqd Inr((InR gamma nat)w^3) andr 
+       g^2 w^2 eqd Inr((InR gamma nat)w^4) andr EqP w^3 w^4)) -> 
+     allnc n^1,n^2(
+      exr w^1,w^2(
+       n^1 eqd(CoRec gamma=>nat)w^1 g^1 andr 
+       n^2 eqd(CoRec gamma=>nat)w^2 g^2 andr EqP w^1 w^2) -> 
+      CoEqPNat n^1 n^2))")
+(assume "g^1" "g^2" "EqPg1g2" "n^1" "n^2")
+(use (imp-formulas-to-coind-proof
+   (pf "exr w^1,w^2( n^1 eqd(CoRec gamma=>nat)w^1 g^1 andi
+                     n^2 eqd(CoRec gamma=>nat)w^2 g^2 andi EqP w^1 w^2) ->
+        CoEqPNat n^1 n^2")))
+(assume "n^3" "n^4" "ExHyp")
+(by-assume "ExHyp" "w^1" "w1Prop")
+(by-assume "w1Prop" "w^2" "w1w2Prop")
+(assert "EqP w^1 w^2")
+(use "w1w2Prop")
+(assume "EqPw1w2")
+(inst-with-to "EqPg1g2" (pt "w^1") (pt "w^2")  "EqPw1w2" "EqPg1g2Inst")
+(drop "EqPg1g2")
+(elim "EqPg1g2Inst")
+;; 17,18
+(drop "EqPg1g2Inst")
+(assume "Conj")
+(intro 0)
+(split)
+;; 21,22
+(simp "w1w2Prop")
+(use "NatCoRec0")
+(use "Conj")
+;; 22
+(simp "w1w2Prop")
+(use "NatCoRec0")
+(use "Conj")
+;; 18
+(drop "EqPg1g2Inst")
+(assume "Disj")
+(intro 1)
+(elim "Disj")
+;; 31,32
+(drop "Disj")
+(assume "ExHypL")
+(by-assume "ExHypL" "n^5" "n5Prop")
+(by-assume "n5Prop" "n^6" "n5n6Prop")
+(simp "w1w2Prop")
+(simp "w1w2Prop")
+(intro 0 (pt "n^5"))
+(intro 0 (pt "n^6"))
+(split)
+(intro 0)
+(use "n5n6Prop")
+(split)
+(use "NatCoRec1L")
+(use "n5n6Prop")
+(use "NatCoRec1L")
+(use "n5n6Prop")
+;; 32
+(drop "Disj")
+(assume "ExHypR")
+(by-assume "ExHypR" "w^3" "w3Prop")
+(by-assume "w3Prop" "w^4" "w3w4Prop")
+(simp "w1w2Prop")
+(simp "w1w2Prop")
+(intro 0 (pt "(CoRec gamma=>nat)w^3 g^1"))
+(intro 0 (pt "(CoRec gamma=>nat)w^4 g^2"))
+(split)
+(intro 1)
+(intro 0 (pt "w^3"))
+(intro 0 (pt "w^4"))
+(split)
+(use "InitEqD")
+(split)
+(use "InitEqD")
+(use "w3w4Prop")
+(split)
+(use "NatCoRec1R")
+(use "w3w4Prop")
+(use "NatCoRec1R")
+(use "w3w4Prop")
+;; Proof finished.
+;; (cdp)
+(save "NatCoRecExt")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+;; [g,w](CoRec gamma=>nat)w g
 
 ;; NatDouble
 (add-program-constant "NatDouble" (py "nat=>nat"))
@@ -5066,12 +5174,6 @@
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
-
-;; (cdp (proof-to-soundness-proof))
-;; (pp (rename-variables (proof-to-formula (proof-to-soundness-proof))))
-;; allnc n^,n^0(
-;;  TotalNatMR n^ n^0 -> 
-;;  TotalNatMR(NatDouble n^)((Rec nat=>nat)n^0 0([n^1,n^2]Succ(Succ n^2))))
 
 ;; NatMaxDouble
 (set-goal "all n,m NatDouble n max NatDouble m=NatDouble(n max m)")
@@ -5555,11 +5657,6 @@
 ;; (cdp)
 (save "CVIndPvar")
 
-;; (define sproof (proof-to-soundness-proof))
-;; (define nsproof (np sproof))
-;; (cdp nsproof)
-;; (proof-to-expr-with-formulas nsproof)
-
 ;; In CVInd we do not need an Efq assumption since EfEqD is avaiable
 ;; (pp "EfEqD")
 ;; F -> all alpha^,alpha^0 alpha^ eqd alpha^0
@@ -5796,14 +5893,19 @@
 
 ;; (display-default-varnames)
 
+;; w:   gamma
+;; g:   gamma=>uysum(nat ysum gamma)
 ;; f: 	nat=>alpha=>alpha
 ;; x: 	alpha
 ;; nf: 	nat=>nat
 ;; pf: 	nat=>boole
 ;; n: 	nat
 
+(remove-var-name "w")
+(remove-var-name "g")
 (remove-var-name "f")
 (remove-var-name "x")
+(remove-var-name "xs")
 (remove-var-name "pf")
 (remove-var-name "nf")
 
