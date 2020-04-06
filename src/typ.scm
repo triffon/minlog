@@ -1,4 +1,4 @@
-;; 2019-08-20.  typ.scm
+;; 2020-04-06.  typ.scm
 ;; 2. Types
 ;; ========
 
@@ -1513,6 +1513,23 @@
   (and (string=? "co" (substring name 0 2))
        (assoc (substring name 2 (string-length name)) ALGEBRAS)))
       
+;; A cotype is like a type, except that some alg-names have received a
+;; prefix co.  In formula-to-cotype this will indicate that at this
+;; point the companion of a c.r. idpredconst appears.
+
+(define (cotype-to-co-free? cotype)
+  (case (tag cotype)
+    ((tvar tconst) #t)
+    ((alg) (let* ((name (alg-form-to-name cotype))
+		  (cotypes (alg-form-to-types cotype)))
+	     (and (not (coalg-name? name))
+		  (apply and-op (map cotype-to-co-free? cotypes)))))
+    ((arrow) (and (cotype-to-co-free? (arrow-form-to-arg-type cotype))
+		  (cotype-to-co-free? (arrow-form-to-val-type cotype))))
+    ((star) (and (cotype-to-co-free? (star-form-to-left-type cotype))
+		 (cotype-to-co-free? (star-form-to-right-type cotype))))
+    (else (myerror "cotype-to-co-free?" "cotype expected" cotype))))
+
 (define (cotype-to-type cotype)
   (case (tag cotype)
     ((tvar tconst) cotype)
