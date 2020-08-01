@@ -1,4 +1,4 @@
-;; 2020-04-06.  term.scm
+;; 2020-07-10.  term.scm
 ;; 6. Terms
 ;; ========
 
@@ -6192,6 +6192,139 @@ intDestr n | n > 0  = Left n
 	  #t))))
    (else (myerror "check-term" "term expected" x))))
 
+;; Code discarded 2020-07-10
+;; (define (check-term x . excluded-vars)
+;;   (if (not (pair? x)) (myerror "check-term" "term expected"))
+;;   (cond
+;;    ((term-in-var-form? x)
+;;     (if (member (term-in-var-form-to-var x) excluded-vars) #t
+;; 	(let ((var (term-in-var-form-to-var x)))
+;; 	  (if (not (var? var))
+;; 	      (myerror "check term" "variable expected" var))
+;; 	  (if (t-deg-one? (var-to-t-deg var))
+;; 	      (check-restricted-var var))
+;; 	  (if (not (equal? (term-to-type x) (var-to-type var)))
+;; 	      (myerror "check-term" "equal types expected"
+;; 		       (term-to-type x) (var-to-type var)))
+;; 	  #t)))
+;;    ((term-in-const-form? x)
+;;     (let ((const (term-in-const-form-to-const x)))
+;;       (if (not (const? const))
+;; 	  (myerror "check-term" "constant expected" const))
+;;       (if (not (equal? (term-to-type x) (const-to-type const)))
+;; 	  (myerror "check-term" "equal types expected"
+;; 		   (term-to-type x) (const-to-type const))))
+;;     #t)
+;;    ((term-in-abst-form? x)
+;;     (let ((var (term-in-abst-form-to-var x))
+;; 	  (kernel (term-in-abst-form-to-kernel x)))
+;;       (if (not (var? var))
+;; 	  (myerror "check-term" "variable expected" var))
+;;       (if (t-deg-zero? (var-to-t-deg var))
+;; 	  (apply check-term kernel excluded-vars)
+;; 	  (let* ((new-var (var-to-new-partial-var var))
+;; 		 (new-kernel (term-subst
+;; 			      kernel var (make-term-in-var-form new-var))))
+;; 	    (apply check-term new-kernel new-var excluded-vars)))
+;;       (let ((var-type (var-to-type var))
+;; 	    (kernel-type (term-to-type kernel)))
+;; 	(if (not (equal? (make-arrow var-type kernel-type)
+;; 			 (term-to-type x)))
+;; 	    (myerror "check-term" "equal types expected"
+;; 		     (make-arrow var-type kernel-type)
+;; 		     (term-to-type x))))
+;;       #t))
+;;    ((term-in-app-form? x)
+;;     (let ((op (term-in-app-form-to-op x))
+;; 	  (arg (term-in-app-form-to-arg x)))
+;;       (apply check-term op excluded-vars)
+;;       (apply check-term arg excluded-vars)
+;;       (let ((op-type (term-to-type op))
+;; 	    (arg-type (term-to-type arg)))
+;; 	(if (not (arrow-form? op-type))
+;; 	    (myerror "check-term" "arrow type expected" op-type))
+;; 	(if (not (equal? (arrow-form-to-arg-type op-type) arg-type))
+;; 	    (myerror "check-term" "equal types expected"
+;; 		     (arrow-form-to-arg-type op-type)
+;; 		     arg-type))
+;; 	(if (not (equal? (term-to-type x)
+;; 			 (arrow-form-to-val-type op-type)))
+;; 	    (myerror "check-term" "equal types expected"
+;; 		     (term-to-type x)
+;; 		     (arrow-form-to-val-type op-type)))))
+;;     #t)
+;;    ((term-in-pair-form? x)
+;;     (let ((left (term-in-pair-form-to-left x))
+;; 	  (right (term-in-pair-form-to-right x)))
+;;       (apply check-term left excluded-vars)
+;;       (apply check-term right excluded-vars)
+;;       (let ((left-type (term-to-type left))
+;; 	    (right-type (term-to-type right)))
+;; 	(if (not (equal? (term-to-type x)
+;; 			 (make-star left-type right-type)))
+;; 	    (myerror "check-term" "equal types expected"
+;; 		     (term-to-type x)
+;; 		     (make-star left-type right-type))))
+;;       #t))
+;;    ((term-in-lcomp-form? x)
+;;     (let ((kernel (term-in-lcomp-form-to-kernel x)))
+;;       (apply check-term kernel excluded-vars)
+;;       (let ((kernel-type (term-to-type kernel)))
+;; 	(if (not (star-form? kernel-type))
+;; 	    (myerror "check-term" "star form expected" kernel-type))
+;; 	(if (not (equal? (term-to-type x)
+;; 			 (star-form-to-left-type kernel-type)))
+;; 	    (myerror "check-term" "equal types expected"
+;; 		     (term-to-type x)
+;; 		     (star-form-to-left-type kernel-type)))))
+;;     #t)
+;;    ((term-in-rcomp-form? x)
+;;     (let ((kernel (term-in-rcomp-form-to-kernel x)))
+;;       (apply check-term kernel excluded-vars)
+;;       (let ((kernel-type (term-to-type kernel)))
+;; 	(if (not (star-form? kernel-type))
+;; 	    (myerror "check-term" "star form expected" kernel-type))
+;; 	(if (not (equal? (term-to-type x)
+;; 			 (star-form-to-right-type kernel-type)))
+;; 	    (myerror "check-term" "equal types expected"
+;; 		     (term-to-type x)
+;; 		     (star-form-to-right-type kernel-type)))))
+;;     #t)
+;;    ((term-in-if-form? x)
+;;     (let ((test (term-in-if-form-to-test x))
+;; 	  (alts (term-in-if-form-to-alts x))
+;; 	  (rest (term-in-if-form-to-rest x)))
+;;       (apply check-term test excluded-vars)
+;;       (map (lambda (x) (apply check-term x excluded-vars)) alts)
+;;       (let ((test-type (term-to-type test)))
+;; 	(if (not (alg-form? test-type))
+;; 	    (myerror "check-term" "algebra form expected" test-type))
+;; 	(let* ((alg-name (alg-form-to-name test-type))
+;; 	       (typed-constr-names (alg-name-to-typed-constr-names alg-name))
+;; 	       (constr-types (map typed-constr-name-to-type typed-constr-names))
+;; 	       (types (alg-form-to-types test-type))
+;; 	       (tvars (alg-name-to-tvars alg-name))
+;; 	       (tsubst (map list tvars types))
+;; 	       (tsubst-constr-types
+;; 		(map (lambda (x) (type-substitute x tsubst)) constr-types))
+;; 	       (tsubst-constr-argtypes-list
+;; 		(map (lambda (tsubst-constr-type)
+;; 		       (arrow-form-to-arg-types tsubst-constr-type))
+;; 		     tsubst-constr-types))
+;; 	       (alt-types (map term-to-type alts))
+;; 	       (val-type (term-to-type x))
+;; 	       (expected-alt-types (map (lambda (tsubst-constr-argtypes)
+;; 					  (apply mk-arrow
+;; 						 (append tsubst-constr-argtypes
+;; 							 (list val-type))))
+;; 					tsubst-constr-argtypes-list)))
+;; 	  (if (not (equal? alt-types expected-alt-types))
+;; 	      (apply myerror "check-term" "equal types expected" "alt-types:"
+;; 		     (append alt-types (list "and expected-alt-types:")
+;; 			     expected-alt-types)))
+;; 	  #t))))
+;;    (else (myerror "check-term" "term expected" x))))
+
 ;; term? is a complete test for terms.  Returns true or false.
 
 (define (term? x)
@@ -6992,7 +7125,8 @@ intDestr n | n > 0  = Left n
 		 (and prev
 		      (formula=? instance
 				 (unfold-formula
-				  (formula-substitute pattern prev)))
+				  (formula-substitute pattern prev))
+				 ignore-deco-flag)
 		      prev)))
 	      (else #f)))))))
       ((atom-form? pattern)
