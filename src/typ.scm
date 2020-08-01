@@ -1,4 +1,4 @@
-;; 2020-04-06.  typ.scm
+;; 2020-07-08.  typ.scm
 ;; 2. Types
 ;; ========
 
@@ -1548,19 +1548,33 @@
 		(cotype-to-type(star-form-to-right-type cotype))))
     (else (myerror "cotype-to-type" "cotype expected" cotype))))
 
-(define (alg-name-to-recursive? alg-name . opt-rec-names)
-  (or 
-   (member alg-name opt-rec-names)
-   (let* ((typed-constr-names (alg-name-to-typed-constr-names alg-name))
-	  (constr-types (map typed-constr-name-to-type typed-constr-names))
-	  (arg-types (apply union (map arrow-form-to-arg-types constr-types)))
-	  (arg-val-types (map arrow-form-to-final-val-type arg-types))
-	  (arg-val-algs (list-transform-positive arg-val-types alg-form?))
-	  (arg-val-alg-names (map alg-form-to-name arg-val-algs)))
-     (apply or-op
-	    (map (lambda (name)
-		   (apply alg-name-to-recursive? name alg-name opt-rec-names))
-		 arg-val-alg-names)))))
+(define (type-to-cotype type)
+  (case (tag type)
+    ((tvar tconst) type)
+    ((alg)
+     (let* ((name (alg-form-to-name type))
+	    (coalg-name (if (coalg-name? name)
+			    name
+			    (string-append "co" name))))
+       (apply make-alg coalg-name
+	      (map type-to-cotype (alg-form-to-types type)))))
+    ((arrow)
+     (make-arrow (type-to-cotype (arrow-form-to-arg-type type))
+		 (type-to-cotype (arrow-form-to-val-type type))))
+    ((star)
+     (make-star (type-to-cotype (star-form-to-left-type type))
+		(type-to-cotype (star-form-to-right-type type))))
+    (else (myerror "type-to-cotype" "type expected" type))))
+
+(define (alg-name-to-recursive? alg-name)
+  (let* ((typed-constr-names (alg-name-to-typed-constr-names alg-name))
+	 (constr-types (map typed-constr-name-to-type typed-constr-names))
+	 (arg-types (apply union (map arrow-form-to-arg-types constr-types)))
+	 (arg-val-types (map arrow-form-to-final-val-type arg-types))
+	 (arg-val-algs (list-transform-positive arg-val-types alg-form?))
+	 (arg-val-alg-names (map alg-form-to-name arg-val-algs))
+	 (simalg-names (alg-name-to-simalg-names alg-name)))
+    (pair? (intersection arg-val-alg-names simalg-names))))
 
 ;; (alg-name-to-recursive? "yprod")
 ;; (alg-name-to-recursive? "nat")
