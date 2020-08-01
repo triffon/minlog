@@ -1,4 +1,4 @@
-;; 2020-04-06.  list.scm.
+;; 2020-07-17.  list.scm.
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -9,8 +9,6 @@
     (myerror "First execute (libload \"nat.scm\")"))
 
 (display "loading list.scm ...") (newline)
-
-(add-rtotalnc "yprod")
 
 (add-algs "list" 'prefix-typeop
 	  '("list" "Nil")
@@ -161,7 +159,7 @@
 
 ;; RTotalList (R: c.r.)      \typeL{\alpha}
 ;; NTotalList (N: n.c.)      \typeN
-;; NTotalListNc              --
+;; RTotalListNc              --
 
 (add-ids
  (list (list "RTotalList" (make-arity (py "list alpha")) "list"))
@@ -200,22 +198,22 @@
 ;;   (NTotalList (cterm (x^0) (Pvar alpha)^ x^0))(x^ ::xs^)))
 
 (add-ids
- (list (list "NTotalListNc" (make-arity (py "list alpha"))))
- '("NTotalListNc (Nil alpha)" "NTotalListNcNil")
- '("allnc x^((Pvar alpha)^ x^ -> allnc xs^(NTotalListNc xs^ ->
-    NTotalListNc(x^ ::xs^)))"
-  "NTotalListNcCons"))
+ (list (list "RTotalListNc" (make-arity (py "list alpha"))))
+ '("RTotalListNc (Nil alpha)" "RTotalListNcNil")
+ '("allnc x^((Pvar alpha)^ x^ -> allnc xs^(RTotalListNc xs^ ->
+    RTotalListNc(x^ ::xs^)))"
+  "RTotalListNcCons"))
  
-(pp "NTotalListNcNil")
-;; (NTotalListNc (cterm (x^) (Pvar alpha)^ x^))(Nil alpha)
+(pp "RTotalListNcNil")
+;; (RTotalListNc (cterm (x^) (Pvar alpha)^ x^))(Nil alpha)
 
-(pp "NTotalListNcCons")
+(pp "RTotalListNcCons")
 
 ;; allnc x^(
 ;;  (Pvar alpha)^ x^ -> 
 ;;  allnc xs^(
-;;   (NTotalListNc (cterm (x^0) (Pvar alpha)^ x^0))xs^ -> 
-;;   (NTotalListNc (cterm (x^0) (Pvar alpha)^ x^0))(x^ ::xs^)))
+;;   (RTotalListNc (cterm (x^0) (Pvar alpha)^ x^0))xs^ -> 
+;;   (RTotalListNc (cterm (x^0) (Pvar alpha)^ x^0))(x^ ::xs^)))
 
 ;; 1-1-1-1-2.  Definitions of predicates without cterms
 ;; ====================================================
@@ -287,7 +285,7 @@
 
 (add-co "RTotalList")
 (add-co "NTotalList")
-(add-co "NTotalListNc")
+(add-co "RTotalListNc")
 (add-co "TotalList")
 (add-co "ANTotalList")
 (add-co "STotalList")
@@ -297,7 +295,7 @@
 (for-each pp (list
 "CoRTotalListClause"
 "CoNTotalListClause"
-"CoNTotalListNcClause"
+"CoRTotalListNcClause"
 "CoTotalListClause"
 "CoANTotalListClause"
 "CoSTotalListClause"
@@ -323,12 +321,12 @@
 ;;    xs^ eqd(x^ ::xs^0))))
 
 ;; allnc xs^(
-;;  (CoNTotalListNc (cterm (x^) (Pvar alpha)^ x^))xs^ -> 
+;;  (CoRTotalListNc (cterm (x^) (Pvar alpha)^ x^))xs^ -> 
 ;;  xs^ eqd(Nil alpha) ornc 
 ;;  exnc x^(
 ;;   (Pvar alpha)^ x^ andnc 
 ;;   exnc xs^0(
-;;    (CoNTotalListNc (cterm (x^0) (Pvar alpha)^ x^0))xs^0 andnc 
+;;    (CoRTotalListNc (cterm (x^0) (Pvar alpha)^ x^0))xs^0 andnc 
 ;;    xs^ eqd(x^ ::xs^0))))
 
 ;; allnc xs^(
@@ -506,7 +504,7 @@
 
 ;; REqPList (R: c.r.)      \typeL{\alpha}
 ;; NEqPList (N: n.c.)      \typeN
-;; NEqPListNc              --
+;; REqPListNc              --
 
 (add-ids
  (list
@@ -550,25 +548,25 @@
 
 (add-ids
  (list
-  (list "NEqPListNc" (make-arity (py "list alpha") (py "list alpha"))))
- '("NEqPListNc(Nil alpha)(Nil alpha)" "NEqPListNcNil")
+  (list "REqPListNc" (make-arity (py "list alpha") (py "list alpha"))))
+ '("REqPListNc(Nil alpha)(Nil alpha)" "REqPListNcNil")
  '("allnc x^1,x^2((Pvar alpha alpha)^ x^1 x^2 ->
-    allnc xs^1,xs^2(NEqPListNc xs^1 xs^2 ->
-                    NEqPListNc(x^1 ::xs^1)(x^2 ::xs^2)))"
-   "NEqPListNcCons"))
+    allnc xs^1,xs^2(REqPListNc xs^1 xs^2 ->
+                    REqPListNc(x^1 ::xs^1)(x^2 ::xs^2)))"
+   "REqPListNcCons"))
 
-(pp "NEqPListNcNil")
+(pp "REqPListNcNil")
 
-;; (NEqPListNc (cterm (x^,x^0) (Pvar alpha alpha)^ x^ x^0))(Nil alpha)
+;; (REqPListNc (cterm (x^,x^0) (Pvar alpha alpha)^ x^ x^0))(Nil alpha)
 ;; (Nil alpha)
 
-(pp "NEqPListNcCons")
+(pp "REqPListNcCons")
 
 ;; allnc x^,x^0(
 ;;  (Pvar alpha alpha)^ x^ x^0 -> 
 ;;  allnc xs^,xs^0(
-;;   (NEqPListNc (cterm (x^1,x^2) (Pvar alpha alpha)^ x^1 x^2))xs^ xs^0 -> 
-;;   (NEqPListNc (cterm (x^1,x^2) (Pvar alpha alpha)^ x^1 x^2))(x^ ::xs^)
+;;   (REqPListNc (cterm (x^1,x^2) (Pvar alpha alpha)^ x^1 x^2))xs^ xs^0 -> 
+;;   (REqPListNc (cterm (x^1,x^2) (Pvar alpha alpha)^ x^1 x^2))(x^ ::xs^)
 ;;   (x^0::xs^0)))
 
 ;; 2-1-1-1-2.  Definitions of predicates without cterms
@@ -659,7 +657,7 @@
 
 (add-co "REqPList")
 (add-co "NEqPList")
-(add-co "NEqPListNc")
+(add-co "REqPListNc")
 (add-co "EqPList")
 (add-co "ANEqPList")
 (add-co "SEqPList")
@@ -669,7 +667,7 @@
 (for-each pp (list
 "CoREqPListClause"
 "CoNEqPListClause"
-"CoNEqPListNcClause"
+"CoREqPListNcClause"
 "CoEqPListClause"
 "CoANEqPListClause"
 "CoSEqPListClause"
@@ -1178,6 +1176,7 @@
 (use "InitEqD")
 ;; Proof finished.
 ;; (cdp)
+
 (add-rewrite-rule "xs1++x^2: ++xs^2" "xs1++(x^2::xs^2)")
 
 ;; In the other direction this rule would lead to non-termination, if
@@ -1413,6 +1412,52 @@
 ;; (cdp)
 (save-totality)
 
+;; Since InhabTotal was used, totality of (ListProj tau) requires that
+;; tau is a closed type with a total inhabitant (e.g. streams of booleans
+;; are not allowed).  This remark also applies to ListBar ListHead ListLast
+
+;; ListProjExtNc
+(set-goal
+ (make-imp
+  (pf "EqPNc(Inhab alpha)(Inhab alpha)")
+  (rename-variables (term-to-pure-extnc-formula (pt "(ListProj alpha)")))))
+
+;; EqPNc(Inhab alpha)(Inhab alpha) -> allnc n^,n^0(
+;;      EqPNatNc n^ n^0 -> 
+;;      allnc xs^,xs^0(
+;;       (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))xs^ xs^0 -> 
+;;       EqPNc(n^ thof xs^)(n^0 thof xs^0)))
+
+(assume "InhabExtNc")
+(assert "allnc xs^,xs^0(
+     (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))xs^ xs^0 -> 
+     allnc n^,n^0(EqPNatNc n^ n^0 -> EqPNc(n^ thof xs^)(n^0 thof xs^0)))")
+(assume "xs^1" "xs^2" "xs1=xs2")
+(elim "xs1=xs2")
+;; 6,7
+(assume "n^1" "n^2" "n1=n2")
+(ng #t)
+(use "InhabExtNc")
+;; 7
+(assume "x^1" "x^2" "x1=x2" "xs^3" "xs^4" "xs3=xs4" "IH" "n^1" "n^2" "n1=n2")
+(elim "n1=n2")
+;; 11,12
+(ng #t)
+(use "x1=x2")
+;; 12
+(assume "n^3" "n^4" "n3=n4" "IHn")
+(ng #t)
+(use "IH")
+(use "n3=n4")
+;; Assertion proved.
+(assume "Assertion" "n^1" "n^2" "n1=n2" "xs^1" "xs^2" "xs1=xs2")
+(use "Assertion")
+(use "xs1=xs2")
+(use "n1=n2")
+;; Proof finished.
+;; (cdp)
+(save "ListProjExtNc")	
+
 ;; ListProjAppdLeft
 (set-goal "all xs1,n,xs2(n<Lh xs1 -> (n thof(xs1++xs2))eqd(n thof xs1))")
 (ind)
@@ -1443,6 +1488,42 @@
 ;; Proof finished.
 ;; (cdp)
 (save "ListProjAppdRight")
+
+;; Usage of InhabTotal in the proof of totality of (ListProj tau) can be
+;; avoided if tau is a closed type with a total inhabitant.  Example:
+
+(add-program-constant "ListNatProj" (py "nat=>list nat=>nat") t-deg-zero)
+
+(add-computation-rules
+ "ListNatProj n(Nil nat)" "0"
+ "ListNatProj 0 (n::ns)" "n"
+ "ListNatProj(Succ n)(n0::ns)" "ListNatProj n ns")
+
+(set-totality-goal "ListNatProj")
+(assert "allnc ns^(TotalList ns^ -> allnc n^(TotalNat n^ -> 
+         TotalNat(ListNatProj n^ ns^)))")
+(assume "ns^" "Tns")
+(elim "Tns")
+;; 5,6
+(ng)
+(assume "n^" "Tn")
+(intro 0)
+;; 6
+(assume "n^" "Tn" "ns^1" "Tns1" "IH" "n^1" "Tn1")
+(elim "Tn1")
+;; 10,11
+(ng)
+(use "Tn")
+;; 11
+(assume "n^2" "Tn2" "Useless")
+(ng)
+(use "IH")
+(use "Tn2")
+;; Assertion proved.
+(search)
+;; Proof finished.
+;; (cdp)
+(save-totality)
 
 (add-program-constant
  "ListFBar" (py "(nat=>alpha)=>nat=>list alpha") t-deg-zero)
@@ -1515,65 +1596,53 @@
 
 ;; Moreover we have extensionality of ListFBar:
 
-;; ListFBarExt
-(set-goal (rename-variables (terms-to-eqp-formula (pt "(ListFBar alpha)")
-						  (pt "(ListFBar alpha)"))))
+;; ListFBarExtNc
+(set-goal
+ (rename-variables (term-to-pure-extnc-formula (pt "(ListFBar alpha)"))))
 
 ;; allnc xf^,xf^0(
-;;      allnc n^(TotalNat n^ -> EqP(xf^ n^)(xf^0 n^)) -> 
-;;      allnc n^(
-;;       TotalNat n^ -> 
-;;       (REqPList (cterm (x^,x^0) EqP x^ x^0))(xf^ fbar n^)(xf^0 fbar n^)))
+;;      allnc n^,n^0(EqPNatNc n^ n^0 -> EqPNc(xf^ n^)(xf^0 n^0)) -> 
+;;      allnc n^,n^0(
+;;       EqPNatNc n^ n^0 -> 
+;;       (REqPListNc (cterm (alpha^,alpha^0) EqPNc alpha^ alpha^0))(xf^ fbar n^)
+;;       (xf^0 fbar n^0)))
 
-(assert "allnc n^(
-     TotalNat n^ -> 
+(assert "allnc n^,n^0(
+     EqPNatNc n^ n^0 -> 
      allnc xf^,xf^0(
-      allnc n^0(TotalNat n^0 -> EqP(xf^ n^0)(xf^0 n^0)) -> 
-      (REqPList (cterm (x^,x^0) EqP x^ x^0))(xf^ fbar n^)(xf^0 fbar n^)))")
-(assume "n^" "Tn")
-(elim "Tn")
+      allnc n^1,n^2(EqPNatNc n^1 n^2 -> EqPNc(xf^ n^1)(xf^0 n^2)) -> 
+      (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))(xf^ fbar n^)
+      (xf^0 fbar n^0)))")
+(assume "n^1" "n^2" "n1=n2")
+(elim "n1=n2")
 ;; 5,6
 (assume "xf^1" "xf^2" "EqPHyp")
 (ng #t)
-(use "REqPListNil")
+(intro 0)
 ;; 6
-(assume "n^1" "Tn1" "IH" "xf^1" "xf^2" "EqPHyp")
+(assume "n^3" "n^4" "n3=n4" "IH" "xf^1" "xf^2" "EqPHyp")
 (ng #t)
 (use-with
- "REqPListCons"
- (py "alpha") (make-cterm (pv "x^1")  (pv "x^2") (pf "EqP x^1 x^2"))
+ "REqPListNcCons"
+ (py "alpha") (make-cterm (pv "x^1")  (pv "x^2") (pf "EqPNc x^1 x^2"))
  (pt "xf^1 0") (pt "xf^2 0") "?"
- (pt "([n]xf^1(Succ n))fbar n^1") (pt "([n]xf^2(Succ n))fbar n^1") "?")
+ (pt "([n]xf^1(Succ n))fbar n^3") (pt "([n]xf^2(Succ n))fbar n^4") "?")
 (use "EqPHyp")
-(use "TotalNatZero")
+(intro 0)
 (use "IH")
 (ng #t)
-(assume "n^2" "Tn2")
+(assume "n^5" "n^6" "n5=n6")
 (use "EqPHyp")
-(use "TotalNatSucc")
-(use "Tn2")
+(intro 1)
+(use "n5=n6")
 ;; Assertion proved.
-(assume "Assertion" "xf^1" "xf^2" "EqPHyp" "n^" "Tn")
+(assume "Assertion" "xf^1" "xf^2" "EqPHyp" "n^1" "n^2" "n1=n2")
 (use "Assertion")
-(use "Tn")
+(use "n1=n2")
 (use "EqPHyp")
 ;; Proof finished.
 ;; (cdp)
-(save "ListFBarExt")
-
-;; ok, ListFBarExt has been added as a new theorem.
-;; ok, program constant cListFBarExt: (nat=>alpha)=>nat=>list alpha
-;; of t-degree 1 and arity 0 added
-
-(define eterm (proof-to-extracted-term))
-(define neterm (rename-variables (nt eterm)))
-(pp neterm)
-
-;; [xf,n]
-;;  (Rec nat=>(nat=>alpha)=>list alpha)n([xf0](Nil alpha))
-;;  ([n0,((nat=>alpha)=>list alpha),xf0]
-;;    xf0 0::((nat=>alpha)=>list alpha)([n1]xf0(Succ n1)))
-;;  xf
+(save "ListFBarExtNc")
 
 (set-goal "all n allnc xf^ Lh(xf^ fbar n)=n")
 (ind)
@@ -1634,6 +1703,49 @@
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
+
+;; ListBarExtNc
+(set-goal
+ (make-imp
+  (pf "EqPNc(Inhab alpha)(Inhab alpha)")
+  (rename-variables (term-to-pure-extnc-formula (pt "(ListBar alpha)")))))
+
+;; EqPNc(Inhab alpha)(Inhab alpha) -> 
+;;     allnc xs^,xs^0(
+;;      (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))xs^ xs^0 -> 
+;;      allnc n^,n^0(
+;;       EqPNatNc n^ n^0 -> 
+;;       (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))(xs^ bar n^)(xs^0 bar n^0)))
+
+(assume "InhabExtNc" "xs^1" "xs^2" "xs1=xs2")
+(elim "xs1=xs2")
+;; 3,4
+(assume "n^1" "n^2" "n1=n2")
+(elim "n1=n2")
+(ng #t)
+(intro 0)
+;; 7
+(assume "n^3" "n^4" "n3=n4" "IH")
+(ng #t)
+(intro 1)
+(use "InhabExtNc")
+(use "IH")
+;; 4
+(assume "x^1" "x^2" "x1=x2" "xs^3" "xs^4" "xs3=xs4" "IH" "n^1" "n^2" "n1=n2")
+(elim "n1=n2")
+;; 14,15
+(ng #t)
+(intro 0)
+;; 15
+(assume "n^3" "n^4" "n3=n4" "IHn")
+(ng #t)
+(intro 1)
+(use "x1=x2")
+(use "IH")
+(use "n3=n4")
+;; Proof finished.
+;; (cdp)
+(save "ListBarExtNc")
 
 (set-goal "all xs,n Lh(xs bar n)=n")
 (ind)
@@ -1764,6 +1876,29 @@
 ;; Proof finished.
 ;; (cdp)
 (save "ListProjFBar")
+
+(add-var-name "nf" (py "nat=>nat"))
+
+;; ListNatProjFBar
+(set-goal "all l,n allnc nf^(n<l -> (ListNatProj n(nf^ fbar l))eqd nf^ n)")
+(ind)
+;; 2,3
+(assume "n" "nf^" "Absurd")
+(use "EfEqD")
+(use "Absurd")
+;; 3
+(assume "n" "IH")
+(cases)
+(ng #t)
+(strip)
+(use "InitEqD")
+(assume "m" "nf^" "m<n")
+(ng #t)
+(use "IH")
+(use "m<n")
+;; Proof finished.
+;; (cdp)
+(save "ListNatProjFBar")
 
 (add-var-name "psi" (py "alpha1=>list alpha1=>alpha2"))
 (add-var-name "y" (py "alpha1"))
@@ -2602,23 +2737,69 @@
 ;; (cdp)
 (save-totality)
 
+;; ListHeadExtNc
+(set-goal
+ (make-imp
+  (pf "EqPNc(Inhab alpha)(Inhab alpha)")
+  (rename-variables (term-to-pure-extnc-formula (pt "(ListHead alpha)")))))
+
+;; EqPNc(Inhab alpha)(Inhab alpha) -> 
+;;     allnc xs^,xs^0(
+;;      (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))xs^ xs^0 -> 
+;;      EqPNc(Head xs^)(Head xs^0))
+
+(assume "InhabExtNc" "xs^1" "xs^2" "xs1=xs2")
+(elim "xs1=xs2")
+;; 3,4
+(ng #t)
+(use "InhabExtNc")
+;; 4
+(assume "x^1" "x^2" "x1=x2" "xs^3" "xs^4" "xs3=xs4" "Useless")
+(ng #t)
+(use "x1=x2")
+;; Proof finished.
+;; (cdp)
+(save "ListHeadExtNc")
+
 (add-program-constant "ListTail" (py "list alpha=>list alpha") t-deg-zero)
 (add-prefix-display-string "ListTail" "Tail")
 (add-computation-rules
- "Tail(Nil alpha)" "(Inhab list alpha)"
+ "Tail(Nil alpha)" "(Nil alpha)"
  "Tail(x::xs)" "xs")
 
 (set-totality-goal "ListTail")
 (assume "xs^" "Txs")
 (elim "Txs")
 (ng #t)
-(use "InhabTotal")
+(intro 0)
 (assume "x^" "Tx" "xs^1" "Txs1" "IH")
 (ng #t)
 (use "Txs1")
 ;; Proof finished.
 ;; (cdp)
 (save-totality)
+
+;; ListTailExtNc
+(set-goal
+ (rename-variables
+  (term-to-pure-extnc-formula (pt "(ListTail alpha)"))))
+
+;; allnc xs^,xs^0(
+;;      (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))xs^ xs^0 -> 
+;;      (REqPListNc (cterm (x^,x^0) EqPNc x^ x^0))(Tail xs^)(Tail xs^0))
+
+(assume "xs^1" "xs^2" "xs1=xs2")
+(elim "xs1=xs2")
+;; 3,4
+(ng #t)
+(intro 0)
+;; 4
+(assume "x^1" "x^2" "x1=x2" "xs^3" "xs^4" "xs3=xs4" "Useless")
+(ng #t)
+(use "xs3=xs4")
+;; Proof finished.
+;; (cdp)
+(save "ListTailExtNc")
 
 ;; ListZeroLtLhToHeadTailId
 (set-goal "all xs(0<Lh xs -> (Head xs::Tail xs)eqd xs)")
@@ -2660,14 +2841,16 @@
 (add-program-constant "ListMain" (py "list alpha=>list alpha") t-deg-zero)
 (add-prefix-display-string "ListMain" "Main")
 (add-computation-rules
- "Main(Nil alpha)" "(Inhab list alpha)"
+ "Main(Nil alpha)" "(Nil alpha)"
  "Main(x::xs)" "[if (Lh xs=0) (Nil alpha) (x::Main xs)]")
 
 (set-totality-goal "ListMain")
 (assume "xs^" "Txs")
 (elim "Txs")
+;; 3,4
 (ng #t)
-(use "InhabTotal")
+(use "TotalListNil")
+;; 4
 (assume "x^" "Tx" "xs^1" "Txs1" "IH")
 (ng #t)
 (use "BooleIfTotal")
@@ -2724,7 +2907,7 @@
 (strip)
 (use "Truth")
 (use "LhBound")
-;; Now the assrtion is proved.
+;; Now the assertion is proved.
 (assume "Assertion" "xs")
 (use "Assertion" (pt "Lh xs"))
 (use "Truth")
@@ -2740,19 +2923,20 @@
  "Heads(Nil list alpha)" "(Nil alpha)"
  "Heads(xs::xss)" "Head xs::Heads xss")
 
-(set-totality-goal "ListHeads")
-(assume "xss^" "Txss")
-(elim "Txss")
-(use "TotalListNil")
-(assume "xs^" "Txs" "xss^1" "Txss1" "IH")
-(ng #t)
-(use "TotalListCons")
-(use "ListHeadTotal")
-(use "Txs")
-(use "IH")
-;; Proof finished.
-;; (cdp)
-(save-totality)
+;; 2020-07-13.  Commented out, since we do not have ListHeadTotal.
+;; (set-totality-goal "ListHeads")
+;; (assume "xss^" "Txss")
+;; (elim "Txss")
+;; (use "TotalListNil")
+;; (assume "xs^" "Txs" "xss^1" "Txss1" "IH")
+;; (ng #t)
+;; (use "TotalListCons")
+;; (use "ListHeadTotal")
+;; (use "Txs")
+;; (use "IH")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save-totality)
 
 ;; We also define ListPHeads (p for proper), which ignores heads of
 ;; empty lists.
@@ -3629,6 +3813,23 @@
 ;; (list-to-first '(#f #f 1 #f 2 3)) ;1
 ;; (list-to-first '(#f #f)) ;#f
 
+;; Computation rule for (Inhab list alpha) with CoRec, which can be
+;; undelayed.  Extensionality w.r.t. colist alpha is a special case of
+;; ListCoRecExtNc.
+
+(add-computation-rules
+ "(Inhab list alpha)"
+ "(CoRec unit=>list alpha)Dummy
+  ([unit]Inr((Inhab alpha)pair(InR unit (list alpha))unit))")
+
+;; (pp (rename-variables (nt (undelay-delayed-corec (nt (pt "(Inhab list alpha)")) 3))))
+
+;; (Inhab alpha)::
+;; (Inhab alpha)::
+;; (Inhab alpha)::
+;; (CoRec unit=>list alpha)Dummy
+;; ([unit]Inr((Inhab alpha)pair(InR unit (list alpha))unit))
+
 ;; (display-default-varnames)
 
 ;; nss: 	list list nat
@@ -3636,10 +3837,7 @@
 ;; fst: 	alpha1=>alpha2=>alpha1
 ;; xtop: 	alpha=>boole
 ;; xss: 	list list alpha
-;; p: 	boole
-;; ns: 	list nat
 ;; pstop: 	list boole=>boole
-;; ps: 	list boole
 ;; yf: 	nat=>alpha1
 ;; phi: 	alpha1=>alpha2
 ;; zs: 	list alpha2
@@ -3647,10 +3845,14 @@
 ;; ys: 	list alpha1
 ;; y: 	alpha1
 ;; psi: 	alpha1=>list alpha1=>alpha2
+;; nf: 	nat=>nat
+;; ps: 	list boole
+;; p: 	boole
+;; ns: 	list nat
 ;; xf: 	nat=>alpha
 ;; xs: 	list alpha
 ;; x: 	alpha
 ;; n: 	nat
 
-(remove-var-name "x" "xs" "xf" "psi" "y" "ys" "z" "zs" "phi" "yf" "ps" "pstop"
-		 "ns" "p" "xss" "xtop" "fst" "snd" "nss")
+(remove-var-name "x" "xs" "xf" "nf" "psi" "y" "ys" "z" "zs" "phi" "yf"
+		 "ps" "pstop" "ns" "p" "xss" "xtop" "fst" "snd" "nss")
