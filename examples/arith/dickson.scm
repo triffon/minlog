@@ -1,4 +1,4 @@
-;; 2017-04-21.  dickson.scm
+;; 2020-08-01.  dickson.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -7,7 +7,7 @@
 (set! COMMENT-FLAG #t)
 
 (add-var-name "f" "g" "s" (py "nat=>nat"))
-(add-var-name "i" "j" "l" "c" (py "nat"))
+(add-var-name "i" "j" "k" "l" "c" (py "nat"))
 
 (add-program-constant "Maxi" (py "(nat=>nat)=>nat=>nat"))
 (add-computation-rules
@@ -59,9 +59,9 @@
 (cases)
 (assume "Useless")
 (use "Truth")
-(assume "n")
-(ng)
-(use "Efq")
+(assume "n" "Absurd")
+(use "EfAtom")
+(use "Absurd")
 ;; Step
 (assume "n" "IH" "i" "i<=n+1")
 (use "NatLtSuccCases" (pt "i") (pt "Succ n"))
@@ -103,18 +103,19 @@
 ;; f_j=f_k we are done.  Else f_j<f_k contradicting the choice of j.
 
 ;; FPHDisj
-(set-goal "all m,f(ex i,j(i<j & j<=m & f i=f j) ori ex j(j<=m & m<=f j))")
+(set-goal "all m,f(exd i exl j(i<j andi j<=m andi f i=f j) ori
+                   exl j(j<=m andi m<=f j))")
 (ind)
 ;; Base
 (assume "f")
 (intro 1)
-(ex-intro (pt "0"))
+(intro 0 (pt "0"))
 (split)
 (use "Truth")
 (use "Truth")
 ;; Step
 (assume "m" "IH" "f")
-(cut "ex j j=Maxi f(Succ m)")
+(cut "exl j j=Maxi f(Succ m)")
 (use "Id")
 (assume "jEx")
 (by-assume "jEx" "j" "jDef")
@@ -122,7 +123,7 @@
 ;; Case m+1<=fj
 (assume "m+1<=f j")
 (intro 1)
-(ex-intro "j")
+(intro 0 (pt "j"))
 (split)
 (simp "jDef")
 (use "MaxiBound")
@@ -158,8 +159,8 @@
 (simphyp-with-to "ij1PropSimp" "i<j" "ij1PropSSimp")
 (ng "ij1PropSSimp")
 ;; Take i,j1
-(ex-intro "i")
-(ex-intro "j1")
+(intro 0 (pt "i"))
+(intro 0 (pt "j1"))
 (msplit)
 (use "ij1PropSSimp")
 (use "NatLeTrans" (pt "m"))
@@ -177,8 +178,8 @@
 (simphyp-with-to "ij1PropSimp" "i<j" "ij1PropSSimp")
 (ng "ij1PropSSimp")
 (drop "ij1PropSimp")
-(ex-intro "i")
-(ex-intro "Succ j1")
+(intro 0 (pt "i"))
+(intro 0 (pt "Succ j1"))
 (msplit)
 (use "ij1PropSSimp")
 (use "ij1PropSSimp")
@@ -190,8 +191,8 @@
 (simphyp-with-to "ij1PropSimp" "i<j -> F" "ij1PropSSimp")
 (ng "ij1PropSSimp")
 (drop "ij1PropSimp")
-(ex-intro "Succ i")
-(ex-intro "Succ j1")
+(intro 0 (pt "Succ i"))
+(intro 0 (pt "Succ j1"))
 (msplit)
 (use "ij1PropSSimp")
 (use "ij1PropSSimp")
@@ -200,8 +201,8 @@
 ;; Case one above
 (assume "ExHyp")
 (by-assume "ExHyp" "j1" "j1Prop")
-(assert "ex k k=[if (j1<j) j1 (Succ j1)]")
- (ex-intro "[if (j1<j) j1 (Succ j1)]")
+(assert "exl k k=[if (j1<j) j1 (Succ j1)]")
+ (intro 0 (pt "[if (j1<j) j1 (Succ j1)]"))
  (use "Truth")
 (assume "kEx")
 (by-assume "kEx" "k" "kDef")
@@ -239,13 +240,14 @@
  (use "fj<fk")
  (use "fk<=fj")
 (assume "Absurd")
-(use "Efq")
+(use (formula-to-ef-proof (goal-to-formula (current-goal))))
+;; (use "Efq")
 (use "Absurd")
 ;; Case fj=fk
 (assume "fj=fk")
 (intro 0)
-(ex-intro "k")
-(ex-intro "j")
+(intro 0 (pt "k"))
+(intro 0 (pt "j"))
 (msplit)
 (simp "fj=fk")
 (use "Truth")
@@ -285,7 +287,8 @@
  (use "fj<fk")
  (use "fk<=fj")
 (assume "Absurd")
-(use "Efq")
+(use (formula-to-ef-proof (goal-to-formula (current-goal))))
+;; (use "Efq")
 (use "Absurd")
 ;; Case fj=fk
 (assume "fj=fk")
@@ -293,8 +296,8 @@
 ;; k<=Succ m by kDefSimp and j1PropSSimp
 ;; j<=Succ m by MaxiBound
 ;; j<=j1 and k=Succ j1, hence Succ j<=k and therefore j<k
-(ex-intro "j")
-(ex-intro "k")
+(intro 0 (pt "j"))
+(intro 0 (pt "k"))
 (msplit)
 (use "fj=fk")
 (simp "kDefSimp")
@@ -310,69 +313,282 @@
 (assume "j<j1+1")
 (use "j<j1+1")
 ;; Finally we prove what is left from the cut above
-(ex-intro (pt "Maxi f(Succ m)"))
+(intro 0 (pt "Maxi f(Succ m)"))
 (use "Truth")
 ;; Proof finished.
 (save "FPHDisj")
 
+;; ;; FPHDisj
+;; (set-goal "all m,f(exd i exl j(i<j andi j<=m andi f i=f j) ori
+;;                    exl j(j<=m andi m<=f j))")
+;; (ind)
+;; ;; Base
+;; (assume "f")
+;; (intro 1)
+;; (intro 0 (pt "0"))
+;; (split)
+;; (use "Truth")
+;; (use "Truth")
+;; ;; Step
+;; (assume "m" "IH" "f")
+;; (cut "exl j j=Maxi f(Succ m)")
+;; (use "Id")
+;; (assume "jEx")
+;; (by-assume "jEx" "j" "jDef")
+;; (cases (pt "Succ m<=f j"))
+;; ;; Case m+1<=fj
+;; (assume "m+1<=f j")
+;; (intro 1)
+;; (intro 0 (pt "j"))
+;; (split)
+;; (simp "jDef")
+;; (use "MaxiBound")
+;; (use "m+1<=f j")
+;; ;; Case m+1<=fj -> F
+;; (assume "m+1<=fj -> F")
+;; (assert "f j<Succ m")
+;;  (use "NatNotLeToLt")
+;;  (use "m+1<=fj -> F")
+;;  (drop "m+1<=fj -> F")
+;; (assume "fj<m+1")
+;; (inst-with-to "IH" (pt "[n][if (n<j) (f n) (f(Succ n))]") "IHInst")
+;; (drop "IH")
+;; (ng "IHInst")
+;; (elim "IHInst")
+;; (drop "IHInst")
+;; ;; Case two are equal
+;; (assume "ExHyp")
+;; (by-assume "ExHyp" "i" "iProp")
+;; (by-assume "iProp" "j1" "ij1Prop")
+;; (intro 0)
+;; (cases (pt "j1<j"))
+;; ;; Case j1<j
+;; (assume "j1<j")
+;; (simphyp-with-to "ij1Prop" "j1<j" "ij1PropSimp")
+;; (drop "ij1Prop")
+;; (ng "ij1PropSimp")
+;; (assert "i<j")
+;;  (use "NatLtTrans" (pt "j1"))
+;;  (use "ij1PropSimp")
+;;  (use "j1<j")
+;; (assume "i<j")
+;; (simphyp-with-to "ij1PropSimp" "i<j" "ij1PropSSimp")
+;; (ng "ij1PropSSimp")
+;; ;; Take i,j1
+;; (intro 0 (pt "i"))
+;; (intro 0 (pt "j1"))
+;; (msplit)
+;; (use "ij1PropSSimp")
+;; (use "NatLeTrans" (pt "m"))
+;; (use "ij1PropSSimp")
+;; (use "Truth")
+;; (use "ij1PropSSimp")
+;; ;; Case j1<j -> F
+;; (assume "j1<j -> F")
+;; (simphyp-with-to "ij1Prop" "j1<j -> F" "ij1PropSimp")
+;; (drop "ij1Prop")
+;; (ng "ij1PropSimp")
+;; (cases (pt "i<j"))
+;; ;; Subcase i<j
+;; (assume "i<j")
+;; (simphyp-with-to "ij1PropSimp" "i<j" "ij1PropSSimp")
+;; (ng "ij1PropSSimp")
+;; (drop "ij1PropSimp")
+;; (intro 0 (pt "i"))
+;; (intro 0 (pt "Succ j1"))
+;; (msplit)
+;; (use "ij1PropSSimp")
+;; (use "ij1PropSSimp")
+;; (use "NatLtTrans" (pt "j1"))
+;; (use "ij1PropSimp")
+;; (use "Truth")
+;; ;; Subcase i<j -> F
+;; (assume "i<j -> F")
+;; (simphyp-with-to "ij1PropSimp" "i<j -> F" "ij1PropSSimp")
+;; (ng "ij1PropSSimp")
+;; (drop "ij1PropSimp")
+;; (intro 0 (pt "Succ i"))
+;; (intro 0 (pt "Succ j1"))
+;; (msplit)
+;; (use "ij1PropSSimp")
+;; (use "ij1PropSSimp")
+;; (use "ij1PropSSimp")
+;; (drop "IHInst")
+;; ;; Case one above
+;; (assume "ExHyp")
+;; (by-assume "ExHyp" "j1" "j1Prop")
+;; (assert "exl k k=[if (j1<j) j1 (Succ j1)]")
+;;  (intro 0 (pt "[if (j1<j) j1 (Succ j1)]"))
+;;  (use "Truth")
+;; (assume "kEx")
+;; (by-assume "kEx" "k" "kDef")
+;; (cases (pt "j1<j"))
+;; ;; Case j1<j
+;; (assume "j1<j")
+;; (simphyp-with-to "j1Prop" "j1<j" "j1PropSimp")
+;; (drop "j1Prop")
+;; (ng "j1PropSimp")
+;; (simphyp-with-to "kDef" "j1<j" "kDefSimp")
+;; (drop "kDef")
+;; (ng "kDefSimp")
+;; (simphyp-with-to "j1PropSimp" "<-" "kDefSimp" "j1PropSSimp")
+;; (drop "j1PropSimp")
+;; (assert "f j<=f k")
+;;  (use "NatLeTrans" (pt "m"))
+;;  (use "NatLtSuccToLe")
+;;  (use "fj<m+1")
+;;  (use "j1PropSSimp")
+;; (assume "fj<=fk")
+;; (use "NatLeCases" (pt "f j") (pt "f k"))
+;; (use "fj<=fk")
+;; (drop "fj<=fk")
+;; ;; Case fj<fk
+;; (assume "fj<fk")
+;; (assert "f k<=f j")
+;;  (simp "jDef")
+;;  (use "MaxiProp")
+;;  (use "NatLeTrans" (pt "m"))
+;;  (use "j1PropSSimp")
+;;  (use "Truth")
+;; (assume "fk<=fj")
+;; (assert "f j<f j")
+;;  (use "NatLtLeTrans" (pt "f k"))
+;;  (use "fj<fk")
+;;  (use "fk<=fj")
+;; (assume "Absurd")
+;; (use "Efq")
+;; (use "Absurd")
+;; ;; Case fj=fk
+;; (assume "fj=fk")
+;; (intro 0)
+;; (intro 0 (pt "k"))
+;; (intro 0 (pt "j"))
+;; (msplit)
+;; (simp "fj=fk")
+;; (use "Truth")
+;; (simp "jDef")
+;; (use "MaxiBound")
+;; (simp "kDefSimp")
+;; (use "j1<j")
+;; ;; Case j1<j -> F
+;; (assume "j1<j -> F")
+;; (simphyp-with-to "j1Prop" "j1<j -> F" "j1PropSimp")
+;; (drop "j1Prop")
+;; (ng "j1PropSimp")
+;; (simphyp-with-to "kDef" "j1<j -> F" "kDefSimp")
+;; (drop "kDef")
+;; (ng "kDefSimp")
+;; (simphyp-with-to "j1PropSimp" "<-" "kDefSimp" "j1PropSSimp")
+;; (drop "j1PropSimp")
+;; (assert "f j<=f k")
+;;  (use "NatLeTrans" (pt "m"))
+;;  (use "NatLtSuccToLe")
+;;  (use "fj<m+1")
+;;  (use "j1PropSSimp")
+;; (assume "fj<=fk")
+;; (use "NatLeCases" (pt "f j") (pt "f k"))
+;; (use "fj<=fk")
+;; (drop "fj<=fk")
+;; ;; Case fj<fk
+;; (assume "fj<fk")
+;; (assert "f k<=f j")
+;;  (simp "jDef")
+;;  (use "MaxiProp")
+;;  (simp "kDefSimp")
+;;  (use "j1PropSSimp")
+;; (assume "fk<=fj")
+;; (assert "f j<f j")
+;;  (use "NatLtLeTrans" (pt "f k"))
+;;  (use "fj<fk")
+;;  (use "fk<=fj")
+;; (assume "Absurd")
+;; (use "Efq")
+;; (use "Absurd")
+;; ;; Case fj=fk
+;; (assume "fj=fk")
+;; (intro 0)
+;; ;; k<=Succ m by kDefSimp and j1PropSSimp
+;; ;; j<=Succ m by MaxiBound
+;; ;; j<=j1 and k=Succ j1, hence Succ j<=k and therefore j<k
+;; (intro 0 (pt "j"))
+;; (intro 0 (pt "k"))
+;; (msplit)
+;; (use "fj=fk")
+;; (simp "kDefSimp")
+;; (use "j1PropSSimp")
+;; (assert "j<=j1")
+;;  (use "NatNotLtToLe")
+;;  (use "j1<j -> F")
+;; (assume "j<=j1")
+;; (assert "j<Succ j1")
+;; (use "NatLeToLtSucc")
+;; (use "j<=j1")
+;; (simp "kDefSimp")
+;; (assume "j<j1+1")
+;; (use "j<j1+1")
+;; ;; Finally we prove what is left from the cut above
+;; (intro 0 (pt "Maxi f(Succ m)"))
+;; (use "Truth")
+;; ;; Proof finished.
+;; (save "FPHDisj")
+
 (define eterm (proof-to-extracted-term))
-(add-var-name "ij" (py "nat@@nat"))
-(add-var-name "d" (py "(nat=>nat)=>nat@@nat ysum nat"))
+(add-var-name "ij" (py "nat yprod nat"))
+(add-var-name "d" (py "(nat=>nat)=>nat yprod nat ysum nat"))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)
+
 ;; [n]
-;;  (Rec nat=>(nat=>nat)=>nat@@nat ysum nat)n([f](InR nat nat@@nat)0)
+;;  (Rec nat=>(nat=>nat)=>nat yprod nat ysum nat)n
+;;  ([f](InR nat (nat yprod nat))0)
 ;;  ([n0,d,f]
 ;;    [let n1
 ;;      [if (f(Succ n0)<=f(Maxi f n0)) (Maxi f n0) (Succ n0)]
 ;;      [if (Succ n0<=f n1)
-;;       ((InR nat nat@@nat)n1)
+;;       ((InR nat (nat yprod nat))n1)
 ;;       [if (d([n2][if (n2<n1) (f n2) (f(Succ n2))]))
-;;        ([ij]
-;;         (InL nat@@nat nat)
-;;         [if (right ij<n1)
-;;           ij
-;;           ([if (left ij<n1) (left ij) (Succ left ij)]@Succ right ij)])
+;;        ([(nat yprod nat)]
+;;         [if (nat yprod nat)
+;;           ([n2,n3]
+;;            (InL (nat yprod nat) nat)
+;;            [if (n3<n1)
+;;              (n2 pair n3)
+;;              [if (n2<n1) (n2 pair Succ n3) (Succ n2 pair Succ n3)]])])
 ;;        ([n2]
 ;;         [if (n2<n1)
-;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f[if (n2<n1) n2 (Succ n2)])
-;;           ((InL nat@@nat nat)(0@0))
-;;           ((InL nat@@nat nat)([if (n2<n1) n2 (Succ n2)]@n1)))
-;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f[if (n2<n1) n2 (Succ n2)])
-;;           ((InL nat@@nat nat)(0@0))
-;;           ((InL nat@@nat nat)(n1@[if (n2<n1) n2 (Succ n2)])))])]]])
-
+;;           [if (f n1<f[if (n2<n1) n2 (Succ n2)])
+;;            ((InL (nat yprod nat) nat)(0 pair 0))
+;;            ((InL (nat yprod nat) nat)([if (n2<n1) n2 (Succ n2)]pair n1))]
+;;           [if (f n1<f[if (n2<n1) n2 (Succ n2)])
+;;            ((InL (nat yprod nat) nat)(0 pair 0))
+;;            ((InL (nat yprod nat) nat)(n1 pair[if (n2<n1) n2 (Succ n2)]))]])]]])
 (define nneterm (term-to-term-without-predecided-ifs neterm))
 (pp nneterm)
+
 ;; [n]
-;;  (Rec nat=>(nat=>nat)=>nat@@nat ysum nat)n([f](InR nat nat@@nat)0)
+;;  (Rec nat=>(nat=>nat)=>nat yprod nat ysum nat)n
+;;  ([f](InR nat (nat yprod nat))0)
 ;;  ([n0,d,f]
 ;;    [let n1
 ;;      [if (f(Succ n0)<=f(Maxi f n0)) (Maxi f n0) (Succ n0)]
 ;;      [if (Succ n0<=f n1)
-;;       ((InR nat nat@@nat)n1)
+;;       ((InR nat (nat yprod nat))n1)
 ;;       [if (d([n2][if (n2<n1) (f n2) (f(Succ n2))]))
-;;        ([ij]
-;;         (InL nat@@nat nat)
-;;         [if (right ij<n1)
-;;           ij
-;;           ([if (left ij<n1) (left ij) (Succ left ij)]@Succ right ij)])
+;;        ([(nat yprod nat)]
+;;         [if (nat yprod nat)
+;;           ([n2,n3]
+;;            (InL (nat yprod nat) nat)
+;;            [if (n3<n1)
+;;              (n2 pair n3)
+;;              [if (n2<n1) (n2 pair Succ n3) (Succ n2 pair Succ n3)]])])
 ;;        ([n2]
 ;;         [if (n2<n1)
-;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f n2)
-;;           ((InL nat@@nat nat)(0@0))
-;;           ((InL nat@@nat nat)(n2@n1)))
-;;           ((cNatLeCases nat@@nat ysum nat)(f n1)(f(Succ n2))
-;;           ((InL nat@@nat nat)(0@0))
-;;           ((InL nat@@nat nat)(n1@Succ n2)))])]]])
-
-(animate "NatLeCases")
-(add-var-name "x" (py "alpha"))
-(add-var-name "h" (py "nat=>alpha=>alpha=>alpha"))
-(pp (rename-variables (nt (pt "(cNatLeCases alpha)n"))))
-;; [n0,x,x0][if (n<n0) x x0]
-
-(deanimate "NatLeCases")
+;;           [if (f n1<f n2)
+;;            ((InL (nat yprod nat) nat)(0 pair 0))
+;;            ((InL (nat yprod nat) nat)(n2 pair n1))]
+;;           [if (f n1<f(Succ n2))
+;;            ((InL (nat yprod nat) nat)(0 pair 0))
+;;            ((InL (nat yprod nat) nat)(n1 pair Succ n2))]])]]])
 
 ;; V n is the integer square root of n
 
@@ -459,7 +675,7 @@
 (save-totality)
 
 ;; VProp1
-(set-goal "all c(V c*V c<=c & c<=V c*V c+V c+V c)")
+(set-goal "all c(V c*V c<=c andnc c<=V c*V c+V c+V c)")
 (ind)
 (split)
 (use "Truth")
@@ -1037,9 +1253,9 @@
 
 ;; FPHDisjTwo
 (set-goal "all f,g,k(
- exnc i,j(i<j & j<=k*k & f i = f j & g i = g j) ori
- ex j(j<=k*k & k<=f j)  ori
- ex j(j<=k*k & k<=g j))")
+ exnc i,j(i<j andi j<=k*k andi f i = f j andi g i = g j) ori
+ exl j(j<=k*k andi k<=f j)  ori
+ exl j(j<=k*k andi k<=g j))")
 (assume "f" "g" "k")
 (inst-with-to "FPHDisj" (pt "k*k") (pt "[i]Code(f i)(g i)") "FPHDisjInst")
 (elim "FPHDisjInst")
@@ -1061,8 +1277,8 @@
 (use "ci=cj")
 (use "ijProp")
 (use "ijProp")
-(drop "FPHDisjInst")
 ;; Second case
+(drop "FPHDisjInst")
 (assume "ExHyp")
 (by-assume "ExHyp" "j" "jProp")
 (intro 1)
@@ -1078,14 +1294,14 @@
 ;; Case k<=f j
 (assume "k<=f j")
 (intro 0)
-(ex-intro "j")
+(intro 0 (pt "j"))
 (split)
 (use "jProp")
 (use "k<=f j")
 ;; Case k<=g j
 (assume "k<=g j")
 (intro 1)
-(ex-intro "j")
+(intro 0 (pt "j"))
 (split)
 (use "jProp")
 (use "k<=g j")
@@ -1109,9 +1325,9 @@
 
 ;; Key
 (set-goal "all f,g,n,k(
- exnc i,j(n<i & i<j & j<=Succ n+k*k & f i = f j & g i = g j) ori
- ex j(n<j & j<=Succ n+k*k & k<=f j)  ori
- ex j(n<j & j<=Succ n+k*k & k<=g j))")
+ exnc i,j(n<i andi i<j andi j<=Succ n+k*k andi f i = f j andi g i = g j) ori
+ exl j(n<j andi j<=Succ n+k*k andi k<=f j)  ori
+ exl j(n<j andi j<=Succ n+k*k andi k<=g j))")
 (assume "f" "g" "n" "k")
 (inst-with-to
  "FPHDisjTwo" (pt "[i]f(Succ n+i)") (pt "[i]g(Succ n+i)") (pt "k")
@@ -1146,7 +1362,7 @@
 (assume "ExHyp")
 (intro 0)
 (by-assume "ExHyp" "j" "jProp")
-(ex-intro (pt "Succ n+j"))
+(intro 0 (pt "Succ n+j"))
 (msplit)
 (use "jProp")
 (use "NatLeMonPlus")
@@ -1159,7 +1375,7 @@
 (assume "ExHyp")
 (intro 1)
 (by-assume "ExHyp" "j" "jProp")
-(ex-intro (pt "Succ n+j"))
+(intro 0 (pt "Succ n+j"))
 (msplit)
 (use "jProp")
 (use "NatLeMonPlus")
@@ -1379,7 +1595,7 @@
 
 ;; Desc
 (set-goal "all f,g,n(
- exnc i,j(i<j & j<=I f g n & f i<=f j & g i<=g j) ori
+ exnc i,j(i<j andi j<=I f g n andi f i<=f j andi g i<=g j) ori
  Phi f g(I f g n)<Phi f g n)")
 (assume "f" "g" "n")
 (inst-with-to "Key" (pt "f") (pt "g") (pt "n") (pt "Psi f g n") "KeyInst")
@@ -1508,8 +1724,8 @@
 (save "LeIncrI")
 
 ;; DL
-(set-goal "all f,g,n ex k(
- I f g n<=k & exnc i,j(i<j & j<=k & f i<=f j & g i<=g j))")
+(set-goal "all f,g,n exl k(
+ I f g n<=k andi exnc i,j(i<j andi j<=k andi f i<=f j andi g i<=g j))")
 (assume "f" "g")
 (gind (pt "[n]Phi f g n"))
 (assume "n" "IH")
@@ -1519,7 +1735,7 @@
 (assume "ExHyp")
 (by-assume "ExHyp" "i" "iProp")
 (by-assume "iProp" "j" "ijProp")
-(ex-intro (pt "I f g n"))
+(intro 0 (pt "I f g n"))
 (split)
 (use "Truth")
 (intro 0 (pt "i"))
@@ -1537,7 +1753,7 @@
 (inst-with-to "IHInst" "LtHyp" "IHInstInst")
 (drop "IHInst")
 (by-assume "IHInstInst" "k" "kProp")
-(ex-intro "k")
+(intro 0 (pt "k"))
 (split)
 (use "NatLeTrans" (pt "I f g(I f g n)"))
 (use "LeIncrI")
