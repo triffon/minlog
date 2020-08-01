@@ -1,4 +1,4 @@
-;; 2019-08-24.  rat.scm.  Based on numbers.scm.
+;; 2020-07-19.  rat.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -3426,6 +3426,18 @@
 ;; Proof finshed.
 (save "RatLeAbsMinusAbs")
 
+;; RatEqvPlusMinusPlus
+(set-goal "all a,b,c(a+ RatUMinus b+c+b==a+c)")
+(assume "a" "b" "c")
+(simp "<-" "RatPlusAssoc")
+(simp "<-" "RatPlusAssoc")
+(simp "RatEqv4RewRule")
+(simp "RatPlusComm")
+(use "RatEqvPlusMinusRev")
+;; Proof finished.
+;; (cdp)
+(save "RatEqvPlusMinusPlus")
+
 ;; RatEqvTimesCancelL
 (set-goal "all a,b,c(0<abs a -> a*b==a*c -> b==c)")
 (cases)
@@ -3686,6 +3698,20 @@
 (use "Truth")
 ;; Proof finished.
 (add-rewrite-rule "a*(IntN p#q)==b*(IntN p#q)" "a==b")
+
+;; RatEqvTimesPlusMinus
+(set-goal "all a,b (a+b)*(a+ ~b)==(a*a)+ ~(b*b)")
+(assume "a" "b")
+(simprat "RatTimesPlusDistrLeft")
+(simprat "RatTimesPlusDistr")
+(simprat "RatTimesPlusDistr")
+(ng #t)
+(simp (pf "b*a=a*b"))
+(use "RatEqvPlusMinus")
+(use "RatTimesComm")
+;; Proof finished.
+;; (cdp)
+(save "RatEqvTimesPlusMinus")
 
 ;; As examples of simprat we prove some inequalities useful later for
 ;; estimates.
