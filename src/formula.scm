@@ -1,4 +1,4 @@
-;; 2019-12-07.  formula.scm
+;; 2020-07-10.  formula.scm
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
@@ -2511,18 +2511,37 @@
 		   ((string=? "CoTotalMR" (predconst-to-name pred))
 		    (apply terms-to-mr-cototality-formula args))
 		   ((string=? "EqP" (predconst-to-name pred))
-		    (terms-to-eqp-formula (car args) (cadr args)))
+		    (terms-to-pure-eqp-formula (car args) (cadr args)))
 		   ((string=? "EqPNc" (predconst-to-name pred))
-		    (terms-to-eqpnc-formula (car args) (cadr args)))
+		    (terms-to-pure-eqpnc-formula (car args) (cadr args)))
 		   ((string=? "CoEqP" (predconst-to-name pred))
-		    (terms-to-coeqp-formula (car args) (cadr args)))
+		    (terms-to-pure-eqp-formula
+		     (car args) (cadr args)
+		     (type-to-cotype (term-to-type (car args)))))
 		   ((string=? "CoEqPNc" (predconst-to-name pred))
-		    (terms-to-coeqpnc-formula (car args) (cadr args)))
+		    (terms-to-pure-eqpnc-formula
+		     (car args) (cadr args)
+		     (type-to-cotype (term-to-type (car args)))))
 		   ((string=? "EqPMR" (predconst-to-name pred))
-		    (apply terms-to-mr-eqp-formula args))
+		    (apply terms-to-pure-mr-eqp-formula args))
 		   ((string=? "CoEqPMR" (predconst-to-name pred))
-		    (apply terms-to-mr-coeqp-formula args))))
-	    ((idpredconst-form? pred) formula)
+		    (terms-to-pure-mr-eqp-formula
+		     (car args) (cadr args) (caddr args)
+		     (type-to-cotype (term-to-type (car args)))))))
+		   ;; ((string=? "EqPMR" (predconst-to-name pred))
+		   ;;  (apply terms-to-mr-eqp-formula args))
+		   ;; ((string=? "CoEqPMR" (predconst-to-name pred))
+		   ;;  (apply terms-to-mr-coeqp-formula args))))
+	    ((idpredconst-form? pred)
+	     (let* ((name (idpredconst-to-name pred))
+		    (types (idpredconst-to-types pred))
+		    (cterms (idpredconst-to-cterms pred))
+		    (unfolded-cterms (map unfold-cterm cterms))
+		    (unfolded-idpc
+		     (idpredconst-name-and-types-and-cterms-to-idpredconst
+		      name types unfolded-cterms)))
+	       (apply make-predicate-formula unfolded-idpc args)))
+	    ;; ((idpredconst-form? pred) formula)
 	    (else (myerror "unfold-formula"
 			   "predicate expected" pred)))))
    ((bicon-form? formula)
@@ -2562,170 +2581,6 @@
 						    (list falsity-log))))))))
 	(else (myerror "unfold-formula" "quantifier form expected" quant)))))
    (else (myerror "unfold-formula" "formula expected" formula))))
-
-;; For unfold-formula we need the following auxiliary functions.
-
-(define (alg-name-to-cototality-idpredconst-name alg-name)
-  (let* ((char-list (string->list alg-name))
-	 (capitalized-alg-name
-	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
-    (string-append "CoTotal" capitalized-alg-name)))
-
-(define (alg-to-cototality-idpredconst alg)
-  (let* ((alg-name (alg-form-to-name alg))
-	 (types (alg-form-to-types alg))
-	 (idpredconst-name (alg-name-to-cototality-idpredconst-name alg-name)))
-    (idpredconst-name-and-types-and-cterms-to-idpredconst
-     idpredconst-name types '())))
-
-(define (alg-name-to-cototalnc-idpredconst-name alg-name)
-  (let* ((char-list (string->list alg-name))
-	 (capitalized-alg-name
-	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
-    (string-append "CoTotal" capitalized-alg-name "Nc")))
-
-(define (term-and-alist-to-cototality-formula term type-to-pred-alist)
-  (let ((type (term-to-type term)))
-    (cond
-     ((tvar-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if info
-	    (make-predicate-formula (cadr info) term)
-	    (make-cototal term)))) ;make-cototal still to be defined
-     ((alg-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if
-	 info ;idpc-pvar, needed in add-cototality for add-ids-aux
-	 (make-predicate-formula (cadr info) term)
-	 (let* ((types (alg-form-to-types type))
-		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
-				     (lambda (item) (alg-form? (car item)))))
-		(alist-alg-names (map alg-form-to-name
-				      (map car alg-to-pvar-alist)))
-		(alg-names-list (map type-to-alg-names types))
-		(intersections
-		 (map (lambda (alg-names)
-			(intersection alist-alg-names alg-names))
-		      alg-names-list)))
-	   (cond
-	    ((apply and-op (map null? intersections))
-	     (make-predicate-formula (alg-to-cototality-idpredconst type) term))
-	    ((apply and-op (map pair? intersections))
-	     (let* ((vars (map type-to-new-partial-var types))
-		    (varterms (map make-term-in-var-form vars))
-		    (prevs (map (lambda (varterm)
-				  (term-and-alist-to-cototality-formula
-				   varterm type-to-pred-alist))
-				varterms))
-		    (cterms (map make-cterm vars prevs)))
-	       (make-predicate-formula
-		(alg-and-cterms-to-rcototality-idpredconst type cterms) term)))
-	    (else (apply myerror "term-and-alist-to-cototality-formula"
-			 "not implemented for term" term
-			 "and type-to-pred-alist" type-to-pred-alist)))))))
-     ((arrow-form? type)
-      (let* ((arg-type (arrow-form-to-arg-type type))
-	     (var (type-to-new-partial-var arg-type))
-	     (varterm (make-term-in-var-form var))
-	     (appterm (make-term-in-app-form term varterm))
-	     (arg-formula (term-and-alist-to-cototality-formula
-			   varterm type-to-pred-alist))
-	     (val-formula (term-and-alist-to-cototality-formula
-			   appterm type-to-pred-alist)))
-	(make-allnc var (make-imp arg-formula val-formula))))
-     ((star-form? type)
-      (let ((left (if (term-in-pair-form? term)
-		      (term-in-pair-form-to-left term)
-		      (make-term-in-lcomp-form term)))
-	    (right (if (term-in-pair-form? term)
-		       (term-in-pair-form-to-right term)
-		       (make-term-in-rcomp-form term))))
-	(make-and
-	 (term-and-alist-to-cototality-formula left type-to-pred-alist)
-	 (term-and-alist-to-cototality-formula right type-to-pred-alist))))
-     (else (myerror "term-and-alist-to-cototality-formula" "type expected" type
-		    "of term" term)))))
-
-(define (term-to-cototality-formula term)
-  (term-and-alist-to-cototality-formula term '()))  
-
-(define (alg-name-to-cototalnc-idpredconst-name alg-name)
-  (let* ((char-list (string->list alg-name))
-	 (capitalized-alg-name
-	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
-    (string-append "CoTotal" capitalized-alg-name "Nc")))
-
-(define (alg-to-cototalnc-idpredconst alg)
-  (let* ((alg-name (alg-form-to-name alg))
-	 (types (alg-form-to-types alg))
-	 (idpredconst-name (alg-name-to-cototalnc-idpredconst-name alg-name)))
-    (idpredconst-name-and-types-and-cterms-to-idpredconst
-     idpredconst-name types '())))
-
-(define (term-and-alist-to-cototalnc-formula term type-to-pred-alist)
-  (let ((type (term-to-type term)))
-    (cond
-     ((tvar-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if info
-	    (make-predicate-formula (cadr info) term)
-	    (make-cototalnc term)))) ;make-cototalnc still to be defined
-     ((alg-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if
-	 info ;idpc-pvar, needed in add-cototalnc for add-ids-aux
-	 (make-predicate-formula (cadr info) term)
-	 (let* ((types (alg-form-to-types type))
-		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
-				     (lambda (item) (alg-form? (car item)))))
-		(alist-alg-names (map alg-form-to-name
-				      (map car alg-to-pvar-alist)))
-		(alg-names-list (map type-to-alg-names types))
-		(intersections
-		 (map (lambda (alg-names)
-			(intersection alist-alg-names alg-names))
-		      alg-names-list)))
-	   (cond
-	    ((apply and-op (map null? intersections))
-	     (make-predicate-formula (alg-to-cototalnc-idpredconst type) term))
-	    ((apply and-op (map pair? intersections))
-	     (let* ((vars (map type-to-new-partial-var types))
-		    (varterms (map make-term-in-var-form vars))
-		    (prevs (map (lambda (varterm)
-				  (term-and-alist-to-cototalnc-formula
-				   varterm type-to-pred-alist))
-				varterms))
-		    (cterms (map make-cterm vars prevs)))
-	       (make-predicate-formula
-		(alg-and-cterms-to-rcototalnc-idpredconst type cterms) term)))
-	    (else (apply myerror "term-and-alist-to-cototalnc-formula"
-			 "not implemented for term" term
-			 "and type-to-pred-alist" type-to-pred-alist)))))))
-     ((arrow-form? type)
-      (let* ((arg-type (arrow-form-to-arg-type type))
-	     (var (type-to-new-partial-var arg-type))
-	     (varterm (make-term-in-var-form var))
-	     (appterm (make-term-in-app-form term varterm))
-	     (arg-formula
-	      (term-and-alist-to-cototalnc-formula varterm type-to-pred-alist))
-	     (val-formula
-	      (term-and-alist-to-cototalnc-formula appterm type-to-pred-alist)))
-	(make-all var (make-imp arg-formula val-formula))))
-     ((star-form? type)
-      (let ((left (if (term-in-pair-form? term)
-		      (term-in-pair-form-to-left term)
-		      (make-term-in-lcomp-form term)))
-	    (right (if (term-in-pair-form? term)
-		       (term-in-pair-form-to-right term)
-		       (make-term-in-rcomp-form term))))
-	(make-and
-	 (term-and-alist-to-cototalnc-formula left type-to-pred-alist)
-	 (term-and-alist-to-cototalnc-formula right type-to-pred-alist))))
-     (else (myerror "term-and-alist-to-cototalnc-formula" "type expected" type
-		    "of term" term)))))
-
-(define (term-to-cototalnc-formula term)
-  (term-and-alist-to-cototalnc-formula term '()))
 
 (define PVAR-TO-NC-PVAR-ALIST '())
 
@@ -4351,9 +4206,11 @@
 		(types2 (idpredconst-to-types idpc2))
 		(cterms1 (idpredconst-to-cterms idpc1))
 		(cterms2 (idpredconst-to-cterms idpc2)))
-	   (and (or (string=? name1 name2)
-		    (string=? name1 (string-append name2 "Nc"))
-		    (string=? (string-append name1 "Nc") name2))
+	   (and (if ignore-deco-flag
+		    (or (string=? name1 name2)
+			(string=? name1 (string-append name2 "Nc"))
+			(string=? (string-append name1 "Nc") name2))
+		    (string=? name1 name2))
 		(equal? types1 types2)
 		(apply and-op
 		       (map (lambda (ct1 ct2)
@@ -4377,9 +4234,11 @@
 	((and (predconst-form? pred1) (predconst-form? pred2))
 	 (let ((name1 (predconst-to-name pred1))
 	       (name2 (predconst-to-name pred2)))
-	   (and (or (string=? name1 name2)
-		    (string=? name1 (string-append name2 "Nc"))
-		    (string=? (string-append name1 "Nc") name2))
+	   (and (if ignore-deco-flag
+		    (or (string=? name1 name2)
+			(string=? name1 (string-append name2 "Nc"))
+			(string=? (string-append name1 "Nc") name2))
+		    (string=? name1 name2))
 		(= (predconst-to-index pred1) (predconst-to-index pred2))
 		(equal? (predconst-to-tsubst pred1) (predconst-to-tsubst pred2))
 		(equal? (predconst-to-uninst-arity pred1)
@@ -4826,6 +4685,10 @@
 	    ((predconst-form? pred)
 	     (if (not (predconst? pred))
 		 (myerror "check-formula" "predconst expected" x)))
+	     ;; (if (member (predconst-to-name pred)
+	     ;; 		 (list "Total" "TotalNc" "CoTotal" "CoTotalNc"
+	     ;; 		       "TotalMR" "CoTotalMR"))
+	     ;; 	 (check-totality-predconst pred)))
 	    ((idpredconst-form? pred)
 	     (check-idpredconst pred))
 	    (else (myerror "check-formula"
