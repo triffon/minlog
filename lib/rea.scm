@@ -1,4 +1,4 @@
-;; 2019-12-07.  rea.scm
+;; 2020-07-19.  rea.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -48,7 +48,7 @@
 (add-eqpnc "rea")
 
 ;; We prefer to work with a simple direct definition of TotalRea and
-;; then show that its equivalence to the general definition x eqp x.
+;; then show its equivalence to the general definition x eqp x.
 
 (add-ids
  (list (list "TotalRea" (make-arity (py "rea")) "rea"))
@@ -404,72 +404,73 @@
 ;; (cdp)
 (save "EqPReaAux")
 
+;; 2020-07-13.  Changed because of pure unfolding of the premise.
 ;; EqPReaElimLeft
 (set-goal "allnc x^,y^(EqP x^ y^ -> EqP(x^ seq)(y^ seq))")
 (assume "x^" "y^" "EqPxy")
 (elim "EqPxy")
 (assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
 (ng #t)
-(assume "n^" "Tn")
+(assume "n^1" "n^2" "n1=n2")
 (use "EqPas1as2")
-(use "EqPNatRefl")
-(use "Tn")
+(use "n1=n2")
 ;; Proof finished.
 ;; (cdp)
 (save "EqPReaElimLeft")
 
+;; 2020-07-13.  Changed because of pure unfolding of the premise.
 ;; EqPReaElimRight
 (set-goal "allnc x^,y^(EqP x^ y^ -> EqP(x^ mod)(y^ mod))")
 (assume "x^" "y^" "EqPxy")
 (elim "EqPxy")
 (assume "as^1" "as^2" "EqPas1as2" "M^1" "M^2" "EqPM1M2")
 (ng #t)
-(assume "p^" "Tp")
+(assume "p^1"  "p^2" "p1=p2")
 (use "EqPM1M2")
-(use "EqPPosRefl")
-(use "Tp")
+(use "p1=p2")
 ;; Proof finished.
 ;; (cdp)
 (save "EqPReaElimRight")
 
-;; To be moved into libnat.scm
-;; AllEqPNatElim
-(set-goal "allnc n^(TotalNat n^ -> (Pvar nat nat)n^ n^) ->
- allnc n^1,n^2(EqPNat n^1 n^2 -> (Pvar nat nat)n^1 n^2)")
-(assume "THyp" "n^1" "n^2" "EqPn1n2")
-;; (search-about 'all "EqP" "Nat" "Sym")
-(simp (pf "n^1 eqd n^2"))
-(use "THyp")
-(use "EqPNatToTotalRight" (pt "n^1"))
-(use "EqPn1n2")
-(use "EqPNatNcToEqD") ;provide EqPNatToEqD in libnat.scm
-(use "EqPn1n2")
-;; Proof finished.
-;; (cdp)
-(save "AllEqPNatElim")
+;; 2020-07-13.  Not needed any more.
+;; ;; To be moved into libnat.scm
+;; ;; AllEqPNatElim
+;; (set-goal "allnc n^(TotalNat n^ -> (Pvar nat nat)n^ n^) ->
+;;  allnc n^1,n^2(EqPNat n^1 n^2 -> (Pvar nat nat)n^1 n^2)")
+;; (assume "THyp" "n^1" "n^2" "EqPn1n2")
+;; ;; (search-about 'all "EqP" "Nat" "Sym")
+;; (simp (pf "n^1 eqd n^2"))
+;; (use "THyp")
+;; (use "EqPNatToTotalRight" (pt "n^1"))
+;; (use "EqPn1n2")
+;; (use "EqPNatNcToEqD") ;provide EqPNatToEqD in libnat.scm
+;; (use "EqPn1n2")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "AllEqPNatElim")
 
-;; To be moved into libpos.scm
-;; AllEqPPosElim
-(set-goal "allnc p^(TotalPos p^ -> (Pvar pos pos)p^ p^) ->
- allnc p^1,p^2(EqPPos p^1 p^2 -> (Pvar pos pos)p^1 p^2)")
-(assume "THyp" "p^1" "p^2" "EqPp1p2")
-;; (search-about 'all "EqP" "Pos" "Sym")
-(simp (pf "p^1 eqd p^2"))
-(use "THyp")
-(use "EqPPosToTotalRight" (pt "p^1"))
-(use "EqPp1p2")
-(use "EqPPosToEqD")
-(use "EqPp1p2")
-;; Proof finished.
-;; (cdp)
-(save "AllEqPPosElim")
+;; ;; To be moved into libpos.scm
+;; ;; AllEqPPosElim
+;; (set-goal "allnc p^(TotalPos p^ -> (Pvar pos pos)p^ p^) ->
+;;  allnc p^1,p^2(EqPPos p^1 p^2 -> (Pvar pos pos)p^1 p^2)")
+;; (assume "THyp" "p^1" "p^2" "EqPp1p2")
+;; ;; (search-about 'all "EqP" "Pos" "Sym")
+;; (simp (pf "p^1 eqd p^2"))
+;; (use "THyp")
+;; (use "EqPPosToTotalRight" (pt "p^1"))
+;; (use "EqPp1p2")
+;; (use "EqPPosToEqD")
+;; (use "EqPp1p2")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "AllEqPPosElim")
 
 ;; EqPReaElimLeftRealConstr
 (set-goal "allnc as^,M^,bs^,N^(
  EqPRea(RealConstr as^ M^)(RealConstr bs^ N^) ->
  allnc n^,m^(EqPNat n^ m^ -> EqPRat(as^ n^)(bs^ m^)))")
 (assume "as^" "M^" "bs^" "N^" "EqPxy")
-(use "AllEqPNatElim")
+;; (use "AllEqPNatElim")
 (use-with "EqPReaElimLeft"
 	  (pt "(RealConstr as^ M^)") (pt "(RealConstr bs^ N^)")
 	  "EqPxy")
@@ -482,7 +483,7 @@
  EqPRea(RealConstr as^ M^)(RealConstr bs^ N^) ->
  allnc p^,q^(EqPPos p^ q^ -> EqPNat(M^ p^)(N^ q^)))")
 (assume "as^" "M^" "bs^" "N^" "EqPxy")
-(use "AllEqPPosElim")
+;; (use "AllEqPPosElim")
 (use-with "EqPReaElimRight"
 	  (pt "(RealConstr as^ M^)") (pt "(RealConstr bs^ N^)")
 	  "EqPxy")
@@ -961,7 +962,7 @@
 ;; (display-pconst "ListNatMax")
 
 ;; ListNatMaxUB
-(set-goal "all ms,n(n<Lh ms -> (n thof ms)<=ListNatMax ms)")
+(set-goal "all ms,n(n<Lh ms -> ListNatProj n ms<=ListNatMax ms)")
 (ind)
 ;; 2,3
 (ng)
@@ -998,13 +999,13 @@
 (use "n1Prop")
 (use "NatMaxUB2")
 ;; Proof finished.
+;; (cdp)
 (save "ListNatMaxUB")
 
 ;; ListNatMaxFBar
 (set-goal "all nat=>nat,n,l(n<l -> (nat=>nat)n<=ListNatMax((nat=>nat)fbar l))")
 (assume "nat=>nat" "n" "l" "n<l")
-(inst-with-to
- "ListProjFBar" (py "nat") (pt "l") (pt "n") (pt "nat=>nat") "n<l" "Inst")
+(inst-with-to "ListNatProjFBar" (pt "l") (pt "n") (pt "nat=>nat") "n<l" "Inst")
 (simp "<-" "Inst")
 (drop "Inst")
 (use "ListNatMaxUB")
@@ -1472,7 +1473,7 @@
 (save "RealConstrEqSElim")
 
 ;; TotalReaToEqD
-(set-goal "all x^(TotalRea x^ -> x^ eqd RealConstr x^ seq x^ mod)")
+(set-goal "allnc x^(TotalReaNc x^ -> x^ eqd RealConstr x^ seq x^ mod)")
 (assume "x^")
 (elim)
 (ng)
@@ -5791,13 +5792,14 @@
 (use "AllncTotalIntro")
 (assume "x^" "Tx")
 (simp "TotalReaToEqD")
-(assert "allnc as^(Total as^ --> allnc M (Pvar rea)(RealConstr as^ M))")
+(assert "allnc as^(TotalNc as^ -> allnc M (Pvar rea)(RealConstr as^ M))")
 (use-with "AllncTotalElim" (py "nat=>rat")
  (make-cterm (pv "as^") (pf "allnc M (Pvar rea)(RealConstr as^ M)")) "?")
 (use "asMHyp")
 (assume "Assertion")
 (inst-with-to "Assertion" (pt "x^ seq") "AssInst")
-(assert "allnc M^(Total M^ --> (Pvar rea)(RealConstr x^ seq M^))")
+(drop "Assertion")
+(assert "allnc M^(TotalNc M^ -> (Pvar rea)(RealConstr x^ seq M^))")
 (use-with "AllncTotalElim" (py "pos=>nat")
  (make-cterm (pv "M^") (pf "(Pvar rea)(RealConstr x^ seq M^)")) "?")
 (use "AssInst")
@@ -6419,4 +6421,230 @@
 ;; Proof finished.
 ;; (cdp)
 (save "RealPosPlus")
+
+;; added 2020-07-19
+
+;; RealLeAbsMinus
+(set-goal "all x,y,z (Real x -> Real y -> Real z ->
+ abs(x+ ~y) <<= abs(x+ ~z) + abs(z+ ~y))")
+(assume "x" "y" "z" "x_r" "y_r" "z_r")
+(simpreal (pf "x+ ~y ===(x+ ~z) + (z+ ~y)"))
+(use "RealLeAbsPlus")
+(autoreal)
+(simpreal "RealPlusAssoc")
+(simpreal (pf "x+ ~z +z===x+ (~z +z)"))
+(simpreal (pf "~z +z===z + ~z"))
+(simpreal "RealPlusMinusZero")
+(simpreal "RealPlusZero")
+(use "RealEqRefl")
+(autoreal)
+(use "RealPlusComm")
+(autoreal)
+(use "RealEqSym")
+(use "RealPlusAssoc")
+(autoreal)
+;; Proof finished.
+;; (cdp)
+(save "RealLeAbsMinus")
+
+;; RatCauchyConvMod
+(set-goal "all as,M,p,n(Real(RealConstr as M) -> M p<=n ->
+                        abs(as n+ ~(RealConstr as M))<<=(1#2**p))")
+(assume "as" "M" "p" "n" "Rx" "nBd")
+(use "RealLeChar2RealConstrFree")
+;; 3-5
+(realproof)
+;; 4
+(use "RealRat")
+;; 5
+(ng)
+(assume "p0")
+(simp (pf "(2**p0+2**p#2**p*2**p0)=((1#2**p)+(1#2**p0))"))
+(intro 0 (pt "M p"))
+(assume "n0" "n0Bd")
+(use "RatLeTrans" (pt "(1#2**p)+0"))
+(use "CauchyElim" (pt "M"))
+(use "RealConstrToCauchy")
+(use "Rx")
+(use "nBd")
+(use "n0Bd")
+(use "RatLeMonPlus")
+(use "Truth")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "RatCauchyConvMod")
+
+;; RealEqIntro1
+(set-goal "all x,y(Real x -> Real y -> all p abs(x+ ~y)<<=(1#2**p) -> x===y)")
+(assume "x" "y" "x_r" "y_r" "assumption")
+(assert "all x,p,n(Real x -> x mod p<=n -> abs(x seq n+ ~x)<<=(1#2**p))")
+(cases)
+(use "RatCauchyConvMod")
+(assume "RealCauchyConv1")
+(use "RealEqChar2RealConstrFree")
+(autoreal)
+(assume "p")
+(intro 0 (pt "x mod (p+2) max y mod (p+2)"))
+(assume "n")
+(assume "nDef")
+(use "RealLeToRatLe")
+(use "RealLeTrans" (pt "abs(x seq n + ~x) + abs(x + ~(y seq n))"))
+(simpreal "RatAbsRealAbs")
+(simpreal "RatPlusRealPlus")
+(simpreal "RatUMinusRealUMinus")
+(use "RealLeAbsMinus")
+(autoreal)
+(simpreal (pf "(1#2**p)===RealPlus(1#2**(p+1))(1#2**(p+1))"))
+;; 1#2**p ===RealConstr([n](1#2**(p+1)))([p] Zero) + RealConstr([n](1#2**(p+1)))([p] Zero)"))
+(use "RealLeMonPlus")
+(use "RealLeTrans" (pt "RealConstr([n]1#2**(p+2))([p] Zero)"))
+(use "RealCauchyConv1")
+(autoreal)
+(use "NatLeTrans" (pt "x mod(p+2)max y mod(p+2)"))
+(use "NatMaxUB1")
+(use "nDef")
+(use "RatLeToRealLe")
+(ng #t)
+(use "NatLeMonTwoExp")
+(simp "PosToNatLe")
+(use "PosLeTrans" (pt "p+1"))
+(search)
+(simp (pf "p+2=PosS (PosS p)"))
+(ng #t)
+(use "Truth")
+(simp "<-" "PosPlus0CompRule")
+(simp "<-" "PosPlus0CompRule")
+(simp "<-" "PosPlusAssoc")
+(simp (pf "1+1=2"))
+(ng #t)
+(use "Truth")
+(search)
+(use "RealLeTrans" (pt "abs(x+ ~y) + abs(y + ~(y seq n))"))
+(simpreal "RatUMinusRealUMinus")
+(use "RealLeAbsMinus")
+(autoreal)
+(simpreal (pf "(1#2**(p+1))===RealPlus(1#2**(p+2))(1#2**(p+2))"))
+(use "RealLeMonPlus")
+(use "assumption")
+(simpreal "<-" "RealAbsUMinus")
+(simpreal "RealUMinusPlus")
+(simpreal "RealPlusComm")
+(simpreal "RatUMinusRealUMinus")
+(simpreal "RealUMinusUMinus")
+(use "RealCauchyConv1")
+(autoreal)
+(use "NatLeTrans" (pt "x mod(p+2)max y mod(p+2)"))
+(use "NatMaxUB2")
+(use "nDef")
+(autoreal)
+(simpreal "<-" "RatPlusRealPlus")
+(use "RatEqvToRealEq")
+(use "RatEqvSym")
+(simp (pf "p+2=PosS (p+1)"))
+(use "RatPlusHalfExpPosS")
+(simp (pf "2=1+1"))
+(simp "PosPlusAssoc")
+(ng #t)
+(use "Truth")
+(search)
+(simpreal "<-" "RatPlusRealPlus")
+(use "RatEqvToRealEq")
+(use "RatEqvSym")
+(use "RatPlusHalfExpPosS")
+;; Proof finished.
+;; (cdp)
+(save "RealEqIntro1")
+
+(add-var-name "xs" (py "nat=>rea"))
+
+;; Condition Mon M added by Wolfgang Boehnisch
+(add-ids
+ (list (list "RealConv"
+	     (make-arity (py "nat=>rea") (py "rea") (py "pos=>nat"))))
+ '("all xs,x,M(all n Real(xs n) -> Real x -> Mon M ->
+               all p,n(M p<=n -> abs(xs n-x)<<=(1#2**p)) ->
+               RealConv xs x M)" "RealConvIntro"))
+
+;; RealConvElim1
+(set-goal "all xs,x,M(RealConv xs x M -> all n Real(xs n))")
+(assume "xs" "x" "M")
+(elim)
+(search)
+;; Proof finished.
+(save "RealConvElim1")
+
+;; RealConvElim2
+(set-goal "all xs,x,M(RealConv xs x M -> Real x)")
+(assume "xs" "x" "M")
+(elim)
+(search)
+;; Proof finished.
+(save "RealConvElim2")
+
+;; RealConvElim3
+(set-goal "all xs,x,M(RealConv xs x M -> Mon M)")
+(assume "xs" "x" "M")
+(elim)
+(search)
+(save "RealConvElim3")
+
+;; RealConvElim4
+(set-goal
+ "all xs,x,M(RealConv xs x M -> all p,n(M p<=n -> abs(xs n+ ~x)<<=(1#2**p)))")
+(assume "xs" "x" "M")
+(elim)
+(search)
+;; Proof finished.
+(save "RealConvElim4")
+
+;; RealConvEq
+(set-goal "all x,x0,xs,xs0,M,M0(
+     all n xs n===xs0 n -> RealConv xs x M -> RealConv xs0 x0 M0 -> x===x0)")
+(assume "x" "x0" "xs" "xs0" "M" "M0" "eq" "xsConv" "xs0Conv")
+(assert "Real x")
+(use "RealConvElim2" (pt "xs") (pt "M"))
+(use "xsConv")
+(assume "x_r")
+(assert "Real x0")
+(use "RealConvElim2" (pt "xs0") (pt "M0"))
+(use "xs0Conv")
+(assume "x0_r")
+(use "RealEqIntro1")
+(autoreal)
+(assume "p")
+(assert "Real (xs(M(p+1) max M0(p+1)))")
+(use "RealConvElim1" (pt "x") (pt "M"))
+(use "xsConv")
+(assume "xs_r")
+(assert "Real (xs0(M(p+1) max M0(p+1)))")
+(use "RealConvElim1" (pt "x0") (pt "M0"))
+(use "xs0Conv")
+(assume "xs0_r")
+(use "RealLeTrans"
+     (pt "abs(x+ ~(xs(M(p+1)max M0(p+1))))+abs(xs(M(p+1)max M0(p+1))+ ~x0)"))
+(use "RealLeAbsMinus")
+(autoreal)
+(simpreal (pf "(1#2**p)===RealPlus(1#2**(p+1))(1#2**(p+1))"))
+(use "RealLeMonPlus")
+(simpreal "<-" "RealAbsUMinus")
+(simpreal "RealUMinusPlus")
+(simpreal "RealPlusComm")
+(simpreal "RealUMinusUMinus")
+(use "RealConvElim4" (pt "M"))
+(use "xsConv")
+(use "NatMaxUB1")
+(autoreal)
+(simpreal "eq")
+(use "RealConvElim4" (pt "M0"))
+(use "xs0Conv")
+(use "NatMaxUB2")
+(simpreal "<-" "RatPlusRealPlus")
+(use "RatEqvToRealEq")
+(use "RatEqvSym")
+(use "RatPlusHalfExpPosS")
+;; (cdp)
+(save "RealConvEq")
+
 
