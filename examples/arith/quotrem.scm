@@ -1,5 +1,4 @@
-;; 2018-09-19
-;; $Id: quotrem.scm 2156 2008-01-25 13:25:12Z schimans $
+;; 2020-08-01.  quotrem.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -68,7 +67,7 @@
 (pp (nt (mk-term-in-app-form neterm (pt "6") (pt "754")))) 
 ;; 107@5
 
-(define expr (term-to-expr neterm))
+(define expr (term-to-scheme-expr neterm))
 
 ;; (lambda (n)
 ;;   (lambda (n0)
