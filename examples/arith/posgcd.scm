@@ -1,4 +1,4 @@
-;; 2016-04-12.  posgcd.scm.
+;; 2020-08-01.  posgcd.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -194,19 +194,17 @@
 (use "NatLtTrans" (pt "PosToNat(SZero pos1+pos2)"))
 (simp "PosToNatPlus")
 (simp "PosToNatPlus")
-(ng #t)
 (use "NatLtMonPlus1")
-(use "NatLtDouble")
-(use "NatLt0PosToNat")
+(simp "PosToNatLt")
+(use "Truth")
 (use "Truth")
 (use "NatLtLeTrans" (pt "PosToNat(SZero pos1+SZero pos2)"))
+;; 31,32
 (simp "PosToNatPlus")
 (simp "PosToNatPlus")
 (ng #t)
-(use "NatLtMonPlus2")
-(use "Truth")
 (use "NatLtDouble")
-(use "NatLt0PosToNat")
+(use "NatLtZeroPosToNat")
 (use "NatLtSuccToLe")
 (use "LtHyp")
 ;; 17
@@ -216,35 +214,33 @@
 (use "NatLtLeTrans" (pt "PosToNat(SZero pos1+SOne pos2)"))
 (simp "PosToNatPlus")
 (simp "PosToNatPlus")
-(ng #t)
 (use "NatLtMonPlus1")
-(use "NatLtDouble")
-(use "NatLt0PosToNat")
+(simp "PosToNatLt")
+(use "Truth")
 (use "Truth")
 (use "NatLtSuccToLe")
 (use "LtHyp")
 ;; 11
 (assume "pos1")
 (cases)
-;; 54-56
+;; 50-52
 (strip)
 (ng)
 (use "PosTotalVar")
-;; 55
+;; 51
 (assume "pos2" "LtHyp")
 (ng #t)
 (use "IH")
 (use "NatLtLeTrans" (pt "PosToNat(SOne pos1+SZero pos2)"))
 (simp "PosToNatPlus")
 (simp "PosToNatPlus")
-(ng #t)
 (use "NatLtMonPlus2")
 (use "Truth")
-(use "NatLtDouble")
-(use "NatLt0PosToNat")
+(simp "PosToNatLt")
+(use "Truth")
 (use "NatLtSuccToLe")
 (use "LtHyp")
-;; 56
+;; 52
 (assume "pos2" "LtHyp")
 (ng #t) ;BooleIfTotal does not suffice.  Need PosToNatMinus and hence cases
 (cases (pt "pos1=pos2"))
@@ -257,6 +253,7 @@
 (ng #t)
 (cases (pt "pos1<pos2"))
 ;; Case p1<p2
+;; 74
 (assume "p1<p2")
 (ng #t)
 (use "IH")
@@ -264,23 +261,20 @@
 (simp "PosToNatPlus")
 (simp "PosToNatPlus")
 (ng #t)
-(use "NatLeMonPlus")
+(simp "PosToNatLe")
 (use "Truth")
-(simp "PosToNatMinus")
-(use "Truth")
-(use "p1<p2")
 (use "NatLtLeTrans" (pt "PosToNat(SOne pos1+SOne pos2)"))
 (simp "PosToNatPlus")
 (simp "PosToNatPlus")
 (use "NatLtMonPlus2")
 (use "Truth")
-(ng #t)
-(use "NatLtTrans" (pt "NatDouble(PosToNat pos2)"))
-(use "NatLtDouble")
-(use "NatLt0PosToNat")
+(simp "PosToNatLt")
+(use "PosLtTrans" (pt "SZero pos2"))
+(use "Truth")
 (use "Truth")
 (use "NatLtSuccToLe")
 (use "LtHyp")
+;; 75
 ;; Case p1<p2 -> F
 (assume "p1<p2 -> F")
 (ng #t)
@@ -305,10 +299,9 @@
 (simp "PosToNatPlus")
 (simp "PosToNatPlus")
 (use "NatLtMonPlus1")
-(ng #t)
-(use "NatLtTrans" (pt "NatDouble(PosToNat pos1)"))
-(use "NatLtDouble")
-(use "NatLt0PosToNat")
+(simp "PosToNatLt")
+(use "PosLtTrans" (pt "SZero pos1"))
+(use "Truth")
 (use "Truth")
 (use "Truth")
 (use "NatLtSuccToLe")
