@@ -1,4 +1,4 @@
-; $Id: grammar.scm 2534 2012-03-13 22:03:25Z schwicht $
+;; 2020-07-08.  grammar.scm
 ; 7-5. Parsing
 ; ============
 
@@ -256,6 +256,10 @@
      ("TotalMR" predconst-name .
         (string-and-arity-to-predconst-parse-function
           "TotalMR"
+          (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
+     ("CoTotalMR" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "CoTotalMR"
           (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
 
 ; Type Variables
