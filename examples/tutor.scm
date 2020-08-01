@@ -66,7 +66,9 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
-;; n, m, k are variables of type nat
+(add-var-name "k" (py "nat"))
+
+;; n, m, l are variables of type nat
 
 (add-pvar-name "P" "Q" (make-arity (py "nat")))
 
@@ -368,7 +370,7 @@
 (use "InitEqD")
 (assume "x" "xs" "IHxs")
 (ng #t)
-(simp "MapAppd")
+(simp "ListMapAppd")
 (simp "IHxs")
 (use "InitEqD")
 
@@ -772,6 +774,8 @@
 (use "InitRP")
 ;; Proof finished.
 (save "Completeness")
+
+(add-var-name "p" (py "boole"))
 
 ;; ParseLemma
 (set-goal "all y ex p((p -> U y) & ((p -> F) -> U y -> F))")
