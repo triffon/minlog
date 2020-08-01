@@ -1,4 +1,4 @@
-;; 2020-04-06.  pconst.scm
+;; 2020-07-12.  pconst.scm
 ;; 4. Constants
 ;; ============
 
@@ -209,8 +209,8 @@
 (define (pconst-name? string) (assoc string PROGRAM-CONSTANTS))
 
 (define (fixed-rules-name? string)
-  (and (member string '("Rec" "Cases" "GRec" "GRecGuard" "CoRec" "Destr" "Efq"
-			"Ex-Elim" "=" "E" "SE"))))
+  (and (member string '("Rec" "Cases" "GRec" "GRecGuard" "CoRec" "Destr" "Map"
+			"Efq" "Ex-Elim" "=" "E" "SE"))))
 
 (define (const=? const1 const2)
   (and (string=? (const-to-name const1) (const-to-name const2))
@@ -964,7 +964,7 @@
 	(if (or (not (proof-form? proof))
 		(pair? (proof-to-free-avars proof))
 		(not (member-wrt formula=?
-				 (cadr (all-form-to-vars-and-final-kernel
+				 (cadr (all-allnc-form-to-vars-and-final-kernel
 					(proof-to-formula proof)))
 				 rewrite-flas)))
 	    (add-global-assumption
