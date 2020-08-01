@@ -1,3 +1,258 @@
+Done locally in dev branch 2020-08-01.
+
+In typ.scm
+
+type-to-cotype added.  Inserts a prefix co to every alg-name.
+In alg-name-to-recursive? parameter types are ignored.
+
+In var.scm
+
+Commented out: check-restricted-var (a restricted variable of closed type can
+only have a type of level at most one) 
+
+In pconst.scm
+
+In fixed-rules-names Map added.  add-rewrite-rule corrected:
+all-form-to-vars-and-final-kernel replaced by
+all-allnc-form-to-vars-and-final-kernel
+
+In term.scm
+
+In match-aux formula=? gets ignore-deco-flag as additional argument.
+Commented out: check-term extended: a restricted variable of closed
+type can only have a type of level at most one.  Since [x]t(x) means
+[x^]t(x^) we use excluded-vars.
+
+In formula.scm
+
+In unfold-formula at predconsts EqP EqPNc terms-to-pure-eqp-formula
+terms-to-pure-eqpnc-formula is used, now with pure to avoid Total.  In
+unfold-formula at predconsts CoEqP CoEqPNc terms-to-pure-eqp-formula
+terms-to-pure-eqpnc-formula with type-to-cotype used.  Then
+terms-to-coeqp-formula terms-to-coeqpnc-formula are superfluous.
+formula=-aux? in case predicates corrected: ignore-deco-flag was not
+used.  In unfold-formula cterms in idpredconsts are unfolded as well.
+term-and-alist-to-cototality-formula
+term-and-alist-to-cototalnc-formula moved to psym.scm.  Commented out:
+In check-formula a totality predconst of closed type can only have a
+type of level at most one.
+
+In grammar.scm
+
+CoTotalMR added.
+
+In proof.scm
+
+In vars-and-formulas-to-exand-intro-proof total variables required.
+In formula-and-falsity-avar-to-ef-proof typo corrected.
+constructor-eqd-proof-to-args-eqd-proof corrected (infinite loop
+removed, work of Nils Koepp).  In constructor-eqd-imp-args-eqd-proof
+and constructors-overlap-imp-falsity-proof obsolete impnc removed.  In
+formula-and-falsity-avar-to-ef-proof for coinductive predicates Gfp
+cannot be used (unsharp substitution).  Instead in case the
+corresponding inductive predicate has a nullary clause one uses a
+nullary clause for the coinductive predicate.  Example: InitEven: Even
+0 and InitCoEven: CoEven 0, using CoEvenClauseInv.
+idpc-proof-and-falsity-avar-to-ef-idpc-proof corrected: all (without nc) ok.
+totality-thm-to-extnc-proof added.
+mk-proof-in-nc-intro-form-without-impnc added.
+
+In pproof.scm
+
+In use-with-intern check classical-formula=? gets ignore-deco-flag as
+an extra argument.  In elim-intern coinductive predicates disallowed,
+and test for nc competitor at non one-clause-nc idpedconst added.
+
+In psym.scm
+
+Introductory text for predconsts updated.  In add-reqpnc n.c. instead
+of c.r. parameter pvars used.  terms-to-pure-eqp-formula ,
+term-to-pure-ext-formula terms-to-pure-eqpnc-formula ,
+term-to-pure-extnc-formula terms-to-pure-mr-eqp-formula
+cotype-to-pure-mr-eqp-cterm added, with no use of totality predicates.
+term-and-alist-to-cototality-formula
+term-and-alist-to-cototalnc-formula moved here from formula.scm.
+Commented out: they now give an error if the type has level larger
+than one.  Commented out: check-totality-predconst added: a totality
+predconst of closed type can only have a type of level at most one.
+Commented out: term-and-alist-to-totality-formula
+term-and-alist-to-totalnc-formula terms-to-mr-totality-formula
+terms-to-mr-cototality-formula now give an error if the type has level
+larger than one.
+
+In axiom.scm
+
+In check-aconst case Elim test for an inductive (not coinductive)
+idpredconst added, and test for one-clause-nc ipredconst corrected.
+
+In ets.scm
+
+add-rtotalnc yprod (moved here from lib/list.scm) ysum uysum ysumu
+add-reqpnc for yprod ysum uysum ysumu added.  PairConstrExtNc
+YprodRecExtNc InLExtNc InRExtNc YsumRecExtNc added.  OrNc defined with
+n.c. pvars.  In efeqd-proof mk-proof-in-nc-intro-form-without-impnc
+used instead of mk-proof-in-intro-form.
+In ex-formula-and-concl-to-ex-elim-mr-proof pair-var made total.
+
+In lib/nat.scm
+
+Using term-to-pure-extnc-formula rather than terms-to-eqpnc-formula
+(pure) n.c. extensionality theorems proved for the constructors,
+recursion, cases, destructor and corecursion: NatRecExtNc
+NatCasesExtNc NatDestrExtNc NatCoRec0 NatCoRec1L NatCoRec1R
+NatCoRecExtNcAux NatCoRecExtNc.  Ext theorems only w.r.t. the pure
+form.  AllBNatIntro and AllBNatElim added.  NatLeastUpExt
+NatLeastUpExtNc proved in the pure setting.  For NatLeastUpExt added
+NatNatTotalToExt NatNatExtToTotal NatNatBooleTotalToExt
+NatNatNatTotalToExt.  Same for Nc.  SuccTotalFPFalseR
+SuccTotalFPFalseL CoEqPNatNcSuccNotZero CoEqPNatNcSuccInj
+CoEqPNatNcSuccCompat CoEqPNatNcZeroZero added.
+
+In lib/list.scm
+
+add-rtotalnc for yprod moved from here to ets.scm.  RTotalListNc
+replaces NTotalListNc, REqPListNc replaces NEqPListNc.  ListProjExtNc
+ListBarExtNc ListFBarExtNc ListHeadExtNc added.  Comment on usage of
+InhabTotal added: Totality of e.g. (ListProj tau) requires that tau is
+a closed type with a total inhabitant (e.g. streams of booleans are
+not allowed).  This remark also applies to ListBar ListHead ListLast.
+Total variant ListNatProj of ListProj added.  ListNatProjFBar added.
+To include a type string in the name of a theorem we use
+rename-parentheses-and-spaces and capitalize the first character.
+Example: EqPList__natNcToEqD added.
+
+In lib/rat.scm
+
+RatEqvPlusMinusPlus RatEqvTimesPlusMinus added.
+
+In lib/rea.scm
+
+EqPReaElimLeft EqPReaElimRight changed because of pure unfolding in
+the premise.  AllEqPNatElim AllEqPPosElim commented out: not needed.
+ListNatMaxUB ListNatMaxFBar reformulated with the total ListNatProj.
+impnc removed.  In TotalReaToEqD nc inserted. RealLeAbsMinus added.
+RatCauchyConvMod RealEqIntro1 added.  Idpredconst RealConv added.
+RealConvElim1 RealConvElim2 RealConvElim3 RealConvElim4 RealConvEq
+added.
+
+In lib/cont.scm
+
+Updated following libcont20.scm, up to ContLim and ContRat.  The part
+on the intermediate value theorem of the previous file cont.scm 
+updated as in libcont20.scm and moved to ivt.scm.
+
+In examples/analysis/ivt.scm
+
+Rewritten.  Content: previous cont.scm from ApproxSplitBoole to
+IVTFinal and IVTApprox.
+
+In examples/analysis/sqrt2.scm
+
+New file.  Instantiates IVTFinal to SqMTwo: x \mapsto x^2-2.  The
+resulting real is the square root of 2.  Via RealApprox we can compute
+a rational approximation of a given accuracy.  Numerical tests done.
+
+In examples/analysis/sdcode.scm
+
+Superfluous material (on eqp ext, and AiCoRecExt) removed.
+
+In examples/analysis/sdmult.scm
+
+Removal of MR: SdMR renamed into SdInj.  Reason: usage of MR
+predicates restricted to soundness proofs.  Soundness proofs added.
+
+In examples/analysis/grayavaux.scm
+
+Removal of MR: SdMR SdtwoMR PsdMR renamed into SdInj SdtwoInj PsdInj.
+Reason: usage of MR predicates restricted to soundness proofs.
+
+In examples/analysis/graymult.scm
+
+Removal of MR: SdMR SdtwoMR PsdMR renamed into SdInj SdtwoInj PsdInj.
+Reason: usage of MR predicates restricted to soundness proofs.
+
+In examples/test/names.scm
+
+add-ids for Acc removed: add-ids is restricted to finitary algebras.
+RTC removed: impnc replaced by switching off predicates.
+
+In examples/test/psym.scm
+
+Acc removed.  Adapted to (1) sharp substitutions (2) realizers come
+last (3) allnc in front of clauses.
+
+In examples/test/term.scm
+
+Adapted to sharp substitutions
+
+In examples/test/formula.scm
+
+Adapted to sharp substitutions
+
+In examples/test/axiom.scm
+
+Adapted to sharp substitutions
+
+In examples/test/proof.scm
+
+Updated, and adapted to sharp substitutions.  Testproofs for
+formula-to-ef-proof added: Efq not needed for the inductively defined
+logical connectives.
+
+In examples/test/pproof.scm
+
+EfqEqD replaced by EfEqD.  formula-to-efq-proof replaced by
+formula-to-ef-proof .
+
+In examples/test/ets.scm
+
+ex x^ replaced by ex x.  formula-to-efq-proof replaced by
+formula-to-ef-proof .  GfpCoTotalNatMR and CoTotalNatClauseSound
+removed, since axiom-to-soundness-proof automatizes the generation of
+such proofs.
+
+In examples/fan/fanwklu.scm
+
+ListFunzipTotal added.   ex replaced by exl, & by andnc.
+
+In examples/arith/quotrem.scm
+
+var-name k added.  term-to-expr replaced by term-to-scheme-expr
+
+In examples/arith/posgcd.scm
+
+Theorem names updated.
+
+In examples/arith/dickson.scm
+
+ex,& replaced by exl,andi.  Global assumption Efq removed.
+
+In examples/arith/sqrttwo.scm
+
+NatDouble, NatHalf (in nat.scm) used for D,H.  var-name k added.  &
+replaced by andnc, andd.
+
+In examples/arith/fph.scm
+
+var-name k added.
+
+In examples/arith/fib.scm
+
+var-name k added.
+
+In examples/arith/bundeswett.scm
+
+var-name k added.
+
+In examples/parsing/parens.scm
+
+EFEqD replaced by EfEqD.  Global assumption Efq removed.
+
+In examples/tutor.scm
+
+Updated.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2020-04-06.
 
 In typ.scm
