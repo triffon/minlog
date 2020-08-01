@@ -1,4 +1,4 @@
-;; 2018-06-11.  names.scm
+;; 2020-07-15.  names.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -183,8 +183,8 @@
 
 (add-algs (list "disj" "conj") 'prefix-typeop
 	  '("alpha=>disj" "Lit")
-	  '("list conj=>disj" "Disj")
-	  '("list disj=>conj" "Conj"))
+	  '("list conj=>disj" "Disjunction")
+	  '("list disj=>conj" "Conjunction"))
 
 ;; Read and write (U. Berger, to represent continuous functions)
 
@@ -278,28 +278,37 @@
 	 '("allnc x^,y^(R x^ y^ -> TrCl x^ y^)" "InitTrCl")
 	 '("allnc x^,y^,z^(R x^ y^ -> TrCl y^ z^ -> TrCl x^ z^)" "GenTrCl"))
 
+;; The n.c. transitive closure of a relation.
+
+(add-ids
+ (list (list "TrClNc" (make-arity (py "alpha") (py "alpha")) "nat"))
+ '("allnc x^,y^(R^ x^ y^ -> TrClNc x^ y^)" "InitTrClNc")
+ '("allnc x^,y^,z^(R^ x^ y^ -> TrClNc y^ z^ -> TrClNc x^ z^)" "GenTrClNc"))
+
 ;; The reflexive transitive closure of a relation.
 
 (add-ids (list (list "RTrCl" (make-arity (py "alpha") (py "alpha")) "list"))
 	 '("allnc x^ RTrCl x^ x^" "InitRTrCl")
 	 '("allnc x^,y^,z^(R x^ y^ -> RTrCl y^ z^ -> RTrCl x^ z^)" "GenRTrCl"))
 
-;; Another form of reflexive transitive closure with R used c.r. and n.c.
+;; Code discarded 2020-07-14: impnc replaced by switching off predicates.
+;; ;; Another form of reflexive transitive closure with R used c.r. and n.c.
 
-(add-ids (list (list "RTC" (make-arity (py "alpha") (py "alpha")) "algRTC"))
-	 '("allnc x^,y^(R x^ y^ -> RTC x^ y^)" "InitRTC")
-	 '("allnc x^,y^(R x^ y^ --> RTC x^ x^)" "LInitRTC")
-	 '("allnc x^,y^(R x^ y^ --> RTC y^ y^)" "RInitRTC")
-	 '("allnc x^,y^,z^(R x^ y^ -> RTC y^ z^ -> RTC x^ z^)" "GenRTC"))
+;; (add-ids (list (list "RTC" (make-arity (py "alpha") (py "alpha")) "algRTC"))
+;; 	 '("allnc x^,y^(R x^ y^ -> RTC x^ y^)" "InitRTC")
+;; 	 '("allnc x^,y^(R x^ y^ --> RTC x^ x^)" "LInitRTC")
+;; 	 '("allnc x^,y^(R x^ y^ --> RTC y^ y^)" "RInitRTC")
+;; 	 '("allnc x^,y^,z^(R x^ y^ -> RTC y^ z^ -> RTC x^ z^)" "GenRTC"))
 
+;; Code discarded 2020-07-14: add-ids is restricted to finitary algebras.
 ;; We define accessibility w.r.t. a relation given by a boolean-valued
 ;; function r.
 
-(add-ids (list (list "Acc" (make-arity (py "alpha=>alpha=>boole") (py "alpha"))
-		     "itree"))
-	 '("allnc rel^,x^(F -> Acc rel^ x^)" "EfqAcc")
-	 '("allnc rel^,x^(all y^(rel^ y^ x^ -> Acc rel^ y^) -> Acc rel^ x^)"
-	   "GenAccSup"))
+;;(add-ids (list (list "Acc" (make-arity (py "alpha=>alpha=>boole") (py "alpha"))
+;; 		     "itree"))
+;; 	 '("allnc rel^,x^(F -> Acc rel^ x^)" "EfqAcc")
+;; 	 '("allnc rel^,x^(all y^(rel^ y^ x^ -> Acc rel^ y^) -> Acc rel^ x^)"
+;; 	   "GenAccSup"))
 
 (add-ids (list (list "Cup" (make-arity (py "alpha")) "ysum"))
 	 '("allnc x^(Q1 x^ -> Cup x^)" "InlCup")
