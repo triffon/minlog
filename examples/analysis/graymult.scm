@@ -1,4 +1,4 @@
-;; 2019-08-27.  examples/analysis/graymult.scm.
+;; 2020-07-22.  examples/analysis/graymult.scm.
 
 (load "~/git/minlog/init.scm")
 
@@ -635,37 +635,37 @@
  Sdtwo(J(e* ~e0+2*e0+d0+i)))")
 (assume "e" "e0" "d0" "i" "Psde" "Psde0" "Psdd0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR e0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj e0 boole2")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl boole3 PsdMR d0 boole3")
-(use "PsdMRIntro")
+(assert "exl boole3 PsdInj d0 boole3")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "boole3" "boole3Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdtwoMRElim"
+(use "SdtwoInjElim"
      (pt "IntToSdtwo(J(BooleToInt boole1* ~(BooleToInt boole2)+
                      2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t))"))
 (simp (pf "J(BooleToInt boole1* ~(BooleToInt boole2)+
              2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t)=
            J(e* ~e0+2*e0+d0+i)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^34:abs(J(e* ~e0+2*e0+d0+i))<=2
 (use "JProp")
 (simp (pf "BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
@@ -675,14 +675,14 @@
 ;;      BooleToInt boole3+
 ;;      SdtwoToInt t=
 ;;      e* ~e0+2*e0+d0+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole3") "boole3Prop" "PsdMRIdInst3")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "PsdMRIdInst3")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole3") "boole3Prop" "PsdInjIdInst3")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "PsdInjIdInst3")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -700,37 +700,37 @@
 (set-goal "allnc e,e0,d0,i(Psd e -> Psd e0 -> Psd d0 -> Sdtwo i -> 
  Sd(K(e* ~e0+2*e0+d0+i)))")
 (assume "e" "e0" "d0" "i" "Psde" "Psde0" "Psdd0" "Sdtwoi")
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR e0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj e0 boole2")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl boole3 PsdMR d0 boole3")
-(use "PsdMRIntro")
+(assert "exl boole3 PsdInj d0 boole3")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "boole3" "boole3Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdMRElim"
+(use "SdInjElim"
      (pt "IntToSd(K(BooleToInt boole1* ~(BooleToInt boole2)+
                    2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t))"))
 (simp (pf "K(BooleToInt boole1* ~(BooleToInt boole2)+
              2*BooleToInt boole2+BooleToInt boole3+SdtwoToInt t)=
            K(e* ~e0+2*e0+d0+i)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^34:abs(K(e* ~e0+2*e0+d0+i))<=1
 (use "KProp")
 ;; ?^35:abs(e* ~e0+2*e0+d0+i)<=6
@@ -771,14 +771,14 @@
 ;;      BooleToInt boole3+
 ;;      SdtwoToInt t=
 ;;      e* ~e0+2*e0+d0+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole3") "boole3Prop" "PsdMRIdInst3")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "PsdMRIdInst3")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole3") "boole3Prop" "PsdInjIdInst3")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "PsdInjIdInst3")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -981,40 +981,40 @@
 ;; JKLrzLrvUAuxJ
 (set-goal "allnc e0,d0,i(Psd e0 -> Psd d0 -> Sdtwo i -> Sdtwo(J(2*e0+d0+i)))")
 (assume "e0" "d0" "i" "Psde0" "Psdd0" "Sdtwoi")
-(assert "exl boole1 PsdMR e0 boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e0 boole1")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR d0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj d0 boole2")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdtwoMRElim"
+(use "SdtwoInjElim"
      (pt "IntToSdtwo(J(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
 (simp (pf "J(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=
            J(2*e0+d0+i)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^27:abs(J(2*e0+d0+i))<=2
 (use "JProp")
 (simp (pf "2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=2*e0+d0+i"))
 (use "Truth")
 ;; ?^29:2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=2*e0+d0+i
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -1030,28 +1030,28 @@
 ;; JKLrzLrvUAuxK
 (set-goal "allnc e0,d0,i(Psd e0 -> Psd d0 -> Sdtwo i -> Sd(K(2*e0+d0+i)))")
 (assume "e0" "d0" "i" "Psde0" "Psdd0" "Sdtwoi")
-(assert "exl boole1 PsdMR e0 boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e0 boole1")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR d0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj d0 boole2")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "t" "tProp")
-(use "SdMRElim"
+(use "SdInjElim"
      (pt "IntToSd(K(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
 (simp (pf "K(2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=
            K(2*e0+d0+i)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^27:abs(K(2*e0+d0+i))<=1
 (use "KProp")
 ;; ?^28:abs(2*e0+d0+i)<=6
@@ -1077,12 +1077,12 @@
 (simp (pf "2*BooleToInt boole1+ BooleToInt boole2+SdtwoToInt t=2*e0+d0+i"))
 (use "Truth")
 ;; ?^48:2*BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=2*e0+d0+i
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -1360,39 +1360,39 @@
 (set-goal "allnc e,d0,i(Psd e -> Psd d0 -> Sdtwo i -> Sdtwo(J(e+d0+i)))")
 (assume "e" "d0" "i" "Psde" "Psdd0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR d0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj d0 boole2")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdtwoMRElim"
+(use "SdtwoInjElim"
      (pt "IntToSdtwo(J(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
 (simp (pf "J(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=J(e+d0+i)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^27:abs(J(e+d0+i))<=2
 (use "JProp")
 (simp (pf "BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=e+d0+i"))
 (use "Truth")
 ;; ?^29:BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=e+d0+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -1409,28 +1409,28 @@
 (set-goal "allnc e,d0,i(Psd e -> Psd d0 -> Sdtwo i -> Sd(K(e+d0+i)))")
 (assume "e" "d0" "i" "Psde" "Psdd0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR d0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj d0 boole2")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdMRElim"
+(use "SdInjElim"
      (pt "IntToSd(K(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t))"))
 (simp (pf "K(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t)=K(e+d0+i)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^27:abs(K(e+d0+i))<=1
 (use "KProp")
 (use "IntLeTrans" (pt "IntP 2+IntP 2"))
@@ -1454,12 +1454,12 @@
 (simp (pf "BooleToInt boole1+ BooleToInt boole2+SdtwoToInt t=e+d0+i"))
 (use "Truth")
 ;; ?^47:BooleToInt boole1+BooleToInt boole2+SdtwoToInt t=e+d0+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -1610,31 +1610,31 @@
 (set-goal "allnc d0,i(Psd d0 -> Sdtwo i -> Sdtwo(J(d0+i)))")
 (assume "d0" "i" "Psdd0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR d0 boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj d0 boole1")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "t" "tProp")
 
-(use "SdtwoMRElim"
+(use "SdtwoInjElim"
      (pt "IntToSdtwo(J(BooleToInt boole1+SdtwoToInt t))"))
 (simp (pf "J(BooleToInt boole1+SdtwoToInt t)=J(d0+i)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^20:abs(J(d0+i))<=2
 (use "JProp")
 (simp (pf "BooleToInt boole1+SdtwoToInt t=d0+i"))
 (use "Truth")
 ;; ?^22:BooleToInt boole1+SdtwoToInt t=d0+i
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -1650,21 +1650,21 @@
 (set-goal "allnc d0,i(Psd d0 -> Sdtwo i -> Sd(K(d0+i)))")
 (assume "d0" "i" "Psdd0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR d0 boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj d0 boole1")
+(use "PsdInjIntro")
 (use "Psdd0")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "t" "tProp")
 
-(use "SdMRElim" (pt "IntToSd(K(BooleToInt boole1+SdtwoToInt t))"))
+(use "SdInjElim" (pt "IntToSd(K(BooleToInt boole1+SdtwoToInt t))"))
 (simp (pf "K(BooleToInt boole1+SdtwoToInt t)=K(d0+i)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^20:abs(K(d0+i))<=1
 (use "KProp")
 (use "IntLeTrans" (pt "IntP 1+IntP 2"))
@@ -1680,10 +1680,10 @@
 (simp (pf "BooleToInt boole1+SdtwoToInt t=d0+i"))
 (use "Truth")
 ;; ?^32:BooleToInt boole1+SdtwoToInt t=d0+i
-(inst-with-to "PsdMRId" (pt "d0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "d0") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2006,31 +2006,31 @@
  Psd e -> Psd e0 -> Sdtwo i -> Sdtwo(J(e* ~e0+2*e0+i)))")
 (assume "e" "e0" "i" "Psde" "Psde0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR e0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj e0 boole2")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdtwoMRElim"
+(use "SdtwoInjElim"
      (pt "IntToSdtwo(J(BooleToInt boole1* ~(BooleToInt boole2)+
                      2*BooleToInt boole2+SdtwoToInt t))"))
 (simp (pf "J(BooleToInt boole1* ~(BooleToInt boole2)+
              2*BooleToInt boole2+SdtwoToInt t)=
            J(e* ~e0+2*e0+i)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^27:abs(J(e* ~e0+2*e0+i))<=2
 (use "JProp")
 (simp (pf "BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
@@ -2039,12 +2039,12 @@
 ;; ?^29:BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
 ;;      SdtwoToInt t=
 ;;      e* ~e0+2*e0+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2063,31 +2063,31 @@
  Psd e -> Psd e0 -> Sdtwo i -> Sd(K(e* ~e0+2*e0+i)))")
 (assume "e" "e0" "i" "Psde" "Psde0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl boole2 PsdMR e0 boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj e0 boole2")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdMRElim"
+(use "SdInjElim"
      (pt "IntToSd(K(BooleToInt boole1* ~(BooleToInt boole2)+
                      2*BooleToInt boole2+SdtwoToInt t))"))
 (simp (pf "K(BooleToInt boole1* ~(BooleToInt boole2)+
              2*BooleToInt boole2+SdtwoToInt t)=
            K(e* ~e0+2*e0+i)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^27:abs(K(e* ~e0+2*e0+i))<=1
 (use "KProp")
 (use "IntLeTrans" (pt "IntP 3+IntP 2"))
@@ -2113,12 +2113,12 @@
 ;; ?^46:BooleToInt boole1* ~(BooleToInt boole2)+2*BooleToInt boole2+
 ;;      SdtwoToInt t=
 ;;      e* ~e0+2*e0+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2315,30 +2315,30 @@
 (set-goal "allnc e0,i(Psd e0 -> Sdtwo i -> Sdtwo(J(2*e0+i)))")
 (assume "e0" "i" "Psde0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e0 boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e0 boole1")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdtwoMRElim" (pt "IntToSdtwo(J(2*BooleToInt boole1+SdtwoToInt t))"))
+(use "SdtwoInjElim" (pt "IntToSdtwo(J(2*BooleToInt boole1+SdtwoToInt t))"))
 (simp (pf "J(2*BooleToInt boole1+SdtwoToInt t)=J(2*e0+i)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^20:abs(J(2*e0+i))<=2
 (use "JProp")
 (simp (pf "2*BooleToInt boole1+SdtwoToInt t=2*e0+i"))
 (use "Truth")
 ;; ?^22:2*BooleToInt boole1+SdtwoToInt t=2*e0+i
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2354,20 +2354,20 @@
 (set-goal "allnc e0,i(Psd e0 -> Sdtwo i -> Sd(K(2*e0+i)))")
 (assume "e0" "i" "Psde0" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e0 boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e0 boole1")
+(use "PsdInjIntro")
 (use "Psde0")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "t" "tProp")
-(use "SdMRElim" (pt "IntToSd(K(2*BooleToInt boole1+SdtwoToInt t))"))
+(use "SdInjElim" (pt "IntToSd(K(2*BooleToInt boole1+SdtwoToInt t))"))
 (simp (pf "K(2*BooleToInt boole1+SdtwoToInt t)=K(2*e0+i)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^20:abs(K(2*e0+i))<=1
 (use "KProp")
 ;; ?^21:abs(2*e0+i)<=6
@@ -2385,10 +2385,10 @@
 (simp (pf "2*BooleToInt boole1+SdtwoToInt t=2*e0+i"))
 (use "Truth")
 ;; ?^33:2*BooleToInt boole1+SdtwoToInt t=2*e0+i
-(inst-with-to "PsdMRId" (pt "e0") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e0") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2642,30 +2642,30 @@
 (set-goal "allnc e,i(Psd e -> Sdtwo i -> Sdtwo(J(e+i)))")
 (assume "e" "i" "Psde" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdtwoMRElim" (pt "IntToSdtwo(J(BooleToInt boole1+SdtwoToInt t))"))
+(use "SdtwoInjElim" (pt "IntToSdtwo(J(BooleToInt boole1+SdtwoToInt t))"))
 (simp (pf "J(BooleToInt boole1+SdtwoToInt t)=J(e+i)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^20:abs(J(e+i))<=2
 (use "JProp")
 (simp (pf "BooleToInt boole1+SdtwoToInt t=e+i"))
 (use "Truth")
 ;; ?^22:BooleToInt boole1+SdtwoToInt t=e+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2681,21 +2681,21 @@
 (set-goal "allnc e,i(Psd e -> Sdtwo i -> Sd(K(e+i)))")
 (assume "e" "i" "Psde" "Sdtwoi")
 
-(assert "exl boole1 PsdMR e boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj e boole1")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp4")
 (by-assume "ExHyp4" "t" "tProp")
 
-(use "SdMRElim" (pt "IntToSd(K(BooleToInt boole1+SdtwoToInt t))"))
+(use "SdInjElim" (pt "IntToSd(K(BooleToInt boole1+SdtwoToInt t))"))
 (simp (pf "K(BooleToInt boole1+SdtwoToInt t)=K(e+i)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^20:abs(K(e+i))<=1
 (use "KProp")
 (use "IntLeTrans" (pt "IntP 1+IntP 2"))
@@ -2711,10 +2711,10 @@
 (simp (pf "BooleToInt boole1+SdtwoToInt t=e+i"))
 (use "Truth")
 ;; ?^32:BooleToInt boole1+SdtwoToInt t=e+i
-(inst-with-to "PsdMRId" (pt "e") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2856,22 +2856,22 @@
 (set-goal "allnc i(Sdtwo i -> Sdtwo(J i))")
 (assume "i" "Sdtwoi")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "t" "tProp")
 
-(use "SdtwoMRElim" (pt "IntToSdtwo(J(SdtwoToInt t))"))
+(use "SdtwoInjElim" (pt "IntToSdtwo(J(SdtwoToInt t))"))
 (simp (pf "J(SdtwoToInt t)=J i"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^13:abs(J i)<=2
 (use "JProp")
 (simp (pf "SdtwoToInt t=i"))
 (use "Truth")
 ;; ?^15:SdtwoToInt t=i
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "SdtwoMRIdInst")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -2887,15 +2887,15 @@
 (set-goal "allnc i(Sdtwo i -> Sd(K i))")
 (assume "i" "Sdtwoi")
 
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "t" "tProp")
 
-(use "SdMRElim" (pt "IntToSd(K(SdtwoToInt t))"))
+(use "SdInjElim" (pt "IntToSd(K(SdtwoToInt t))"))
 (simp (pf "K(SdtwoToInt t)=K i"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^13:abs(K i)<=1
 (use "KProp")
 (use "IntLeTrans" (pt "IntP 2"))
@@ -2905,8 +2905,8 @@
 (simp (pf "SdtwoToInt t=i"))
 (use "Truth")
 ;; ?^19:SdtwoToInt t=i
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "SdtwoMRIdInst")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 ;; (cdp)
@@ -4813,3 +4813,4 @@
 ;; (ppc CoGMult-neterm)
 
 ;; [ag,ag0]cCoGMultcToCoG(cCoGMultToMultc ag ag0)
+
