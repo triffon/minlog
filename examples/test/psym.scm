@@ -1,5 +1,5 @@
 ;; (load "~/git/minlog/init.scm")
-(load "names.scm")
+(load "names.scm") 
 
 (define testidpcs
   (list
@@ -16,38 +16,38 @@
     "TotalYsumu" (list (py "alpha")) '())
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "EqD" (list (py "alpha")) '())
-   (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "ExD" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
-   (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "ExL" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
+   ;; (idpredconst-name-and-types-and-cterms-to-idpredconst
+   ;;  "ExD" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
+   ;; (idpredconst-name-and-types-and-cterms-to-idpredconst
+   ;;  "ExL" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q^ x^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "ExR" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "ExNc" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q x^"))))
+    "ExNc" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q^ x^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "ExDT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "ExLT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
+    "ExLT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q^ x"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "ExRT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "ExNcT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q x"))))
+    "ExNcT" (list (py "alpha")) (list (make-cterm (pv "x") (pf "Q^ x"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "AndD" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "AndL" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
+    "AndL" '() (list (make-cterm (pf "A")) (make-cterm (pf "B^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "AndR" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
+    "AndR" '() (list (make-cterm (pf "A^")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "AndNc" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
+    "AndNc" '() (list (make-cterm (pf "A^")) (make-cterm (pf "B^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "OrD" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "OrL" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
+    "OrL" '() (list (make-cterm (pf "A")) (make-cterm (pf "B^"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "OrR" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
+    "OrR" '() (list (make-cterm (pf "A^")) (make-cterm (pf "B"))))
    (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "OrU" '() (list (make-cterm (pf "A")) (make-cterm (pf "B"))))
+    "OrU" '() (list (make-cterm (pf "A^")) (make-cterm (pf "B^"))))
    ;; idpcs in lib/nat.scm
    (idpredconst-name-and-types-and-cterms-to-idpredconst "TotalNat" '() '())
    ;; (idpredconst-name-and-types-and-cterms-to-idpredconst "TotalNatMR" '() '())
@@ -73,8 +73,8 @@
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "TrCl" (list (py "alpha"))
     (list (make-cterm (pv "x^") (pv "y^") (pf "R x^ y^"))))
-   (idpredconst-name-and-types-and-cterms-to-idpredconst
-    "Acc" (list (py "alpha")) '())
+   ;; (idpredconst-name-and-types-and-cterms-to-idpredconst
+   ;;  "Acc" (list (py "alpha")) '())
    (idpredconst-name-and-types-and-cterms-to-idpredconst
     "Cup" (list (py "alpha")) (list (make-cterm (pv "x^") (pf "Q1 x^"))
 				    (make-cterm (pv "x^") (pf "Q2 x^"))))
@@ -132,23 +132,31 @@
 (pp (make-predicate-formula idpc))
 ;; A ord B
 
-;; ... or else can be substituted e.g. {|T} and {|F}
+;; When we substitute them by n.c. cterms (e.g. {|T} and {|F}) we must
+;; use either OrU or else OrNc
 
 (define idpc-inst
   (idpredconst-name-and-types-and-cterms-to-idpredconst
-   "OrD" '() (list  (make-cterm (pf "T")) (make-cterm (pf "F")))))
+   "OrU" '() (list  (make-cterm (pf "T")) (make-cterm (pf "F")))))
 
 (pp (make-predicate-formula idpc-inst))
-;; T ord F
+;; T oru F
+
+(define idpc-inst
+  (idpredconst-name-and-types-and-cterms-to-idpredconst
+   "OrNc" '() (list  (make-cterm (pf "T")) (make-cterm (pf "F")))))
+
+(pp (make-predicate-formula idpc-inst))
+;; T ornc F
 
 ;; We need decorated inductively defined existential quantifiers, for
 ;; instance (ExD with D for double) for a kernel with computational
 ;; content, and one (ExL with L for left) for a kernel without.  The
 ;; reason is to avoid garbage in extracted programs.
 
-(define idpc (predicate-form-to-predicate (pf "exd n n=m")))
+(define idpc (predicate-form-to-predicate (pf "exd x Q x")))
 (idpredconst-to-string idpc)
-;; "exd n n=m"
+;; "exd x Q x"
 
 (define idpc (predicate-form-to-predicate (pf "exl p1 p1=p2")))
 (idpredconst-to-string idpc)
@@ -181,16 +189,16 @@
 
 (define idpc-inst
   (idpredconst-name-and-types-and-cterms-to-idpredconst
-   "TrCl"
+   "TrClNc"
    (list (py "nat"))
    (list (make-cterm (pv "n^1") (pv "n^2") (pf "n^1<n^2")))))
 
-(pp (make-predicate-formula idpc-inst (pt "n3") (pt "n4")))
-;; (TrCl (cterm (n^1,n^2) n^1<n^2))n3 n4
+(pp (rename-variables (make-predicate-formula idpc-inst (pt "n3") (pt "n4"))))
+;; (TrClNc (cterm (n^,n^0) n^ <n^0))n3 n4
 
 ;; One can also directly parse such formulas
 
-(pp (pf "(TrCl (cterm (n^1,n^2) n^1=n^2))n1 n2"))
+(pp (pf "(TrClNc (cterm (n^,n^0) n^ <n^0))n3 n4"))
 
 ;; Another possibility is to substitute:
 
@@ -198,28 +206,29 @@
   (list (list (py "alpha") (py "nat"))
 	(list (pv "x1") (pt "n1"))
 	(list (pv "x2") (pt "n2"))
-	(list (predicate-form-to-predicate (pf "R x^1 x^2"))
+	(list (predicate-form-to-predicate (pf "R^ x^1 x^2"))
 	      (make-cterm (pv "n^1") (pv "n^2") (pf "n^1=n^2")))))
 
 (pp-subst topsubst)
-;;   alpha -> nat
-;;   x1 -> n1
-;;   x2 -> n2
-;;   R ->  (cterm (n^1,n^2) n^1=n^2)
+
+;; alpha -> nat
+;; x1 -> n1
+;; x2 -> n2
+;; R^ ->  (cterm (n^1,n^2) n^1=n^2)
 
 (pp (rename-variables
      (formula-substitute
-      (pf "(TrCl (cterm (x^1,x^2) R x^1 x^2))x1 x2")
+      (pf "(TrClNc (cterm (x^1,x^2) R^ x^1 x^2))x1 x2")
       topsubst)))
 
-;; (TrCl (cterm (n^,n^0) n^ =n^0))n1 n2
+;; (TrClNc (cterm (n^,n^0) n^ =n^0))n1 n2
 
-;; The clauses with the given parameter pvar R and the internally
-;; chosen idpc-pvar R326 are
+;; The clauses with the given parameter pvar R^ and the internally
+;; chosen idpc-pvar R559 are
 
-(for-each pp (idpredconst-name-to-clauses "TrCl"))
-;; allnc x^,y^(R x^ y^ -> R326 x^ y^)
-;; allnc x^,y^,z^(R x^ y^ -> R326 y^ z^ -> R326 x^ z^)
+(for-each pp (idpredconst-name-to-clauses "TrClNc"))
+;; allnc x^,y^(R^ x^ y^ -> R559 x^ y^)
+;; allnc x^,y^,z^(R^ x^ y^ -> R559 y^ z^ -> R559 x^ z^)
 
 ;; The actual clauses are aconsts:
 
@@ -229,10 +238,10 @@
       0 (idpredconst-name-and-types-and-cterms-to-idpredconst
 	 "TrCl"
 	 (list (py "nat"))
-	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "ex l n^1+l=n^2"))))))))
+	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "exl l n^1+l=n^2"))))))))
 
 ;; allnc n^,n^0(
-;;  ex l n^ +l=n^0 -> (TrCl (cterm (n^1,n^2) ex l n^1+l=n^2))n^ n^0)
+;;  exl l n^ +l=n^0 -> (TrCl (cterm (n^1,n^2) exl l n^1+l=n^2))n^ n^0)
 
 (pp (rename-variables
      (aconst-to-formula
@@ -240,91 +249,38 @@
       1 (idpredconst-name-and-types-and-cterms-to-idpredconst
 	 "TrCl"
 	 (list (py "nat"))
-	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "ex l n^1+l=n^2"))))))))
+	 (list (make-cterm (pv "n^1") (pv "n^2") (pf "exl l n^1+l=n^2"))))))))
 
 ;; allnc n^,n^0,n^1(
-;;  ex l n^ +l=n^0 ->
-;;  (TrCl (cterm (n^2,n^3) ex l n^2+l=n^3))n^0 n^1 ->
-;;  (TrCl (cterm (n^2,n^3) ex l n^2+l=n^3))n^ n^1)
+;;  exl l n^ +l=n^0 -> 
+;;  (TrCl (cterm (n^2,n^3) exl l n^2+l=n^3))n^0 n^1 -> 
+;;  (TrCl (cterm (n^2,n^3) exl l n^2+l=n^3))n^ n^1)
 
 ;; The et-type of the idpredconst depends on the et-type of the
 ;; parameter cterm.
 
 (pp (idpredconst-to-et-type
      (predicate-form-to-predicate
-      (pf "(TrCl (cterm (n^2,n^3) ex l n^2+l=n^3))n^ n^1"))))
+      (pf "(TrCl (cterm (n^2,n^3) exl l n^2+l=n^3))n^ n^1"))))
 ;; lnat nat
-
-;; In case the parameter cterm is n.c. we can avoid the unit type in
-;; lnat unit by creating a new algebra lnatnc:
-
-(pp (idpredconst-to-et-type
-     (predicate-form-to-predicate
-      (pf "(TrCl (cterm (n^2,n^3) n^2<n^3))n^ n^1"))))
-
-;; ok, algebra lnatnc added
-;; lnatnc
-
-(display-alg "lnat" "lnatnc")
-
-;; lnat
-;; 	LnatZero:	alpha=>lnat alpha
-;; 	LnatSucc:	alpha=>lnat alpha=>lnat alpha
-;; lnatnc
-;; 	LnatZeroNc:	lnatnc
-;; 	LnatSuccNc:	lnatnc=>lnatnc
-
-;; However, this is a feature we do not inded to use any more.  In fact,
-;; check-aconst rejects the predicate above:
-
-;; (check-idpredconst (predicate-form-to-predicate
-;;       (pf "(TrCl (cterm (n^2,n^3) n^2<n^3))n^ n^1")))
-
-;; check-idpredconst
-;; c.r. formula expected
-;; n^2<n^3
-;; for param-pvar
-;; (pvar (arity alpha alpha) -1 0 0 R)
 
 (add-mr-ids "TrCl")
 ;; ok, inductively defined predicate constant TrClMR added
 
 (for-each pp (map rename-variables (idpredconst-name-to-clauses "TrClMR")))
 
-;; all x^,y^,alpha694^(
-;;  (Pvar alpha694 alpha alpha)^419 alpha694^ x^ y^ -> 
-;;  (Pvar lnat alpha694 alpha alpha)^420((LnatZero alpha694)alpha694^)x^ y^)
-;; all x^,y^,z^,alpha694^(
-;;  (Pvar alpha694 alpha alpha)^419 alpha694^ x^ y^ -> 
-;;  all (lnat alpha694)^0(
-;;   (Pvar lnat alpha694 alpha alpha)^420(lnat alpha694)^0 y^ z^ -> 
-;;   (Pvar lnat alpha694 alpha alpha)^420
-;;   ((LnatSucc alpha694)alpha694^(lnat alpha694)^0)
-;;   x^ 
-;;   z^))
-
-(add-mr-ids "RTC")
-
-(for-each pp (map rename-variables (idpredconst-name-to-clauses "RTCMR")))
-
-;; all x^,y^,alpha694^(
-;;  (Pvar alpha694 alpha alpha)^425 alpha694^ x^ y^ -> 
-;;  (Pvar algRTC alpha694 alpha alpha)^426((CInitRTC alpha694)alpha694^)x^ y^)
-;; all x^,y^(
-;;  R x^ y^ -> (Pvar algRTC alpha694 alpha alpha)^426(CLInitRTC alpha694)x^ x^)
-;; all x^,y^(
-;;  R x^ y^ -> (Pvar algRTC alpha694 alpha alpha)^426(CRInitRTC alpha694)y^ y^)
-;; all x^,y^,z^,alpha694^(
-;;  (Pvar alpha694 alpha alpha)^425 alpha694^ x^ y^ -> 
-;;  all (algRTC alpha694)^0(
-;;   (Pvar algRTC alpha694 alpha alpha)^426(algRTC alpha694)^0 y^ z^ -> 
-;;   (Pvar algRTC alpha694 alpha alpha)^426
-;;   ((CGenRTC alpha694)alpha694^(algRTC alpha694)^0)
-;;   x^ 
-;;   z^))
+;; allnc x^,y^,alpha1190^(
+;;  (Pvar alpha alpha alpha1190)^561 x^ y^ alpha1190^ -> 
+;;  (Pvar alpha alpha lnat alpha1190)^560 x^ y^((LnatZero alpha1190)alpha1190^))
+;; allnc x^,y^,z^,alpha1190^(
+;;  (Pvar alpha alpha alpha1190)^561 x^ y^ alpha1190^ -> 
+;;  allnc (lnat alpha1190)^0(
+;;   (Pvar alpha alpha lnat alpha1190)^560 y^ z^(lnat alpha1190)^0 -> 
+;;   (Pvar alpha alpha lnat alpha1190)^560 x^ z^
+;;   ((LnatSucc alpha1190)alpha1190^(lnat alpha1190)^0)))
 
 ;; The general function add-mr-ids adds for any c.r. inductive
-;; predicate I an n.c. inductive predicate IMR such that IMR(n0,n)
+;; predicate I an n.c. inductive predicate IMR such that IMR(n,n0)
 ;; says that n0 realizes I(n).  For the special case of totality
 ;; predicates like TotalNat we obtain TotalNatMR with clauses
 
@@ -365,7 +321,7 @@
 ;; ;; Proof finished.
 ;; ;; (cdp)
 
-;; ;; and the converse
+;; and the converse
 
 ;; (set-goal "all nat^(TotalNatNc nat^ -> TotalNatMR nat^ nat^)")
 ;; (assume "nat^" "TNcn")
@@ -375,14 +331,6 @@
 ;; (use "TotalNatSuccMR")
 ;; ;; Proof finished.
 ;; ;; (cdp)
-
-;; Therefore (add-mr-ids idpc-name) rejects idpc-names starting with
-;; Total and suggests TotalAlgNc instead of TotalAlgMR
-
-;; 2018-06-16:  Redone.  In add-mr-ids error message removed for the
-;; case idpc-name starts with Total.  Reason: this makes the theory
-;; cleaner (less exceptions).  One can show TotalNatMR n^ m^ -> n^ eqd m^
-;; and also TotalNatNc n^ iff TotalNatMR n^ n^, and use this later .
 
 ;; Tests for add-totality
 
@@ -477,10 +425,10 @@
 		       (theorem-name-to-aconst "CoTotalBinClause"))))
 
 ;; allnc bin^(
-;;  CoTotalBin bin^ ->
-;;  bin^ eqd BinNil orr
+;;  CoTotalBin bin^ -> 
+;;  bin^ eqd BinNil orr 
 ;;  exr bin^0(
-;;   CoTotalBin bin^0 &
+;;   CoTotalBin bin^0 andd 
 ;;   exr bin^1(CoTotalBin bin^1 andl bin^ eqd BinBranch bin^0 bin^1)))
 
 ;; Tests for add-mr-ids followed by add-co to obtain CoEvenMR
@@ -491,7 +439,7 @@
 (display-idpc "EvenMR")
 ;; EvenMR	non-computational
 ;; 	InitEvenMR:	EvenMR 0 0
-;; 	GenEvenMR:	all n^,n^0(EvenMR n^0 n^ -> EvenMR(Succ n^0)(n^ +2))
+;; 	GenEvenMR:	allnc n^,n^0(EvenMR n^ n^0 -> EvenMR(n^ +2)(Succ n^0))
 
 (add-co "EvenMR")
 ;; ok, coinductively defined predicate constant CoEvenMR added
@@ -499,10 +447,10 @@
 
 (pp "CoEvenMRClause")
 
-;; all n^,n^0(
-;;  CoEvenMR n^0 n^ -> 
+;; allnc n^,n^0(
+;;  CoEvenMR n^ n^0 -> 
 ;;  n^ eqd 0 andnc n^0 eqd 0 ornc 
-;;  exnc n^1,n^2(CoEvenMR n^2 n^1 andnc n^ eqd n^1+2 andnc n^0 eqd Succ n^2))
+;;  exnc n^1,n^2(CoEvenMR n^1 n^2 andnc n^ eqd n^1+2 andnc n^0 eqd Succ n^2))
 
 ;; Tests for imp-formulas-to-uninst-gfp-formulas-etc
 
@@ -522,7 +470,7 @@
 ;; allnc n^(
 ;;  n^ =0 ->
 ;;  allnc n^0(
-;;   n^0=0 -> n^0 eqd 0 orr exr n^1((CoEven n^1 orl n^1=0) andl n^0 eqd n^1+2)) ->
+;;  n^0=0 -> n^0 eqd 0 orr exr n^1((CoEven n^1 orl n^1=0) andl n^0 eqd n^1+2)) ->
 ;;  CoEven n^)
 
 ;; Tests for alg-to-uninst-destr-type-and-tsubst
@@ -568,12 +516,12 @@
 (pp (nt (make-term-in-app-form
 	 (make-term-in-const-form (alg-to-destr-const (py "list alpha")))
 	 (pt "(Nil alpha)"))))
-;; (DummyL alpha@@list alpha)
+;; (DummyL alpha yprod list alpha)
 
 (pp (nt (make-term-in-app-form
 	 (make-term-in-const-form (alg-to-destr-const (py "list alpha")))
 	 (pt "x::xs"))))
-;; Inr(x@xs)
+;; Inr(x pair xs)
 
 (pp (nt (make-term-in-app-form
 	 (make-term-in-const-form (alg-to-destr-const (py "intv")))
