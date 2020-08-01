@@ -1,4 +1,4 @@
-;; $Id: bundeswett.scm 2156 2008-01-25 13:25:12Z schimans $
+;; 2020-08-01.  bundeswett.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -6,9 +6,10 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
+(add-var-name "k" (py "nat"))
 (add-var-name "f" (py "nat=>nat"))
 
-;; Final goal: "all f(all n f(f n)<f(n+1) -> all n f n=n)"..  First:
+;; Final goal: "all f(all n f(f n)<f(n+1) -> all n f n=n)".  First:
 
 ;; NatMon
 (set-goal "all f(all n f n<f(n+1) -> all n,m(n<m -> f n<f m))")
