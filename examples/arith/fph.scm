@@ -1,4 +1,4 @@
-; fph.scm.  2014-10-11.  Constructive proof.
+;; 2020-08-01.  fph.scm.  Constructive proof.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -8,7 +8,7 @@
 (set! COMMENT-FLAG #t)
 
 (add-var-name "s" (py "nat=>nat"))
-(add-var-name "i" "j" (py "nat"))
+(add-var-name "i" "j" "k" (py "nat"))
 ;; (add-var-name "l" (py "list nat"))
 ;; (add-var-name "ll" (py "list list nat"))
 
