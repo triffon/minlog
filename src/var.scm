@@ -1,4 +1,4 @@
-;; 2018-06-11.  var.scm
+;; 2020-07-10.  var.scm
 ;; 3. Variables
 ;; ============
 
@@ -297,4 +297,18 @@
    t-deg
    (var-to-name var)))
 
+;; Code discarded 2020-07-10
+;; ;; check-restricted-var : a restricted variable of closed type can
+;; ;; only have a type of level at most one.
 
+;; (define (check-restricted-var var) ;var of t-deg one
+;;   (let* ((type (var-to-type var))
+;; 	 (tvars (type-to-tvars type))
+;; 	 (level (type-to-level type)))
+;;     (if (and (null? tvars) (< 1 level))
+;; 	(myerror "check-restricted-var" "restricted variable"
+;; 		 (make-term-in-var-form var)
+;; 		 "has closed type of level larger than one" type))))
+
+;; ;; (check-restricted-var (term-in-var-form-to-var (pt "(nat=>nat)=>boole")))
+;; ;; (check-restricted-var (term-in-var-form-to-var (pt "(nat=>alpha)=>boole")))
