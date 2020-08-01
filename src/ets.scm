@@ -1,4 +1,4 @@
-;; 2020-04-06.  ets.scm
+;; 2020-07-15.  ets.scm
 ;; 16. Extracted terms
 ;; ===================
 
@@ -1539,8 +1539,8 @@
 	 '("Pvar^2 -> OrU" "InrOrU"))
 
 (add-ids (list (list "OrNc" (make-arity)))
-	 '("Pvar1 -> OrNc" "InlOrNc")
-	 '("Pvar2 -> OrNc" "InrOrNc"))
+	 '("Pvar^1 -> OrNc" "InlOrNc")
+	 '("Pvar^2 -> OrNc" "InrOrNc"))
 
 (add-ids (list (list "ExPT" (make-arity) "algExPT"))
 	 '("allnc alpha(Total alpha & (Pvar alpha)alpha -> ExPT)" "InitExPT"))
@@ -1560,30 +1560,194 @@
 (add-eqp "yprod")
 (add-reqp "yprod")
 (add-eqpnc "yprod")
+(add-reqpnc "yprod")
+
+;; PairConstrExtNc
+(set-goal "allnc alpha1^1,alpha1^2(EqPNc alpha1^1 alpha1^2 ->
+ allnc alpha2^1,alpha2^2(EqPNc alpha2^1 alpha2^2 ->
+ (REqPYprodNc
+    (cterm (alpha1^3,alpha1^4) EqPNc alpha1^3 alpha1^4)
+    (cterm (alpha2^3,alpha2^4) EqPNc alpha2^3 alpha2^4))
+  (alpha1^1 pair alpha2^1)
+  (alpha1^2 pair alpha2^2)))")
+(use "REqPYprodNcPairConstr")
+;; Proof finished.
+;; (cdp)
+(save "PairConstrExtNc")
+
+;; YprodRecExtNc
+(set-goal (rename-variables (term-to-pure-extnc-formula
+ 			     (pt "(Rec alpha1 yprod alpha2=>beta)"))))
+;; allnc (alpha1 yprod alpha2)^,(alpha1 yprod alpha2)^0(
+;;      (REqPYprodNc (cterm (alpha1^1,alpha1^2) EqPNc alpha1^1 alpha1^2)
+;;        (cterm (alpha2^1,alpha2^2) EqPNc alpha2^1 alpha2^2))
+;;      (alpha1 yprod alpha2)^
+;;      (alpha1 yprod alpha2)^0 -> 
+;;      allnc (alpha1=>alpha2=>beta)^1,(alpha1=>alpha2=>beta)^2(
+;;       allnc alpha1^3,alpha1^4(
+;;        EqPNc alpha1^3 alpha1^4 -> 
+;;        allnc alpha2^5,alpha2^6(
+;;         EqPNc alpha2^5 alpha2^6 -> 
+;;         EqPNc((alpha1=>alpha2=>beta)^1 alpha1^3 alpha2^5)
+;;         ((alpha1=>alpha2=>beta)^2 alpha1^4 alpha2^6))) -> 
+;;       EqPNc
+;;       ((Rec alpha1 yprod alpha2=>beta)(alpha1 yprod alpha2)^
+;;        (alpha1=>alpha2=>beta)^1)
+;;       ((Rec alpha1 yprod alpha2=>beta)(alpha1 yprod alpha2)^0
+;;        (alpha1=>alpha2=>beta)^2)))
+(assert "allnc (alpha1=>alpha2=>beta)^,(alpha1=>alpha2=>beta)^0(
+     allnc alpha1^1,alpha1^2(
+      EqPNc alpha1^1 alpha1^2 -> 
+      allnc alpha2^3,alpha2^4(
+       EqPNc alpha2^3 alpha2^4 -> 
+       EqPNc((alpha1=>alpha2=>beta)^ alpha1^1 alpha2^3)
+       ((alpha1=>alpha2=>beta)^0 alpha1^2 alpha2^4))) -> 
+     allnc (alpha1 yprod alpha2)^1,(alpha1 yprod alpha2)^2(
+      (REqPYprodNc (cterm (alpha1^3,alpha1^4) EqPNc alpha1^3 alpha1^4)
+        (cterm (alpha2^3,alpha2^4) EqPNc alpha2^3 alpha2^4))
+      (alpha1 yprod alpha2)^1
+      (alpha1 yprod alpha2)^2 -> 
+      EqPNc
+      ((Rec alpha1 yprod alpha2=>beta)(alpha1 yprod alpha2)^1
+       (alpha1=>alpha2=>beta)^)
+      ((Rec alpha1 yprod alpha2=>beta)(alpha1 yprod alpha2)^2
+       (alpha1=>alpha2=>beta)^0)))")
+(assume "(alpha1=>alpha2=>beta)^1" "(alpha1=>alpha2=>beta)^2" "EqPf1f2"
+	"(alpha1 yprod alpha2)^1" "(alpha1 yprod alpha2)^2" "EqPxy1xy2")
+(elim "EqPxy1xy2")
+(ng)
+(use "EqPf1f2")
+;; Assertion proved.
+(assume "Assertion"
+	"(alpha1 yprod alpha2)^1" "(alpha1 yprod alpha2)^2" "EqPxy1xy2"
+	"(alpha1=>alpha2=>beta)^1" "(alpha1=>alpha2=>beta)^2" "EqPf1f2")
+(use "Assertion")
+(use "EqPf1f2")
+(use "EqPxy1xy2")
+;; Proof finished.
+;; (cdp)
+(save "YprodRecExtNc")
 
 (add-totality "yprod")
 (add-rtotality "yprod")
+(add-rtotalnc "yprod")
 
 (add-eqp "ysum")
 (add-reqp "ysum")
 (add-eqpnc "ysum")
+(add-reqpnc "ysum")
+
+;; InLExtNc
+(set-goal "allnc alpha1^,alpha1^0(
+ EqPNc alpha1^ alpha1^0 -> 
+ (REqPYsumNc (cterm (alpha1^1,alpha1^2) EqPNc alpha1^1 alpha1^2)
+   (cterm (alpha2^1,alpha2^2) EqPNc alpha2^1 alpha2^2))
+ ((InL alpha1 alpha2)alpha1^)
+ ((InL alpha1 alpha2)alpha1^0))")
+(use "REqPYsumNcInL")
+;; Proof finished.
+;; (cdp)
+(save "InLExtNc")
+
+;; InRExtNc
+(set-goal "allnc alpha2^,alpha2^0(
+ EqPNc alpha2^ alpha2^0 -> 
+ (REqPYsumNc (cterm (alpha1^1,alpha1^2) EqPNc alpha1^1 alpha1^2)
+   (cterm (alpha2^1,alpha2^2) EqPNc alpha2^1 alpha2^2))
+ ((InR alpha2 alpha1)alpha2^)
+ ((InR alpha2 alpha1)alpha2^0))")
+(use-with
+ "REqPYsumNcInR"
+ (py "alpha2") (py "alpha1")
+ (make-cterm (pv "alpha2^") (pv "alpha2^0") (pf "(EqPNc alpha2^ alpha2^0)"))
+ (make-cterm (pv "alpha1^") (pv "alpha1^0") (pf "(EqPNc alpha1^ alpha1^0)")))
+;; Proof finished.
+;; (cdp)
+(save "InRExtNc")
+
+;; YsumRecExtNc
+(set-goal (rename-variables (term-to-pure-extnc-formula
+			     (pt "(Rec alpha1 ysum alpha2=>beta)"))))
+;; allnc (alpha1 ysum alpha2)^,(alpha1 ysum alpha2)^0(
+;;      (REqPYsumNc (cterm (alpha1^1,alpha1^2) EqPNc alpha1^1 alpha1^2)
+;;        (cterm (alpha2^1,alpha2^2) EqPNc alpha2^1 alpha2^2))
+;;      (alpha1 ysum alpha2)^
+;;      (alpha1 ysum alpha2)^0 -> 
+;;      allnc (alpha1=>beta)^1,(alpha1=>beta)^2(
+;;       allnc alpha1^3,alpha1^4(
+;;        EqPNc alpha1^3 alpha1^4 -> 
+;;        EqPNc((alpha1=>beta)^1 alpha1^3)((alpha1=>beta)^2 alpha1^4)) -> 
+;;       allnc (alpha2=>beta)^3,(alpha2=>beta)^4(
+;;        allnc alpha2^5,alpha2^6(
+;;         EqPNc alpha2^5 alpha2^6 -> 
+;;         EqPNc((alpha2=>beta)^3 alpha2^5)((alpha2=>beta)^4 alpha2^6)) -> 
+;;        EqPNc
+;;        ((Rec alpha1 ysum alpha2=>beta)(alpha1 ysum alpha2)^(alpha1=>beta)^1
+;;         (alpha2=>beta)^3)
+;;        ((Rec alpha1 ysum alpha2=>beta)(alpha1 ysum alpha2)^0(alpha1=>beta)^2
+;;         (alpha2=>beta)^4))))
+(assert "allnc (alpha1=>beta)^,(alpha1=>beta)^0(
+     allnc alpha1^1,alpha1^2(
+      EqPNc alpha1^1 alpha1^2 -> 
+      EqPNc((alpha1=>beta)^ alpha1^1)((alpha1=>beta)^0 alpha1^2)) -> 
+     allnc (alpha2=>beta)^1,(alpha2=>beta)^2(
+      allnc alpha2^3,alpha2^4(
+       EqPNc alpha2^3 alpha2^4 -> 
+       EqPNc((alpha2=>beta)^1 alpha2^3)((alpha2=>beta)^2 alpha2^4)) -> 
+      allnc (alpha1 ysum alpha2)^3,(alpha1 ysum alpha2)^4(
+       (REqPYsumNc (cterm (alpha1^5,alpha1^6) EqPNc alpha1^5 alpha1^6)
+         (cterm (alpha2^5,alpha2^6) EqPNc alpha2^5 alpha2^6))
+       (alpha1 ysum alpha2)^3
+       (alpha1 ysum alpha2)^4 -> 
+       EqPNc
+       ((Rec alpha1 ysum alpha2=>beta)(alpha1 ysum alpha2)^3(alpha1=>beta)^
+        (alpha2=>beta)^1)
+       ((Rec alpha1 ysum alpha2=>beta)(alpha1 ysum alpha2)^4(alpha1=>beta)^0
+        (alpha2=>beta)^2))))")
+(assume "(alpha1=>beta)^1" "(alpha1=>beta)^2" "EqPf1f2"
+	"(alpha2=>beta)^1" "(alpha2=>beta)^2" "EqPg1g2"
+	"(alpha1 ysum alpha2)^1" "(alpha1 ysum alpha2)^2" "EqPxy1xy2")
+(elim "EqPxy1xy2")
+;; 5,6
+(ng #t)
+(use "EqPf1f2")
+;; 6
+(ng #t)
+(use "EqPg1g2")
+;; Assertion proved.
+(assume "Assertion"
+	"(alpha1 ysum alpha2)^1" "(alpha1 ysum alpha2)^2" "EqPxy1xy2"
+	"(alpha1=>beta)^1" "(alpha1=>beta)^2" "EqPf1f2"
+	"(alpha2=>beta)^1" "(alpha2=>beta)^2" "EqPg1g2")
+(use "Assertion")
+(use "EqPf1f2")
+(use "EqPg1g2")
+(use "EqPxy1xy2")
+;; Proof finished.
+;; (cdp)
+(save "YsumRecExtNc")
 
 (add-totality "ysum")
 (add-rtotality "ysum")
+(add-rtotalnc "ysum")
 
 (add-eqp "uysum")
 (add-reqp "uysum")
 (add-eqpnc "uysum")
+(add-reqpnc "uysum")
 
 (add-totality "uysum")
 (add-rtotality "uysum")
+(add-rtotalnc "uysum")
 
 (add-eqp "ysumu")
 (add-reqp "ysumu")
 (add-eqpnc "ysumu")
+(add-reqpnc "ysumu")
 
 (add-totality "ysumu")
 (add-rtotality "ysumu")
+(add-rtotalnc "ysumu")
 
 ;; The computation rules for the constants introduced in boole.scm can
 ;; be added only here, since the construction of the proofs for their
@@ -2101,7 +2265,7 @@
 		(nf (proof-to-formula elim-proof))
 		(proof-in-imp-elim-form-to-op elim-proof)
 		(proof-in-imp-elim-form-to-arg elim-proof))))
-    (mk-proof-in-intro-form
+    (mk-proof-in-nc-intro-form-without-impnc
      falsity-avar var1 var2 elim-proof-with-normalized-formula)))
 
 (add-theorem "EfEqD" efeqd-proof)
@@ -2880,9 +3044,9 @@
 
 ;; BooleIfEqPNc
 (set-goal
-"allnc boole^1,boole^2(EqPBoole boole^1 boole^2 ->
- allnc alpha^11,alpha^21(EqP alpha^11 alpha^21 ->
- allnc alpha^12,alpha^22(EqP alpha^12 alpha^22 ->
+"allnc boole^1,boole^2(EqPBooleNc boole^1 boole^2 ->
+ allnc alpha^11,alpha^21(EqPNc alpha^11 alpha^21 ->
+ allnc alpha^12,alpha^22(EqPNc alpha^12 alpha^22 ->
  EqPNc[if boole^1 alpha^11 alpha^12][if boole^2 alpha^21 alpha^22])))")
 (assume "boole^1" "boole^2" "EqPb1b2")
 (elim "EqPb1b2")
@@ -2899,7 +3063,7 @@
 (save "BooleIfEqPNc")
 
 ;; Note that from an EqPBooleNc assumption we can infer that both of
-;; its arguments are in TotalBooleNc:
+;; its arguments are in TotalBooleNc.
 
 ;; BooleIfEqP
 (set-goal
@@ -2915,7 +3079,7 @@
 (save "BooleIfEqP")
 
 ;; Note that from an EqPBoole assumption we can infer that both of
-;; its arguments are in TotalBoole:
+;; its arguments are in TotalBoole
 
 ;; EqPBooleToTotalLeft
 (set-goal "allnc boole^1,boole^2(EqPBoole boole^1 boole^2 ->
@@ -2973,7 +3137,7 @@
 ;; EqPBooleTrans
 (set-goal "allnc boole^1,boole^2(
  EqPBoole boole^1 boole^2 -> allnc boole^3(EqPBoole boole^2 boole^3 ->
- EqPBooleNc boole^1 boole^3))")
+ EqPBoole boole^1 boole^3))")
 (assume "boole^1" "boole^2" "EqPp1p2")
 (elim "EqPp1p2")
 (assume "boole^3" "Hyp")
@@ -3894,7 +4058,7 @@
 			 (make-proof-in-avar-form u))))
        (apply mk-proof-in-intro-form
 	      (append free (list var u z v elim-proof))))
-     (let* ((pair-var (type-to-new-partial-var (make-star type kernel-type)))
+     (let* ((pair-var (type-to-new-var (make-star type kernel-type)))
 	    (pair-var-term (make-term-in-var-form pair-var))
 	    (left-term (make-term-in-lcomp-form pair-var-term))
 	    (right-term (make-term-in-rcomp-form pair-var-term))
@@ -6048,7 +6212,7 @@
 		     "mr-free formula expected" (proof-to-formula proof)))
 	(if (not (null? cr-avars))
 	    (myerror "proof-to-soundness-proof" "unexpected c.r. avar"
-		     (avar-to-formula (car cr-avar-flas))))
+		     (avar-to-formula (car cr-avars))))
 	(let* ((avar-or-ga-to-var (make-avar-or-ga-to-var))
 	       (avar-or-ga-to-mr-avar (make-avar-or-ga-to-mr-avar
 				       avar-or-ga-to-var)))
