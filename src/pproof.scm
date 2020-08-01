@@ -1,4 +1,4 @@
-;; 2019-12-07.  pproof.scm
+;; 2020-07-09.  pproof.scm
 ;; 11. Partial proofs
 ;; ==================
 
@@ -20,7 +20,8 @@
 ;; searching for the remaining goals, but rather keep a list of all open
 ;; goals together with their numbers as we go along.  We maintain a
 ;; global variable PPROOF-STATE, which holds a list of three elements:
-;; - num-goals: an alist of entries (number goal drop-info hypname-info)
+;; - num-goals:
+;;   an alist of entries (number goal drop-info hypname-info ignore-deco-flag)
 ;; - proof
 ;; - maxgoal
 
@@ -1787,6 +1788,7 @@
 (define (use-with-intern num-goals proof maxgoal x . x-list)
   (let* ((num-goal (car num-goals))
 	 (goal (num-goal-to-goal num-goal))
+	 (ignore-deco-flag (num-goal-to-ignore-deco-flag num-goal))
 	 (goal-formula (goal-to-formula goal))
 	 (proof-and-new-num-goals-and-maxgoal
 	  (apply x-and-x-list-to-proof-and-new-num-goals-and-maxgoal
@@ -1794,7 +1796,8 @@
 	 (new-proof (car proof-and-new-num-goals-and-maxgoal))
 	 (new-num-goals (cadr proof-and-new-num-goals-and-maxgoal))
 	 (new-maxgoal (caddr proof-and-new-num-goals-and-maxgoal)))
-    (if (not (classical-formula=? (proof-to-formula new-proof) goal-formula))
+    (if (not (classical-formula=?
+	      (proof-to-formula new-proof) goal-formula ignore-deco-flag))
 	(myerror "use-with-intern" "equal formulas expected"
 		 (rename-variables (fold-formula (proof-to-formula new-proof)))
 		 goal-formula))
@@ -3485,13 +3488,31 @@
 	 (inst-imp-formula (if (null? opt-idhyp)
 			       goal-formula
 			       (make-imp id-formula goal-formula)))
-	 (idpredconst
-	  (if (and (predicate-form? id-formula)
-		   (idpredconst-form?
-		    (predicate-form-to-predicate id-formula)))
-	      (predicate-form-to-predicate id-formula)
-	      (myerror "elim" "inductively defined prime formula expected"
-		       id-formula)))
+	 (idpredconst (if (predicate-form? id-formula)
+			  (predicate-form-to-predicate id-formula)
+			  (myerror "elim-intern" "predicate form expected"
+				   id-formula)))
+	 (name (idpredconst-to-name idpredconst))
+	 (test1 ;for an inductive but not coinductive predicate
+	  (let ((pred (predicate-form-to-predicate id-formula)))
+	    (if (not (idpredconst-form? pred))
+		(myerror "elim-intern" "idpredconst form expected" id-formula)
+		(let ((name (idpredconst-to-name pred)))
+		  (if (not (assoc name IDS))
+		      (myerror "elim-intern" "inductive predicate expected"
+			       id-formula)
+		      (if (assoc name COIDS)
+			  (myerror
+			   "elim-intern"
+			   "inductive (not coinductive) predicate expected"
+			   id-formula)))))))
+	 (test2 ;one-clause-nc
+	   (if (and (nc-idpredconst-name? name)
+		    (< 1 (length (idpredconst-name-to-clauses name)))
+		    (not (formula-of-nulltype? goal-formula)))
+	       (myerror	"elim-intern"
+			"non-computational multi-clause idpreconst" name
+			"expects a non-computational competitor" goal-formula)))
 	 (arity (idpredconst-to-arity idpredconst))
 	 (args (predicate-form-to-args id-formula))
 	 (types (arity-to-types arity))
