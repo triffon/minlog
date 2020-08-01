@@ -20,8 +20,8 @@
    (pf "Total x^1")
    (pf "x^1 eqd x^2")
    (pf "Pvar1 -> Pvar2")
-   (pf "Pvar1 --> Pvar2")
-   (pf "all x^1 R x^1 x^2")
+   (pf "all x1 R x1 x^2")
+   (pf "allnc x1 R x1 x^2")
    (pf "allnc x^1 R x^1 x^2")
    (pf "Pvar1 & Pvar2")
    (pf "ex x^1 R x^1 x^2")
@@ -29,23 +29,21 @@
    (pf "excl x^1,x^2 S x^1 x^2 x^3")
    (pf "exca x^1 R x^1 x^2")
    (pf "exca x^1,x^2 S x^1 x^2 x^3")
-   (pf "x^1 eqd x^2")
-   (pf "exd x^1 R x^1 x^2")
-   (pf "exl x^1 R x^1 x^2")
-   (pf "exr x^1 R x^1 x^2")
-   (pf "exnc x^1 R x^1 x^2")
    (pf "exd x1 R x1 x^2")
-   (pf "exl x1 R x1 x^2")
+   (pf "exl x1 R^ x1 x^2")
+   (pf "exr x^1 R x^1 x^2")
+   (pf "exnc x^1 R^ x^1 x^2")
    (pf "exr x1 R x1 x^2")
-   (pf "exnc x1 R x1 x^2")
+   (pf "exnc x1 R^ x1 x^2")
    (pf "Pvar1 ord Pvar2")
-   (pf "Pvar1 orl Pvar2")
-   (pf "Pvar1 orr Pvar2")
-   (pf "Pvar1 oru Pvar2")
+   (pf "Pvar1 orl Pvar^2")
+   (pf "Pvar^1 orr Pvar2")
+   (pf "Pvar^1 oru Pvar^2")
+   (pf "Pvar^1 ornc Pvar^2")
    (pf "Pvar1 andd Pvar2")
-   (pf "Pvar1 andl Pvar2")
-   (pf "Pvar1 andr Pvar2")
-   (pf "Pvar1 andnc Pvar2")
+   (pf "Pvar1 andl Pvar^2")
+   (pf "Pvar^1 andr Pvar2")
+   (pf "Pvar^1 andnc Pvar^2")
    (pf "(TrCl (cterm (x^1,x^2) Q x3 -> R x^1 x^2))x^1 x^3")
    ))
 
@@ -54,6 +52,8 @@
 (for-each (lambda (fla)
 	    (for-each pp (map make-term-in-var-form (formula-to-free fla))))
 	  testformulas)
+
+
 
 (for-each (lambda (fla) (for-each pp (formula-to-tvars fla))) testformulas)
 
@@ -117,23 +117,26 @@
 
 (define topsubst
   (list
-   (list (py "alpha") (py "boole"))
-   (list (pv "x^1") (pt "p^1"))
-   (list (pv "x^2") (pt "p^2"))
-   (list (pv "x^3") (pt "p^3"))
+   (list (py "alpha") (py "nat"))
+   (list (pv "x^1") (pt "n^1"))
+   (list (pv "x^2") (pt "n^2"))
+   (list (pv "x^3") (pt "n^3"))
    (list (predicate-form-to-predicate (pf "R x^1 x^2"))
-	 (make-cterm (pv "p^1") (pv "p^2") (pf "p^1=p^2")))
+	 (make-cterm (pv "n^1") (pv "n^2") (pf "exl n n+n^1=n^2")))
+   (list (predicate-form-to-predicate (pf "R^ x^1 x^2"))
+	 (make-cterm (pv "n^1") (pv "n^2") (pf "n^1=n^2")))
    (list (predicate-form-to-predicate (pf "S x^1 x^2 x^3"))
-	 (make-cterm (pv "p^1") (pv "p^2") (pv "p^3")
-		     (pf "p^1=p^2")))))
+	 (make-cterm (pv "n^1") (pv "n^2") (pv "n^3")
+		     (pf "exl n n+n^1=n^2")))))
 
 (pp-subst topsubst)
-;;   alpha -> boole
-;;   x^1 -> p^1
-;;   x^2 -> p^2
-;;   x^3 -> p^3
-;;   R ->  (cterm (p^1,p^2) p^1=p^2)
-;;   S ->  (cterm (p^1,p^2,p^3) p^1=p^2)
+;; alpha -> nat
+;; x^1 -> n^1
+;; x^2 -> n^2
+;; x^3 -> n^3
+;; R ->  (cterm (n^1,n^2) exl n n+n^1=n^2)
+;; R^ ->  (cterm (n^1,n^2) n^1=n^2)
+;; S ->  (cterm (n^1,n^2,n^3) exl n n+n^1=n^2)
 
 (for-each (lambda (fla)
 	    (pp (rename-variables (formula-substitute fla topsubst))))
@@ -145,21 +148,21 @@
 ;; is, in the parameter cterms in those, and in the arguments)
 
 (pp (rename-variables (formula-substitute
-		       (pf "exd x^ x^ eqd x^")
+		       (pf "exnc x^ x^ eqd x^")
 		       (list (list (py "alpha") (py "boole"))))))
-;; exd p^ p^ eqd p^
+;; exnc p^ p^ eqd p^
 
 (pp (formula-substitute
-     (pf "exd x^ Q x^")
-     (list (list (predicate-form-to-predicate (pf "Q x^"))
+     (pf "exnc x^ Q^ x^")
+     (list (list (predicate-form-to-predicate (pf "Q^ x^"))
 		 (make-cterm (pv "x^") (pf "x^ eqd x^"))))))
-;; exd x^ x^ eqd x^
+;; exnc x^ x^ eqd x^
 
 (pp (formula-substitute
-     (pf "exd x^ Q x^")
-     (list (list (predicate-form-to-predicate (pf "Q x^"))
+     (pf "exnc x^ Q^ x^")
+     (list (list (predicate-form-to-predicate (pf "Q^ x^"))
 		 (make-cterm (pv "x") (pf "x eqd x"))))))
-;; exd x^ x^ eqd x^
+;; exnc x^ x^ eqd x^
 
 ;; Notice that ExD has its clause with x^ .  It is only ExDT which has
 ;; its clause with x
@@ -169,10 +172,10 @@
 ;; 	 '("all x(Q x -> ExDT)" "InitExDT"))
 
 (pp (formula-substitute
-     (pf "exd x Q x")
-     (list (list (predicate-form-to-predicate (pf "Q x^"))
+     (pf "exnc x Q^ x")
+     (list (list (predicate-form-to-predicate (pf "Q^ x^"))
 		 (make-cterm (pv "x") (pf "x eqd x"))))))
-;; exd x x eqd x
+;; exnc x x eqd x
 
 (define testformula1
   (pf "all n allnc m(exca n1 n=n1 -> excl m1,m2(m1=m2 and F))"))
@@ -400,5 +403,4 @@
 (pp (nt (make-injection (py "uysum(alpha1 ysum alpha2 ysum alpha3)") 3)))
 ;; [alpha3_0]
 ;;  Inr((InR (alpha2 ysum alpha3) alpha1)((InR alpha3 alpha2)alpha3_0))
-
 
