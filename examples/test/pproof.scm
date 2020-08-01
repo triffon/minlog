@@ -525,7 +525,7 @@
 ;; ;; Proof finished.
 ;; (save "EqDTrans")
 
-(pp "EfqEqD")
+(pp "EfEqD")
 ;; F -> all alpha^,alpha^0 alpha^ eqd alpha^0
 
 ;; Tests for constructor-eqd-imp-args-eqd-proof,
@@ -548,7 +548,7 @@
  (elim "En1")
  ;Base
  (assume "0=SSn")
- (use (formula-to-efq-proof (pf "Even n^")))
+ (use (formula-to-ef-proof (pf "Even n^")))
  (use "EqDTrueToAtom")
  (use (constructors-overlap-imp-falsity-proof (pf "0 eqd Succ(Succ n^)"))
       (pt "n^"))
