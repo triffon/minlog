@@ -49,12 +49,8 @@
 ;; allnc n^(Even n^ -> P 0 -> allnc n^0(Even n^0 -> P n^0 -> P(n^0+2)) -> P n^)
 
 (define aconst (imp-formulas-to-elim-aconst (pf "Even m^ -> T")))
-(check-aconst aconst) ;#t
+(check-aconst aconst)
 (check-aconst aconst #f)
-;; check-aconst
-;; Elim
-;; computationally relevant formulas expected
-;; T
 
 ;; Tests for all-formulas-to-ind-aconst
 
@@ -79,8 +75,8 @@
 					  (pf "all tlist S tlist")
 					  (pf "all tree P tree")))))
 ;; all tlist(
-;;  S Empty ->
-;;  all tree0,tlist1(P tree0 -> S tlist1 -> S(Tcons tree0 tlist1)) ->
+;;  S Empty -> 
+;;  all tree0(P tree0 -> all tlist1(S tlist1 -> S(Tcons tree0 tlist1))) -> 
 ;;  P Leaf -> all tlist0(S tlist0 -> P(Branch tlist0)) -> S tlist)
 
 (remove-pvar-name "P" "S")
@@ -227,9 +223,9 @@
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 ;; ok, algebra listnc added
 (pp (term-to-type eterm0))
-;; listnc
+;; list nat
 (pp eterm0)
-;; NilNc
+;; (Nil nat)
 
 (define aconst1 (number-and-idpredconst-to-intro-aconst 1 idpc))
 (pp (aconst-to-formula aconst1))
@@ -241,9 +237,9 @@
 
 (define eterm1 (proof-to-extracted-term (make-proof-in-aconst-form aconst1)))
 (pp (term-to-type eterm1))
-;; listnc=>listnc
+;; nat=>list nat=>list nat
 (pp eterm1)
-;; ConsNc
+;; (Cons nat)
 
 (define idpc
   (idpredconst-name-and-types-and-cterms-to-idpredconst
@@ -294,33 +290,33 @@
 (pp (term-to-type eterm))
 ;; alpha23 ysum alpha21=>(alpha23=>alpha18)=>(alpha21=>alpha18)=>alpha18
 
-(define idpc (predicate-form-to-predicate (pf "exd n n=m")))
+(define idpc (predicate-form-to-predicate (pf "exl n n=m")))
 (idpredconst-to-string idpc)
-;; "exd n n=m"
+;; "exl n n=m"
 
 (define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
 (pp (rename-variables (aconst-to-formula aconst0)))
-;; allnc m all n(n=m -> exd n0 n0=m)
+;; allnc m all n(n=m -> exl n0 n0=m)
 
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm0))
 ;; nat=>nat
 
-(define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> l=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "exl n n=m -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
-;; allnc m,l(exd n n=m -> all n(n=m -> l=0) -> l=0)
+;; allnc m,l(exl n n=m -> all n(n=m -> l=0) -> l=0)
 
-(define idpc (predicate-form-to-predicate (pf "exd n^ n^ =m")))
+(define idpc (predicate-form-to-predicate (pf "exnc n^ n^ =m")))
 (idpredconst-to-string idpc)
-;; "exd n^ n^ =m"
+;; "exnc n^ n^ =m"
 
 (define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
 (pp (rename-variables (aconst-to-formula aconst0)))
-;; allnc m all n^(n^ =m -> exd n^0 n^0=m)
+;; allnc m all n^(n^ =m -> exnc n^0 n^0=m)
 
-(define aconst (imp-formulas-to-elim-aconst (pf "exd n^ n^ =m -> l=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "exnc n^ n^ =m -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
-;; allnc m,l(exd n^ n^ =m -> all n^(n^ =m -> l=0) -> l=0)
+;; allnc m,l(exnc n^ n^ =m -> allnc n^(n^ =m -> l=0) -> l=0)
 
 (define idpc
   (predicate-form-to-predicate
@@ -338,16 +334,17 @@
 
 (define idpc
   (predicate-form-to-predicate
-   (pf "(PiOne (cterm (x^1535,x^1534) T))x^")))
+   (pf "(PiOne (cterm (x^,x^0) Q x^0))x^")))
 (idpredconst-to-string idpc)
-;; "(PiOne (cterm (x^1535,x^1534) T))"
+;; "(PiOne (cterm (x^,x^0) Q x^0))"
 
 (define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
 (pp (rename-variables (aconst-to-formula aconst0)))
-;; all x^,y^(R x^ y^ -> (PiOne (cterm (x^0,x^1) T))x^)
+;; allnc x^,y^(Q y^ -> (PiOne (cterm (x^0,x^1) Q x^1))x^)
 
-(proof-to-extracted-term (make-proof-in-aconst-form aconst0))
-;; eps
+(pp (rename-variables
+     (proof-to-extracted-term (make-proof-in-aconst-form aconst0))))
+;; [alpha1217^]alpha1217^
 
 (define aconst
   (imp-formulas-to-elim-aconst
@@ -355,7 +352,8 @@
 (pp (rename-variables (aconst-to-formula aconst)))
 
 ;; allnc x^,l(
-;;  (PiOne (cterm (x^0,x^1) R x^0 x^1))x^ -> all x^0,y^(R x^0 y^ -> l=0) -> l=0)
+;;  (PiOne (cterm (x^0,x^1) R x^0 x^1))x^ -> 
+;;  allnc x^0,y^(R x^0 y^ -> l=0) -> l=0)
 
 (define idpc
   (predicate-form-to-predicate
@@ -369,7 +367,7 @@
 
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm0))
-;; alpha=>lnat alpha
+;; alpha1190=>lnat alpha1190
 
 (define aconst
   (imp-formulas-to-elim-aconst
@@ -383,52 +381,22 @@
 ;;   R x^1 y^ -> (TrCl (cterm (x^2,x^3) R x^2 x^3))y^ z^ -> l=0 -> l=0) ->
 ;;  l=0)
 
-(define idpc
-  (idpredconst-name-and-types-and-cterms-to-idpredconst
-   "Acc"
-   (list (py "alpha")) '()))
-
-(define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
-(pp (aconst-to-formula aconst0))
-;; allnc rel^,x^(F -> Acc rel^ x^)
-
-(define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
-(pp (term-to-type eterm0))
-;; itree alpha
-
-(define aconst1 (number-and-idpredconst-to-intro-aconst 1 idpc))
-(pp (aconst-to-formula aconst1))
-;; allnc rel^,x^(all y^(rel^ y^ x^ -> Acc rel^ y^) -> Acc rel^ x^)
-
-(define eterm1 (proof-to-extracted-term (make-proof-in-aconst-form aconst1)))
-(pp (term-to-type eterm1))
-;; (alpha=>itree alpha)=>itree alpha
-
-(define aconst (imp-formulas-to-elim-aconst (pf "Acc rel^ x^ -> l=0")))
-(pp (rename-variables (aconst-to-formula aconst)))
-
-;; allnc rel^,x^,l(
-;;  Acc rel^ x^ ->
-;;  allnc rel^0,x^0(F -> l=0) ->
-;;  allnc rel^0,x^0(
-;;   all y^(rel^0 y^ x^0 -> Acc rel^0 y^) -> all y^(rel^0 y^ x^0 -> l=0) -> l=0) ->
-;;  l=0)
-
-(define idpc (predicate-form-to-predicate (pf "(ExDT nat (cterm (n) n=m))")))
+(define idpc (predicate-form-to-predicate
+	      (pf "(ExDT nat (cterm (n) exl m n=m))")))
 (idpredconst-to-string idpc)
-;; "exd n n=m"
+;; "exd n exl m n=m"
 
 (define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
 (pp (rename-variables (aconst-to-formula aconst0)))
-;; allnc m all n(n=m -> exd n0 n0=m)
+;; all n(exl m n=m -> exd n0 exl m n0=m)
 
 (define eterm0 (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm0))
-;; nat=>nat
+;; nat=>nat=>nat yprod nat
 
-(define aconst (imp-formulas-to-elim-aconst (pf "exd n n=m -> l=0")))
+(define aconst (imp-formulas-to-elim-aconst (pf "exnc n n=m -> l=0")))
 (pp (rename-variables (aconst-to-formula aconst)))
-;; allnc m,l(exd n n=m -> all n(n=m -> l=0) -> l=0)
+;; allnc m,l(exnc n n=m -> allnc n(n=m -> l=0) -> l=0)
 
 (define idpc
   (idpredconst-name-and-types-and-cterms-to-idpredconst
@@ -469,7 +437,7 @@
 
 (define aconst0 (number-and-idpredconst-to-intro-aconst 0 idpc))
 (pp (rename-variables (aconst-to-formula aconst0)))
-;; all x^(Q1 x^ -> Q2 x^ -> (Cap (cterm (x^0) Q1 x^0) (cterm (x^0) Q2 x^0))x^)
+;; allnc x^(Q1 x^ -> Q2 x^ -> (Cap (cterm (x^0) Q1 x^0) (cterm (x^0) Q2 x^0))x^)
 
 (define eterm (proof-to-extracted-term (make-proof-in-aconst-form aconst0)))
 (pp (term-to-type eterm))
@@ -481,32 +449,10 @@
 (pp (rename-variables (aconst-to-formula aconst)))
 
 ;; allnc x^(
-;;  (Cap (cterm (x^0) Q1 x^0) (cterm (x^0) Q2 x^0))x^ ->
-;;  all x^0(Q1 x^0 -> Q2 x^0 -> A) -> A)
+;;  (Cap (cterm (x^0) Q1 x^0) (cterm (x^0) Q2 x^0))x^ -> 
+;;  allnc x^0(Q1 x^0 -> Q2 x^0 -> A) -> A)
 
 (define eterm (proof-to-extracted-term (make-proof-in-aconst-form aconst)))
 (pp (term-to-type eterm))
 ;; alpha164 yprod alpha163=>(alpha164=>alpha163=>alpha404)=>alpha404
 
-;; Tests for imp-formulas-to-uninst-gfp-formulas-etc
-
-(add-ids (list (list "I" (make-arity (py "nat") (py "nat")) "algI"))
-	 '("all n allnc m^(I n m^)" "InitI"))
-
-(add-co "I")
-
-(pp (rename-variables (caar (imp-formulas-to-uninst-gfp-formulas-etc
-			     (pf "n^ eqd m^ -> CoI n^ m^")))))
-
-;; (Pvar nat nat)_250 n^1960 n^1959 ->
-;; allnc n^,n^0(
-;;  (Pvar nat nat)_250 n^ n^0 -> exl n1 exnc m^(n^ eqd n1 andnc n^0 eqd m^)) ->
-;; CoI n^1960 n^1959
-
-;; Hence we need cases andnc exl exnc in the internally defined
-;; and-ex-fla-to-shortened-fla in
-;; imp-formulas-to-uninst-gfp-formulas-etc.  Otherwise we get an error:
-
-;; and-ex-fla-to-shortened-fla
-;; unexpected formula
-;; exl n exnc m^(n^1954 eqd n andnc n^1953 eqd m^)
