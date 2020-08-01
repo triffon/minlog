@@ -186,9 +186,9 @@
 (pp-subst (huet-match (pf "(Pvar unit)unit^") (pf "Total x^")))
 ;;   (Pvar unit) ->  (cterm (unit^1479) Total x^)
 
-(pp-subst (huet-match (pf "exd x^ (Pvar alpha)x^") (pf "exd n^ (Pvar nat)n^")))
-;;   alpha -> nat
-;;   (Pvar alpha) ->  (cterm (n^1953) (Pvar nat)n^1953)
+(pp-subst (huet-match (pf "exr x^ (Pvar alpha)x^") (pf "exr n^ (Pvar nat)n^")))
+;; alpha -> nat
+;; (Pvar alpha) ->  (cterm (n^13622) (Pvar nat)n^13622)
 
 ;; Tests for huet-match with ignore-deco-flag set to #t
 
@@ -216,11 +216,11 @@
 ;; ()
 
 (define pattern (pf "all p(P p -> P(negb p))"))
-(define instance (pf "allnc p(ex q(p andb q) --> ex q(p andb q))"))
+(define instance (pf "allnc p(exl q(p andb q) -> exl q(p andb q))"))
 (huet-match pattern instance #t) ;#f
 
 (define pattern (pf "all p(P p -> P(negb p))"))
-(define instance (pf "allnc p(ex q(p andb q) --> ex q(p andb q))"))
+(define instance (pf "allnc p(exl q(p andb q) -> exl q(p andb q))"))
 (huet-match pattern instance #t) ;#f
 
 (remove-var-name "q" "f")
@@ -232,7 +232,7 @@
   (pf "all p^(Total p^ -> Total(boole=>boole=>boole^ p^))")))
 
 ;; alpha -> boole
-;;   (Pvar alpha) ->  (cterm (p^3265) Total((boole=>boole=>boole)^ p^3265))
+;; (Pvar alpha) ->  (cterm (p^3265) Total((boole=>boole=>boole)^ p^3265))
 
 (add-var-name "u" "c" (py "alpha=>(alpha=>beta)=>beta"))
 (add-var-name "f" (py "alpha=>beta"))
