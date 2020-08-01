@@ -1,4 +1,4 @@
-;; 2020-04-06.  axiom.scm
+;; 2020-07-08.  axiom.scm
 ;; 8. Assumption variables and axioms
 ;; ==================================
 ;; To be renamed into avars scheme, with the axioms section transferred
@@ -638,20 +638,33 @@
 	  (null? opt-ignore-deco-flag)
 	  (and (pair? opt-ignore-deco-flag) (not (car opt-ignore-deco-flag))))
 	 (string=? "Elim" name)
-	 (let* ((fla (aconst-to-formula x))
-		(kernel (all-allnc-form-to-final-kernel fla))
-		(prems (imp-impnc-form-to-premises kernel))
-		(concl (imp-impnc-form-to-final-conclusion kernel)))
-	   (and
-	    (formula-of-nulltype? (car prems)) ;n.c. idpredconst
-	    (<= 3 (length prems)) ;with at least 2 clauses
-	    (not (formula-of-nulltype? concl)))))
+	 (let* ((fla (aconst-to-uninst-formula x))
+		(prem (imp-form-to-premise fla))
+		(idpc (predicate-form-to-predicate prem))
+		(idpc-name (idpredconst-to-name idpc))
+		(clauses (idpredconst-name-to-clauses idpc-name))
+		(concl (imp-impnc-all-allnc-form-to-final-conclusion
+			(aconst-to-formula x))))
+	   (and (nc-idpredconst-name? idpc-name) ;n.c. idpredconst
+		(<= 2 (length clauses)) ;with at least 2 clauses
+		(not (formula-of-nulltype? concl)))))
 	(myerror
 	 "check-aconst" name
 	 "In case ignore-deco-flag is #f, Elim for the n.c. idpredconst"
-	 (car prems)
+	 idpc-name
 	 "with at least two clauses can be used for n.c. conclusions only"
 	 concl))
+    (if (and (string=? "Elim" name)
+	     (let* ((fla (aconst-to-uninst-formula x))
+		    (prem (imp-form-to-premise fla))
+		    (idpc (predicate-form-to-predicate prem))
+		    (idpc-name (idpredconst-to-name idpc)))
+	       (assoc idpc-name COIDS)))
+	(myerror "check-aconst" "Elim applied to coinductive predicate"
+		 (idpredconst-to-name
+		  (predicate-form-to-predicate
+		   (imp-form-to-premise
+		    (aconst-to-uninst-formula x))))))
     (let ((free (formula-to-free uninst-formula)))
       (if (and (or (string=? name "Elim") (string=? name "Gfp"))
 	       (imp-form? uninst-formula)
