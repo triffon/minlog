@@ -1,4 +1,4 @@
-;; 2019-08-27.  examples/analysis/grayavaux.scm.
+;; 2020-07-22.  examples/analysis/grayavaux.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -469,43 +469,43 @@
 (save "SdDisj")
 
 ;; To avoid case lengthy distinctions and achieve some clarity in the
-;; usage of J,K we could employ IntToBoole, BooleToInt, PsdMR and
+;; usage of J,K we could employ IntToBoole, BooleToInt, PsdInj and
 ;; invariance axioms.  However, in the present simple case the latter
 ;; are easily provable.
 
 ;; CoGAvcSatCoIClAuxJ
 (set-goal "allnc d,e,i(Psd d -> Psd e -> Sdtwo i -> Sdtwo(J(d+e+i*2)))")
 (assume "d" "e" "i" "Psdd" "Psde" "Sdtwoi")
-(assert "exl boole1 PsdMR d boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj d boole1")
+(use "PsdInjIntro")
 (use "Psdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
-(assert "exl boole2 PsdMR e boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj e boole2")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "t" "tProp")
-(use "SdtwoMRElim"
+(use "SdtwoInjElim"
  (pt "IntToSdtwo(J(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2))"))
 (simp (pf "J(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2)=J(d+e+i*2)"))
-(use "SdtwoMRIntToSdtwo")
+(use "SdtwoInjIntToSdtwo")
 ;; ?^27:abs(J(d+e+i*2))<=2
 (use "JProp")
 (simp (pf "BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2=d+e+i*2"))
 (use "Truth")
 ;; ?^29:BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2=d+e+i*2
-(inst-with-to "PsdMRId" (pt "d") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "e") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "d") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 (save "CoGAvcSatCoIClAuxJ")
@@ -513,25 +513,25 @@
 ;; CoGAvcSatCoIClAuxK
 (set-goal "allnc d,e,i(Psd d -> Psd e -> Sdtwo i -> Sd(K(d+e+i*2)))")
 (assume "d" "e" "i" "Psdd" "Psde" "Sdtwoi")
-(assert "exl boole1 PsdMR d boole1")
-(use "PsdMRIntro")
+(assert "exl boole1 PsdInj d boole1")
+(use "PsdInjIntro")
 (use "Psdd")
 (assume "ExHyp1")
 (by-assume "ExHyp1" "boole1" "boole1Prop")
-(assert "exl boole2 PsdMR e boole2")
-(use "PsdMRIntro")
+(assert "exl boole2 PsdInj e boole2")
+(use "PsdInjIntro")
 (use "Psde")
 (assume "ExHyp2")
 (by-assume "ExHyp2" "boole2" "boole2Prop")
-(assert "exl t SdtwoMR i t")
-(use "SdtwoMRIntro")
+(assert "exl t SdtwoInj i t")
+(use "SdtwoInjIntro")
 (use "Sdtwoi")
 (assume "ExHyp3")
 (by-assume "ExHyp3" "t" "tProp")
-(use "SdMRElim"
+(use "SdInjElim"
      (pt "IntToSd(K(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2))"))
 (simp (pf "K(BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2)=K(d+e+i*2)"))
-(use "SdMRIntToSd")
+(use "SdInjIntToSd")
 ;; ?^27:abs(K(d+e+i*2))<=1
 (use "KProp")
 ;; ?^28:abs(d+e+i*2)<=6
@@ -561,12 +561,12 @@
 (simp (pf "BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2=d+e+i*2"))
 (use "Truth")
 ;; ?^52:BooleToInt boole1+BooleToInt boole2+SdtwoToInt t*2=d+e+i*2
-(inst-with-to "PsdMRId" (pt "d") (pt "boole1") "boole1Prop" "PsdMRIdInst1")
-(inst-with-to "PsdMRId" (pt "e") (pt "boole2") "boole2Prop" "PsdMRIdInst2")
-(inst-with-to "SdtwoMRId" (pt "i") (pt "t") "tProp" "SdtwoMRIdInst")
-(simp "PsdMRIdInst1")
-(simp "PsdMRIdInst2")
-(simp "SdtwoMRIdInst")
+(inst-with-to "PsdInjId" (pt "d") (pt "boole1") "boole1Prop" "PsdInjIdInst1")
+(inst-with-to "PsdInjId" (pt "e") (pt "boole2") "boole2Prop" "PsdInjIdInst2")
+(inst-with-to "SdtwoInjId" (pt "i") (pt "t") "tProp" "SdtwoInjIdInst")
+(simp "PsdInjIdInst1")
+(simp "PsdInjIdInst2")
+(simp "SdtwoInjIdInst")
 (use "Truth")
 ;; Proof finished.
 (save "CoGAvcSatCoIClAuxK")
