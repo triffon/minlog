@@ -164,8 +164,10 @@
 	 (name (aconst-to-name aconst)))
     (if (or (string=? "Elim" name)
 	    (string=? "Gfp" name)
-	    (string=? "ElimMR" name))
-	(all-form-to-final-kernel
+	    (string=? "ElimMR" name)
+	    (and (initial-substring? "Gfp" name)
+		 (final-substring? "MR" name)))
+	(all-allnc-form-to-final-kernel
 	 (unfold-formula ;to transform Total n into TotalNat n
 	  (formula-substitute
 	   (apply mk-all (append (formula-to-free uninst-formula)
