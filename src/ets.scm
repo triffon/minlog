@@ -1,4 +1,4 @@
-;; 2020-07-15.  ets.scm
+;; 2020-08-09.  ets.scm
 ;; 16. Extracted terms
 ;; ===================
 
@@ -4683,10 +4683,43 @@
 ;; Examples are GfpCoTotalNatMR (in nat.scm) GfpCoIMR (in
 ;; examples/analysis/sdcode.scm)
 
+;; It can happen that the conclusions of imp-formulas use different
+;; arg-vars (example: the GfpCoGMR-aconst for CoGClauseInv in graycon=de).
+;; They must be made equal first.
+
 (define (imp-formulas-to-mr-gfp-proof imp-formula . imp-formulas)
-  (if (pair? imp-formulas)
-      (myerror "imp-formulas-to-mr-gfp-proof"
-	       "not implemented for simultaneaous coinductive definitions"))
+  (if
+   (null? imp-formulas)
+   (imp-formulas-to-mr-gfp-proof-aux imp-formula)
+   (let* ((imp-flas (cons imp-formula imp-formulas))
+	  (args-list (map (lambda (imp-fla)
+			    (predicate-form-to-args
+			     (imp-form-to-conclusion imp-fla)))
+			  imp-flas)))
+     (if
+      (< 1 (length (remove-duplicates-wrt terms=? args-list)))
+      (let* ((concl (imp-form-to-conclusion (rac imp-flas)))
+	     (args (predicate-form-to-args concl))
+	     (vars (map term-in-var-form-to-var args))
+	     (first-imp-flas (rdc imp-flas))
+	     (first-concls (map imp-form-to-conclusion first-imp-flas))
+	     (first-args-list (map predicate-form-to-args first-concls))
+	     (first-vars-list (map
+			       (lambda (args) (map term-in-var-form-to-var args))
+			       first-args-list))
+	     (first-substs (map (lambda (old-vars)
+				  (make-substitution
+				   old-vars (map make-term-in-var-form vars)))
+				first-vars-list))
+	     (subst-first-imp-flas
+	      (map (lambda (fla subst)
+		     (formula-substitute fla  subst))
+		   first-imp-flas first-substs)))
+	(apply imp-formulas-to-mr-gfp-proof-aux
+	       (append subst-first-imp-flas (list (rac imp-flas)))))
+      (apply imp-formulas-to-mr-gfp-proof-aux imp-formula imp-formulas)))))
+
+(define (imp-formulas-to-mr-gfp-proof-aux imp-formula . imp-formulas)
   (let* ((concl (imp-form-to-conclusion imp-formula)) ;CoTotalNat m^
 	 (pred (predicate-form-to-predicate concl))
 	 (args (predicate-form-to-args concl))
@@ -4695,20 +4728,18 @@
 	 (name (string-append "Gfp" coidpc-name "MR"))
 	 (info (assoc name THEOREMS))
 	 (aconst (if info (cadr info)
-		     (myerror "imp-formulas-to-mr-gfp-proof"
+		     (myerror "imp-formulas-to-mr-gfp-proof-aux"
 			      "theorem" name "missing")))
 	 (gfp-mr-fla (aconst-to-uninst-formula aconst))
-	 (vars-and-z (all-allnc-form-to-vars gfp-mr-fla)) ;(n^,z^)
-	 (rev-vars-and-z (reverse vars-and-z))
-	 (z (car rev-vars-and-z))
-	 (vars (reverse (cdr rev-vars-and-z))) ;(n^)
-	 (kernel (all-allnc-form-to-final-kernel gfp-mr-fla))
-	 (prem (imp-form-to-premise kernel)) ;XMR n^ z^
-	 (tvar (var-to-type z))
-	 (pvar (predicate-form-to-predicate prem)) ;XMR
+	 (pvars (formula-to-pvars gfp-mr-fla))
+	 (arities (map predicate-to-arity pvars))
+	 (tvars (map rac arities))
 	 (given-prem (imp-form-to-premise imp-formula)) ;A(m^)
+	 (given-prems (map imp-form-to-premise imp-formulas))
 	 (prem-type (formula-to-et-type given-prem))
-	 (tsubst (make-subst tvar prem-type))
+	 (prem-types (map formula-to-et-type given-prems))
+	 (tsubst (make-substitution
+		  tvars (cons prem-type prem-types)))
 	 (y ;t-deg-one if given-prem of ExLT, ExRT, ExDT form
 	  (if (and (predicate-form? given-prem)
 		   (let ((pred (predicate-form-to-predicate given-prem)))
@@ -4717,10 +4748,18 @@
 				  (list  "ExLT"  "ExRT" "ExDT")))))
 	      (type-to-new-var prem-type)
 	      (type-to-new-partial-var prem-type)))
+	 (ys (map type-to-new-partial-var prem-types))
 	 (mr-fla (real-and-formula-to-mr-formula-aux
 		  (make-term-in-var-form y) given-prem))
+	 (mr-flas (map (lambda (y fla)
+			 (real-and-formula-to-mr-formula-aux
+			  (make-term-in-var-form y) fla))
+		       ys given-prems))
 	 (cterm (apply make-cterm (append given-vars (list y mr-fla))))
-	 (psubst (make-subst pvar cterm))
+	 (cterms (map (lambda (y mr-fla)
+			(apply make-cterm (append given-vars (list y mr-fla))))
+		      ys mr-flas))
+	 (psubst (make-substitution pvars (cons cterm cterms)))
 	 (subst-aconst (aconst-substitute aconst (append tsubst psubst))))
     (make-proof-in-aconst-form subst-aconst)))
 
