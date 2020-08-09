@@ -1,4 +1,29 @@
-Done locally in dev branch 2020-08-01.
+Done in dev branch 2020-08-09.
+
+In axiom.scm
+
+aconst-to-inst-formula now treats GfpMr as ElimMR.
+
+In ets.scm
+
+imp-formulas-to-mr-gfp-proof extended to also cover simultaneous
+coinductive definitions.
+
+In examples/analysis/sdcode.scm
+
+Predicates EqPAiNc and CoEqPAiNc added.  Theorems AiCoRecExtNcAux and
+AiCoRecExtNc added.  AiCoRec0L AiCoRec0R renamed into AiCoRecL AiCoRecR
+
+In examples/analysis/graycode.scm
+
+Extended similar to sdcode.scm to make add-sound usable.  Theorems
+AgCoRecLL AgCoRecLR AgCoRecRL AgCoRecRR AhCoRecLL AhCoRecLR AhCoRecRL
+AhCoRecRR added.  Theorems AgCoRecExtNcAux AgCoRecExtNc added.
+Theorems GfpCoGHMRAuxG GfpCoGHMRAuxH GfpCoGMR GfpCoHMR added.
+Soundness proofs added.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Done in dev branch 2020-08-01.
 
 In typ.scm
 
