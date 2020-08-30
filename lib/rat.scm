@@ -4480,6 +4480,286 @@
 ;; Proof finished.
 (save "RatMinCompat")
 
+;; Added 2020-08-28
+
+;; RatLeBoundPos
+(set-goal "all p,q exl r (p#q)<=2**r")
+(assume "p" "q")
+(cut "exl n (p#q)<=2**n")
+(use "Id")
+(assume "nEx")
+(by-assume "nEx" "n" "nProp")
+(cases (pt "n"))
+;; 10,11
+(assume "n=0")
+(intro 0 (pt "1"))
+(use "RatLeTrans" (pt "(2**n#1)"))
+(use "nProp")
+(simp "n=0")
+(use "Truth")
+;; 11
+(assume "n1" "n=Sn1")
+(intro 0 (pt "NatToPos n"))
+(simp "PosToNatToPosId")
+(use "nProp")
+(simp "n=Sn1")
+(use "Truth")
+;; 4
+(use "RatLeBound")
+;; Proof finished.
+;; (cdp)
+(save "RatLeBoundPos")
+
+;; RatLtMonPlus1
+(set-goal "all a,b,c,d(a<b -> c<=d -> a+c<b+d)")
+;; RatLtMonPlusAux
+(assert "all a,b,c(a<b -> a+c<b+c)")
+(cases)
+(assume "k" "p")
+(cases)
+(assume "j" "q")
+(cases)
+(assume "i" "r")
+(ng)
+(assume "kq<jp")
+;; ?^11:k*r*(q*r)+i*p*(q*r)<
+;;      j*r*(p*r)+i*q*(p*r)
+(use "IntLtMonPlus1")
+;; 12,13
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimes2CompRule")
+(simp "<-" "IntTimes2CompRule")
+(assert "r*IntTimes q r=(r*IntP q)*r")
+ (ng)
+ (use "Truth")
+(assume "r*IntTimes q r=(r*IntP q)*r")
+(simp "r*IntTimes q r=(r*IntP q)*r")
+(drop "r*IntTimes q r=(r*IntP q)*r")
+(assert "IntTimes r q=IntTimes q r")
+ (use "IntTimesComm")
+(assume "IntTimes r q=IntTimes q r")
+(simp "IntTimes r q=IntTimes q r")
+(drop "IntTimes r q=IntTimes q r")
+(assert "r*IntTimes p r=(r*IntP p)*r")
+ (ng)
+ (use "Truth")
+(assume "r*IntTimes p r=(r*IntP p)*r")
+(simp "r*IntTimes p r=(r*IntP p)*r")
+(drop "r*IntTimes p r=(r*IntP p)*r")
+(assert "IntTimes r p=IntTimes p r")
+ (use "IntTimesComm")
+(assume "IntTimes r p=IntTimes p r")
+(simp "IntTimes r p=IntTimes p r")
+(drop "IntTimes r p=IntTimes p r")
+(simp "IntTimesAssoc")
+(use "IntLtLeTrans" (pt "j*IntTimes p r*r"))
+(simp "IntTimesAssoc")
+(simp "IntTimesAssoc")
+(use "kq<jp")
+(assert "j*IntTimes p r*r=j*(IntTimes p r*r)")
+ (simp "<-" "IntTimesAssoc")
+ (use "Truth")
+(assume "j*IntTimes p r*r=j*(IntTimes p r*r)")
+(simp "j*IntTimes p r*r=j*(IntTimes p r*r)")
+(use "Truth")
+;; 13
+(simp "<-" "IntTimes2CompRule")
+(simp "<-" "IntTimes2CompRule")
+(simp "<-" "IntTimesAssoc")
+(simp "<-" "IntTimesAssoc")
+(assert "p*IntTimes q r=(p*IntP q)*r")
+ (ng)
+ (use "Truth")
+(assume "p*IntTimes q r=(p*IntP q)*r")
+(simp "p*IntTimes q r=(p*IntP q)*r")
+(drop "p*IntTimes q r=(p*IntP q)*r")
+(assert "q*IntTimes p r=(q*IntP p)*r")
+ (ng)
+ (use "Truth")
+(assume "q*IntTimes p r=(q*IntP p)*r")
+(simp "q*IntTimes p r=(q*IntP p)*r")
+(drop "q*IntTimes p r=(q*IntP p)*r")
+(assert "IntTimes p q=IntTimes q p")
+ (use "IntTimesComm")
+(assume "IntTimes p q=IntTimes q p")
+(simp "IntTimes p q=IntTimes q p")
+(drop "IntTimes p q=IntTimes q p")
+(ng)
+(use "Truth")
+;; Proof of assertion finished.
+(assume "RatLeMonPlus1Aux" "a" "b" "c" "d" "a<b" "c<=d")
+(use "RatLtLeTrans" (pt "b+c"))
+(use "RatLeMonPlus1Aux")
+(use "a<b")
+(ng #t)
+(use "c<=d")
+;; Proof finished.
+;; (cdp)
+(save "RatLtMonPlus1")
+
+;; RatLtMonPlus2
+(set-goal "all a,b,c,d(a<=b -> c<d -> a+c<b+d)")
+(assume "a" "b" "c" "d" "a<=b" "c<d")
+(simp (pf "a+c=c+a"))
+(simp (pf "b+d=d+b"))
+(use "RatLtMonPlus1")
+(use "c<d")
+(use "a<=b")
+(use "RatPlusComm")
+(use "RatPlusComm")
+;; Proof finished.
+;; (cdp)
+(save "RatLtMonPlus2")
+
+(set-goal "all a,b,c (a+b<a+c)=(b<c)")
+(assume "a" "b" "c")
+(use "BooleAeqToEq")
+;; 3,4
+(use "RatLtPlusCancelL")
+;; 4
+(assume "LtHyp")
+(use "RatLtMonPlus2")
+(use "Truth")
+(use "LtHyp")
+;; Proof finished.
+(add-rewrite-rule "a+b<a+c"  "b<c")
+
+(set-goal "all a,b,c (a+b<c+b)=(a<c)")
+(assume "a" "b" "c")
+(use "BooleAeqToEq")
+;; 3,4
+(use "RatLtPlusCancelR")
+;; 4
+(assume "LtHyp")
+(use "RatLtMonPlus1")
+(use "LtHyp")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "a+b<c+b"  "a<c")
+
+;; RatLeLowerBound
+(set-goal "all a(0<a -> exl p (1#2**p)<=a)")
+(cases)
+(cases)
+;; 3-5
+(assume "p" "q" "Useless")
+(inst-with-to "RatLeBoundPos" (pt "q") (pt "p") "rEx")
+(by-assume "rEx" "r" "rProp")
+(intro 0 (pt "r"))
+(ng)
+(simp "PosTimesComm")
+(use "rProp")
+;; 4
+(assume "p" "Absurd")
+(intro 0 (pt "1"))
+(use "EfAtom")
+(use "Absurd")
+;; 5
+(assume "p" "q" "Absurd")
+(intro 0 (pt "1"))
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+;; (cdp)
+(save "RatLeLowerBound")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (ppc neterm)
+
+;; [a]
+;;  [case a (k#p -> [case k (p0 -> cRatLeBoundPos p p0) (0 -> 1) (IntN p0 -> 1)])]
+
+;; RatPosToQuotPos
+(set-goal "all a(0<a -> exd p exl q a=(p#q))")
+(cases)
+(cases)
+;; 3-5
+(assume "p" "q" "Useless")
+(intro 0 (pt "p"))
+(intro 0 (pt "q"))
+(use "Truth")
+;; 4
+(assume "p" "Absurd")
+(intro 0 (pt "1"))
+(intro 0 (pt "1"))
+(use "EfAtom")
+(use "Absurd")
+;; 5
+(assume "p" "q" "Absurd")
+(intro 0 (pt "1"))
+(intro 0 (pt "1"))
+(use "EfAtom")
+(use "Absurd")
+;; Proof finished.
+(save "RatPosToQuotPos")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (ppc neterm)
+
+;; [a]
+;;  [case a
+;;    (k#p -> [case k (p0 -> p0 pair p) (0 -> 1 pair 1) (IntN p0 -> 1 pair 1)])]
+
+;; (set-goal "all a(0<a -> exl p RealLt 0 a p)")
+;; (ng)
+;; (assume "a" "0<a")
+;; (inst-with-to "RatPosToQuotPos" (pt "a") "0<a" "pqEx")
+;; (by-assume "pqEx" "p" "pProp")
+;; (by-assume "pProp" "q" "a=p/q")
+;; (inst-with-to "RatLeBoundPos" (pt "q") (pt "p") "rEx")
+;; (by-assume "rEx" "r" "rProp")
+;; (ng #t)
+;; (simp "a=p/q")
+;; (intro 0 (pt "r"))
+;; (ng)
+;; (simp "PosTimesComm")
+;; (use "rProp")
+;; ;; Proof finished.
+
+;; RatNegbLeEqLt
+(set-goal "all a,b negb(a<=b)=(b<a)")
+(assume "a" "b")
+(cases (pt "a<=b"))
+(assume "a<=b")
+(cases (pt "b<a"))
+(assume "b<a")
+(use-with "RatLeLtTrans" (pt "a") (pt "b") (pt "a") "?" "?")
+(use "a<=b")
+(use "b<a")
+;; 7
+(strip)
+(use "Truth")
+;; 4
+(assume "a<=b -> F")
+(inst-with-to "RatNotLeToLt" (pt "a") (pt "b") "a<=b -> F" "b<a")
+(cases (pt "b<a"))
+(strip)
+(use "Truth")
+(assume "(b<a -> F)")
+(use "(b<a -> F)")
+(use "b<a")
+;; Proof finished.
+;; (cdp)
+(save "RatNegbLeEqLt")
+
+;; RatLtCompat
+(set-goal "all a,b,c,d(a==b -> c==d -> (a<c)=(b<d))")
+(assume "a" "b" "c" "d" "a==b" "c==d")
+(simp "<-" (pf "negb(c<=a)=(a<c)"))
+(simp "<-" (pf "negb(d<=b)=(b<d)"))
+(inst-with-to "RatLeCompat"
+	      (pt "c") (pt "d") (pt "a") (pt "b") "c==d" "a==b" "In")
+(simp "In")
+(use "Truth")
+(use "RatNegbLeEqLt")
+(use "RatNegbLeEqLt")
+;; Proof finished.
+;; (cdp)
+(save "RatLtCompat")
+
 ;; 4.  Adding external code
 ;; ========================
 
