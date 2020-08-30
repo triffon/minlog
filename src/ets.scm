@@ -1,4 +1,4 @@
-;; 2020-08-09.  ets.scm
+;; 2020-08-30.  ets.scm
 ;; 16. Extracted terms
 ;; ===================
 
@@ -1783,7 +1783,7 @@
 
 (define atom-to-eqd-true-aconst
   (make-aconst "AtomToEqDTrue" 'axiom
-	       (pf "all boole^(boole^ -> boole^ eqd True)")
+	       (pf "allnc boole^(boole^ -> boole^ eqd True)")
 	       empty-subst))
 
 (add-theorem "AtomToEqDTrue"
@@ -1791,7 +1791,7 @@
 
 (define eqd-true-to-atom-aconst
   (make-aconst "EqDTrueToAtom" 'axiom
-	       (pf "all boole^(boole^ eqd True -> boole^)")
+	       (pf "allnc boole^(boole^ eqd True -> boole^)")
 	       empty-subst))
 
 (add-theorem "EqDTrueToAtom"
@@ -1855,7 +1855,7 @@
 
 (define atom-true-aconst
   (make-aconst "AtomTrue" 'theorem
-	       (pf "all boole^(boole^ -> boole^ =True)")
+	       (pf "allnc boole^(boole^ -> boole^ =True)")
 	       empty-subst))
 
 ;; atom-false-proof can be defined only here, because it needs truth-aconst
@@ -2274,25 +2274,25 @@
 (define ef-atom-proof
   (let* ((aconst (theorem-name-to-aconst "EfEqD"))
 	 (uninst-formula (aconst-to-uninst-formula aconst))
-	 (tvar (var-to-type (all-form-to-var
-				    (imp-form-to-conclusion uninst-formula))))
+	 (tvar (var-to-type (allnc-form-to-var
+			     (imp-form-to-conclusion uninst-formula))))
 	 (tsubst (make-subst tvar (make-alg "boole")))
 	 (subst-aconst (aconst-substitute aconst tsubst))
 	 (inst-formula (aconst-to-inst-formula subst-aconst))
 	 (var (all-form-to-var (imp-form-to-conclusion inst-formula)))
 	 (falsity-avar (formula-to-new-avar falsity))
 	 (elim-proof1
-	   (mk-proof-in-elim-form
-	    (make-proof-in-aconst-form subst-aconst)
-	    (make-proof-in-avar-form falsity-avar)
-	    (make-term-in-var-form var)
-	    (make-term-in-const-form true-const)))
+	  (mk-proof-in-elim-form
+	   (make-proof-in-aconst-form subst-aconst)
+	   (make-proof-in-avar-form falsity-avar)
+	   (make-term-in-var-form var)
+	   (make-term-in-const-form true-const)))
 	 (elim-proof2
-	   (mk-proof-in-elim-form
-	    (make-proof-in-aconst-form eqd-true-to-atom-aconst)
-	    (make-term-in-var-form var)
-	    elim-proof1)))
-    (mk-proof-in-intro-form
+	  (mk-proof-in-elim-form
+	   (make-proof-in-aconst-form eqd-true-to-atom-aconst)
+	   (make-term-in-var-form var)
+	   elim-proof1)))
+    (mk-proof-in-nc-intro-form-without-impnc
      falsity-avar var elim-proof2)))
 
 (add-theorem "EfAtom" ef-atom-proof)
@@ -3174,7 +3174,7 @@
 ;; coincide.  This follows from
 
 ;; EqPBooleToEqD
-(set-goal "all boole^1,boole^2(
+(set-goal "allnc boole^1,boole^2(
  EqPBoole boole^1 boole^2 -> boole^1 eqd boole^2)")
 (assume "boole^1" "boole^2" "EqPHyp")
 (elim "EqPHyp")
@@ -3350,7 +3350,7 @@
 
 ;; TotalBooleMRToEqD
 (set-goal
- "all boole^,boole^1(TotalBooleMR boole^1 boole^ -> boole^ eqd boole^1)")
+ "allnc boole^,boole^1(TotalBooleMR boole^1 boole^ -> boole^ eqd boole^1)")
 (assume "boole^" "boole^1" "TMRHyp")
 (elim "TMRHyp")
 ;; 3,4
@@ -3363,7 +3363,7 @@
 
 ;; TotalBooleMRToTotalBooleNc
 (set-goal
- "all boole^,boole^1(TotalBooleMR boole^1 boole^ -> TotalBooleNc boole^)")
+ "allnc boole^,boole^1(TotalBooleMR boole^1 boole^ -> TotalBooleNc boole^)")
 (assume "boole^" "boole^1" "TMRHyp")
 (elim "TMRHyp")
 ;; 3,4
@@ -3375,7 +3375,7 @@
 (save "TotalBooleMRToTotalBooleNc")
 
 ;; TotalBooleToTotalBooleMR
-(set-goal "all boole^(TotalBoole boole^ -> TotalBooleMR boole^ boole^)")
+(set-goal "allnc boole^(TotalBoole boole^ -> TotalBooleMR boole^ boole^)")
 (assume "boole^" "Tb")
 (elim "Tb")
 ;; 3,4
@@ -6326,48 +6326,42 @@
    ((proof-in-imp-elim-form? proof)
     (let* ((op (proof-in-imp-elim-form-to-op proof))
 	   (arg (proof-in-imp-elim-form-to-arg proof))
-	   (arg-fla (proof-to-formula arg)))
-      (if (null? cr-avars)
-	  (if (not (formula-of-nulltype? arg-fla))
-	      (let ((arg-proof (proof-to-soundness-proof-aux
-				arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-		(make-proof-in-imp-elim-form op arg-proof))
-	      proof)
-	  (let* ((op-avars (proof-to-free-avars op))
-		 (op-cr-avars (list-transform-positive op-avars
-				(lambda (avar) (not (formula-of-nulltype?
-						     (avar-to-formula avar))))))
-		 (op-proof (proof-to-soundness-proof-aux-nc
-			    op avar-or-ga-to-var avar-or-ga-to-mr-avar
-			    op-cr-avars)))
-	    (if (not (formula-of-nulltype? arg-fla)) ;need InvarAll here
-		(let* ((arg-proof (proof-to-soundness-proof-aux
-				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
-		       (eterm
-			(proof-to-extracted-term-aux
-			 arg avar-or-ga-to-var #t)) ;unfold-let-flag true here
-		       (invarall-aconst (formula-to-invarall-aconst arg-fla))
-		       (invarall-fla (aconst-to-formula invarall-aconst))
-		       (vars-avar (formula-to-free arg-fla))
-		       (invarall-proof
-			(apply mk-proof-in-elim-form
-			       (make-proof-in-aconst-form invarall-aconst)
-			       eterm
-			       (append
-				(map make-term-in-var-form vars-avar)
-				(list arg-proof)))))
-		  (make-proof-in-imp-elim-form op-proof invarall-proof))
-					;else (formula-of-nulltype? arg-fla)
-		(let* ((arg-avars (proof-to-free-avars arg))
-		       (arg-cr-avars
-			(list-transform-positive arg-avars
+	   (arg-fla (proof-to-formula arg))
+	   (op-avars (proof-to-free-avars op))
+	   (op-cr-avars (list-transform-positive op-avars
 			  (lambda (avar) (not (formula-of-nulltype?
 					       (avar-to-formula avar))))))
-		       (arg-proof (proof-to-soundness-proof-aux-nc
-				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar
-				   arg-cr-avars)))
-		  (make-proof-in-imp-elim-form op-proof arg-proof)))))))
-   ((proof-in-impnc-intro-form? proof) ;as in imp-intro vase
+	   (op-proof (proof-to-soundness-proof-aux-nc
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar
+		      op-cr-avars)))
+      (if (not (formula-of-nulltype? arg-fla)) ;need InvarAll here
+	  (let* ((arg-proof (proof-to-soundness-proof-aux
+			     arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
+		 (eterm
+		  (proof-to-extracted-term-aux
+		   arg avar-or-ga-to-var #t)) ;unfold-let-flag true here
+		 (invarall-aconst (formula-to-invarall-aconst arg-fla))
+		 (invarall-fla (aconst-to-formula invarall-aconst))
+		 (vars-avar (formula-to-free arg-fla))
+		 (invarall-proof
+		  (apply mk-proof-in-elim-form
+			 (make-proof-in-aconst-form invarall-aconst)
+			 eterm
+			 (append
+			  (map make-term-in-var-form vars-avar)
+			  (list arg-proof)))))
+	    (make-proof-in-imp-elim-form op-proof invarall-proof))
+					;else (formula-of-nulltype? arg-fla)
+	  (let* ((arg-avars (proof-to-free-avars arg))
+		 (arg-cr-avars
+		  (list-transform-positive arg-avars
+		    (lambda (avar) (not (formula-of-nulltype?
+					 (avar-to-formula avar))))))
+		 (arg-proof (proof-to-soundness-proof-aux-nc
+			     arg avar-or-ga-to-var avar-or-ga-to-mr-avar
+			     arg-cr-avars)))
+	    (make-proof-in-imp-elim-form op-proof arg-proof)))))
+   ((proof-in-impnc-intro-form? proof) ;as in imp-intro case
     (let* ((avar (proof-in-impnc-intro-form-to-avar proof))
 	   (kernel (proof-in-impnc-intro-form-to-kernel proof))
 	   (avar-fla (avar-to-formula avar))
@@ -6421,47 +6415,41 @@
    ((proof-in-impnc-elim-form? proof) ;as for imp-elim
     (let* ((op (proof-in-impnc-elim-form-to-op proof))
 	   (arg (proof-in-impnc-elim-form-to-arg proof))
-	   (arg-fla (proof-to-formula arg)))
-      (if (null? cr-avars)
-	  (if (not (formula-of-nulltype? arg-fla))
-	      (let ((arg-proof (proof-to-soundness-proof-aux
-				arg avar-or-ga-to-var avar-or-ga-to-mr-avar)))
-		(make-proof-in-imp-elim-form op arg-proof))
-	      proof)
-	  (let* ((op-avars (proof-to-free-avars op))
-		 (op-cr-avars (list-transform-positive op-avars
-				(lambda (avar) (not (formula-of-nulltype?
-						     (avar-to-formula avar))))))
-		 (op-proof (proof-to-soundness-proof-aux-nc
-			    op avar-or-ga-to-var avar-or-ga-to-mr-avar
-			    op-cr-avars)))
-	    (if (not (formula-of-nulltype? arg-fla)) ;need InvarAll here
-		(let* ((arg-proof (proof-to-soundness-proof-aux
-				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
-		       (eterm
-			(proof-to-extracted-term-aux
-			 arg avar-or-ga-to-var #t)) ;unfold-let-flag true here
-		       (invarall-aconst (formula-to-invarall-aconst arg-fla))
-		       (invarall-fla (aconst-to-formula invarall-aconst))
-		       (vars-avar (formula-to-free arg-fla))
-		       (invarall-proof
-			(apply mk-proof-in-elim-form
-			       (make-proof-in-aconst-form invarall-aconst)
-			       eterm
-			       (append
-				(map make-term-in-var-form vars-avar)
-				(list arg-proof)))))
-		  (make-proof-in-imp-elim-form op-proof invarall-proof))
-					;else (formula-of-nulltype? arg-fla)
-		(let* ((arg-avars (proof-to-free-avars arg))
-		       (arg-cr-avars
-			(list-transform-positive arg-avars
+	   (arg-fla (proof-to-formula arg))
+	   (op-avars (proof-to-free-avars op))
+	   (op-cr-avars (list-transform-positive op-avars
 			  (lambda (avar) (not (formula-of-nulltype?
 					       (avar-to-formula avar))))))
-		       (arg-proof (proof-to-soundness-proof-aux-nc
-				   arg avar-or-ga-to-var avar-or-ga-to-mr-avar
-				   arg-cr-avars)))
-		  (make-proof-in-imp-elim-form op-proof arg-proof)))))))
+	   (op-proof (proof-to-soundness-proof-aux-nc
+		      op avar-or-ga-to-var avar-or-ga-to-mr-avar
+		      op-cr-avars)))
+      (if (not (formula-of-nulltype? arg-fla)) ;need InvarAll here
+	  (let* ((arg-proof (proof-to-soundness-proof-aux
+			     arg avar-or-ga-to-var avar-or-ga-to-mr-avar))
+		 (eterm
+		  (proof-to-extracted-term-aux
+		   arg avar-or-ga-to-var #t)) ;unfold-let-flag true here
+		 (invarall-aconst (formula-to-invarall-aconst arg-fla))
+		 (invarall-fla (aconst-to-formula invarall-aconst))
+		 (vars-avar (formula-to-free arg-fla))
+		 (invarall-proof
+		  (apply mk-proof-in-elim-form
+			 (make-proof-in-aconst-form invarall-aconst)
+			 eterm
+			 (append
+			  (map make-term-in-var-form vars-avar)
+			  (list arg-proof)))))
+	    (make-proof-in-imp-elim-form op-proof invarall-proof))
+					;else (formula-of-nulltype? arg-fla)
+	  (let* ((arg-avars (proof-to-free-avars arg))
+		 (arg-cr-avars
+		  (list-transform-positive arg-avars
+		    (lambda (avar) (not (formula-of-nulltype?
+					 (avar-to-formula avar))))))
+		 (arg-proof (proof-to-soundness-proof-aux-nc
+			     arg avar-or-ga-to-var avar-or-ga-to-mr-avar
+			     arg-cr-avars)))
+	    (make-proof-in-imp-elim-form op-proof arg-proof)))))
    ((proof-in-and-intro-form? proof)
     (let* ((left (proof-in-and-intro-form-to-left proof))
 	   (right (proof-in-and-intro-form-to-right proof))
