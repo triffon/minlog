@@ -24,6 +24,8 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
+(add-var-name "k" (py "nat"))
+
 (add-program-constant "Dist" (py "nat=>nat=>nat"))
 (add-computation-rules
  "Dist nat1 nat2" "[if (nat2<nat1) (nat1--nat2) (nat2--nat1)]")
@@ -91,7 +93,7 @@
 ;; Proof finished.
 (save "DistLemma")
 
-(add-var-name "a" "b" "c" "q" "r" "l" (py "nat"))
+(add-var-name "a" "b" "c" "q" "r" (py "nat"))
 (add-var-name "p" (py "nat@@nat"))
 
 (add-program-constant "Quot" (py "nat=>nat=>nat"))
@@ -389,7 +391,7 @@
  (use "Case1")
 (simp "<-" "0=k1")
 (assume "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 
 ;; ?_26:(k2*a2<k1*a1 -> F) -> r=Lin a1 a2(Step a1 a2 k1 k2 q)(q*k2)
