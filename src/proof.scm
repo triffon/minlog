@@ -1,4 +1,4 @@
-;; 2020-07-31.  proof.scm
+;; 2020-08-30.  proof.scm
 ;; 10. Proofs
 ;; ==========
 
@@ -6686,7 +6686,7 @@
 		(let* ((fp-args (list-head args k))
 		       (param-and-rest-args (list-tail args k))
 		       (param-args (list-head param-and-rest-args n))
-		       (rest-args (list-tail param-and-rest-args n))
+		       ;; (rest-args (list-tail param-and-rest-args n))
 		       (param-subst (make-substitution-wrt
 				     var-term-equal? param-vars param-args))
 		       (new-psubst
@@ -6700,7 +6700,7 @@
 		   mk-proof-in-elim-form
 		   (make-proof-in-aconst-form new-aconst)
 		   (map (lambda (arg) (term-substitute arg tosubst))
-			(append fp-args rest-args))))
+			(append fp-args param-and-rest-args))))
 	     				;else eta expand and recursive call
 		(let* ((rest-free (list-tail free (length args)))
 		       (eta-expanded-proof
