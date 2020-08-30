@@ -1,20 +1,20 @@
-;; 2020-07-20.  ivt.scm
+;; 2020-08-13.  ivt.scm
 
 ;; The part on the intermediate value theorem of the previous file
 ;; cont.scm updated according to libcont20.scm and moved here.
 
 ;; (load "~/git/minlog/init.scm")
 
-;; (set! COMMENT-FLAG #f)
-;; (libload "nat.scm")
-;; (libload "list.scm")
-;; (libload "pos.scm")
-;; (libload "int.scm")
-;; (libload "rat.scm")
-;; (remove-var-name "x" "y" "z")
-;; (libload "rea.scm")
-;; (libload "cont.scm")
-;; ;; (set! COMMENT-FLAG #t)
+(set! COMMENT-FLAG #f)
+(libload "nat.scm")
+(libload "list.scm")
+(libload "pos.scm")
+(libload "int.scm")
+(libload "rat.scm")
+(remove-var-name "x" "y" "z")
+(libload "rea.scm")
+(libload "cont.scm")
+;; (set! COMMENT-FLAG #t)
 
 (display "loading ivt.scm ...") (newline)
 
