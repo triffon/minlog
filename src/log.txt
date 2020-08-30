@@ -1,3 +1,102 @@
+Done in dev branch 2020-08-30
+
+In proof.scm
+
+proof-substitute corrected in case of a (possibly applied) elim- or
+gfp-aconst.  It might be substituted with a psubst whose cterms contain
+param-vars.  These must be arguments of the new-aconst as well.
+
+In pproof.scm
+
+rateqv-formula-compat-rev extended to include RatLtCompat
+
+In ets.scm
+
+proof-to-soundness-proof-aux-nc corrected at imp-elim in case cr-avars
+is empty.  ef-atom-proof atom-to-eqd-true-aconst
+eqd-true-to-atom-aconst atom-true-aconst EqPBooleToEqD
+TotalBooleMRToEqD TotalBooleMRToTotalBooleNc TotalBooleToTotalBooleMR
+written with allnc
+
+In examples/test/ets.scm
+
+Test for invariance axioms in soundness proofs added.
+
+In lib/nat.scm
+
+Theorem NatLePlusTimes added.  No.  Do this in pos.scm, where 2<=n
+is parsed differently.  No changes in nat.scm
+
+In lib/pos.scm
+
+Theorems NatLePlusTimes SZeroPosTimes PosLePlusTimes PosLeMonPosExpPos
+PosLeTimesTwoExp added.
+
+In lib/int.scm
+
+Theorems NatLeToIntLe NatToIntPlus added.  PosPlusIntPlus follows from
+IntPlus2CompRule.  Theorem NatToIntSuccPos added.  Rewrite rules
+0<=NatToInt n -> True and IntS n<=0 -> False added.  Theorem
+NatToIntLe : (NatToInt n<=NatToInt m)=(n<=m) added.
+
+In lib/rat.scm
+
+Theorems RatLeBoundPos RatLtMonPlus1 and RatLtMonPlus2 added.
+Rewrite rules (a+b<a+c) -> (b<c) and (a+b<c+b) -> (a<c) added.
+Theorems RatLowerBound RatPosToQuotPos RatNegbLeEqLt RatLtCompat
+added.
+
+In lib/rea.scm
+
+Definition of RealExp completed and totality proved.  Theorem
+RealPlusInsert added.  Theorem RealComplete added.  Theorems
+RealLtIrrefl RealLtLeTrans RealLeLtTrans RealPosPlus1 (variant of
+RealPosPlus due to Nils Koepp) RatLtToRealLt RealLeBound IntLeToRealLe
+added.
+
+In examples/Makefile.template
+
+SCHEME ?= petite replaced by
+SCHEME ?= scheme
+
+In examples/Makefile
+
+Adapted
+
+In examples/analysis/ivt.scm
+In examples/analysis/sddiv.scm
+In examples/analysis/graydiv.scm
+In examples/analysis/sdmult.scm
+In examples/analysis/graymult.scm
+
+COMMENT-FLAG set to false for shorter .save files when testing
+
+In examples/analysis/graycode.scm
+
+add-sound made operative.
+
+In examples/analysis/sdlim.scm
+
+Initial commit
+
+In examples/classical/euclid.scm
+
+Variable name k for nat added.  Efq replaced by EfAtom
+
+In examples/classical/fuerst.scm
+
+Efq replaced by EfAtom
+
+In examples/classical/gcd.scm
+
+Variable name k for nat added.  Efq replaced by EfAtom
+
+In examples/classical/wftest.scm
+
+Variable name k for nat added.  expand-theorems excludes EqDCompat
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2020-08-09.
 
 In axiom.scm
