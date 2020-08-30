@@ -1,4 +1,4 @@
-;; 2020-07-09.  pproof.scm
+;; 2020-08-28.  pproof.scm
 ;; 11. Partial proofs
 ;; ==================
 
@@ -5359,7 +5359,7 @@
 		     (string-append
 		      (const-to-name (term-in-const-form-to-const op))
 		      "Compat")))
-	   (compat-names (list "RatLeCompat" "RatEqvCompat"))
+	   (compat-names (list "RatLeCompat" "RatEqvCompat" "RatLtCompat"))
 	   (old-and-new
 	    (if (and (proof-form? eqhyp)
 		     (atom-form? (proof-to-formula eqhyp))
@@ -5402,7 +5402,7 @@
 	  ;; all boole1,boole2(boole1=boole2 -> boole2 -> boole1)
 	  booleterm1 booleterm2 proof3 new-goal))
        (myerror "rateqv-formula-compat-rev"
-		"RatLeCompat or RatEqvCompat expected"
+		"RatLeCompat or RatEqvCompat or RatLtCompat expected"
 		name))))
    (else (myerror "rateqv-formula-compat-rev" "not implemented for" fla))))
 
