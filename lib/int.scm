@@ -1,4 +1,4 @@
-;; 2019-08-24.  int.scm
+;; 2020-08-28.  int.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -5287,6 +5287,55 @@
 ;; Proof finished.
 (add-rewrite-rule "k+j<k+i" "j<i")
 
+;; NatLeToIntLe
+(set-goal "all n,m(n<=m -> IntLe n m)")
+(assume "n")
+(use "NatLeCases" (pt "Zero") (pt "n"))
+;; 3-5
+(use "Truth")
+;; 4
+(assume "0<n" "m")
+(use "NatLeCases" (pt "Zero") (pt "m"))
+;; 7-9
+(use "Truth")
+;; 8
+(assume "0<m")
+(simp "<-" "NatToPosLe")
+(simp "<-" "IntPNatToPosEqNatToInt")
+(simp "<-" "IntPNatToPosEqNatToInt")
+(simp "IntLe4CompRule")
+(assume "LeHyp")
+(use "LeHyp")
+(use "0<m")
+(use "0<n")
+(use "0<m")
+(use "0<n")
+;; 9
+(assume "0=m")
+(simp "<-" "0=m")
+(ng)
+(assume "n=0")
+(simp "n=0")
+(use "Truth")
+;; 5
+(assume "0=n" "m")
+(simp "<-" "0=n")
+(assume "Useless")
+(use "NatLeCases" (pt "Zero") (pt "m"))
+(use "Truth")
+(assume "0<m")
+(ng)
+(simp "<-" "IntPNatToPosEqNatToInt")
+(use "Truth")
+(use "0<m")
+;; 30
+(assume "0=m")
+(simp "<-" "0=m")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "NatLeToIntLe")
+
 (add-program-constant "PosQR" (py "pos=>pos=>int yprod int"))
 ;; (remove-program-constant "PosQR")
 
@@ -5805,3 +5854,85 @@
 ;; Proof finished.
 ;; (cdp)
 (save "PosQRCorr")
+
+;; Added 2020-08-28
+
+;; NatToIntPlus
+(set-goal "all n,m IntPlus n m=n+m")
+(cases)
+(assume "m")
+(use "Truth")
+(assume "n")
+(cases)
+(use "Truth")
+(assume "m")
+(simp "<-" "IntPNatToPosEqNatToInt")
+(simp "<-" "IntPNatToPosEqNatToInt")
+(simp "IntPlus2CompRule")
+(simp "<-" "IntPNatToPosEqNatToInt")
+(simp "NatToPosPlus")
+(use "Truth")
+(use "Truth")
+(use "Truth")
+(use "Truth")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+(save "NatToIntPlus")
+
+;; NatToIntSuccPos
+(set-goal "all n exl p NatToInt(Succ n)=IntPos p")
+(ind)
+(intro 0 (pt "1"))
+(use "Truth")
+;; 3
+(ng)
+(assume "n" "IH")
+(by-assume "IH" "p" "pProp")
+(simp "pProp")
+(intro 0 (pt "PosS p"))
+(use "Truth")
+;; Proof finished.
+(save "NatToIntSuccPos")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [n](Rec nat=>pos)n 1([n0]PosS)
+
+(set-goal "all n 0<=NatToInt n")
+(cases)
+(use "Truth")
+(assume "n")
+(inst-with-to "NatToIntSuccPos" (pt "n") "pEx")
+(by-assume "pEx" "p" "pProp")
+(simp "pProp")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "0<=NatToInt n" "True")
+
+(set-goal "all n (IntS n<=0)=False")
+(cases)
+(use "Truth")
+(assume "n")
+(inst-with-to "NatToIntSuccPos" (pt "n") "pEx")
+(by-assume "pEx" "p" "pProp")
+(simp "pProp")
+(use "Truth")
+;; Proof finished.
+(add-rewrite-rule "IntS n<=0" "False")
+
+;; NatToIntLe
+(set-goal "all n,m (NatToInt n<=NatToInt m)=(n<=m)")
+(ind)
+(assume "m")
+(use "Truth")
+(assume "n" "IH")
+(cases)
+(use "Truth")
+(assume "m")
+(use "IH")
+;; Proof finished.
+;; (cdp)
+(save "NatToIntLe")
+
