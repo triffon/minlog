@@ -1,4 +1,4 @@
-;; 2019-08-24.  pos.scm
+;; 2019-08-28.  pos.scm
 
 ;; (load "~/git/minlog/init.scm")
 ;; (set! COMMENT-FLAG #f)
@@ -5092,4 +5092,152 @@
 ;; Proof finished.
 ;; (cdp)
 (save "NatToPosNatPlusSucc")
+
+;; NatLePlusTimes
+(set-goal "all n,m(2<=n -> 2<=m -> n+m<=n*m)")
+(assert "all n,m (n+2)+(m+2)<=(n+2)*(m+2)")
+(assume "n" "m")
+(simp "NatTimesPlusDistr")
+(simp "NatTimesPlusDistrLeft")
+(simp "NatTimesPlusDistrLeft")
+(ng)
+(simp "<-" "NatPlus2RewRule")
+(simp "<-" "NatPlus2RewRule")
+(use "NatLeTrans" (pt "m+(n+n)"))
+(simp "NatPlusComm")
+(ng)
+(use "Truth")
+(ng)
+(use "Truth")
+;; Assertion proved.
+(assume "NatLePlusTimesAux")
+(assert "all n(2<=n -> n=Pred(Pred n)+2)")
+(cases)
+(assume "Absurd")
+(use "EfAtom")
+(use "Absurd")
+(cases)
+(assume "Absurd")
+(use "EfAtom")
+(use "Absurd")
+(assume "n" "Useless")
+(use "Truth")
+;; Assertion proved.
+(assume "Assertion" "n" "m" "2<=n" "2<=m")
+(simp (pf "n=Pred(Pred n)+2"))
+(simp (pf "m=Pred(Pred m)+2"))
+(use "NatLePlusTimesAux")
+(use "Assertion")
+(use "2<=m")
+(use "Assertion")
+(use "2<=n")
+;; Proof finished.
+;; (cdp)
+(save "NatLePlusTimes")
+
+;; PosLePlusTimes
+(set-goal "all p,q(2<=p -> 2<=q -> p+q<=p*q)")
+(assume "p" "q" "2<=p" "2<=q")
+(simp "<-" "PosToNatLe")
+(simp "PosToNatPlus")
+(simp "PosToNatTimes")
+(use "NatLePlusTimes")
+(simp "PosToNatLe")
+(use "2<=p")
+(simp "PosToNatLe")
+(use "2<=q")
+;; Proof finished.
+;; (cdp)
+(save "PosLePlusTimes")
+
+;; PosLeMonPosExpPos
+(set-goal "all r,p,q(p<=q -> r**p<=r**q)")
+(assume "r" "p" "q" "p<=q")
+(assert "NatLe p q")
+(simp "PosToNatLe")
+(use "p<=q")
+(use "PosLeMonPosExp")
+;; Proof finished.
+;; (cdp)
+(save "PosLeMonPosExpPos")
+
+;; PosLeTimesTwoExp
+(set-goal "all p 2*p<=2**p")
+(ind)
+;; 2-4
+(use "Truth")
+;; 3
+(assume "p" "IH")
+;; ?^5:2*SZero p<=2**SZero p
+(simp "PosTimes1CompRule")
+(simp "SZeroPosPlus")
+(simp (pf "SZero p=p+p"))
+(simp "<-" "PosExpTwoPosPlus")
+(use "PosLeTrans" (pt "2**p+2**p"))
+(use "PosLeMonPlus")
+(use "IH")
+(use "IH")
+(use "PosLePlusTimes")
+(use "PosLeTrans" (pt "2**1"))
+(use "Truth")
+(use "PosLeMonPosExpPos")
+(use "Truth")
+(use "PosLeTrans" (pt "2**1"))
+(use "Truth")
+(use "PosLeMonPosExpPos")
+(use "Truth")
+(use "SZeroPosPlus")
+;; 4
+(assume "p" "IH")
+(simp "PosTimes2CompRule")
+(simp "PosToNat2CompRule")
+(simp "PosExp1CompRule")
+(assert "all q q*2=q+q")
+(assume "q")
+(ng #t)
+(use "SZeroPosPlus")
+;; Assertion proved.
+(assume "Assertion")
+(simp "Assertion")
+(use "PosLeMonPlus")
+;; ?^33:SZero(2*p)<=2**SZero p
+(simp (pf "SZero(2*p)=2*p+2*p"))
+;; 35,36
+(simp (pf "SZero p=p+p"))
+(simp "<-" "PosExpTwoPosPlus")
+(use "PosLeTrans" (pt "2**p+2**p"))
+(use "PosLeMonPlus")
+(use "IH")
+(use "IH")
+(use "PosLePlusTimes")
+(use "PosLeTrans" (pt "2**1"))
+(use "Truth")
+(use "PosLeMonPosExpPos")
+(use "Truth")
+(use "PosLeTrans" (pt "2**1"))
+(use "Truth")
+(use "PosLeMonPosExpPos")
+(use "Truth")
+(use "SZeroPosPlus")
+;; 36
+(use "SZeroPosPlus")
+(use "PosLeTrans" (pt "2**1"))
+(use "Truth")
+(use "PosLeMonPosExpPos")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "PosLeTimesTwoExp")
+
+;; SZeroPosTimes
+(set-goal "all p SZero p=2*p")
+(ind)
+(use "Truth")
+(assume "p" "IH")
+(use "Truth")
+(assume "p" "IH")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "SZeroPosTimes")
 
