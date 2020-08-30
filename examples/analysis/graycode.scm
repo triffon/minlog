@@ -1,4 +1,4 @@
-;; 2020-08-09.  examplesanalysisgraycode.scm
+;; 2020-08-14.  examplesanalysisgraycode.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -844,7 +844,7 @@
 (use "b1=b2")
 (use "ag3=ag4")
 ;; 19
-(drop "YSumHyp")
+(drop "YsumHyp")
 (assume "u^3" "u^4" "u3=u4")
 (intro 1)
 (intro 0)
@@ -863,7 +863,7 @@
 (drop "Inst")
 (assume "hsv^1" "hsv^2" "YsumHyp")
 (elim "YsumHyp")
-;; 48,49
+;; 49,50
 (drop "YsumHyp")
 (assume "ah^1" "ah^2" "ah1=ah2")
 (intro 1)
@@ -876,7 +876,7 @@
 (split)
 (use "InitEqD")
 (use "ah1=ah2")
-;; 49
+;; 50
 (drop "YsumHyp")
 (assume "v^1" "v^2" "v1=v2")
 (intro 1)
@@ -894,14 +894,14 @@
 (inst-with-to "gv1=gv2" (pt "v^1") (pt "v^2") "v1=v2" "Inst")
 (drop "gu1=gu2" "gv1=gv2")
 (elim "Inst")
-;; 76,77
+;; 77,78
 (drop "Inst")
 (assume "bgsu^1" "bgsu^2" "YProdHyp")
 (elim "YProdHyp")
 (drop "YProdHyp")
 (assume "boole^1" "boole^2" "b1=b2" "gsu^1" "gsu^2" "YsumHyp")
 (elim "YsumHyp")
-;; 83,84
+;; 84,85
 (drop "YsumHyp")
 (assume "ag^3" "ag^4" "ag3=ag4")
 (intro 0)
@@ -916,7 +916,7 @@
 (split)
 (use "b1=b2")
 (use "ag3=ag4")
-;; 84
+;; 85
 (drop "YsumHyp")
 (assume "u^3" "u^4" "u3=u4")
 (intro 1)
@@ -932,7 +932,7 @@
 (split)
 (use "b1=b2")
 (use "u3=u4")
-;; 77
+;; 78
 (drop "Inst")
 (assume "hsv^1" "hsv^2" "YsumHyp")
 (elim "YsumHyp")
@@ -949,7 +949,7 @@
 (split)
 (use "InitEqD")
 (use "ah1=ah2")
-;; 115
+;; 116
 (drop "YsumHyp")
 (assume "v^3" "v^4" "v3=v4")
 (intro 1)
@@ -2751,9 +2751,7 @@ exnc hsv^(
 ;;      (InL bg -> InL(clft bg pair InL crht bg))
 ;;      (InR ah -> InR(InL ah))])
 
-;; (set! COMMENT-FLAG #f)
-;; (add-sound "CoGClauseInv")
-;; (set! COMMENT-FLAG #t)
+(add-sound "CoGClauseInv")
 
 ;; ok, CoGClauseInvSound has been added as a new theorem:
 
@@ -2963,9 +2961,7 @@ exnc hsv^(
 ;;      (InL bg -> InL(clft bg pair InL crht bg))
 ;;      (InR ah -> InR(InL ah))])
 
-;; (set! COMMENT-FLAG #f)
-;; (add-sound "CoHClauseInv")
-;; (set! COMMENT-FLAG #t)
+(add-sound "CoHClauseInv")
 
 ;; ok, CoHClauseInvSound has been added as a new theorem:
 
@@ -3161,9 +3157,9 @@ exnc hsv^(
 
 ;; This is the identity on CoG
 
-;; (set! COMMENT-FLAG #f)
-;; (add-sound "CoGCompat")
-;; (set! COMMENT-FLAG #t)
+(deanimate "CoGClauseInv")
+
+(add-sound "CoGCompat")
 
 ;; ok, CoGCompatSound has been added as a new theorem:
 
@@ -3174,78 +3170,16 @@ exnc hsv^(
 ;; cCoGCompat eqd
 ;; ([ag]
 ;;   [if (DesYprod ag)
-;;     ([bg]
-;;      (CoRec boole yprod ag ysum ah=>ag boole yprod ag ysum ah=>ah)
-;;      ((InL (boole yprod ag) ah)bg)
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg0]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg0 pair(InL ag (boole yprod ag ysum ah))crht bg0))
-;;          ([ah]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah))])
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg0]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg0 pair(InL ag (boole yprod ag ysum ah))crht bg0))
-;;          ([ah]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah))]))
-;;     ([ah]
-;;      (CoRec boole yprod ag ysum ah=>ag boole yprod ag ysum ah=>ah)
-;;      ((InR ah (boole yprod ag))ah)
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg pair(InL ag (boole yprod ag ysum ah))crht bg))
-;;          ([ah0]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah0))])
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg pair(InL ag (boole yprod ag ysum ah))crht bg))
-;;          ([ah0]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah0))]))])
+;;     ([bg]cCoGClauseInv((InL (boole yprod ag) ah)bg))
+;;     ([ah]cCoGClauseInv((InR ah (boole yprod ag))ah))])
 
 ;; (ppc "cCoGCompat0CompRule")
 
 ;; cCoGCompat eqd
 ;; ([ag]
 ;;   [case (DesYprod ag)
-;;     (InL bg -> 
-;;     (CoRec boole yprod ag ysum ah=>ag boole yprod ag ysum ah=>ah)(InL bg)
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg0 -> InL(clft bg0 pair InL crht bg0))
-;;         (InR ah -> InR(InL ah))])
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg0 -> InL(clft bg0 pair InL crht bg0))
-;;         (InR ah -> InR(InL ah))]))
-;;     (InR ah -> 
-;;     (CoRec boole yprod ag ysum ah=>ag boole yprod ag ysum ah=>ah)(InR ah)
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg -> InL(clft bg pair InL crht bg))
-;;         (InR ah0 -> InR(InL ah0))])
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg -> InL(clft bg pair InL crht bg))
-;;         (InR ah0 -> InR(InL ah0))]))])
+;;     (InL bg -> cCoGClauseInv(InL bg))
+;;     (InR ah -> cCoGClauseInv(InR ah))])
 
 (deanimate "CoGCompat")
 
@@ -3352,9 +3286,9 @@ exnc hsv^(
 
 ;; This is the identity on CoH
 
-;; (set! COMMENT-FLAG #f)
-;; (add-sound "CoHCompat")
-;; (set! COMMENT-FLAG #t)
+(deanimate "CoHClauseInv")
+
+(add-sound "CoHCompat")
 
 ;; ok, CoHCompatSound has been added as a new theorem:
 
@@ -3365,78 +3299,16 @@ exnc hsv^(
 ;; cCoHCompat eqd
 ;; ([ah]
 ;;   [if (DesYprod ah)
-;;     ([bg]
-;;      (CoRec boole yprod ag ysum ah=>ah boole yprod ag ysum ah=>ag)
-;;      ((InL (boole yprod ag) ah)bg)
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg0]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg0 pair(InL ag (boole yprod ag ysum ah))crht bg0))
-;;          ([ah0]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah0))])
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg0]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg0 pair(InL ag (boole yprod ag ysum ah))crht bg0))
-;;          ([ah0]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah0))]))
-;;     ([ah0]
-;;      (CoRec boole yprod ag ysum ah=>ah boole yprod ag ysum ah=>ag)
-;;      ((InR ah (boole yprod ag))ah0)
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg pair(InL ag (boole yprod ag ysum ah))crht bg))
-;;          ([ah1]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah1))])
-;;      ([bgh]
-;;        [if bgh
-;;          ([bg]
-;;           (InL (boole yprod(ag ysum boole yprod ag ysum ah))
-;; 	       (ah ysum boole yprod ag ysum ah))
-;;           (clft bg pair(InL ag (boole yprod ag ysum ah))crht bg))
-;;          ([ah1]
-;;           (InR (ah ysum boole yprod ag ysum ah)
-;; 	       (boole yprod(ag ysum boole yprod ag ysum ah)))
-;;           ((InL ah (boole yprod ag ysum ah))ah1))]))])
+;;     ([bg]cCoHClauseInv((InL (boole yprod ag) ah)bg))
+;;     ([ah0]cCoHClauseInv((InR ah (boole yprod ag))ah0))])
 
 ;; (ppc "cCoHCompat0CompRule")
 
 ;; cCoHCompat eqd
 ;; ([ah]
 ;;   [case (DesYprod ah)
-;;     (InL bg -> 
-;;     (CoRec boole yprod ag ysum ah=>ah boole yprod ag ysum ah=>ag)(InL bg)
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg0 -> InL(clft bg0 pair InL crht bg0))
-;;         (InR ah0 -> InR(InL ah0))])
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg0 -> InL(clft bg0 pair InL crht bg0))
-;;         (InR ah0 -> InR(InL ah0))]))
-;;     (InR ah0 -> 
-;;     (CoRec boole yprod ag ysum ah=>ah boole yprod ag ysum ah=>ag)(InR ah0)
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg -> InL(clft bg pair InL crht bg))
-;;         (InR ah1 -> InR(InL ah1))])
-;;     ([bgh]
-;;       [case bgh
-;;         (InL bg -> InL(clft bg pair InL crht bg))
-;;         (InR ah1 -> InR(InL ah1))]))])
+;;     (InL bg -> cCoHClauseInv(InL bg))
+;;     (InR ah0 -> cCoHClauseInv(InR ah0))])
 
 (deanimate "CoHCompat")
 
@@ -3736,7 +3608,7 @@ exnc hsv^(
 (animate "Lft")
 (animate "Rht")
 
-;; (add-sound "CoGClosure")
+(add-sound "CoGClosure")
 
 ;; ok, CoGClosureSound has been added as a new theorem:
 
@@ -3774,8 +3646,6 @@ exnc hsv^(
 ;;      (InL (boole yprod ag) ah)
 ;;      ([if bg ([boole,ag0]boole)]pair[if bg ([boole,ag0]ag0)]))
 ;;     (InR ah (boole yprod ag))])
-
-;; (cp "CoGClosureSound")
 
 (deanimate "CoGClosure")
 (deanimate "Lft")
@@ -3839,7 +3709,7 @@ exnc hsv^(
 (animate "Lft")
 (animate "Rht")
 
-;; (add-sound "CoHClosure")
+(add-sound "CoHClosure")
 
 ;; ok, CoHClosureSound has been added as a new theorem:
 
@@ -4299,7 +4169,7 @@ exnc hsv^(
 
 (deanimate "CoGClosure")
 
-;; (add-sound "CoGUMinus")
+(add-sound "CoGUMinus")
 
 ;; ok, CoGUMinusSound has been added as a new theorem:
 
@@ -4546,7 +4416,7 @@ exnc hsv^(
 (deanimate "CoGClosure")
 (deanimate "CoHClosure")
 
-;; (add-sound "CoHToCoG")
+(add-sound "CoHToCoG")
 
 ;; ok, CoHToCoGSound has been added as a new theorem:
 
@@ -4731,7 +4601,7 @@ exnc hsv^(
 (deanimate "CoGClosure")
 (deanimate "CoHClosure")
 
-;; (add-sound "CoGToCoH")
+(add-sound "CoGToCoH")
 
 ;; ok, CoGToCoHSound has been added as a new theorem:
 
@@ -5185,7 +5055,7 @@ exnc hsv^(
 ;;        (False -> False pair InR(cCoIUMinus(cCoICompat crht DesYprod ai0)))])
 ;;      (DummyR -> InR(InR(cCoICompat crht DesYprod ai0)))])
 
-;; (add-sound "CoIToCoG")
+(add-sound "CoIToCoG")
 
 ;; ok, CoIToCoGSound has been added as a new theorem:
 
