@@ -1,6 +1,6 @@
 ;; 2019-12-08.  examples/analysis/graydiv.scm
 
-(load "~/git/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
