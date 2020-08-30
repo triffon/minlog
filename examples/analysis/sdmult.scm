@@ -1,6 +1,6 @@
 ;; 2020-07-14.  examples/analysis/sdmult.scm
 
-(load "~/git/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
