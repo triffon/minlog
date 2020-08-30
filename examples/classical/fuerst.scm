@@ -65,7 +65,10 @@
 ;; Base
 (assume "l")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(intro 0 (pt "0"))
+(use "EfAtom")
+(use "Absurd")
 ;; Step
 (assume "m" "IH" "l" "l<m+1")
 (ng)
