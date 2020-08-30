@@ -1,4 +1,4 @@
-;; 2020-07-19.  nat.scm
+;; 2020-08-28.  nat.scm
 
 ;; (load "~/git/minlog/init.scm")
 
