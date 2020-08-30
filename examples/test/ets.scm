@@ -464,6 +464,93 @@
 
 (cdp (proof-to-soundness-proof))
 
+;; 2020-08-14.  Invariance axioms in soundness proofs.
+
+;; ImpElimExample
+(set-goal "T ornc F")
+(assert "T oru F")
+;; 2,3
+(intro 0)
+(use "Truth")
+;; 2
+(assume "Disj")
+(elim "Disj")
+;; 6,7
+(assume "Left")
+(intro 0)
+(use "Left")
+;; 7
+(assume "Right")
+(intro 1)
+(use "Right")
+;; Proof finished.
+(save "ImpElimExample")
+
+(define sproof (proof-to-soundness-proof))
+;; (cdp sproof)
+(proof-to-expr-with-formulas sproof)
+
+;; Elim: exnc p^ (OrUMR (cterm () T) (cterm () F))p^ -> 
+;; allnc p^((OrUMR (cterm () T) (cterm () F))p^ -> T ornc F) -> T ornc F
+;; InvarEx: T oru F -> exnc p^ (OrUMR (cterm () T) (cterm () F))p^
+;; Elim: T oru F -> (T -> T ornc F) -> (F -> T ornc F) -> T ornc F
+;; InvarAll: allnc p^((OrUMR (cterm () T) (cterm () F))p^ -> T oru F)
+;; Intro: T -> T ornc F
+;; Intro: F -> T ornc F
+;; Intro: T -> (OrUMR (cterm () T) (cterm () F))True
+;; Truth: T
+;; Disj: T oru F
+;; umr: (OrUMR (cterm () T) (cterm () F))p^14954
+;; Left: T
+;; Right: F
+
+;; ((lambda (Disj)
+;;    ((Elim (InvarEx Disj))
+;;      (lambda (p^14954)
+;;        (lambda (umr)
+;;          (((Elim ((InvarAll p^14954) umr))
+;;             (lambda (Left) (Intro Left)))
+;;            (lambda (Right) (Intro Right)))))))
+;;   ((InvarAll #t) (Intro Truth)))
+
+;; Impintroexample
+(set-goal "T oru F -> T ornc F")
+(assume "u")
+(elim "u")
+(assume "Left")
+(intro 0)
+(use "Left")
+(assume "Right")
+(intro 1)
+(use "Right")
+;; Proof finished.
+;; (cdp)
+(save "ImpIntroExample")
+
+(define sproof (proof-to-soundness-proof "ImpIntroExample"))
+;; (cdp sproof)
+(proof-to-expr-with-formulas sproof)
+
+;; Elim: exnc p^ (OrUMR (cterm () T) (cterm () F))p^ -> 
+;; allnc p^((OrUMR (cterm () T) (cterm () F))p^ -> T ornc F) -> T ornc F
+;; InvarEx: T oru F -> exnc p^ (OrUMR (cterm () T) (cterm () F))p^
+;; Elim: T oru F -> (T -> T ornc F) -> (F -> T ornc F) -> T ornc F
+;; InvarAll: allnc p^((OrUMR (cterm () T) (cterm () F))p^ -> T oru F)
+;; Intro: T -> T ornc F
+;; Intro: F -> T ornc F
+;; u: T oru F
+;; umr: (OrUMR (cterm () T) (cterm () F))p^14982
+;; Left: T
+;; Right: F
+
+;; (lambda (u)
+;;   ((Elim (InvarEx u))
+;;     (lambda (p^14982)
+;;       (lambda (umr)
+;;         (((Elim ((InvarAll p^14982) umr))
+;;            (lambda (Left) (Intro Left)))
+;;           (lambda (Right) (Intro Right)))))))
+
 ;; 2012-11-09.  To be moved into a new file testetsd.scm
 
 ;; Tests for extraction with realizability and Dialectica
