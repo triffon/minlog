@@ -1,4 +1,4 @@
-;; 2020-07-19.  rea.scm
+;; 2020-08-28.  rea.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -733,13 +733,13 @@
 ;; (cdp)
 (save-totality)
 
-;; Rules for RealExp : rea=>int=>rea
+;; ;; Rules for RealExp : rea=>int=>rea
 
-(add-computation-rules
- "x**(IntP One)" "x"
- "x**(IntP(SZero p))" "(x**(IntP p))*(x**(IntP p))"
- "x**(IntP(SOne p))" "(x**(IntP(SZero p)))*x"
- "x**IntZero" "RealConstr([n](RatConstr(IntPos One)One))([p]Zero)")
+;; (add-computation-rules
+;;  "x**(IntP One)" "x"
+;;  "x**(IntP(SZero p))" "(x**(IntP p))*(x**(IntP p))"
+;;  "x**(IntP(SOne p))" "(x**(IntP(SZero p)))*x"
+;;  "x**IntZero" "RealConstr([n](RatConstr(IntPos One)One))([p]Zero)")
 
 ;; Rules for RealTimes require the Archimedian property, in the form
 ;; of a pconst RealBd.  We first define an auxiliary function
@@ -1308,6 +1308,60 @@
 (use "PosTotalVar")
 ;; Proof finished.
 ;; (cdp)
+(save-totality)
+
+;; Rules for RealExp : rea=>int=>rea
+
+(add-computation-rules
+ "x**(IntP One)" "x"
+ "x**(IntP(SZero p))" "(x**(IntP p))*(x**(IntP p))"
+ "x**(IntP(SOne p))" "(x**(IntP(SZero p)))*x"
+ "x**IntZero" "RealConstr([n](RatConstr(IntPos One)One))([p]Zero)"
+ "x**(IntN p)" "(x seq Zero)**(IntN p)")
+
+;; Notice that RealExp is not generally compatible with real equality,
+;; becausein the IntN case we refer to the first element of the Cauchy
+;; sequence.
+
+;; The totality proof can only proved here, sence we need RealTimesTotal.
+
+(set-totality-goal "RealExp")
+(use "AllTotalElim")
+(assume "x")
+(use "AllTotalElim")
+(cases)
+;; 5-7
+(ind)
+;; 8-10
+(use "ReaTotalVar")
+;; 9
+(assume "p" "IH")
+(ng)
+(use "RealTimesTotal")
+(use "IH")
+(use "IH")
+;; 10
+(assume "p" "IH")
+(ng)
+(use "RealTimesTotal")
+(use "RealTimesTotal")
+(use "IH")
+(use "IH")
+(use "ReaTotalVar")
+;; 6
+(ng)
+(use "ReaTotalVar")
+;; 7
+(ng)
+(assume "p")
+(intro 0)
+(use "AllTotalElim")
+(assume "n")
+(use "RatTotalVar")
+(use "AllTotalElim")
+(assume "p1")
+(use "NatTotalVar")
+;; Proof finished.
 (save-totality)
 
 ;; 5.  Equality and order
@@ -4506,6 +4560,15 @@
 ;; Proof finished.
 (save "RealLeToIntLe")
 
+;; IntLeToRealLe
+(set-goal "all k,j(k<=j -> k<<=j)")
+(assume "k" "j" "k<=j")
+(use "RatLeToRealLe")
+(use "k<=j")
+;; Proof finished.
+;; (cdp)
+(save "IntLeToRealLe")
+
 ;; RealLeAbsPlus
 (set-goal "all x,y(Real x -> Real y -> abs(x+y)<<=abs x+abs y)")
 (cases)
@@ -5087,6 +5150,24 @@
 (realproof)
 ;; Proof finished.
 (save "RealNNegLeToNNeg")
+
+;; RealPlusInsert (added 2020-08-15)
+(set-goal "all x,y,z(Real x -> Real y -> Real z -> x+z===x+ ~y+(y+z))")
+(assume "x" "y" "z" "Rx" "Ry" "Rz")
+(simpreal "<-" "RealPlusAssoc")
+(use "RealPlusCompat")
+(use "RealEqRefl")
+(autoreal)
+(simpreal "RealPlusAssoc")
+(simpreal (pf "~y+y===0"))
+(simpreal "RealZeroPlus")
+(use "RealEqRefl")
+(autoreal)
+(simpreal "RealPlusComm")
+(use "RealPlusMinusZero")
+(autoreal)
+;; Proof finished.
+(save "RealPlusInsert")
 
 ;; RealLeAntiSym
 (set-goal "allnc x,y(x<<=y -> y<<=x -> x===y)")
@@ -6422,7 +6503,83 @@
 ;; (cdp)
 (save "RealPosPlus")
 
-;; added 2020-07-19
+;; Added 2020-08-28
+
+;; A variant (due to Nils Koepp) with
+;; RealPlus x p       for RealLt 0 x p
+;; RealNNeg x         for 0<<=x
+;; PosS(PosS(PosS p)) for p+3
+
+;; RealPosPlus1
+(set-goal "all x,y,p(Real x -> Real y ->
+ RealNNeg x -> RealPos y p -> RealPos(x+y)(PosS(PosS(PosS p))))")
+(cases)
+(assume "as" "M")
+(cases)
+(assume "as0" "M0")
+(assume "p" "Rx" "Ry" "0<=x" "0<y")
+(use "RealPosChar2RealConstrFree"
+     (pt "cRealNNegCharOne M(PosS(PosS p))max(M(PosS(PosS(PosS p)))max
+          M0(PosS(PosS(PosS p))))"))
+(realproof)
+(assume "n" "n0<=n")
+(assert "all p,n(cRealNNegCharOne M p<=n -> ~(1#2**p)<=as n)")
+ (use "RealNNegCharOneExFree")
+ (use "0<=x")
+(assume "all_x ineq")
+(assert "~(1#2**(PosS(PosS p)))<=as n")
+ (inst-with-to "all_x ineq" (pt "PosS(PosS p)") (pt "n") "hyp")
+ (drop "all_x ineq")
+ (use "hyp")
+ (drop "hyp")
+(use "NatLeTrans"
+     (pt "cRealNNegCharOne M(PosS(PosS p))max (M(PosS(PosS(PosS p)))max
+          M0(PosS(PosS(PosS p))))"))
+ (use "NatMaxUB1")
+ (use "n0<=n")
+(assume "x ineq")
+(ng #t)
+(assert "all n(M0(PosS p) <=n -> (1#2**(PosS p))<=as0 n)")
+ (use "RealPosChar1")
+ (use "Ry")
+ (use "0<y")
+(assume "all_y ineq")
+(assert "(1#2**(PosS p))<=as0 n")
+ (use "all_y ineq")
+ (use "NatLeTrans" (pt "M0(PosS(PosS(PosS p)))"))
+ (use "MonElim")
+ (use "RealConstrToMon" (pt "as0"))
+ (use "Ry")
+ (use "PosLeTrans" (pt "PosS(PosS p)"))
+ (use "Truth")
+ (use "Truth")
+ (use "NatLeTrans" (pt "M(PosS(PosS(PosS p)))max M0(PosS(PosS(PosS p)))"))
+ (use "NatMaxUB2")
+(use "NatLeTrans"
+     (pt "cRealNNegCharOne M(PosS(PosS p))max (M(PosS(PosS(PosS p)))max
+          M0(PosS(PosS(PosS p))))"))
+ (use "NatMaxUB2")
+ (use "n0<=n")
+(assume "y ineq")
+(drop "all_y ineq")
+(use "RatLeTrans" (pt "(IntN 1#2**PosS(PosS p))+(1#2**PosS p)"))
+(simprat (pf "(IntN 1#2**PosS(PosS p))+(1#2**PosS p)==(1#2**(PosS(PosS p)))"))
+(use "Truth")
+(simprat "<-" "RatPlusHalfExpPosS")
+(simp "RatPlusAssoc")
+(simprat (pf "(IntN 1#2**PosS(PosS p))+(1#2**PosS(PosS p))==0"))
+(ng)
+(use "Truth")
+(ng)
+(use "Truth")
+(use "RatLeMonPlus")
+(use "x ineq")
+(use "y ineq")
+;; Proof finished.
+;; (cdp)
+(save "RealPosPlus1")
+
+;; Added 2020-07-19
 
 ;; RealLeAbsMinus
 (set-goal "all x,y,z (Real x -> Real y -> Real z ->
@@ -6447,6 +6604,148 @@
 ;; (cdp)
 (save "RealLeAbsMinus")
 
+;; Added 2020-08-28
+
+;; RealLtIrrefl
+(set-goal "all x,p(Real x -> RealLt x x p -> F)")
+(assume "x" "p" "Rx" "x<x")
+(use-with
+ "RealPosCompatRealConstrFree"
+ (pt "x+ ~x")
+ (pt "RealConstr([n](IntZero#1))([p]Zero)")
+ "?" (pt "p") "?")
+(use "RealPlusMinusZero")
+(use "Rx")
+(use "RealLtElim")
+(use "x<x")
+;; Proof finished.
+;; (cdp)
+(save "RealLtIrrefl")
+
+;; RealLtLeTrans
+(set-goal "all x,y,z,p(Real x -> Real y -> Real z ->
+ RealLt x y p -> y<<=z -> RealLt x z(PosS(PosS(PosS(PosS(PosS p))))))")
+(assume "x" "y" "z" "p" "Rx" "Ry" "Rz" "x<y" "y<=z")
+(use "RealLtIntro")
+(use "RealPosCompatRealConstrFree" (pt "z+ ~y+(y+ ~x)"))
+;; ?^4:z+ ~y+(y+ ~x)===z+ ~x
+(simpreal "<-" "RealPlusAssoc")
+(use "RealPlusCompat")
+(use "RealEqRefl")
+(use "Rz")
+(simpreal "RealPlusAssoc")
+(simpreal "RealPlusComm")
+(simpreal "RealPlusAssoc")
+(simpreal "RealEqPlusMinus")
+(use "RealEqRefl")
+(autoreal)
+;; ?^5:RealPos(z+ ~y+(y+ ~x))(PosS(PosS(PosS p)))
+(use "RealPosPlus1")
+(autoreal)
+(use "RealLeElim2")
+(use "y<=z")
+(use "RealLtElim")
+(use "x<y")
+;; Proof finished.
+(save "RealLtLeTrans")
+
+;; RealLeLtTrans
+(set-goal "all x,y,z,p(Real x -> Real y -> Real z ->
+ x<<=y -> RealLt y z p -> RealLt x z(PosS(PosS(PosS(PosS(PosS p))))))")
+(assume "x" "y" "z" "p" "Rx" "Ry" "Rz" "x<=y" "y<z")
+(use "RealLtIntro")
+(use "RealPosCompatRealConstrFree" (pt "y+ ~x+(z+ ~y)"))
+;; ?^4:y+ ~x+(z+ ~y)===z+ ~x
+(simpreal "RealPlusComm")
+(simpreal "<-" "RealPlusAssoc")
+(use "RealPlusCompat")
+(use "RealEqRefl")
+(use "Rz")
+(simpreal "RealPlusAssoc")
+(simpreal "RealPlusComm")
+(simpreal "RealPlusAssoc")
+(simpreal "RealEqPlusMinus")
+(use "RealEqRefl")
+(autoreal)
+;; ?^5:RealPos(y+ ~x+(z+ ~y))(PosS(PosS(PosS p)))
+(use "RealPosPlus1")
+(autoreal)
+(use "RealLeElim2")
+(use "x<=y")
+(use "RealLtElim")
+(use "y<z")
+;; Proof finished.
+(save "RealLeLtTrans")
+
+;; RatLtToRealLt
+(set-goal "all a,b(a<b -> exl p RealLt a b p)")
+(assume "a" "b" "a<b")
+(ng)
+(assert "a+ ~a<b+ ~a")
+(ng)
+(use "a<b")
+(assume "a+ ~a<b+ ~a")
+(use "RatLeLowerBound")
+(simprat (pf "0==a+ ~a"))
+(ng)
+(use "a<b")
+(use "RatEqvSym")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "RatLtToRealLt")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+;; (pp neterm)
+;; [a,a0]cRatLeLowerBound(a0+ ~a)
+
+;; RealLeTransRat
+(set-goal "all a,x,b(a<<=x -> x<<=b -> a<=b)")
+(assume "a" "x" "b" "a<=x" "x<=b")
+(use "RatNotLtToLe")
+(assume "b<a")
+(inst-with-to "RatLtToRealLt" (pt "b") (pt "a") "b<a" "pEx")
+(by-assume "pEx" "p" "pProp")
+(use-with "RealLtIrrefl"
+	  (pt "x")
+	  (pt "PosS(PosS(PosS(PosS(PosS(PosS(PosS(PosS(PosS(PosS p)))))))))")
+	  "?" "?")
+(realproof)
+(use "RealLeLtTrans" (pt "RealConstr([n]b)([p]Zero)"))
+(autoreal)
+(use "x<=b")
+;; ?^16:RealLt b x(PosS(PosS(PosS(PosS(PosS p)))))
+(use "RealLtLeTrans" (pt "RealConstr([n]a)([p]Zero)"))
+(autoreal)
+(use "pProp")
+(use "a<=x")
+;; Proof finished.
+;; (cdp)
+(save "RealLeTransRat")
+
+;; RealLeBound
+(set-goal "all x(Real x -> x<<=2**(RealBd(x seq)(x mod)))")
+(cases)
+(assume "as" "M" "Rx")
+(simp "RealSeq0CompRule")
+(simp "RealMod0CompRule")
+;; ?^5:RealConstr as M<<=2**RealBd as M
+(use "RealLeSToLe")
+(use "Rx")
+(use "RealRat")
+(use "RealLeSChar1")
+(simp "RealSeq0CompRule")
+(assume "n")
+(use "RatLeTrans" (pt "abs(as n)"))
+(use "Truth")
+(use "RealBdProp")
+(use "RealConstrToCauchy")
+(use "Rx")
+;; Proof finished.
+(save "RealLeBound")
+
+;; From semws18/completeness.scm (by Max Zeuner):
 ;; RatCauchyConvMod
 (set-goal "all as,M,p,n(Real(RealConstr as M) -> M p<=n ->
                         abs(as n+ ~(RealConstr as M))<<=(1#2**p))")
@@ -6646,5 +6945,385 @@
 (use "RatPlusHalfExpPosS")
 ;; (cdp)
 (save "RealConvEq")
+
+;; Completeness of the real numbers formulated as an existence theorem.
+;; Based on semws18/completeness.scm (by Max Zeuner) and
+;; semws19/completeness.scm (by Wolfgang Boehnisch)
+
+(add-var-name "ass" (py "nat=>nat=>rat"))
+(add-var-name "Ns" (py "nat=>pos=>nat"))
+
+;; For every real Cauchy sequence xs with monotone modulus M there is
+;; a real x such that xs converges to x with the same modukus M.
+
+;; Informal proof.  Let ass, Ns be the Css and moduli of the xs.  Define
+;; bs n=ass n(Ns n(NatToPos n)).  Then abs(bs n+ ~(xs n))<<=(1#2**n)
+;; (RealCauchyApprox).  Let L p=M(PosS p)max PosS(PosS p).  Then
+;; L p<=n -> L p<=m -> abs(bs n+ ~(bs m))<<=(1#2**p) (RealCauchyApproxMod).
+;; Let x := RealConstr bs L is the required real number.
+
+;; Unfolding NatToPos n is complex: because of the binary structure of
+;; pos GRec is used.  Use cNatPos instead (with NatPos deanimated) and
+;; NatPosExFree : all n cNatPos n=NatToPos n
+
+;; Auxiliary lemmas: RealCauchyApprox RealCauchyApproxMod RealCauchyConvMod
+
+;; RealCauchyApprox
+(set-goal "all ass,Ns,xs,bs(
+ all n xs n eqd RealConstr(ass n)(Ns n) ->
+ all n Real(xs n) ->
+ all n bs n=ass n(Ns n(cNatPos n)) ->
+ all n abs(bs n+ ~(xs n))<<=(1#2**n))")
+(assume "ass" "Ns" "xs" "bs" "xsDef" "Rxs" "bsDef" "n")
+(use "RealLeTrans" (pt "RealConstr([n0](1#2**cNatPos n))([p]Zero)"))
+;; 3,4
+(simp "xsDef")
+(simp "bsDef")
+(use "RatCauchyConvMod")
+(simp "<-" "xsDef")
+(use "Rxs")
+(use "Truth")
+;; ?^4:(1#2**cNatPos n)<<=(1#2**n)
+(use "RatLeToRealLe")
+(simp "RatLe0CompRule")
+(simp "IntTimes2RewRule")
+(simp "IntTimes2RewRule")
+(simp "IntLe4CompRule")
+(use "PosLeMonPosExp")
+(simp "NatPosExFree")
+(cases (pt "n"))
+(assume "Useless")
+(use "Truth")
+(assume "n0" "Useless")
+(simp "PosToNatToPosId")
+(use "Truth")
+(use "Truth")
+;; Proof finished.
+;; (cdp)
+(save "RealCauchyApprox")
+
+;; RealCauchyApproxMod
+(set-goal "all ass,Ns,xs,M,bs,L(
+ all n xs n eqd RealConstr(ass n)(Ns n) ->
+ all n Real(xs n) ->
+ all p,n,m(M p<=n -> M p<=m -> abs(xs n+ ~(xs m))<<=(1#2**p)) ->
+ all n bs n=ass n(Ns n(cNatPos n)) ->
+ all p L p=M(PosS p)max PosS(PosS p) ->
+ all p,n,m(L p<=n -> L p<=m -> abs(bs n+ ~(bs m))<<=(1#2**p)))")
+(assume "ass" "Ns" "xs" "M" "bs" "L" "xsDef" "Rxs" "xsCs" "bsDef"  "LDef"
+	"p" "n" "m" "nBd" "mBd")
+;; Split (1#2**p)
+(use "RealLeTrans" (pt "RealPlus(1#2**n)(1#2**PosS p)+(1#2**m)"))
+;; 3,4
+(get 4)
+(simpreal "<-" "RatPlusRealPlus")
+(simpreal "<-" "RatPlusRealPlus")
+(use "RatLeToRealLe")
+(use "RatLeTrans" (pt "(1#2**PosS(PosS p))+(1#2**PosS p)+(1#2**PosS(PosS p))"))
+(use "RatLeMonPlus")
+(use "RatLeMonPlus")
+(ng #t)
+(use "PosLeMonPosExp")
+(use "NatLeTrans" (pt "L p"))
+(simp "LDef")
+(use "NatMaxUB2")
+(use "nBd")
+(use "Truth")
+(ng #t)
+(use "PosLeMonPosExp")
+(use "NatLeTrans" (pt "L p"))
+(simp "LDef")
+(use "NatMaxUB2")
+(use "mBd")
+;; ?^9:(1#2**PosS(PosS p))+(1#2**PosS p)+(1#2**PosS(PosS p))<=(1#2**p)
+(simp
+ (pf "(1#2**PosS(PosS p))+(1#2**PosS p)=(1#2**PosS p)+(1#2**PosS(PosS p))"))
+(simp "<-" "RatPlusAssoc")
+(simprat "RatPlusHalfExpPosS")
+(simprat "RatPlusHalfExpPosS")
+(use "RatLeRefl")
+(use "Truth")
+(use "RatPlusComm")
+;; ?^3:abs(bs n+ ~(bs m))<<=RealPlus(1#2**n)(1#2**PosS p)+(1#2**m)
+;; First replace ~,+,abs on rat by their counterparts on rea
+(use "RealLeTrans" (pt "abs(bs n+RealUMinus(bs m))"))
+;; 30,31
+(simpreal "<-" "RatUMinusRealUMinus")
+(simpreal "<-" "RatPlusRealPlus")
+(simpreal "<-" "RatAbsRealAbs")
+(use "RealLeRefl")
+(autoreal)
+;; 31
+(assert "Real(xs n)")
+(use "Rxs")
+(assume "Rxsn")
+(assert "Real(xs m)")
+(use "Rxs")
+(assume "Rxsm")
+(simpreal
+ (pf "bs n+RealUMinus(bs m)===bs n+ ~(xs n)+(xs n+ RealUMinus(bs m))"))
+;; This will be proved by RealPlusInsert
+(use "RealLeTrans" (pt "abs(bs n+ ~(xs n))+abs(xs n+ RealUMinus(bs m))"))
+(use "RealLeAbsPlus")
+(autoreal)
+(simpreal "<-" "RealPlusAssoc")
+(use "RealLeMonPlus")
+;; 52,53
+;; ?^53:abs(xs n+ ~(bs m))<<=RealPlus(1#2**PosS p)(1#2**m)
+;; ?^52:abs(bs n+ ~(xs n))<<=(1#2**n)
+(use "RealCauchyApprox" (pt "ass") (pt "Ns"))
+(use "xsDef")
+(use "Rxs")
+(use "bsDef")
+;; ?^53:abs(xs n+ ~(bs m))<<=RealPlus(1#2**PosS p)(1#2**m)
+;; Here with RealUMinus
+(simpreal
+ (pf "xs n+RealUMinus(bs m)===xs n+ ~(xs m)+(xs m+ RealUMinus(bs m))"))
+;; 57,58
+;; 58 will be proved by RealPlusInsert
+(use "RealLeTrans" (pt "abs(xs n+ ~(xs m))+abs(xs m+ RealUMinus(bs m))"))
+(use "RealLeAbsPlus")
+(autoreal)
+(use "RealLeMonPlus")
+(use "xsCs")
+(use "NatLeTrans" (pt "L p"))
+(simp "LDef")
+(use "NatMaxUB1")
+(use "nBd")
+(use "NatLeTrans" (pt "L p"))
+(simp "LDef")
+(use "NatMaxUB1")
+(use "mBd")
+;; ?^64:abs(xs m+ ~(bs m))<<=(1#2**m)
+(simpreal "RealPlusComm")
+(simpreal "<-" "RealAbsUMinus")
+(simpreal "RealUMinusPlus")
+(simpreal "RealUMinusUMinus")
+;; ?^81:abs(bs m+ ~(xs m))<<=(1#2**m)
+(use "RealCauchyApprox" (pt "ass") (pt "Ns"))
+(use "xsDef")
+(use "Rxs")
+(use "bsDef")
+(autoreal)
+;; ?^58:xs n+ ~(bs m)===xs n+ ~(xs m)+(xs m+ ~(bs m))
+(use "RealPlusInsert")
+(autoreal)
+;; ?^43:bs n+ ~(bs m)===bs n+ ~(xs n)+(xs n+ ~(bs m))
+(use "RealPlusInsert")
+(autoreal)
+;; Proof finished.
+;; (cdp)
+(save "RealCauchyApproxMod")
+
+;; We show that (x_n)_n converges to x with the same modulus M, as
+;; given with (x_n)_n.  This result will be called RealCauchyConvMod
+
+;; RealCauchyConvMod
+(set-goal "all ass,Ns,xs,M,bs,L,x(
+ all n xs n eqd RealConstr(ass n)(Ns n) ->
+ all n Real(xs n) ->
+ all p,n,m(M p<=n -> M p<=m -> abs(xs n+ ~(xs m))<<=(1#2**p)) ->
+ all p,q(p<=q -> M p<=M q) ->
+ all n bs n=ass n(Ns n(cNatPos n)) ->
+ all q L q=M(PosS q)max PosS(PosS q) ->
+ x eqd RealConstr bs L ->
+ Real x ->
+ all n,p(M p<=n -> abs(xs n+ ~x)<<=(1#2**p)))")
+(assume "ass" "Ns" "xs" "M" "bs" "L" "x" "xsDef" "Rxs" "xsCs" "MMon" "bsDef"
+	"LDef" "xDef" "Rx" "n" "p" "nBd")
+(assert "Real(xs n)")
+(use "Rxs")
+(assume "Rxsn")
+(use "RealLeAllPlusToLe")
+(autoreal)
+(assume "q")
+;; ?^9:abs(xs n+ ~x)<<=RealPlus(1#2**p)(1#2**q)
+(assert "exnc m m=(M p)max(PosS q max L(PosS q))")
+(intro 0 (pt "(M p)max(PosS q max L(PosS q))"))
+(use "Truth")
+(assume "ExHyp")
+(by-assume "ExHyp" "m" "mDef")
+(assert "Real(xs m)")
+(use "Rxs")
+(assume "Rxsm")
+(simpreal (pf "xs n+ ~x===xs n+ ~(xs m)+((xs m)+ ~x)"))
+(use "RealLeTrans" (pt "abs(xs n+ ~(xs m))+abs(xs m+ ~x)"))
+(use "RealLeAbsPlus")
+(autoreal)
+(use "RealLeMonPlus")
+;; 26,27
+;; ?^26:abs(xs n+ ~(xs m))<<=(1#2**p)
+(use "xsCs")
+(use "nBd")
+(simp "mDef")
+(use "NatMaxUB1")
+;; ?^27:abs(xs m+ ~x)<<=(1#2**q)
+(simpreal (pf "(1#2**q)===RealPlus(1#2**PosS q)(1#2**PosS q)"))
+;; 31,32
+;; ?^32:(1#2**q)===RealPlus(1#2**PosS q)(1#2**PosS q) will be provable by
+;; RatPlusHalfExpPosS
+(simpreal (pf "xs m+ ~x===xs m+RealUMinus(bs m)+(bs m+ ~x)"))
+(use "RealLeTrans" (pt "abs(xs m+RealUMinus(bs m))+abs(bs m+ ~x)"))
+(use "RealLeAbsPlus")
+(autoreal)
+(use "RealLeMonPlus")
+;; ?^39:abs(xs m+ ~(bs m))<<=(1#2**PosS q)
+(simpreal "RealPlusComm")
+(simpreal "<-" "RealAbsUMinus")
+(simpreal "RealUMinusPlus")
+(simpreal "RealUMinusUMinus")
+;; ?^49:abs(bs m+ ~(xs m))<<=(1#2**PosS q)
+(use "RealLeTrans" (pt "RealConstr([n](1#2**m))([p]Zero)"))
+(use "RealCauchyApprox" (pt "ass") (pt "Ns"))
+(use "xsDef")
+(use "Rxs")
+(use "bsDef")
+;; ?^52:(1#2**m)<<=(1#2**PosS q)
+(use "RatLeToRealLe")
+(simp "RatLe0CompRule")
+(simp "IntTimes2RewRule")
+(simp "IntTimes2RewRule")
+(simp "IntLe4CompRule")
+(use "PosLeMonPosExp")
+(simp "mDef")
+(use "NatLeTrans" (pt "PosS q max L(PosS q)"))
+(use "NatMaxUB1")
+(use "NatMaxUB2")
+(autoreal)
+;; ?^40:abs(bs m+ ~x)<<=(1#2**PosS q)
+(simp "xDef")
+(use "RatCauchyConvMod")
+(simp "<-" "xDef")
+(use "Rx")
+(simp "mDef")
+(use "NatLeTrans" (pt "PosS q max L(PosS q)"))
+(use "NatMaxUB2")
+(use "NatMaxUB2")
+;; ?^34:xs m+ ~x===xs m+ ~(bs m)+(bs m+ ~x)
+(use "RealPlusInsert")
+(autoreal)
+;; ?^32:(1#2**q)===RealPlus(1#2**PosS q)(1#2**PosS q)
+(simpreal "<-" "RatPlusRealPlus")
+(use "RatEqvToRealEq")
+(simprat "RatPlusHalfExpPosS")
+(use "Truth")
+;; ?^21:xs n+ ~x===xs n+ ~(xs m)+(xs m+ ~x)
+(use "RealPlusInsert")
+(autoreal)
+;; Proof finished.
+;; (cdp)
+(save "RealCauchyConvMod")
+
+;; RealComplete
+(set-goal "all xs,M(
+ all n Real(xs n) ->
+ all p,n,m(M p<=n -> M p<=m -> abs(xs n+ ~(xs m))<<=(1#2**p)) ->
+ all p,q(p<=q -> M p<=M q) ->
+ exl x(Real x andnc all n,p(M p<=n -> abs(xs n+ ~x)<<=(1#2**p))))")
+(assume "xs" "M" "Rxs" "xsCs" "MMon")
+(assert "exl ass all n ass n eqd(xs n)seq")
+(intro 0 (pt "[n](xs n) seq"))
+(assume "n")
+(use "InitEqD")
+(assume "assEx")
+(by-assume "assEx" "ass" "assDef")
+(assert "exl Ns all n Ns n eqd(xs n)mod")
+(intro 0 (pt "[n](xs n)mod"))
+(assume "n")
+(use "InitEqD")
+(assume "NsEx")
+(by-assume "NsEx" "Ns" "NsDef")
+(assert "exl bs all n bs n =(ass n(Ns n(cNatPos n)))")
+(intro 0 (pt "[n]ass n(Ns n(cNatPos n))"))
+(assume "n")
+(use "Truth")
+(assume "bsEx")
+(by-assume "bsEx" "bs" "bsDef")
+(assert "exl L all q L q=(M(PosS q)max PosS(PosS q))")
+(intro 0 (pt "[q]M(PosS q)max PosS(PosS q)"))
+(assume "q")
+(use "Truth")
+(assume "LEx")
+(by-assume "LEx" "L" "LDef")
+(assert "all n xs n eqd RealConstr(ass n)(Ns n)")
+(assume "n")
+(simp "assDef")
+(simp "NsDef")
+(cases (pt "xs n"))
+(strip)
+(use "InitEqD")
+(assume "xsDef")
+(assert "Real(RealConstr bs L)")
+(intro 0)
+(ng #t)
+(intro 0)
+(assume "p" "n" "m" "nBd" "mBd")
+(use "RealLeToRatLe")
+(use "RealCauchyApproxMod" (pt "ass") (pt "Ns") (pt "xs") (pt "M") (pt "L"))
+(use "xsDef")
+(use "Rxs")
+(use "xsCs")
+(use "bsDef")
+(use "LDef")
+(use "nBd")
+(use "mBd")
+(intro 0)
+(assume "p" "q" "p<=q")
+(ng #t)
+(simp "LDef")
+(simp "LDef")
+(use "NatLeMonMax")
+(use "MMon")
+(use "p<=q")
+(simp "PosToNatLe")
+(use "p<=q")
+;; Assertion proved.
+(assume "Rx")
+(intro 0 (pt "RealConstr bs L"))
+(split)
+;; 69,70
+(use "Rx")
+;; 70
+(use "RealCauchyConvMod" (pt "ass") (pt "Ns") (pt "bs") (pt "L"))
+(use "xsDef")
+(use "Rxs")
+(use "xsCs")
+(use "MMon")
+(use "bsDef")
+(use "LDef")
+(use "InitEqD")
+(use "Rx")
+;; Proof finished.
+;; (cdp)
+(save "RealComplete")
+
+(define eterm (proof-to-extracted-term))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
+
+;; [xs,M]
+;;  RealConstr([n](xs n)seq((xs n)mod(cNatPos n)))
+;;  ([p]M(PosS p)max PosS(PosS p))
+
+(add-sound "RealComplete")
+
+;; ok, RealCompleteSound has been added as a new theorem:
+
+;; allnc xs,M(
+;;  all n Real(xs n) -> 
+;;  all p,n,m(M p<=n -> M p<=m -> abs(xs n+ ~(xs m))<<=(1#2**p)) -> 
+;;  all p,q(p<=q -> M p<=M q) -> 
+;;  (ExLTMR (cterm (x) 
+;;            Real x andnc all n,p(M p<=n -> abs(xs n+ ~x)<<=(1#2**p))))
+;;  (cRealComplete xs M))
+
+;; with computation rule
+
+;; cRealComplete eqd
+;; ([xs,M]
+;;   RealConstr([n](xs n)seq((xs n)mod(cNatPos n)))
+;;   ([p]M(PosS p)max PosS(PosS p)))
+
+(deanimate "RealComplete")
 
 
