@@ -1,6 +1,7 @@
-;; 2020-04-06.  examples/analysis/sddiv.scm
+;; 2020-08-14.  examples/analysis/sddiv.scm
+;; Uses material form Franziskus Wiesnet's Master thesis
 
-(load "~/git/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
@@ -67,6 +68,9 @@
 ;; Proof finished.
 ;; (cdp)
 (save "CoIOne")
+;; ok, CoIOne has been added as a new theorem.
+;; ok, program constant cCoIOne: ai
+;; of t-degree 0 and arity 0 added
 
 (define eterm (proof-to-extracted-term))
 (define neterm (rename-variables (nt eterm)))
@@ -74,10 +78,6 @@
 ;; (CoRec rea=>ai)1([x]SdR pair(InR rea ai)x)
 
 (add-sound "CoIOne")
-;; ok, CoIOne has been added as a new theorem.
-;; ok, program constant cCoIOne: ai
-;; of t-degree 0 and arity 0 added
-;; > (CoRec rea=>ai)1([x]SdR pair(InR rea ai)x)
 ;; > ok, CoIOneSound has been added as a new theorem:
 
 ;; CoIMR 1 cCoIOne
