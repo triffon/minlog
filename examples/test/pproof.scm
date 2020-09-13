@@ -1,3 +1,5 @@
+;; 2020-09-10.  examples/test/pproof.scm
+
 ;; (load "~/git/minlog/init.scm")
 (load "names.scm")
 
@@ -504,7 +506,7 @@
 (pp "EqDCompat")
 
 ;; allnc alpha^,alpha^0(
-;;  alpha^ eqd alpha^0 --> (Pvar alpha)alpha^ -> (Pvar alpha)alpha^0)
+;;  alpha^ eqd alpha^0 -> (Pvar alpha)alpha^ -> (Pvar alpha)alpha^0)
 
 ;; EqDSym and EqDTrans already present.
 ;; ;; EqDSym
@@ -533,7 +535,7 @@
 ;; simplified-inversion
 
 ;; SuccInj
-(set-goal "allnc n^,m^(Succ n^ eqd Succ m^ --> n^ eqd m^)")
+(set-goal "allnc n^,m^(Succ n^ eqd Succ m^ -> n^ eqd m^)")
 (assume "n^" "m^"  "Sn=Sm")
 (use (constructor-eqd-imp-args-eqd-proof (pf "Succ n^ eqd Succ m^")))
 (use "Sn=Sm")
@@ -1318,11 +1320,6 @@
 ;;                     ((u y9416) (lambda (u4) (u2 u3)))))))))))))
 
 ;; Contains x free.
-
-;; Test for mk-imp-impnc-formula
-
-(pp (mk-imp-impnc-formula (pf "T") #f (pf "Pvar") #t (pf "bot")))
-;; T -> Pvar --> bot
 
 ;; Tests for simp and simphyp-to
 
