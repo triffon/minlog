@@ -1,4 +1,4 @@
-;; $Id: atr.scm 2692 2014-01-24 09:20:17Z schwicht $
+;; 2020-09-09.  atr.scm
 
 ;; 17. A-translation
 ;; =================
@@ -804,7 +804,7 @@
 
 ;; atr-wrong-formula-to-ex-formula takes an optional argument
 ;; opt-prim-prod-info, which is either 'prim or 'idpc with () meaning
-;; ('prim).  In case prim the ex-formula is formed with mk-ex, mk-and
+;; ('idpc).  In case prim the ex-formula is formed with mk-ex, mk-and
 ;; (generating extracted terms with the primitive product make-star).
 ;; In case idpc the ex-formula is formed with the inductively defined
 ;; existential quantifiers and conjunctions (generating extracted
@@ -815,8 +815,8 @@
 	  (all-form-to-vars-and-final-kernel wrong-formula))
 	 (vars (car vars-and-final-kernel))
 	 (goals (imp-impnc-form-to-premises (cadr vars-and-final-kernel)))
-	 (prim-prod? (or (null? opt-prim-prod-info)
-			 (eq? 'prim (car opt-prim-prod-info)))))
+	 (prim-prod? (and (pair? opt-prim-prod-info)
+			  (eq? 'prim (car opt-prim-prod-info)))))
     (cond ((null? vars)
 	   (myerror "atr-wrong-formula-to-ex-formula"
 		    "generalized variables expected in wrong formula"
@@ -837,8 +837,8 @@
 	 imp-ex-proof-with-subst-wrong-formula . opt-prim-prod-info)
   (let* ((proof imp-ex-proof-with-subst-wrong-formula)
 	 (fla (proof-to-formula proof))
-	 (prim-prod? (or (null? opt-prim-prod-info)
-			 (eq? 'prim (car opt-prim-prod-info)))))
+	 (prim-prod? (and (pair? opt-prim-prod-info)
+			  (eq? 'prim (car opt-prim-prod-info)))))
     (cond
      ((imp-form? fla)
       (let ((prem (imp-form-to-premise fla))
@@ -951,12 +951,24 @@
 ;; eterm such that As -> Ds -> Gs^F[ys:=eterm].
 
 (define (atr-excl-proof-to-structured-extracted-term
-	 excl-proof . realizers-for-nondefinite-formulas)
+	 excl-proof . opt-prim-prod-info-and-realizers-for-nondefinite-formulas)
   (if (not (atr-excl-formula? (proof-to-formula excl-proof)))
       (myerror "atr-excl-proof-to-structured-extracted-term"
 	       "atr-excl-formula expected"
 	       (proof-to-formula excl-proof)))
-  (let* ((ex-proof (atr-excl-proof-to-ex-proof excl-proof))
+  (let* ((rest opt-prim-prod-info-and-realizers-for-nondefinite-formulas)
+	 (opt-prim-prod-info
+	  (if (and (pair? rest)
+		   (member (car rest) (list 'idpc 'prim)))
+	      (list (car rest))
+	      '()))
+	 (realizers-for-nondefinite-formulas
+	  (if (and (pair? rest)
+		   (not (member (car rest) (list 'idpc 'prim))))
+	      (cdr rest)
+	      '()))
+	 (ex-proof
+	  (apply atr-excl-proof-to-ex-proof excl-proof opt-prim-prod-info))
 	 (formula (proof-to-formula ex-proof))
 	 (params-and-kernel (all-form-to-vars-and-final-kernel formula))
 	 (params (car params-and-kernel))
