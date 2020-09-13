@@ -67,7 +67,7 @@
 (add-var-name "x" "y" "z" (py "alpha"))
 (add-var-name "leq" (py "alpha=>alpha=>boole"))
 (add-var-name "seg" (py "nat=>nat=>alpha"))
-(add-var-name "i" "j" (py "nat"))
+(add-var-name "i" "j" "k" (py "nat"))
 
 (add-token
  "<<="
