@@ -1,3 +1,123 @@
+Done in dev branch 2020-09-13
+
+In atr.scm
+
+The default value of opt-prim-prod-info changed to ('idpc) in
+atr-imp-ex-proof-with-subst-wrong-formula-to-ex-proof and
+atr-wrong-formula-to-ex-formula .  opt-prim-prod-info added to
+atr-excl-proof-to-structured-extracted-term
+
+In ets.scm
+
+make-yprod-et added.
+
+In formula.scm
+
+In unfold-formula case predconst else case in cond added.
+
+In pproof.scm
+
+make-excl-intro-aconst make-excl-elim-neg-aconst rewritten with
+n.c. pvars rather than impnc.  mk-imp-impnc-formula removed.
+
+In term.scm
+
+make-term-in-pair-form-wrt-yprod make-term-in-lcomp-form-wrt-yprod
+make-term-in-rcomp-form-wrt-yprod added.
+
+In examples/Makefile
+
+Directories dijkstra and deco are not tested.  dijkstra has many
+unproven gloal assumptions, and relies on lib/natinf with many
+unproven rewrite rules.  It might be better to prove the three
+relevant properties simultaneously.  Postponed.  For deco one needs to
+elaborate what decoration can mean when impnc is not used.
+
+In examples/analysis/Makefile
+
+.ishihara.test-passed added
+
+In examples/analysis/sdlim.scm
+
+Typo corrected: SdMsSdRLsSeq instead of SdMsSdRsSeq
+
+In examples/analysis/ishihara.scm
+
+Former global assumptions (on real numbers) proved.  Estimates by
+(1#2**p) rather than (1/2**k).  Instead of program constants
+BanachTimes etc. (without computation rules, but assumed to be total)
+we now use variables xSTimes etc.  Then no global assumptions on these
+pconsts are needed, but rather premises in theorems.
+
+In examples/bar/Makefile
+
+.higwqo.test-passed .higman.test-passed removed.  Reason: add-rtotality
+does not work for the nested algebra lntree
+
+In examples/bar/bar.scm
+
+FBarAppdLast replaced by ListFBarAppdLast
+
+In examples/bar/higfin.scm
+
+Minor update.
+
+In examples/classical/euclid.scm
+
+Rewritten for pairs and components w.r.t. yprod.  Totality proofs
+redone.  
+
+In examples/classical/gcd.scm
+
+Rewritten for pairs and components w.r.t. yprod.  Totality proofs
+redone.
+
+In examples/classical/fuerst.scm
+
+load command for git/minlog/init.scm commented out
+
+In examples/classical/fib.scm
+
+Variable name k for nat added.
+
+In examples/classical/root.scm
+
+Minor changes
+
+In examples/classical/tape.scm
+
+Variable name k for nat added.  @ replaced by pair
+
+In examples/classical/dickson.scm
+
+@ replaced by pair and @@ replaced by yprod.
+
+In examples/dc/dc-first.scm
+
+Variable name k for nat added.  @@ replaced by yprod.
+
+In examples/lambda/dbsub.scm
+
+Variable name k for nat added.  Global assumption Efq replaced by
+EfEqD.  Totality proofs updated.
+
+In examples/pruning/binpack.scm
+
+Variable name k for nat added.
+
+In examples/pruning/maxseq.scm
+
+Variable name k for nat added.
+
+In examples/test/pproof.scm
+
+Minor updates.
+
+In examples/train/train.scm
+
+Updated.  Lemmas SuccTotalFPFalseL SuccTotalFPFalseR are now in nat.scm
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2020-08-30
 
 In proof.scm
@@ -94,7 +214,6 @@ Variable name k for nat added.  Efq replaced by EfAtom
 In examples/classical/wftest.scm
 
 Variable name k for nat added.  expand-theorems excludes EqDCompat
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Done in dev branch 2020-08-09.
