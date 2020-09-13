@@ -1,4 +1,4 @@
-;; 2020-07-10.  term.scm
+;; 2020-09-10.  term.scm
 ;; 6. Terms
 ;; ========
 
@@ -388,6 +388,46 @@
 		       term-in-lcomp-form
 		       term-in-rcomp-form
 		       term-in-if-form))))
+
+(define (make-term-in-pair-form-wrt-yprod term1 term2)
+  (let* ((type1 (term-to-type term1))
+	 (type2 (term-to-type term2))
+	 (tsubst (make-substitution (list (py "alpha1") (py "alpha2"))
+				    (list type1 type2)))
+	 (constr (constr-name-to-constr "PairConstr" tsubst)))
+    (mk-term-in-app-form (make-term-in-const-form constr) term1 term2)))
+
+(define (make-term-in-lcomp-form-wrt-yprod term)
+  (let* ((type (term-to-type term))
+	 (type1 (if (yprod-form? type)
+		    (yprod-form-to-left-type type)
+		    (myerror "make-term-in-lcomp-form-wrt-yprod"
+			     "yprod-form expected" type)))
+	 (type2 (yprod-form-to-right-type type))	 
+	 (tsubst (make-substitution (list (py "alpha1") (py "alpha2"))
+				    (list type1 type2)))
+	 (pconst (pconst-name-to-pconst "PairOne"))
+	 (info (assoc "PairOne" PROGRAM-CONSTANTS))
+	 (info1 (assoc-wrt substitution-equal? tsubst (car (cddddr info))))
+	 (subst-pconst ;updates PROGRAM-CONSTANTS if not yet done
+	  (const-substitute pconst tsubst (if info1 #t #f))))
+    (make-term-in-app-form (make-term-in-const-form subst-pconst) term)))
+
+(define (make-term-in-rcomp-form-wrt-yprod term)
+  (let* ((type (term-to-type term))
+	 (type1 (if (yprod-form? type)
+		    (yprod-form-to-left-type type)
+		    (myerror "make-term-in-lcomp-form-wrt-yprod"
+			     "yprod-form expected" type)))
+	 (type2 (yprod-form-to-right-type type))	 
+	 (tsubst (make-substitution (list (py "alpha1") (py "alpha2"))
+				    (list type1 type2)))
+	 (pconst (pconst-name-to-pconst "PairTwo"))
+	 (info (assoc "PairTwo" PROGRAM-CONSTANTS))
+	 (info1 (assoc-wrt substitution-equal? tsubst (car (cddddr info))))
+	 (subst-pconst ;updates PROGRAM-CONSTANTS if not yet done
+	  (const-substitute pconst tsubst (if info1 #t #f))))
+    (make-term-in-app-form (make-term-in-const-form subst-pconst) term)))
 
 ;; 6-2.  Alpha equality
 ;; ====================
