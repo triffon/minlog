@@ -1,4 +1,4 @@
-;; 2020-08-30.  ets.scm
+;; 2020-09-10.  ets.scm
 ;; 16. Extracted terms
 ;; ===================
 
@@ -13,6 +13,13 @@
   (if (null? rest)
       x
       (make-arrow-et x (apply mk-arrow-et rest))))
+
+(define (make-yprod-et type1 type2)
+  (if (nulltype? type1)
+      type2
+      (if (nulltype? type2)
+          type1
+          (make-yprod type1 type2))))
 
 (define (make-star-et type1 type2)
   (if (nulltype? type1)
