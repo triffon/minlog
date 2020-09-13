@@ -1,3 +1,6 @@
+;; 2020-09-10.  gcd.scm.  Rewritten for pairs and components w.r.t. yprod.
+;; Totality proofs redone.
+
 ;; 2014-01-07.  General unfolding of Lin a1 a2 k1 k2 is blocked, as in
 ;; gcd-gind.scm.  Still we have Lin a1 a2 k1 k2 = Dist(k1*a1)(k2*a2).
 
@@ -7,6 +10,7 @@
 ;; this is due to Trifon Trifonov (cf. his thesis of 2012, LMU).
 
 ;; (load "~/git/minlog/init.scm")
+
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
@@ -18,7 +22,7 @@
  "Dist nat1 nat2" "[if (nat2<nat1) (nat1--nat2) (nat2--nat1)]")
 
 ;; DistTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Dist"))))
+(set-totality-goal "Dist")
 (use "AllTotalElim")
 (assume "nat1")
 (use "AllTotalElim")
@@ -29,7 +33,8 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "DistTotal")
+;; (cdp)
+(save-totality)
 
 ;; DistComm
 (set-goal "all nat1,nat2 Dist nat1 nat2=Dist nat2 nat1")
@@ -81,93 +86,116 @@
 (save "DistLemma")
 
 (add-var-name "a" "b" "c" "q" "r" (py "nat"))
-(add-var-name "p" (py "nat@@nat"))
+(add-var-name "p" (py "nat yprod nat"))
 
 (add-program-constant "Quot" (py "nat=>nat=>nat"))
 (add-program-constant "Rem" (py "nat=>nat=>nat"))
-(add-program-constant "QuotRem" (py "nat=>nat=>nat@@nat"))
-(add-program-constant "QuotRemPair" (py "nat=>nat@@nat=>nat@@nat"))
+(add-program-constant "QuotRem" (py "nat=>nat=>nat yprod nat"))
+(add-program-constant "QuotRemPair" (py "nat=>nat yprod nat=>nat yprod nat"))
 
 (add-computation-rules
  "QuotRemPair m p"
- "[if (Succ right p<m) (left p@Succ right p) (Succ left p@0)]")
+ "[if (Succ rht p<m) (lft p pair Succ rht p) (Succ lft p pair 0)]")
 
 ;; QuotRemPairTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "QuotRemPair"))))
-(assume "m^" "Tm" "p^" "Tp")
+(set-totality-goal "QuotRemPair")
+(use "AllTotalElim")
+(assume "m")
+(use "AllTotalElim")
+(assume "p")
 (ng #t)
-(split)
 (use "BooleIfTotal")
-(use "NatLtTotal")
-(use "TotalNatSucc")
-(use "Tp")
-(use "Tm")
-(use "Tp")
-(use "TotalNatSucc")
-(use "Tp")
-(use "BooleIfTotal")
-(use "NatLtTotal")
-(use "TotalNatSucc")
-(use "Tp")
-(use "Tm")
-(use "TotalNatSucc")
-(use "Tp")
-(use "TotalNatZero")
+(use "BooleTotalVar")
+(intro 0)
+(use "NatTotalVar")
+(use "NatTotalVar")
+(intro 0)
+(use "NatTotalVar")
+(use "NatTotalVar")
 ;; Proof finished.
-(save "QuotRemPairTotal")
+;; (cdp)
+(save-totality)
 
 (add-computation-rules
- "QuotRem 0 m" "0@0"
+ "QuotRem 0 m" "0 pair 0"
  "QuotRem(Succ n)m" "QuotRemPair m(QuotRem n m)")
 
 ;; QuotRemTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "QuotRem"))))
-(assume "n^" "Tn" "m^" "Tm")
-(elim "Tn")
+(set-totality-goal "QuotRem")
+(assert "allnc n^(
+     TotalNat n^ -> allnc n^0(TotalNat n^0 -> TotalYprod(QuotRem n^0 n^)))")
+(use "AllTotalElim")
+(assume "m")
+(use "AllTotalElim")
+(ind)
+;; Base
 (ng #t)
-(split)
-(use "TotalNatZero")
-(use "TotalNatZero")
-(assume "n^1" "Tn1" "IH")
-(assert "QuotRem(Succ n^1)m^ eqd QuotRemPair m^(QuotRem n^1 m^)")
- (use "InitEqD")
-(assume "EqdHyp")
-(simp "EqdHyp")
-(drop "EqdHyp")
-(use "QuotRemPairTotal")
-(use "Tm")
+(intro 0)
+(use "NatTotalVar")
+(use "NatTotalVar")
+;; Step
+(assume "n" "IH")
+(ng #t)
+(use "BooleIfTotal")
+;; 14,15
+(use "NatLtTotal")
+(intro 1)
+(use "PairTwoTotal")
 (use "IH")
+(use "NatTotalVar")
+;; 15
+(intro 0)
+(use "PairOneTotal")
+(use "IH")
+(intro 1)
+(use "PairTwoTotal")
+(use "IH")
+(intro 0)
+(intro 1)
+(use "PairOneTotal")
+(use "IH")
+(use "NatTotalVar")
+;; Assertion proved.
+(assume "Assertion" "n^" "Tn" "m^" "Tm")
+(use "Assertion")
+(use "Tm")
+(use "Tn")
 ;; Proof finished.
-(save "QuotRemTotal")
+;; (cdp)
+(save-totality)
 
-(add-computation-rules "Quot n m" "left(QuotRem n m)")
+(add-computation-rules "Quot n m" "lft(QuotRem n m)")
 
 ;; QuotTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Quot"))))
-(assume "n^" "Tn" "m^" "Tm")
-(ng)
-(use "QuotRemTotal")
-(use "Tn")
-(use "Tm")
+(set-totality-goal "Quot")
+(use "AllTotalElim")
+(assume "n")
+(use "AllTotalElim")
+(assume "m")
+(ng #t)
+(use "NatTotalVar")
 ;; Proof finished.
-(save "QuotTotal")
+;; (cdp)
+(save-totality)
 
-(add-computation-rules "Rem n m" "right(QuotRem n m)")
+(add-computation-rules "Rem n m" "rht(QuotRem n m)")
 
 ;; RemTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Rem"))))
-(assume "n^" "Tn" "m^" "Tm")
-(ng)
-(use "QuotRemTotal")
-(use "Tn")
-(use "Tm")
+(set-totality-goal "Rem")
+(use "AllTotalElim")
+(assume "n")
+(use "AllTotalElim")
+(assume "m")
+(ng #t)
+(use "NatTotalVar")
 ;; Proof finished.
-(save "RemTotal")
+;; (cdp)
+(save-totality)
 
 ;; (pp (nt (pt "QuotRem 777 13")))
 
-;; QuotRemCorrec
-(set-goal "all m,n(0<m -> n=(Quot n m)*m+Rem n m & Rem n m<m)")
+;; QuotRemCorrect
+(set-goal "all m,n(0<m -> n=(Quot n m)*m+Rem n m andnc Rem n m<m)")
 (assume "m")
 (ind)
 (ng)
@@ -195,7 +223,7 @@
 (ng)
 (simp "Sr=m")
 (ng)
-(assert "Succ n=left(QuotRem n m)*m+Succ right(QuotRem n m)")
+(assert "Succ n=lft(QuotRem n m)*m+Succ rht(QuotRem n m)")
   (use "IH")
   (use "0<m")
 (simp "Sr=m")
@@ -205,6 +233,7 @@
 (simp "Sr=m")
 (use "0<m")
 ;; Proof finished.
+;; (cdp)
 (save "QuotRemCorrect")
 
 ;; LQ
@@ -213,6 +242,7 @@
 (use "QuotRemCorrect")
 (use "0<b")
 ;; Proof finished.
+;; (cdp)
 (save "LQ")
 
 ;; LR
@@ -221,6 +251,7 @@
 (use "QuotRemCorrect")
 (use "0<b")
 ;; Proof finished.
+;; (cdp)
 (save "LR")
 
 (add-program-constant "Lin" (py "nat=>nat=>nat=>nat=>nat"))
@@ -229,7 +260,7 @@
  "Lin a1 a2(Succ k1)k2" "Dist(Succ k1*a1)(k2*a2)")
 
 ;; LinTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Lin"))))
+(set-totality-goal "Lin")
 (use "AllTotalElim")
 (assume "a1")
 (use "AllTotalElim")
@@ -249,6 +280,7 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "LinTotal")
 
 ;; LinDist
@@ -260,6 +292,7 @@
 (assume "k1" "k2")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "LinDist")
 
 (add-program-constant "Step" (py "nat=>nat=>nat=>nat=>nat=>nat"))
@@ -268,7 +301,7 @@
  "Step a1 a2 k1 k2(Succ q)" "[if (k2*a2<k1*a1) ((q+1)*k1--1) ((q+1)*k1+1)]")
 
 ;; StepTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Step"))))
+(set-totality-goal "Step")
 (use "AllTotalElim")
 (assume "a1")
 (use "AllTotalElim")
@@ -288,6 +321,7 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "StepTotal")
 
 ;; LS1 or StepLemma
@@ -424,6 +458,7 @@
 (use "Truth")
 (use "b1<=b2")
 ;; Proof finished.
+;; (cdp)
 (save "LS1")
 
 ;; LS2
@@ -438,6 +473,7 @@
 (simp "<-" "LinDist")
 (use "LS1")
 ;; Proof finished.
+;; (cdp)
 (save "LS2")
 
 ;; L1
@@ -451,6 +487,7 @@
 (use "Absurd")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "L1")
 
 ;; L2
@@ -460,15 +497,16 @@
 (assume "l<k")
 (use "l<k")
 ;; Proof finished.
+;; (cdp)
 (save "L2")
 
-;; Now the Gcd proof with &, following the hand implementation.
+;; Now the Gcd proof with andnc, following the hand implementation.
 
 ;; GcdAnd
 (set-goal "all a1,a2(0<a2 ->
                 exca k1,k2(
                  0<Lin a1 a2 k1 k2 !
-                 Rem a1(Lin a1 a2 k1 k2)=0 &
+                 Rem a1(Lin a1 a2 k1 k2)=0 andnc
                  Rem a2(Lin a1 a2 k1 k2)=0))")
 (assume "a1" "a2" "v0" "u")
 (use-with "u" (pt "0") (pt "1") "v0" "?")
@@ -476,7 +514,7 @@
 	   (all-formula-and-number-to-gind-aconst
 	    (pf "all k1,k2(
                  0<Lin a1 a2 k1 k2 ->
-                 Rem a1(Lin a1 a2 k1 k2)=0 & Rem a2(Lin a1 a2 k1 k2)=0)")
+                 Rem a1(Lin a1 a2 k1 k2)=0 andnc Rem a2(Lin a1 a2 k1 k2)=0)")
 	    2))
 	  (pt "a1") (pt "a2")
 	  (pt "[k1,k2]Lin a1 a2 k1 k2") (pt "0") (pt "1")
@@ -522,6 +560,7 @@
 (use "u2")
 (use "w")
 ;; Proof finished.
+;; (cdp)
 (save "GcdAnd")
 
 ;; (proof-to-expr-with-aconsts (theorem-name-to-proof "GcdAnd"))
@@ -537,42 +576,186 @@
 (pp neterm-d-and)
 
 ;; [n,n0]
+;;  [let p
+;;    (0 pair 1)
+;;    [if (0<Lin n n0 lft p rht p impb 
+;;         rht(QuotRem n(Lin n n0 lft p rht p))=0 andb 
+;;         rht(QuotRem n0(Lin n n0 lft p rht p))=0 impb 
+;;         False)
+;;     ((GRecGuard nat nat nat yprod nat)(Lin n n0)0 1
+;;     ([n1,n2,(nat=>nat=>nat yprod nat)]
+;;       [let p0
+;;         [let p0
+;;          (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2))pair 
+;;          lft(QuotRem n(Lin n n0 n1 n2))*n2)
+;;          [if (0<Lin n n0 lft p0 rht p0 impb 
+;;               rht(QuotRem n(Lin n n0 lft p0 rht p0))=0 andb 
+;;               rht(QuotRem n0(Lin n n0 lft p0 rht p0))=0 impb 
+;;               False)
+;;           (lft(QuotRem n0(Lin n n0 n1 n2))*n1 pair 
+;;           Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2)))
+;;           p0]]
+;;         [if (0<Lin n n0 lft p0 rht p0 impb 
+;;              rht(QuotRem n(Lin n n0 lft p0 rht p0))=0 andb 
+;;              rht(QuotRem n0(Lin n n0 lft p0 rht p0))=0 impb 
+;;              False)
+;;          [let p1
+;;           [let p1
+;;            (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2))pair 
+;;            lft(QuotRem n(Lin n n0 n1 n2))*n2)
+;;            [if (Lin n n0 lft p1 rht p1<Lin n n0 n1 n2 impb 
+;;                 0<Lin n n0 lft p1 rht p1 impb 
+;;                 rht(QuotRem n(Lin n n0 lft p1 rht p1))=0 andb 
+;;                 rht(QuotRem n0(Lin n n0 lft p1 rht p1))=0)
+;;             (lft(QuotRem n0(Lin n n0 n1 n2))*n1 pair 
+;;             Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2)))
+;;             p1]]
+;;           ((nat=>nat=>nat yprod nat)lft p1 rht p1)]
+;;          p0]])
+;;     True)
+;;     p]]
+
+;; [n,n0]
 ;;  [if (0<n0 impb
-;;        right(QuotRem n n0)=0 andb right(QuotRem n0 n0)=0 impb False)
-;;    ((GRecGuard nat nat nat@@nat)(Lin n n0)0 1
-;;    ([n1,n2,(nat=>nat=>nat@@nat)]
+;;        rht(QuotRem n n0)=0 andb rht(QuotRem n0 n0)=0 impb False)
+;;    ((GRecGuard nat nat nat yprod nat)(Lin n n0)0 1
+;;    ([n1,n2,(nat=>nat=>nat yprod nat)]
 ;;      [let p
 ;;        [let p
-;;         (Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2))@
-;;         left(QuotRem n(Lin n n0 n1 n2))*n2)
-;;         [if (0<Lin n n0 left p right p impb
-;;              right(QuotRem n(Lin n n0 left p right p))=0 andb
-;;              right(QuotRem n0(Lin n n0 left p right p))=0 impb
+;;         (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2)) pair 
+;;         lft(QuotRem n(Lin n n0 n1 n2))*n2)
+;;         [if (0<Lin n n0 lft p rht p impb
+;;              rht(QuotRem n(Lin n n0 lft p rht p))=0 andb
+;;              rht(QuotRem n0(Lin n n0 lft p rht p))=0 impb
 ;;              False)
-;;          (left(QuotRem n0(Lin n n0 n1 n2))*n1@
-;;          Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2)))
+;;          (lft(QuotRem n0(Lin n n0 n1 n2))*n1 pair 
+;;          Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2)))
 ;;          p]]
-;;        [if (0<Lin n n0 left p right p impb
-;;             right(QuotRem n(Lin n n0 left p right p))=0 andb
-;;             right(QuotRem n0(Lin n n0 left p right p))=0 impb
+;;        [if (0<Lin n n0 lft p rht p impb
+;;             rht(QuotRem n(Lin n n0 lft p rht p))=0 andb
+;;             rht(QuotRem n0(Lin n n0 lft p rht p))=0 impb
 ;;             False)
 ;;         [let p0
 ;;          [let p0
-;;           (Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2))@
-;;           left(QuotRem n(Lin n n0 n1 n2))*n2)
-;;           [if (Lin n n0 left p0 right p0<Lin n n0 n1 n2 impb
-;;                0<Lin n n0 left p0 right p0 impb
-;;                right(QuotRem n(Lin n n0 left p0 right p0))=0 andb
-;;                right(QuotRem n0(Lin n n0 left p0 right p0))=0)
-;;            (left(QuotRem n0(Lin n n0 n1 n2))*n1@
-;;            Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2)))
+;;           (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2)) pair 
+;;           lft(QuotRem n(Lin n n0 n1 n2))*n2)
+;;           [if (Lin n n0 lft p0 rht p0<Lin n n0 n1 n2 impb
+;;                0<Lin n n0 lft p0 rht p0 impb
+;;                rht(QuotRem n(Lin n n0 lft p0 rht p0))=0 andb
+;;                rht(QuotRem n0(Lin n n0 lft p0 rht p0))=0)
+;;            (lft(QuotRem n0(Lin n n0 n1 n2))*n1 pair 
+;;            Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2)))
 ;;            p0]]
-;;          ((nat=>nat=>nat@@nat)left p0 right p0)]
+;;          ((nat=>nat=>nat yprod nat)lft p0 rht p0)]
 ;;         p]])
 ;;    True)
-;;    (0@1)]
+;;    (0 pair 1)]
 
 (term-to-scheme-expr neterm-d-and)
+
+;; (lambda (n)
+;;   (lambda (n0)
+;;     (let ([p (cons 0 1)])
+;;       (if (or (not (< 0 ((((Lin n) n0) (car p)) (cdr p))))
+;;               (or (not (and (= (cdr ((QuotRem n)
+;;                                       ((((Lin n) n0) (car p)) (cdr p))))
+;;                                0)
+;;                             (= (cdr ((QuotRem n0)
+;;                                       ((((Lin n) n0) (car p)) (cdr p))))
+;;                                0)))
+;;                   #f))
+;;           (((((natnatGrecGuard ((Lin n) n0)) 0) 1)
+;;              (lambda (n1)
+;;                (lambda (n2)
+;;                  (lambda (lpar_nat=>nat=>nat__yprod__nat_rpar)
+;;                    (let ([p0 (let ([p0 (cons
+;;                                          (((((Step n) n0) n1) n2)
+;;                                            (car ((QuotRem n)
+;;                                                   ((((Lin n) n0) n1) n2))))
+;;                                          (* (car ((QuotRem n)
+;;                                                    ((((Lin n) n0) n1) n2)))
+;;                                             n2))])
+;;                                (if (or (not (< 0
+;;                                                ((((Lin n) n0) (car p0))
+;;                                                  (cdr p0))))
+;;                                        (or (not (and (= (cdr ((QuotRem n)
+;;                                                                ((((Lin n)
+;;                                                                    n0)
+;;                                                                   (car p0))
+;;                                                                  (cdr p0))))
+;;                                                         0)
+;;                                                      (= (cdr ((QuotRem n0)
+;;                                                                ((((Lin n)
+;;                                                                    n0)
+;;                                                                   (car p0))
+;;                                                                  (cdr p0))))
+;;                                                         0)))
+;;                                            #f))
+;;                                    (cons
+;;                                      (* (car ((QuotRem n0)
+;;                                                ((((Lin n) n0) n1) n2)))
+;;                                         n1)
+;;                                      (((((Step n0) n) n2) n1)
+;;                                        (car ((QuotRem n0)
+;;                                               ((((Lin n) n0) n1) n2)))))
+;;                                    p0))])
+;;                      (if (or (not (< 0 ((((Lin n) n0) (car p0)) (cdr p0))))
+;;                              (or (not (and (= (cdr ((QuotRem n)
+;;                                                      ((((Lin n) n0)
+;;                                                         (car p0))
+;;                                                        (cdr p0))))
+;;                                               0)
+;;                                            (= (cdr ((QuotRem n0)
+;;                                                      ((((Lin n) n0)
+;;                                                         (car p0))
+;;                                                        (cdr p0))))
+;;                                               0)))
+;;                                  #f))
+;;                          (let ([p1 (let ([p1 (cons
+;;                                                (((((Step n) n0) n1) n2)
+;;                                                  (car ((QuotRem n)
+;;                                                         ((((Lin n) n0) n1)
+;;                                                           n2))))
+;;                                                (* (car ((QuotRem n)
+;;                                                          ((((Lin n) n0) n1)
+;;                                                            n2)))
+;;                                                   n2))])
+;;                                      (if (or (not (< ((((Lin n) n0)
+;;                                                         (car p1))
+;;                                                        (cdr p1))
+;;                                                      ((((Lin n) n0) n1)
+;;                                                        n2)))
+;;                                              (or (not (< 0
+;;                                                          ((((Lin n) n0)
+;;                                                             (car p1))
+;;                                                            (cdr p1))))
+;;                                                  (and (= (cdr ((QuotRem n)
+;;                                                                 ((((Lin n)
+;;                                                                     n0)
+;;                                                                    (car p1))
+;;                                                                   (cdr p1))))
+;;                                                          0)
+;;                                                       (= (cdr ((QuotRem n0)
+;;                                                                 ((((Lin n)
+;;                                                                     n0)
+;;                                                                    (car p1))
+;;                                                                   (cdr p1))))
+;;                                                          0))))
+;;                                          (cons
+;;                                            (* (car ((QuotRem n0)
+;;                                                      ((((Lin n) n0) n1)
+;;                                                        n2)))
+;;                                               n1)
+;;                                            (((((Step n0) n) n2) n1)
+;;                                              (car ((QuotRem n0)
+;;                                                     ((((Lin n) n0) n1)
+;;                                                       n2)))))
+;;                                          p1))])
+;;                            ((lpar_nat=>nat=>nat__yprod__nat_rpar (car p1))
+;;                              (cdr p1)))
+;;                          p0))))))
+;;             #t)
+;;           p))))
 
 ;; (lambda (n)
 ;;   (lambda (n0)
@@ -583,7 +766,7 @@
 ;;         (((((natnatGrecGuard ((Lin n) n0)) 0) 1)
 ;;            (lambda (n1)
 ;;              (lambda (n2)
-;;                (lambda (lpar_nat=>nat=>nat@@nat_rpar)
+;;                (lambda (lpar_nat=>nat=>nat yprod nat_rpar)
 ;;                  (let ([p (let ([p (cons
 ;;                                      (((((Step n) n0) n1) n2)
 ;;                                        (car ((QuotRem n)
@@ -660,7 +843,7 @@
 ;;                                                   ((((Lin n) n0) n1)
 ;;                                                     n2)))))
 ;;                                        p0))])
-;;                          ((lpar_nat=>nat=>nat@@nat_rpar (car p0))
+;;                          ((lpar_nat=>nat=>nat yprod nat_rpar (car p0))
 ;;                            (cdr p0)))
 ;;                        p))))))
 ;;           #t)
@@ -712,7 +895,7 @@
 ;; An attempt to do the same proof with A-translation breaks down
 ;; because it does not cover conjunctions.  However, we can redo the
 ;; proof without conjunctions.  Here we closely follow Trifon
-;; Trifonov's proposal.  The & in the goal is replaced by !.  Instead
+;; Trifonov's proposal.  The andnc in the goal is replaced by !.  Instead
 ;; of conjunction introduction we use
 
 ;; AndIntroAux or L3
@@ -815,6 +998,7 @@
 (use "u")
 (use "w")
 ;; Proof finished.
+;; (cdp)
 (save "Gcd")
 
 (define gcd-proof (theorem-name-to-proof "Gcd"))
@@ -845,26 +1029,27 @@
 (pp neterm-a)
 
 ;; [n,n0]
-;;  (GRecGuard nat nat nat@@nat=>nat@@nat)(Lin n n0)0 1
-;;  ([n1,n2,(nat=>nat=>nat@@nat=>nat@@nat),p]
-;;    [if (Lin n n0(Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2)))
-;;          (left(QuotRem n(Lin n n0 n1 n2))*n2))
-;;      [if (Lin n n0(left(QuotRem n0(Lin n n0 n1 n2))*n1)
-;;           (Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2))))
+;;  (GRecGuard nat nat nat yprod nat=>nat yprod nat)(Lin n n0)0 1
+;;  ([n1,n2,(nat=>nat=>nat yprod nat=>nat yprod nat),p]
+;;    [if (Lin n n0(Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2)))
+;;          (lft(QuotRem n(Lin n n0 n1 n2))*n2))
+;;      [if (Lin n n0(lft(QuotRem n0(Lin n n0 n1 n2))*n1)
+;;           (Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2))))
 ;;       p
 ;;       ([n3]
-;;        (nat=>nat=>nat@@nat=>nat@@nat)(left(QuotRem n0(Lin n n0 n1 n2))*n1)
-;;        (Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2)))
-;;        (left(QuotRem n0(Lin n n0 n1 n2))*n1@
-;;         Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2))))]
+;;        (nat=>nat=>nat yprod nat=>nat yprod nat)
+;;        (lft(QuotRem n0(Lin n n0 n1 n2))*n1)
+;;        (Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2)))
+;;        (lft(QuotRem n0(Lin n n0 n1 n2))*n1 pair 
+;;         Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2))))]
 ;;      ([n3]
-;;       (nat=>nat=>nat@@nat=>nat@@nat)
-;;       (Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2)))
-;;       (left(QuotRem n(Lin n n0 n1 n2))*n2)
-;;       (Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2))@
-;;        left(QuotRem n(Lin n n0 n1 n2))*n2))])
+;;       (nat=>nat=>nat yprod nat=>nat yprod nat)
+;;       (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2)))
+;;       (lft(QuotRem n(Lin n n0 n1 n2))*n2)
+;;       (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2))pair 
+;;        lft(QuotRem n(Lin n n0 n1 n2))*n2))])
 ;;  True
-;;  (0@1)
+;;  (0 pair 1)
 
 (term-to-scheme-expr neterm-a)
 
@@ -873,7 +1058,7 @@
 ;;     ((((((natnatGrecGuard ((Lin n) n0)) 0) 1)
 ;;         (lambda (n1)
 ;;           (lambda (n2)
-;;             (lambda (lpar_nat=>nat=>nat@@nat=>nat@@nat_rpar)
+;;             (lambda (lpar_nat=>nat=>nat__yprod__nat=>nat__yprod__nat_rpar)
 ;;               (lambda (p)
 ;;                 (cond
 ;;                   [(zero?
@@ -895,7 +1080,7 @@
 ;;                               n1))
 ;;                           (((((Step n0) n) n2) n1)
 ;;                             (car ((QuotRem n0) ((((Lin n) n0) n1) n2))))))
-;;                       (((lpar_nat=>nat=>nat@@nat=>nat@@nat_rpar
+;;                       (((lpar_nat=>nat=>nat__yprod__nat=>nat__yprod__nat_rpar
 ;;                           (* (car ((QuotRem n0) ((((Lin n) n0) n1) n2)))
 ;;                              n1))
 ;;                          (((((Step n0) n) n2) n1)
@@ -911,7 +1096,7 @@
 ;;                         (((((Step n) n0) n1) n2)
 ;;                           (car ((QuotRem n) ((((Lin n) n0) n1) n2)))))
 ;;                        (* (car ((QuotRem n) ((((Lin n) n0) n1) n2))) n2)))
-;;                    (((lpar_nat=>nat=>nat@@nat=>nat@@nat_rpar
+;;                    (((lpar_nat=>nat=>nat__yprod__nat=>nat__yprod__nat_rpar
 ;;                        (((((Step n) n0) n1) n2)
 ;;                          (car ((QuotRem n) ((((Lin n) n0) n1) n2)))))
 ;;                       (* (car ((QuotRem n) ((((Lin n) n0) n1) n2))) n2))
@@ -941,39 +1126,42 @@
 ;; (pp neterm-d)
 
 ;; [n,n0]
-;;  [if (0<n0 impb
-;;        right(QuotRem n n0)=0 impb right(QuotRem n0 n0)=0 impb False)
-;;    ((GRecGuard nat nat nat@@nat)(Lin n n0)0 1
-;;    ([n1,n2,(nat=>nat=>nat@@nat)]
-;;      [let p
-;;        [let p
-;;         (Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2))@
-;;         left(QuotRem n(Lin n n0 n1 n2))*n2)
-;;         [if (0<Lin n n0 left p right p impb
-;;              right(QuotRem n(Lin n n0 left p right p))=0 impb
-;;              right(QuotRem n0(Lin n n0 left p right p))=0 impb False)
-;;          (left(QuotRem n0(Lin n n0 n1 n2))*n1@
-;;          Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2)))
-;;          p]]
-;;        [if (0<Lin n n0 left p right p impb
-;;             right(QuotRem n(Lin n n0 left p right p))=0 impb
-;;             right(QuotRem n0(Lin n n0 left p right p))=0 impb False)
+;;  [let p
+;;    (0 pair 1)
+;;    [if (0<Lin n n0 lft p rht p impb 
+;;         rht(QuotRem n(Lin n n0 lft p rht p))=0 impb 
+;;         rht(QuotRem n0(Lin n n0 lft p rht p))=0 impb False)
+;;     ((GRecGuard nat nat nat yprod nat)(Lin n n0)0 1
+;;     ([n1,n2,(nat=>nat=>nat yprod nat)]
+;;       [let p0
 ;;         [let p0
-;;          [let p0
-;;           (Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2))@
-;;           left(QuotRem n(Lin n n0 n1 n2))*n2)
-;;           [if (Lin n n0 left p0 right p0<Lin n n0 n1 n2 impb
-;;                0<Lin n n0 left p0 right p0 impb
-;;                (right(QuotRem n(Lin n n0 left p0 right p0))=0 impb
-;;                 right(QuotRem n0(Lin n n0 left p0 right p0))=0 impb False)impb
-;;                False)
-;;            (left(QuotRem n0(Lin n n0 n1 n2))*n1@
-;;            Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2)))
-;;            p0]]
-;;          ((nat=>nat=>nat@@nat)left p0 right p0)]
-;;         p]])
-;;    True)
-;;    (0@1)]
+;;          (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2))pair 
+;;          lft(QuotRem n(Lin n n0 n1 n2))*n2)
+;;          [if (0<Lin n n0 lft p0 rht p0 impb 
+;;               rht(QuotRem n(Lin n n0 lft p0 rht p0))=0 impb 
+;;               rht(QuotRem n0(Lin n n0 lft p0 rht p0))=0 impb False)
+;;           (lft(QuotRem n0(Lin n n0 n1 n2))*n1 pair 
+;;           Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2)))
+;;           p0]]
+;;         [if (0<Lin n n0 lft p0 rht p0 impb 
+;;              rht(QuotRem n(Lin n n0 lft p0 rht p0))=0 impb 
+;;              rht(QuotRem n0(Lin n n0 lft p0 rht p0))=0 impb False)
+;;          [let p1
+;;           [let p1
+;;            (Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2))pair 
+;;            lft(QuotRem n(Lin n n0 n1 n2))*n2)
+;;            [if (Lin n n0 lft p1 rht p1<Lin n n0 n1 n2 impb 
+;;                 0<Lin n n0 lft p1 rht p1 impb
+;;                 (rht(QuotRem n(Lin n n0 lft p1 rht p1))=0 impb 
+;;                  rht(QuotRem n0(Lin n n0 lft p1 rht p1))=0 impb False)impb 
+;;                 False)
+;;             (lft(QuotRem n0(Lin n n0 n1 n2))*n1 pair 
+;;             Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2)))
+;;             p1]]
+;;           ((nat=>nat=>nat yprod nat)lft p1 rht p1)]
+;;          p0]])
+;;     True)
+;;     p]]
 
 ;; This is almost the same term as the one extracted from GcdAnd.
 
