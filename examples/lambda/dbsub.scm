@@ -15,7 +15,7 @@
 (libload "list.scm")
 (set! COMMENT-FLAG #t)
 
-(add-var-name "l" (py "nat"))
+(add-var-name "k" (py "nat"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Algebras
@@ -48,16 +48,22 @@
 (use "InitEqD")
 (assume "dB1" "dB2")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 (assume "dB")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 ;; Case App
 (assume "dB1" "IHdB1" "dB2" "IHdB2")
 (cases)
 (assume "n")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 (assume "dB3" "dB4")
 (ng)
 (assume "Conj")
@@ -68,16 +74,22 @@
 (use "Conj")
 (assume "dB")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 ;; Case Abs
 (assume "dB" "IHdB")
 (cases)
 (assume "n")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 (assume "dB1" "dB2")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 (assume "dB1")
 (ng)
 (assume "dB=dB1")
@@ -135,13 +147,17 @@
 (use "InitEqD")
 (assume "dB" "sub")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 ;; Case Dot
 (assume "dB" "sub" "IHsub")
 (cases)
 (assume "n")
 (ng)
-(use "Efq")
+(assume "Absurd")
+(use "EfEqD")
+(use "Absurd")
 (assume "dB1" "sub1")
 (ng)
 (assume "Conj")
@@ -175,28 +191,28 @@
 
 ;; PosEqToEqD
 (set-goal "all pos1,pos2(pos1=pos2 -> pos1 eqd pos2)")
-(ind) ;2-4
-(cases) ;5-7
+(ind)
+;; 2-4
+(cases)
+;; 5-7
 (assume "Useless")
 (use "InitEqD")
 ;; 6
 (assume "pos1" "1=SZero p1")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "1=SZero p1")
 ;; 7
 (assume "pos1" "1=SOne p1")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "1=SOne p1")
 ;; 3
 (assume "pos1" "IH1")
-(cases) ;16-18
+(cases)
+;; 14-16
 (assume "SZero p1=1")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "SZero p1=1")
-;; 17
+;; 15
 (assume "pos2" "SZero p1=SZero p2")
 (assert "pos1 eqd pos2")
  (use "IH1")
@@ -205,24 +221,22 @@
 (elim "pos1 eqd pos2")
 (assume "pos^1")
 (use "InitEqD")
-;; 18
+;; 16
 (assume "pos2" "SZero p1=SOne p2")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "SZero p1=SOne p2")
 ;; 4
 (assume "pos1" "IH1")
-(cases) ;33-35
+(cases)
+;; 29-31
 (assume "SOne p1=1")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "SOne p1=1")
-;; 34
+;; 30
 (assume "pos2" "SOne p1=SZero p2")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "SOne p1=SZero p2")
-;; 35
+;; 31
 (assume "pos2" "SOne p1=SOne p2")
 (assert "pos1 eqd pos2")
  (use "IH1")
@@ -245,7 +259,7 @@
  "Lift(Abs r)l k" "Abs(Lift r(l+1)k)")
 
 ;; LiftTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Lift"))))
+(set-totality-goal "Lift")
 (use "AllTotalElim")
 (ind)
 (assume "n")
@@ -287,7 +301,7 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "LiftTotal")
+(save-totality)
 
 ;; Substitution in the style of Hancock/Joachimski.  A substitution
 ;; theta consists of a list rs (of length n) of terms to be
@@ -302,7 +316,7 @@
  "Sublift(Dot r theta)n" "Dot(Lift r 0 n)(Sublift theta n)")
 
 ;; SubliftTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Sublift"))))
+(set-totality-goal "Sublift")
 (use "AllTotalElim")
 (ind)
 ;; Case Up
@@ -323,7 +337,7 @@
 (use "IHtheta")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "SubliftTotal")
+(save-totality)
 
 ;; Sub r theta substitutes theta in the term r
 
@@ -336,7 +350,7 @@
  "Sub(Abs r)theta" "(Abs(Sub r(Dot(Var 0)(Sublift theta 1))))")
 
 ;; SubTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Sub"))))
+(set-totality-goal "Sub")
 (use "AllTotalElim")
 (ind)
 ;; Case Var
@@ -383,7 +397,7 @@
 (use "IHr")
 (use "SubTotalVar")
 ;; Proof finished.
-(save "SubTotal")
+(save-totality)
 
 ;; Spare appends 0 1 ... (m-1) to a substitution.
 
@@ -393,7 +407,7 @@
  "Spare(Succ m)theta" "Spare m(Dot(Var m)theta)")
 
 ;; SpareTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Spare"))))
+(set-totality-goal "Spare")
 (use "AllTotalElim")
 (ind)
 (use "AllTotalElim")
@@ -407,7 +421,7 @@
 (use "IH")
 (use "SubTotalVar")
 ;; Proof finished.
-(save "SpareTotal")
+(save-totality)
 
 ;; Composition on substitutions, written infix
 
@@ -420,7 +434,7 @@
  "Dot r theta circ theta1" "Dot(Sub r theta1)(theta circ theta1)")
 
 ;; SubcomposeTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Subcompose"))))
+(set-totality-goal "Subcompose")
 (use "AllTotalElim")
 (ind)
 (ind)
@@ -447,7 +461,7 @@
 (use "IHtheta")
 (use "SubTotalVar")
 ;; Proof finished.
-(save "SubcomposeTotal")
+(save-totality)
 
 (add-program-constant "Pushlist" (py "list dB=>sub=>sub"))
 (add-computation-rules
@@ -455,7 +469,7 @@
  "Pushlist(r::rs)theta" "Dot r(Pushlist rs theta)")
 
 ;; PushlistTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Pushlist"))))
+(set-totality-goal "Pushlist")
 (use "AllTotalElim")
 (ind)
 (use "AllTotalElim")
@@ -472,7 +486,7 @@
 (use "IH")
 (use "SubTotalVar")
 ;; Proof finished.
-(save "PushlistTotal")
+(save-totality)
 
 (add-program-constant "Liftlist" (py "list dB=>nat=>nat=>list dB"))
 (add-computation-rules
@@ -480,7 +494,7 @@
  "Liftlist(r::rs)m n" "(Lift r m n)::(Liftlist rs m n)")
 
 ;; LiftlistTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Liftlist"))))
+(set-totality-goal "Liftlist")
 (use "AllTotalElim")
 (ind)
 (use "AllTotalElim")
@@ -502,7 +516,7 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "LiftlistTotal")
+(save-totality)
 
 ;; Beta conversion
 (add-program-constant "Beta" (py "dB=>dB=>dB"))
@@ -512,7 +526,7 @@
  "Beta(Abs r)s" "Sub r(Dot s(Up 0))")
 
 ;; BetaTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Beta"))))
+(set-totality-goal "Beta")
 (use "AllTotalElim")
 (cases)
 ;; Case Var
@@ -537,7 +551,7 @@
 (ng)
 (use "DBTotalVar")
 ;; Proof finished.
-(save "BetaTotal")
+(save-totality)
 
 ;; Parallel reduction (Tait and Martin-Loef) converts all beta redexes
 ;; in parallel, working from the inside to the outside.  It does not
@@ -553,7 +567,7 @@
  "Red(Abs r)" "Abs(Red r)")
 
 ;; RedTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Red"))))
+(set-totality-goal "Red")
 (use "AllTotalElim")
 (ind)
 ;; Case Var
@@ -588,7 +602,7 @@
 (use "TotalDBAbs")
 (use "IH")
 ;; Proof finished.
-(save "RedTotal")
+(save-totality)
 
 ;; Example: SKK reduces in 2 steps to identity.
 
@@ -814,7 +828,7 @@ ex t(
 (set-goal "all m,k,theta(k<m -> Sub(Var k)(Spare m theta)=Var k)")
 (ind)
 (assume "k" "theta" "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 (assume "m" "IHm" "k" "theta" "k<m+1")
 (use "NatLtSuccCases" (pt "k") (pt "m"))
