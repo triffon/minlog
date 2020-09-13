@@ -1,4 +1,4 @@
-;; 2020-08-28.  pproof.scm
+;; 2020-09-10.  pproof.scm
 ;; 11. Partial proofs
 ;; ==================
 
@@ -8011,7 +8011,7 @@
 ;; F)
 
 ;; make-excl-intro-aconst takes a list nc-indicator of booleans and a
-;; positive integer n.  The implications after the Qs are determined
+;; positive integer n.  The n.c. or c.r. status of each Q is determined
 ;; by nc-indicator.  It returns an assumption constant for
 ;; excl-introduction w.r.t. n variables of type alpha1 to alphan.  Let
 ;; xs = x1...xn
@@ -8028,7 +8028,6 @@
 ;;                   ---------------------------------------
 ;;                   all x(Qs x -> all x(Qs x -> bot) -> bot)
 
-
 (define (make-excl-intro-aconst nc-indicator n)
     (let* ((all-cr? (apply and-op (map not nc-indicator)))
 	   (nc-indicator-string
@@ -8043,65 +8042,72 @@
       (if
        info
        (theorem-name-to-aconst excl-intro-name)
-       (let* ((m (length nc-indicator))
-	      (pvar-formulas (make-fixed-pvar-formulas m n))
-	      (imp-impnc-fla ;Q1x -> ... -> Qmx -> bot
-	       (apply mk-imp-impnc-formula
-		      (append (zip pvar-formulas nc-indicator)
-			      (list falsity-log))))
+       (let* ((pvar-flas (make-fixed-pvar-formulas nc-indicator n))
+	      (imp-fla ;Q1x -> ... -> Qmx -> bot
+	       (apply mk-imp (append pvar-flas (list falsity-log))))
 	      (xs (make-fixed-vars 1 n))
 	      (excl-prem ;all x(Q1x -> ... -> Qmx -> bot)
-	       (apply mk-all (append xs (list imp-impnc-fla))))
-	      (ws (map formula-to-new-avar pvar-formulas))
+	       (apply mk-all (append xs (list imp-fla))))
+	      (ws (map formula-to-new-avar pvar-flas))
 	      (v (formula-to-new-avar excl-prem))
-	      (prem-avars-with-nc-indicators (zip ws nc-indicator))
 	      (proof (apply
 		      mk-proof-in-intro-form
 		      (append
-		       xs (list (apply
-				 mk-proof-in-cr-nc-intro-form
-				 (append
-				  prem-avars-with-nc-indicators
-				  (list
-				   v #f (apply mk-proof-in-elim-form
-					       (make-proof-in-avar-form v)
-					       (append
-						(map make-term-in-var-form xs)
-						(map make-proof-in-avar-form
-						     ws)))))))))))
+		       xs ws (list v (apply mk-proof-in-elim-form
+					    (make-proof-in-avar-form v)
+					    (append
+					     (map make-term-in-var-form xs)
+					     (map make-proof-in-avar-form
+						  ws))))))))
 	 (set! OLD-COMMENT-FLAG COMMENT-FLAG)
 	 (set! COMMENT-FLAG #f)
 	 (add-theorem excl-intro-name proof)
 	 (set! COMMENT-FLAG OLD-COMMENT-FLAG)
 	 (theorem-name-to-aconst excl-intro-name)))))
 
-(define (make-fixed-pvar-formulas m n)
+(define (make-fixed-pvar-formulas nc-indicator n)
   (let* ((xs (make-fixed-vars 1 n))
 	 (fixed-tvars (map var-to-type xs))
 	 (fixed-arity (apply make-arity fixed-tvars))
+	 (m (length nc-indicator))
 	 (one-to-m (do ((i 1 (+ i 1))
 			(res '() (cons i res)))
 		       ((< m i) (reverse res))))
 	 (fixed-pvars
-	  (map (lambda (i) (make-pvar fixed-arity i h-deg-zero n-deg-zero ""))
-	       one-to-m)))
+	  (map (lambda (i is-nc)
+		 (make-pvar fixed-arity i
+			    (if is-nc h-deg-one h-deg-zero)
+			    n-deg-zero ""))
+	       one-to-m nc-indicator)))
     (map (lambda (pvar)
 	   (apply make-predicate-formula pvar (map make-term-in-var-form xs)))
 	 fixed-pvars)))
 
-;; (for-each pp (make-fixed-pvar-formulas 2 3))
+;; (for-each pp (make-fixed-pvar-formulas (list #f #t) 3))
 
-(define (mk-imp-impnc-formula formula . rest)
-  (if (null? rest)
-      formula
-      (let* ((nc-indicator (car rest))
-	     (prev (apply mk-imp-impnc-formula (cdr rest))))
-	(if nc-indicator
-	    (make-impnc formula prev)
-	    (make-imp formula prev)))))
+;; (Pvar alpha1 alpha2 alpha3)_1 alpha1_1 alpha2_2 alpha3_3
+;; (Pvar alpha1 alpha2 alpha3)^2 alpha1_1 alpha2_2 alpha3_3
 
-;; (pp (mk-imp-impnc-formula (pf "T") #f (pf "Pvar") #t (pf "bot")))
-;; T -> Pvar --> bot
+;; (define aconst (make-excl-intro-aconst (list #f #t) 3))
+
+;; (pp "ExclIntroThreeCrNc")
+
+;; all alpha1,alpha2_0,alpha3_1(
+;;  (Pvar alpha1 alpha2 alpha3)_1 alpha1 alpha2_0 alpha3_1 -> 
+;;  (Pvar alpha1 alpha2 alpha3)^2 alpha1 alpha2_0 alpha3_1 -> 
+;;  excl alpha1_2,alpha2_3,alpha3_4(
+;;   (Pvar alpha1 alpha2 alpha3)_1 alpha1_2 alpha2_3 alpha3_4 ! 
+;;   (Pvar alpha1 alpha2 alpha3)^2 alpha1_2 alpha2_3 alpha3_4))
+
+;; (pp (unfold-formula (aconst-to-formula aconst)))
+
+;; all alpha1_1,alpha2_2,alpha3_3(
+;;  (Pvar alpha1 alpha2 alpha3)_1 alpha1_1 alpha2_2 alpha3_3 -> 
+;;  (Pvar alpha1 alpha2 alpha3)^2 alpha1_1 alpha2_2 alpha3_3 -> 
+;;  all alpha1_1,alpha2_2,alpha3_3(
+;;   (Pvar alpha1 alpha2 alpha3)_1 alpha1_1 alpha2_2 alpha3_3 -> 
+;;   (Pvar alpha1 alpha2 alpha3)^2 alpha1_1 alpha2_2 alpha3_3 -> bot) -> 
+;;  bot)
 
 ;; In the following definition of exc-elim x is
 ;; - a number or string identifying an existential hypothesis form the context,
@@ -8337,7 +8343,8 @@
        (theorem-name-to-aconst exca-elim-neg-name)))))
 
 ;; make-excl-elim-neg-aconst takes nc-indicator, a positive integer n
-;; and a negation ~A.  It returns an assumption constant for
+;; and a negation ~A.  The n.c. or c.r. status of each Q and of P is
+;; determined by nc-indicator.  It returns an assumption constant for
 ;; excl-elimination w.r.t. n variables of type alpha1 to alphan.  Let
 ;; xs=x1...xn.
 
@@ -8381,52 +8388,41 @@
      info
      (theorem-name-to-aconst excl-elim-neg-name)
      (let* ((m (- (length nc-indicator) 1))
-	    (pvar-formulas (make-fixed-pvar-formulas m n))
-	    (pvar (make-pvar (make-arity) -1 h-deg-zero n-deg-zero ""))
-	    (pvar-formula (make-predicate-formula pvar))
 	    (nc-indicator-for-Qs (list-head nc-indicator m))
 	    (nc-indicator-for-P (car (last-pair nc-indicator)))
-	    (imp-impnc-fla ;Q1x -> ... -> Qmx -> bot
-	     (apply mk-imp-impnc-formula
-		    (append (zip pvar-formulas nc-indicator-for-Qs)
-			    (list falsity-log))))
+	    (pvar-flas (make-fixed-pvar-formulas nc-indicator-for-Qs n))
+	    (pvar (make-pvar (make-arity) -1
+			     (if nc-indicator-for-P h-deg-one h-deg-zero)
+			     n-deg-zero ""))
+	    (pvar-fla (make-predicate-formula pvar))
+	    (imp-fla ;Q1x -> ... -> Qmx -> bot
+	     (apply mk-imp (append pvar-flas (list falsity-log))))
 	    (xs (make-fixed-vars 1 n))
 	    (excl-prem ;all x(Q1x -> ... -> Qmx -> bot)
-	     (apply mk-all (append xs (list imp-impnc-fla))))
+	     (apply mk-all (append xs (list imp-fla))))
 	    (all-imp-fla ;all x(Q1x -> ... -> Qmx -> P -> bot)
 	     (apply mk-all
 		    (append
-		     xs (list (apply
-			       mk-imp-impnc-formula
-			       (append (zip pvar-formulas nc-indicator-for-Qs)
-				       (list pvar-formula nc-indicator-for-P
-					     falsity-log)))))))
+		     xs (list (apply mk-imp
+				     (append pvar-flas (list pvar-fla
+							     falsity-log)))))))
 	    (v (formula-to-new-avar all-imp-fla))
-	    (ws (map formula-to-new-avar pvar-formulas))
-	    (w (formula-to-new-avar pvar-formula))
-	    (prem-avars-with-nc-indicators (zip ws nc-indicator-for-Qs))
+	    (ws (map formula-to-new-avar pvar-flas))
+	    (w (formula-to-new-avar pvar-fla))
 	    (intro-proof
 	     (apply
 	      mk-proof-in-intro-form
 	      (append
-	       xs (list (apply
-			 mk-proof-in-cr-nc-intro-form
-			 (append
-			  prem-avars-with-nc-indicators
-			  (list (apply mk-proof-in-elim-form
-				       (make-proof-in-avar-form v)
-				       (append
-					(map make-term-in-var-form xs)
-					(map make-proof-in-avar-form
-					     (append ws (list w))))))))))))
+	       xs ws (list (apply mk-proof-in-elim-form
+				  (make-proof-in-avar-form v)
+				  (append
+				   (map make-term-in-var-form xs)
+				   (map make-proof-in-avar-form
+					(append ws (list w)))))))))
 	    (u (formula-to-new-avar (make-negation-log excl-prem)))
 	    (elim-proof (make-proof-in-imp-elim-form
 			 (make-proof-in-avar-form u) intro-proof))
-	    (proof
-	     (mk-proof-in-intro-form
-	      u v (if nc-indicator-for-P
-		      (make-proof-in-impnc-intro-form w elim-proof)
-		      (make-proof-in-imp-intro-form w elim-proof)))))
+	    (proof (mk-proof-in-intro-form u v w elim-proof)))
        (set! OLD-COMMENT-FLAG COMMENT-FLAG)
        (set! COMMENT-FLAG #f)
        (add-theorem excl-elim-neg-name proof)
@@ -8435,10 +8431,11 @@
 
 ;; (define aconst (make-excl-elim-neg-aconst '(#f #t #f) 1))
 ;; (pp (aconst-to-formula aconst))
-;; (all alpha1_1((Pvar alpha1)_1 alpha1_1 ->
-;;               (Pvar alpha1)_2 alpha1_1 --> bot) -> bot) ->
+
+;; (all alpha1_1((Pvar alpha1)_1 alpha1_1 -> (Pvar alpha1)^2 alpha1_1 -> bot) ->
+;;  bot) -> 
 ;; all alpha1_1(
-;;  (Pvar alpha1)_1 alpha1_1 -> (Pvar alpha1)_2 alpha1_1 --> Pvar -> bot) ->
+;;  (Pvar alpha1)_1 alpha1_1 -> (Pvar alpha1)^2 alpha1_1 -> Pvar -> bot) -> 
 ;; Pvar -> bot
 
 ;; The default case is make-exc-elim-aconst and uses stability.  It
