@@ -1,4 +1,4 @@
-;; $Id: fib.scm 2156 2008-01-25 13:25:12Z schimans $
+;; 2020-08-28 fib.scm
 
 ;; Extraction of the Fibonacci algorithm from a classical proof based
 ;; on [BBS02]
@@ -11,7 +11,7 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
-(add-var-name "l" (py "nat"))
+(add-var-name "k" (py "nat"))
 (add-var-name "f" (py "nat=>nat=>nat"))
 (add-var-name "H" (py "(nat=>nat=>nat)=>nat"))
 
