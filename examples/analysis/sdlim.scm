@@ -1,4 +1,4 @@
-;; 2020-08-28.  examples/analysis/sdlim.scm
+;; 2020-09-06.  examples/analysis/sdlim.scm
 ;; Based on Franziskus Wiesnet's CoILim.scm and CoIClosure.scm
 ;; New: Cauchy sequence with modulus instead of converging sequence.
 ;; The latter needs the limit, which can be computed from the Cs
@@ -6,6 +6,7 @@
 ;; (load "~/git/minlog/init.scm")
 
 (load "~/git/minlog/examples/analysis/sddiv.scm")
+;; (set! COMMENT-FLAG #t)
 
 ;; CoIDoubleClosure
 (set-goal "allnc x(
@@ -2447,7 +2448,7 @@
        (list RealToCoI-eterm "realtocoi")
        (list RatToCoI-eterm "rattocoi")
        (list (pt "SdRs") "sdrs")
-       (list (pt "SdMsSdRsSeq") "sdmssdrsseq")
+       (list (pt "SdMsSdRLsSeq") "sdmssdrlsseq")
        (list (pt "PosToNat") "postonat")
        (list (pt "[n] SdMs") "zerosequence")
        (list (pt "[p] Zero") "zeromodul")))
