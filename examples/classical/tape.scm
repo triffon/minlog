@@ -1,4 +1,4 @@
-;; 2014-10-12.  tape.scm
+;; 2020-09-10.  tape.scm
 
 ;; Based on work of Diana Ratiu and Trifon Trifonov.
 
@@ -18,6 +18,8 @@
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
+
+(add-var-name "k" (py "nat"))
 
 ;; The infinite 0/1 tape
 (add-var-name "f" (py "nat=>nat"))
@@ -135,19 +137,19 @@
 ;; [f]
 ;;  [if (f 0=1)
 ;;    [if (f 1=1)
-;;     (0@1)
+;;     (0 pair 1)
 ;;     [if (f 1=0)
 ;;      [if (f 2=1)
-;;       [if (f 3=1) (2@3) [if (f 3=0) (1@3) (0@0)]]
-;;       [if (f 2=0) (1@2) (0@0)]]
-;;      (0@0)]]
+;;       [if (f 3=1) (2 pair 3) [if (f 3=0) (1 pair 3) (0 pair 0)]]
+;;       [if (f 2=0) (1 pair 2) (0 pair 0)]]
+;;      (0 pair 0)]]
 ;;    [if (f 0=0)
 ;;     [if (f 1=1)
-;; 	[if (f 2=1) (1@2) (0@[if (f 2=0) 2 0])]
-;; 	(0@[if (f 1=0) 1 0])]
-;;     (0@0)]]
+;;      [if (f 2=1) (1 pair 2) [if (f 2=0) (0 pair 2) (0 pair 0)]]
+;;      [if (f 1=0) (0 pair 1) (0 pair 0)]]
+;;     (0 pair 0)]]
 
-;; This is literally the 2nd variant on p.54 of Diana Ratiu's thesis.
+;; This is the 2nd variant on p.54 of Diana Ratiu's thesis.
 
 (define expr (term-to-scheme-expr neterm))
 
