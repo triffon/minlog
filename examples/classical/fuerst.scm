@@ -9,7 +9,7 @@
 ;; Original reference: H. Fuerstenberg, On the infinitude of primes,
 ;; Amer. Math. Monthly 62 (1955), 353.
 
-(load "~/git/minlog/init.scm")
+;; (load "~/git/minlog/init.scm")
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
