@@ -6,7 +6,8 @@
 # to be tested
 
 .TEST:  .ivt.test-passed .sddiv.test-passed .graydiv.test-passed \
-        .sdmult.test-passed .graymult.test-passed .sdlim.test-passed
+        .sdmult.test-passed .graymult.test-passed .sdlim.test-passed \
+        .ishihara.test-passed
 	touch .TEST
 
 # .TEST:  .ivt.test-passed .ishihara.test-passed .ratsds.test-passed \
