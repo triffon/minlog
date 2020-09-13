@@ -1,4 +1,4 @@
-;; 2014-01-23.  dickson.scm.
+;; 2020-09-10.  dickson.scm.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -7,7 +7,7 @@
 (set! COMMENT-FLAG #t)
 
 (add-var-name "f" "g" (py "nat=>nat"))
-(add-var-name "i" "j" "l" (py "nat"))
+(add-var-name "i" "j" (py "nat"))
 
 ;; DicksonTwo
 (set-goal "all f,g excl i,j(i<j ! (f j<f i -> bot) ! (g j<g i -> bot))")
@@ -56,6 +56,7 @@
 (use "H3")
 (use "j<m+1")
 ;; Proof finished.
+;; (cdp)
 (save "DicksonTwo")
 
 ;; For normalization we need to block unfolding of GRecGuard (whose
@@ -69,19 +70,20 @@
 (define eterm (atr-min-excl-proof-to-structured-extracted-term
 	       min-excl-proof))
 
-(add-var-name "h" (py "nat=>nat@@nat"))
-(add-var-name "xi" (py "nat=>(nat=>nat@@nat)=>nat@@nat"))
+(add-var-name "h" (py "nat=>nat yprod nat"))
+(add-var-name "xi" (py "nat=>(nat=>nat yprod nat)=>nat yprod nat"))
 
 (define neterm (rename-variables (nt eterm)))
-(pp neterm)
+;; (pp neterm)
 
 ;; [f,f0]
-;;  (GRecGuard nat nat@@nat)f 0
+;;  (GRecGuard nat nat yprod nat)f 0
 ;;  ([n]
-;;    (GRecGuard nat (nat=>nat@@nat)=>nat@@nat)f0 n
+;;    (GRecGuard nat (nat=>nat yprod nat)=>nat yprod nat)f0 n
 ;;    ([n0,xi,h]
-;;      (GRecGuard nat nat@@nat)f(Succ n0)
-;;      ([n1,h0][if (f n1<f n0) (h n1) [if (f0 n1<f0 n0) (xi n1 h0) (n0@n1)]])
+;;      (GRecGuard nat nat yprod nat)f(Succ n0)
+;;      ([n1,h0]
+;;        [if (f n1<f n0) (h n1) [if (f0 n1<f0 n0) (xi n1 h0) (n0 pair n1)]])
 ;;      True)
 ;;    True)
 ;;  True
@@ -92,11 +94,11 @@
 (pp (nt (mk-term-in-app-form neterm t0 t1)))
 (set! GRECGUARD-UNFOLDING-FLAG #t)
 (pp (nt (mk-term-in-app-form neterm t0 t1)))
-;; 0@1
+;; 0 pair 1
 
 (define t0 (pt "[n]2--n"))
 (pp (nt (mk-term-in-app-form neterm t0 t1)))
-;; 2@3
+;; 2 pair 3
 
 ;; Comparison with brute force
 
