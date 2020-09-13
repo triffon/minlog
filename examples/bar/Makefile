@@ -1,4 +1,4 @@
-# $Id: Makefile 2156 2008-01-25 13:25:12Z schimans $
+# 2020-09-13.
 # Makefile for bar
 
 # The targets to be tested. Use .FILE.test-passed as target, if
@@ -7,9 +7,12 @@
 
 all: .TEST
 
-.TEST: .bar.test-passed .higman01.test-passed .higfin.test-passed \
-       .higwqo.test-passed .higman.test-passed
+.TEST: .bar.test-passed .higman01.test-passed .higfin.test-passed
 	touch .TEST
+
+# .TEST: .bar.test-passed .higman01.test-passed .higfin.test-passed \
+#        .higwqo.test-passed .higman.test-passed
+# 	touch .TEST
 
 
 # The relative path to the toplevel Minlog-Dir
