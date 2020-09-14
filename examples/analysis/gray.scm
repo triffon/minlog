@@ -1,4 +1,4 @@
-;; 2015-09-28.  gray.scm.  Type of reals still a tvar.
+;; 2017-04-21.  gray.scm.  Type of reals still a tvar.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -8,20 +8,23 @@
 
 (set! COMMENT-FLAG #f)
 (libload "nat.scm")
-(libload "numbers.scm")
-(libload "simpreal.scm")
-(libload "real.scm")
+(libload "pos.scm")
+(libload "int.scm")
+(libload "rat.scm")
+(libload "rea.scm")
 (set! COMMENT-FLAG #t)
 
 (remove-var-name "i" "j") ;will be used as variable names for sdtwo.
 (remove-var-name "d") ;will be used as variable name for sd
 (remove-var-name "a" "b") ;will be used as variable names for psd
 (remove-var-name "c") ;will be used as variable name for four
+(remove-var-name "r") ;will be used as a type variable
+(remove-token "r")
 (remove-var-name "x" "y" "z") ;will be used for the type variable r
 (remove-var-name "p") ;will be used as variable name for ag
 (remove-var-name "q") ;will be used as variable name for ah
 (remove-var-name "L") ;will be used as a constructor for lr
-(remove-token "L")
+;; (remove-token "L")
 (remove-var-name "M") ;will be used as modified G
 (remove-token "M")
 (remove-var-name "N") ;will be used as modified H
@@ -61,32 +64,26 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
@@ -112,13 +109,11 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
@@ -149,94 +144,74 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfqEqD")
 (use "Absurd")
 (assume "Useless")
 (use "InitEqD")
@@ -694,7 +669,7 @@
 (add-program-constant "Z" (py "r")) ;zero
 
 (add-program-constant "UnaryMinusScheme" (py "r=>r"))
-(add-prefix-display-string "UnaryMinusScheme" "~")
+(add-prefix-display-string "UnaryMinusScheme" "~~")
 
 (add-program-constant "AverageRealSd" (py "r=>sd=>r"))
 
@@ -750,11 +725,11 @@
 
 ;; We add axioms, as rewrite rules.
 
-(add-rewrite-rule "~ ~x^" "x^")
-(add-rewrite-rule "~(Z r)" "(Z r)")
+(add-rewrite-rule "~~ ~~x^" "x^")
+(add-rewrite-rule "~~(Z r)" "(Z r)")
 
-;; (add-global-assumption "MinusMinus" "all x^ ~ ~x^ eqd x^")
-;; (add-global-assumption "MinusZ" "~(Z r)eqd(Z r)")
+;; (add-global-assumption "MinusMinus" "all x^ ~~ ~~x^ eqd x^")
+;; (add-global-assumption "MinusZ" "~~(Z r)eqd(Z r)")
 
 (add-program-constant "PsdTimesReal" (py "psd=>r=>r"))
 (add-infix-display-string "PsdTimesReal" "***" 'mul-op)
@@ -767,19 +742,19 @@
 
 ;; Axioms:
 ;; PRhtTimes: PRht***x eqd x
-;; PLftTimes: PLft***x eqd ~x
+;; PLftTimes: PLft***x eqd ~~x
 ;; PsdTimesAv: a***(x av d) eqd a***x av a times d
 
 ;; Further rewrite rules proved from the axioms:
 ;; PsdTimesAssoc: a***(b***x) eqd (a times b)***x
-;; MinusMinus: ~ ~x eqd x
-;; MinusAv: ~(x av d) eqd ~x av inv d
-;; MinusAvInv: ~(x av inv d)eqd~x av d
-;; TimesRealInv: inv a***x eqd ~(a***x)
-;; TimesRealMinus: a*** ~x eqd ~(a***x)
+;; MinusMinus: ~~ ~~x eqd x
+;; MinusAv: ~~(x av d) eqd ~~x av inv d
+;; MinusAvInv: ~~(x av inv d)eqd~~x av d
+;; TimesRealInv: inv a***x eqd ~~(a***x)
+;; TimesRealMinus: a*** ~~x eqd ~~(a***x)
 
 (add-rewrite-rule "PRht***x^" "x^")
-(add-rewrite-rule "PLft***x^" "~x^")
+(add-rewrite-rule "PLft***x^" "~~x^")
 
 (add-rewrite-rule "a***(x^ av b)" "a***x^ av a times b")
 ;; (add-rewrite-rule "a***(x^ av PsdToSd b)" "a***x^ av PsdToSd(a times b)")
@@ -787,25 +762,29 @@
 
 ;; PRhtTimes
 (set-goal "all x^ PRht***x^ eqd x^")
-(use "RewriteGA82")
+(assume "x^")
+(use "InitEqD")
 ;; Proof finished.
 (save "PRhtTimes")
 
 ;; PLftTimes
-(set-goal "all x^ PLft***x^ eqd~x^")
-(use "RewriteGA85")
+(set-goal "all x^ PLft***x^ eqd~~x^")
+(assume "x^")
+(use "InitEqD")
 ;; Proof finished.
 (save "PLftTimes")
 
 ;; PsdTimesAvPsd
 (set-goal "all a,x^,b a***(x^ av b)eqd a***x^ av a times b")
-(use "RewriteGA86")
+(assume "a" "x^" "b")
+(use "InitEqD")
 ;; Proof finished.
 (save "PsdTimesAvPsd")
 
 ;; PsdTimesAvSd
 (set-goal "all a,x^,d a***(x^ av d)eqd a***x^ av a times d")
-(use "RewriteGA87")
+(assume "a" "x^" "d")
+(use "InitEqD")
 ;; Proof finished.
 (save "PsdTimesAvSd")
 
@@ -824,7 +803,7 @@
 (add-rewrite-rule "a***(b***x^)" "a times b***x^")
 
 ;; MinusMinus
-(set-goal "allnc x^ ~ ~x^ eqd x^")
+(set-goal "allnc x^ ~~ ~~x^ eqd x^")
 (assume "x^")
 (simp "<-" "PLftTimes")
 (simp "<-" "PLftTimes")
@@ -832,49 +811,49 @@
 (use "InitEqD")
 ;; Proof finished.
 (save "MinusMinus")
-(add-rewrite-rule "~ ~x^" "x^")
+(add-rewrite-rule "~~ ~~x^" "x^")
 
 ;; MinusAvPsd
-(set-goal "all x^,a ~(x^ av a) eqd~x^ av inv a")
+(set-goal "all x^,a ~~(x^ av a) eqd~~x^ av inv a")
 (assume "x^" "a")
 (inst-with-to "PsdTimesAvPsd"
 	      (pt "PLft") (pt "x^") (pt "a") "PsdTimesAvPsdInst")
 (use "PsdTimesAvPsdInst")
 ;; Proof finished.
 (save "MinusAvPsd")
-(add-rewrite-rule "~(x^ av a)" "~x^ av inv a")
+(add-rewrite-rule "~~(x^ av a)" "~~x^ av inv a")
 
 ;; MinusAvSd
-(set-goal "all x^,d ~(x^ av d) eqd~x^ av inv d")
+(set-goal "all x^,d ~~(x^ av d) eqd~~x^ av inv d")
 (assume "x^" "d")
 (inst-with-to "PsdTimesAvSd" (pt "PLft") (pt "x^") (pt "d") "PsdTimesAvSdInst")
 (use "PsdTimesAvSdInst")
 ;; Proof finished.
 (save "MinusAvSd")
-(add-rewrite-rule "~(x^ av d)" "~x^ av inv d")
+(add-rewrite-rule "~~(x^ av d)" "~~x^ av inv d")
 
 ;; MinusAvPsdInv
-(set-goal "all x^,a ~(x^ av inv a)eqd~x^ av a")
+(set-goal "all x^,a ~~(x^ av inv a)eqd~~x^ av a")
 (assume "x^" "a")
 (inst-with-to "PsdTimesAvPsd"
 	      (pt "PLft") (pt "x^") (pt "inv a") "PsdTimesAvPsdInst")
 (use "PsdTimesAvPsdInst")
 ;; Proof finished.
 (save "MinusAvPsdInv")
-(add-rewrite-rule "~(x^ av inv a)" "~x^ av a")
+(add-rewrite-rule "~~(x^ av inv a)" "~~x^ av a")
 
 ;; MinusAvSdInv
-(set-goal "all x^,d ~(x^ av inv d)eqd~x^ av d")
+(set-goal "all x^,d ~~(x^ av inv d)eqd~~x^ av d")
 (assume "x^" "d")
 (inst-with-to "PsdTimesAvSd"
 	      (pt "PLft") (pt "x^") (pt "inv d") "PsdTimesAvSdInst")
 (use "PsdTimesAvSdInst")
 ;; Proof finished.
 (save "MinusAvSdInv")
-(add-rewrite-rule "~(x^ av inv d)" "~x^ av d")
+(add-rewrite-rule "~~(x^ av inv d)" "~~x^ av d")
 
 ;; TimesRealInv
-(set-goal "all x^,a inv a***x^ eqd ~(a***x^)")
+(set-goal "all x^,a inv a***x^ eqd ~~(a***x^)")
 (assume "x^")
 (cases)
 (ng)
@@ -883,10 +862,10 @@
 (use "InitEqD")
 ;; Proof finished.
 (save "TimesRealInv")
-(add-rewrite-rule "inv a***x^" "~(a***x^)")
+(add-rewrite-rule "inv a***x^" "~~(a***x^)")
 
-;; TimesRealMinus:
-(set-goal "all x^,a a*** ~x^ eqd ~(a***x^)")
+;; TimesRealMinus
+(set-goal "all x^,a a*** ~~x^ eqd ~~(a***x^)")
 (assume "x^")
 (cases)
 (ng)
@@ -895,7 +874,7 @@
 (use "InitEqD")
 ;; Proof finished.
 (save "TimesRealMinus")
-(add-rewrite-rule "a*** ~x^" "~(a***x^)")
+(add-rewrite-rule "a*** ~~x^" "~~(a***x^)")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Inductive predicate I
@@ -1017,14 +996,14 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; CoIMinus
-(set-goal "allnc x^(CoI(~x^) -> CoI x^)")
+(set-goal "allnc x^(CoI(~~x^) -> CoI x^)")
 (assume "x^" "CoI-x")
 (coind "CoI-x")
 (assume "x^1" "CoI-x1")
-(inst-with-to "CoIClause" (pt "~x^1") "CoI-x1" "CoIClauseInst")
+(inst-with-to "CoIClause" (pt "~~x^1") "CoI-x1" "CoIClauseInst")
 (by-assume "CoIClauseInst" "x^2" "x2Prop")
 (by-assume "x2Prop" "d" "x2dProp")
-(intro 0 (pt "~x^2"))
+(intro 0 (pt "~~x^2"))
 (ex-intro "SdInv d")
 (split)
 (intro 1)
@@ -1151,6 +1130,7 @@
 
 (define eterm (proof-to-extracted-term))
 (add-var-name "atpq" (py "psd@@ag ysum ah")) ;t for times
+(add-var-name "ap" (py "psd@@ag"))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 ;; [atpq]
@@ -1215,9 +1195,9 @@
  "AverageRealAverageMidPsd"
  "all x^,y^,b x^ av Mid avr(y^ av b)eqd(Av r)x^ y^(Mid plus b)")
 
-;; ~ distributes over (Av r)
+;; ~~ distributes over (Av r)
 
-(add-rewrite-rule "~((Av r)x^ y^ i)" "(Av r)~x^ ~y^ inv i")
+(add-rewrite-rule "~~((Av r)x^ y^ i)" "(Av r)~~x^ ~~y^ inv i")
 ;; Added 2015-08-05
 (add-rewrite-rule "a***((Av r)x^ y^ i)" "(Av r)(a***x^)(a***y^)(a times i)")
 
@@ -1832,7 +1812,6 @@
 (add-var-name "p" (py "ag"))
 (add-var-name "q" (py "ah"))
 (add-var-name "apq" (py "psd@@(ag ysum ah)"))
-(add-var-name "ap" (py "psd@@ag"))
 (define neterm (rename-variables (nt eterm)))
 (ppc neterm)
 ;; [apq]
@@ -1924,7 +1903,7 @@
 ;; Case d=Rht
 (assume "d=Rht")
 (intro 0)
-(intro 0 (pt "~x^2"))
+(intro 0 (pt "~~x^2"))
 (ex-intro "a_1")
 (split)
 (intro 1)
@@ -1967,7 +1946,7 @@
 ;; Case d=Lft
 (assume "d=Lft")
 (intro 0)
-(intro 0 (pt "~x^2"))
+(intro 0 (pt "~~x^2"))
 (ex-intro "inv a")
 (split)
 (intro 1)
@@ -2080,11 +2059,11 @@
 ;; in strengthened form.
 
 ;; CoGMinus
-(set-goal "allnc x^(CoG(~x^) -> CoG x^)")
+(set-goal "allnc x^(CoG(~~x^) -> CoG x^)")
 (assume "x^" "CoG-x")
-(coind "CoG-x" (pf "CoH(~x^) -> CoH x^"))
+(coind "CoG-x" (pf "CoH(~~x^) -> CoH x^"))
 (assume "x^1" "CoG-x1")
-(inst-with-to "CoGClause" (pt "~x^1") "CoG-x1" "Disj")
+(inst-with-to "CoGClause" (pt "~~x^1") "CoG-x1" "Disj")
 (elim "Disj")
 (drop "Disj")
 ;; LR generating case
@@ -2097,7 +2076,7 @@
 (split)
 (intro 0)
 (use "x2aProp")
-(assert "x^1 eqd ~ ~x^1")
+(assert "x^1 eqd ~~ ~~x^1")
  (ng #t)
  (use "InitEqD")
 (assume "Assertion")
@@ -2111,12 +2090,12 @@
 (assume "ExHyp")
 (by-assume "ExHyp" "x^2" "x2Prop")
 (intro 1)
-(intro 0 (pt "~x^2"))
+(intro 0 (pt "~~x^2"))
 (split)
 (intro 1)
 (ng #t)
 (use "x2Prop")
-(assert "x^1 eqd ~ ~x^1")
+(assert "x^1 eqd ~~ ~~x^1")
  (ng #t)
  (use "InitEqD")
 (assume "Assertion")
@@ -2127,7 +2106,7 @@
 (use "InitEqD")
 ;; Goal 4
 (assume "x^1" "CoH-x1")
-(inst-with-to "CoHClause" (pt "~x^1") "CoH-x1" "Disj")
+(inst-with-to "CoHClause" (pt "~~x^1") "CoH-x1" "Disj")
 (elim "Disj")
 (drop "Disj")
 ;; LR generating case
@@ -2140,7 +2119,7 @@
 (split)
 (intro 0)
 (use "x2aProp")
-(assert "x^1 eqd ~ ~x^1")
+(assert "x^1 eqd ~~ ~~x^1")
  (ng #t)
  (use "InitEqD")
 (assume "Assertion")
@@ -2154,12 +2133,12 @@
 (assume "ExHyp")
 (by-assume "ExHyp" "x^2" "x2Prop")
 (intro 1)
-(intro 0 (pt "~x^2"))
+(intro 0 (pt "~~x^2"))
 (split)
 (intro 1)
 (ng #t)
 (use "x2Prop")
-(assert "x^1 eqd ~ ~x^1")
+(assert "x^1 eqd ~~ ~~x^1")
  (ng #t)
  (use "InitEqD")
 (assume "Assertion")
@@ -2246,7 +2225,7 @@
 (by-assume "ExHyp" "x^2" "x2Prop")
 (by-assume "x2Prop" "a" "x2aProp")
 (intro 0)
-(intro 0 (pt "~x^2"))
+(intro 0 (pt "~~x^2"))
 (ex-intro "a")
 (split)
 (intro 0)
@@ -2276,7 +2255,7 @@
 (by-assume "ExHyp" "x^2" "x2Prop")
 (by-assume "x2Prop" "a" "x2aProp")
 (intro 0)
-(intro 0 (pt "~x^2"))
+(intro 0 (pt "~~x^2"))
 (ex-intro "a")
 (split)
 (intro 0)
@@ -2943,15 +2922,15 @@
 (use "GenUz")
 (use "BHx1Sn")
 (drop "IHBHInst")
-;; 
+;;
 (assume "ExHypLR")
 (by-assume "ExHypLR" "x^2" "x2Prop")
 (by-assume "x2Prop" "a" "x2aProp")
-(assert "exr x^3 x^3 eqd inv PRht***(x^2 av Lft)")
+(assert "exnc x^3 x^3 eqd inv PRht***(x^2 av Lft)")
  (intro 0 (pt "inv PRht***(x^2 av Lft)"))
  (use "InitEqD")
-(assume "exr x^3 x^3 eqd inv PRht***(x^2 av Lft)")
-(by-assume "exr x^3 x^3 eqd inv PRht***(x^2 av Lft)" "x^3" "x3Def")
+(assume "exnc x^3 x^3 eqd inv PRht***(x^2 av Lft)")
+(by-assume "exnc x^3 x^3 eqd inv PRht***(x^2 av Lft)" "x^3" "x3Def")
 (assert "x^ eqd inv a***(x^3 av Lft)")
  (simp "x3Def")
  (simp "x1Prop")
@@ -3012,11 +2991,11 @@
 (assume "ExHypLR")
 (by-assume "ExHypLR" "x^2" "x2Prop")
 (by-assume "x2Prop" "a" "x2aProp")
-(assert "exr x^3 x^3 eqd x^2 av Lft")
+(assert "exnc x^3 x^3 eqd x^2 av Lft")
  (intro 0 (pt "x^2 av Lft"))
  (use "InitEqD")
-(assume "exr x^3 x^3 eqd x^2 av Lft")
-(by-assume "exr x^3 x^3 eqd x^2 av Lft" "x^3" "x3Def")
+(assume "exnc x^3 x^3 eqd x^2 av Lft")
+(by-assume "exnc x^3 x^3 eqd x^2 av Lft" "x^3" "x3Def")
 (assert "x^ eqd a***(x^3 av Rht)")
  (simp "x3Def")
  (simp "x1Prop")
@@ -3057,36 +3036,37 @@
 (define neterm (rename-variables (nt eterm)))
 (define nneterm (rename-variables (nt (undelay-delayed-corec neterm 1))))
 (ppc nneterm)
-;; [n0]
-;; (Rec nat=>(ag=>bg@@bg)@@(ah=>(nat ysum psd@@ag@@bg)@@(nat ysum psd@@ag@@bg)))
-;;  n0
-;;  (([p2]Nz@[case (Des p2) (InL ap3 -> LRz left ap3 Nz) (InR q3 -> Uz Zero)])@
-;;   ([q2]
+
+;; [n]
+;;  (Rec nat=>(ag=>bg@@bg)@@(ah=>(nat ysum psd@@ag@@bg)@@(nat ysum psd@@ag@@bg)))
+;;  n
+;;  (([p]Nz@[case (Des p) (InL ap -> LRz left ap Nz) (InR q -> Uz Zero)])@
+;;   ([q]
 ;;     InL Zero@
-;;     [case (Des q2)
-;;       (InL ap3 -> InR(left ap3@right ap3@Nz))
-;;       (InR q3 -> InL(Succ Zero))]))
-;;  ([n2,psf3]
-;;    ([p4]
-;;      right(left psf3 p4)@
-;;      [case (Des p4)
-;;        (InL ap5 -> LRz left ap5 right(left psf3 right ap5))
-;;        (InR q5 -> 
-;;        [case (right(right psf3 q5))
+;;     [case (Des q)
+;;       (InL ap -> InR(left ap@right ap@Nz))
+;;       (InR q0 -> InL(Succ Zero))]))
+;;  ([n0,psf]
+;;    ([p]
+;;      right(left psf p)@
+;;      [case (Des p)
+;;        (InL ap -> LRz left ap right(left psf right ap))
+;;        (InR q -> 
+;;        [case (right(right psf q))
 ;;          (InL n -> Uz n)
-;;          (InR apbg6 -> LRz left apbg6(LRz PRht right right apbg6))])])@
-;;    ([q4]
-;;      right(right psf3 q4)@
-;;      [case (Des q4)
-;;        (InL ap5 -> InR(left ap5@right ap5@right(left psf3 right ap5)))
-;;        (InR q5 -> 
-;;        [case (right(right psf3 q5))
-;;          (InL n6 -> InL(Succ n6))
-;;          (InR apbg6 -> 
+;;          (InR apbg -> LRz left apbg(LRz PRht right right apbg))])])@
+;;    ([q]
+;;      right(right psf q)@
+;;      [case (Des q)
+;;        (InL ap -> InR(left ap@right ap@right(left psf right ap)))
+;;        (InR q0 -> 
+;;        [case (right(right psf q0))
+;;          (InL n1 -> InL(Succ n1))
+;;          (InR apbg -> 
 ;;          InR
-;;          (left apbg6@
-;;           LR PLft left right apbg6@
-;;           right(left psf3(LR PLft left right apbg6))))])]))
+;;          (left apbg@
+;;           LR PLft left right apbg@
+;;           right(left psf(LR PLft left right apbg))))])]))
 
 ;; CoGToBG
 (set-goal "all n allnc x^(CoG x^ -> BG x^ n)")
@@ -3100,41 +3080,40 @@
 (animate "CoGToBGAux")
 (define neterm-CoGToBG (rename-variables (nt eterm)))
 (define nneterm (nt (undelay-delayed-corec neterm-CoGToBG 1)))
-(ppc nneterm)
-;; [n0,p1]
+(ppc (rename-variables nneterm))
+
+;; [n,p]
 ;;  left(left((Rec nat=>(ag=>bg@@bg)@@(ah=>(nat ysum psd@@ag@@bg)@@
 ;;                                         (nat ysum psd@@ag@@bg)))
-;;            n0
-;;            (([p2]Nz@[case (Des p2)
-;;                       (InL ap3 -> LRz left ap3 Nz)
-;;                       (InR q3 -> Uz Zero)])@
-;;             ([q2]
-;;               InL Zero@
-;;               [case (Des q2)
-;;                 (InL ap3 -> InR(left ap3@right ap3@Nz))
-;;                 (InR q3 -> InL(Succ Zero))]))
-;;            ([n2,psf3]
-;;              ([p4]right(left psf3 p4)@
-;;                [case (Des p4)
-;;                  (InL ap5 -> LRz left ap5 right(left psf3 right ap5))
-;;                  (InR q5 -> 
-;;                  [case (right(right psf3 q5))
+;;            n
+;;            (([p0]Nz@[case (Des p0)
+;; 		      (InL ap -> LRz left ap Nz)
+;; 		      (InR q -> Uz Zero)])@
+;;             ([q]InL Zero@[case (Des q)
+;;                 (InL ap -> InR(left ap@right ap@Nz))
+;;                 (InR q0 -> InL(Succ Zero))]))
+;;            ([n0,psf]
+;;              ([p0]right(left psf p0)@
+;;                [case (Des p0)
+;;                  (InL ap -> LRz left ap right(left psf right ap))
+;;                  (InR q -> 
+;;                  [case (right(right psf q))
 ;;                    (InL n -> Uz n)
-;;                    (InR apbg6 ->
-;;                      LRz left apbg6(LRz PRht right right apbg6))])])@
-;;              ([q4]right(right psf3 q4)@
-;;                [case (Des q4)
-;;                  (InL ap5 -> 
-;;                  InR(left ap5@right ap5@right(left psf3 right ap5)))
-;;                  (InR q5 -> 
-;;                  [case (right(right psf3 q5))
-;;                    (InL n6 -> InL(Succ n6))
-;;                    (InR apbg6 -> 
+;;                    (InR apbg ->
+;; 		     LRz left apbg(LRz PRht right right apbg))])])@
+;;              ([q]right(right psf q)@
+;;                [case (Des q)
+;;                  (InL ap ->
+;; 		   InR(left ap@right ap@right(left psf right ap)))
+;;                  (InR q0 -> 
+;;                  [case (right(right psf q0))
+;;                    (InL n1 -> InL(Succ n1))
+;;                    (InR apbg -> 
 ;;                    InR
-;;                    (left apbg6@
-;;                     LR PLft left right apbg6@
-;;                     right(left psf3(LR PLft left right apbg6))))])])))
-;;       p1)
+;;                    (left apbg@
+;;                     LR PLft left right apbg@
+;;                     right(left psf(LR PLft left right apbg))))])])))
+;;       p)
 
 ;; For CoGToModCoG we will need
 
@@ -3570,7 +3549,7 @@
 (assume "x^0" "CoHx0")
 (inst-with-to "CoHClause" (pt "x^0") "CoHx0" "CoHClauseInst")
 (elim "CoHClauseInst")
-;; 283,284
+;; 279,280
 (drop "CoHClauseInst")
 ;; Case ha
 (assume "ExHyp1")
@@ -3579,7 +3558,7 @@
 (inst-with-to "x1a1Prop" 'left "CoGx1")
 (inst-with-to "CoGClause" (pt "x^1") "CoGx1" "CoGClauseInst1")
 (elim "CoGClauseInst1")
-;; 297,298
+;; 293,294
 (drop "CoGClauseInst1")
 ;; Case haa
 (assume "ExHyp2")
@@ -3591,14 +3570,14 @@
 (inst-with-to "x2a2Prop" 'left "CoGx2")
 (inst-with-to "CoGClause" (pt "x^2") "CoGx2" "CoGClauseInst2")
 (elim "CoGClauseInst2")
-;; 314,315
+;; 310,311
 (drop "CoGClauseInst2")
 ;; Case haLa
 (assume "ExHyp3")
 (by-assume "ExHyp3" "x^3" "x3Prop")
 (by-assume "x3Prop" "a3" "x3a3Prop")
 (cases (pt "a3"))
-;; 324,325
+;; 320.321
 (assume "a3=PLft")
 ;; Case haLL
 (intro 1) ;go for rhs of goal
@@ -3625,7 +3604,7 @@
 (simp "a2=PLft")
 (ng #t)
 (use "InitEqD")
-;; 325
+;; 321
 (assume "a3=PRht")
 ;; Case haLR
 (intro 0) ;go for lhs of goal
@@ -3646,7 +3625,7 @@
 (ng #t)
 (use "LMidRNotZero")
 (use "x1a1Prop")
-;; 315
+;; 311
 (drop "CoGClauseInst2")
 ;; Case haLU
 (assume "ExHyp3")
@@ -3669,7 +3648,7 @@
 (use "MidNotZero")
 (use "MidANotZero")
 (use "x1a1Prop")
-;; 308
+;; 304
 (assume "a2=PRht")
 ;; Case haR
 (intro 0) ;go for lhs of goal
@@ -3758,14 +3737,14 @@
 (assume "a3=PRht")
 ;; Case hDaR
 (intro 0) ;go for lhs of goal
-(intro 0 (pt "~x^3 av PLft av Mid"))
-(intro 0 (pt "a2***(~x^3 av PLft av Mid av PRht)"))
+(intro 0 (pt "~~x^3 av PLft av Mid"))
+(intro 0 (pt "a2***(~~x^3 av PLft av Mid av PRht)"))
 (ex-intro "a2") ;and a2
 (split)
 (intro 1) ;recursive call
 (use "CoGClauseInv")
 (intro 1)
-(intro 0 (pt "~x^3 av PLft"))
+(intro 0 (pt "~~x^3 av PLft"))
 (split)
 (use "CoHClauseInv")
 (intro 0)
@@ -4113,8 +4092,7 @@
 
 ;; [v,n]
 ;;  (Rec nat=>iv=>rat)n([v0]0)
-;;  ([n0,(iv=>rat),v0]
-;;    ((iv=>rat)right(cCoIClause v0)+SDToInt left(cCoIClause v0))/2)
+;;  ([n0,(iv=>rat),v0]((iv=>rat)right Des v0+SDToInt left Des v0)/2)
 ;;  v
 
 ;; For experiments we define approximations to the square root of a rational.
@@ -4185,7 +4163,7 @@
 ;; How to run the Haskell program.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; In a terminal type ghci examplesanalysisgraytvar.hs.  The result is
+;; In a terminal type ghci gray.hs.  The result is
 
 ;; GHCi, version 7.0.4: http://www.haskell.org/ghc/  :? for help
 ;; Loading package ghc-prim ... linking ... done.

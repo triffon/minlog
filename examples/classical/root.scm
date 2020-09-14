@@ -84,5 +84,5 @@
 ;; (* 1309 1309) ;1713481
 
 ;; (time (intsqrt 1712345))
-;; 975 ms
+;; 142 ms
 ;; Slow, because natRec counts down.

@@ -618,7 +618,7 @@
 ;; Proof finished.
 (save-totality)
 
-;; (pp (nt (pt "BSeq([n,m]m<=n)(3::0::1::3::2:)")))
+;; (pp (nt (pt "BSeq([n,m]n<=m)(3::0::1::3::2:)")))
 ;; 0::1::2:
 
 ;; A forest is a labelled nested tree (with (vs pair as) as labels).

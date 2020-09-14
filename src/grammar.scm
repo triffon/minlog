@@ -1,4 +1,4 @@
-; $Id: grammar.scm 2534 2012-03-13 22:03:25Z schwicht $
+;; 2020-07-08.  grammar.scm
 ; 7-5. Parsing
 ; ============
 
@@ -216,12 +216,50 @@
      ("Equal" predconst-name .
         (string-and-arity-to-predconst-parse-function
           "Equal" (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
+     ("EqP" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "EqP" (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
+     ("EqPNc" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "EqPNc"
+     	  (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
+     ("CoEqP" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "CoEqP"
+     	  (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
+     ("CoEqPNc" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "CoEqPNc"
+     	  (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
+     ("EqPMR" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "EqPMR"
+          (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha")
+     		      (make-tvar -1 "alpha"))))
+     ("CoEqPMR" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "EqPMR"
+          (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha")
+     		      (make-tvar -1 "alpha"))))
      ("Total" predconst-name .
         (string-and-arity-to-predconst-parse-function
           "Total" (make-arity (make-tvar -1 "alpha"))))
+     ("TotalNc" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "TotalNc" (make-arity (make-tvar -1 "alpha"))))
+     ("CoTotal" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "CoTotal" (make-arity (make-tvar -1 "alpha"))))
+     ("CoTotalNc" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "CoTotalNc" (make-arity (make-tvar -1 "alpha"))))
      ("TotalMR" predconst-name .
         (string-and-arity-to-predconst-parse-function
           "TotalMR"
+          (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
+     ("CoTotalMR" predconst-name .
+        (string-and-arity-to-predconst-parse-function
+          "CoTotalMR"
           (make-arity (make-tvar -1 "alpha") (make-tvar -1 "alpha"))))
 
 ; Type Variables

@@ -1,4 +1,4 @@
-;; $Id: var.scm 2659 2014-01-08 09:50:19Z schwicht $
+;; 2020-07-10.  var.scm
 ;; 3. Variables
 ;; ============
 
@@ -287,3 +287,28 @@
    t-deg-zero
    (var-to-name var)))
 
+;; var-and-t-deg-to-new-var creates a new variable with the given
+;; t-deg and the same name and type as the given one.
+
+(define (var-and-t-deg-to-new-var var t-deg)
+  (make-var
+   (var-to-type var)
+   (+ 1 MAXVARINDEX)
+   t-deg
+   (var-to-name var)))
+
+;; Code discarded 2020-07-10
+;; ;; check-restricted-var : a restricted variable of closed type can
+;; ;; only have a type of level at most one.
+
+;; (define (check-restricted-var var) ;var of t-deg one
+;;   (let* ((type (var-to-type var))
+;; 	 (tvars (type-to-tvars type))
+;; 	 (level (type-to-level type)))
+;;     (if (and (null? tvars) (< 1 level))
+;; 	(myerror "check-restricted-var" "restricted variable"
+;; 		 (make-term-in-var-form var)
+;; 		 "has closed type of level larger than one" type))))
+
+;; ;; (check-restricted-var (term-in-var-form-to-var (pt "(nat=>nat)=>boole")))
+;; ;; (check-restricted-var (term-in-var-form-to-var (pt "(nat=>alpha)=>boole")))

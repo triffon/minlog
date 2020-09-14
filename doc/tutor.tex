@@ -1,4 +1,4 @@
-%% $Id: tutor.tex 2702 2014-09-18 13:43:39Z schwicht $
+%% 2017-04-21
 
 \documentclass[12pt]{amsart}
 \usepackage{amssymb,enumerate}
@@ -7,7 +7,7 @@
 \newcommand{\allnc}{\forall^{\mathrm{nc}}} %no computational content
 \newcommand{\ex}{\exists} %constructive
 \newcommand{\excl}{\tilde{\exists}} %classical, with logical falsum
-\newcommand{\exu}{\exists^{\mathrm{u}}} %constructive, no comp. content
+\newcommand{\exnc}{\exists^{\mathrm{nc}}} %constructive, no comp. content
 \newcommand{\tonc}{\to^{\mathrm{nc}}}
 \newcommand{\falsum}{\bot}
 \newcommand{\GTotal}{T} %obsolete, to be replaced by \Total
@@ -117,8 +117,8 @@ chr \rangle$.
 In order to use \mi, one simply needs a shell in which to run \mi\ and
 also an editor in which to edit and record the commands for later
 sessions.  In this tutorial we shall refer to GNU Emacs\footnote{See
-  also the Appendix \ref{emacs} for some useful keyboard commands to
-  start working with Emacs.}.  While working with Emacs, the ideal
+  also the Appendix \ref{SS:Emacs} for some useful keyboard commands
+  to start working with Emacs.}.  While working with Emacs, the ideal
 would be to split the window in two parts: one containing the file in
 which to store the commands, and the other with the \mi\ interactive
 session taking place.  To this aim, it is recommended to use the
@@ -1213,6 +1213,7 @@ continuous function.  We suggest to solve the problem as follows.
 ;; (add-var-name "x" "y" (py "alpha"))
 (add-tvar-name "beta")
 (add-var-name "u" "v" "w" (py "beta"))
+(add-program-constant "In" (py "alpha=>beta=>boole"))
 (add-infix-display-string "In" "elem" 'rel-op)
 (add-var-name "f" (py "alpha=>alpha"))
 
@@ -1934,7 +1935,7 @@ content) as follows:
 (add-ids
  (list (list "RevI"(make-arity (py "list alpha")
                                (py "list alpha"))))
- '("RevI(Nil alpha)(Nil alpha)" "InitRev")
+ '("RevI(Nil alpha)(Nil alpha)" "InitRevI")
  '("all a,v,w(RevI v w  -> RevI(v++a:)(a::w))" "GenRevI"))
 \end{verbatim}
 %% (add-ids
@@ -2149,14 +2150,14 @@ the \inquotes{uniform one clause defined}%
   $\to$) only; see the reference manual for details.}
 which are non-computational.  Examples are Leibniz equality%
 \index{Leibniz equality} \texttt{EqD}\index{EqD}, and uniform variants
-\texttt{ExU}\index{ExU} and \texttt{AndU}\index{AndU} of the
+\texttt{ExNc}\index{ExNc} and \texttt{AndNc}\index{AndNc} of the
 existential quantifier and conjunction.
 
 One can prove a non-computational version of the lemma above, where
 we only need to replace the \texttt{ex-intro} command by the general
-\texttt{intro}, since \texttt{ExU} is inductively defined.
+\texttt{intro}, since \texttt{ExNc} is inductively defined.
 \begin{verbatim}
-(set-goal "allnc n(EvenNC n -> exu m m+m=n)")
+(set-goal "allnc n(EvenNC n -> exnc m m+m=n)")
 (assume "n" "En")
 (elim "En")
 (intro 0 (pt "0"))

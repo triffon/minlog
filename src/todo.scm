@@ -1,4 +1,29 @@
-;; 2015-06-07.  todo.scm
+;; 2018-09-03.  todo.scm
+
+;; 2018-09-03.  search and auto should get an optional ignore-deco-flag
+
+;; 2017-04-01.  Adapt the proofs of AllTotalIntroSound and
+;; AllTotalElimSound to use CoEqPNc rather than EqD.  Add transitivity
+;; of CoEqPNc as an axiom.
+
+;; 2016-10-16.  formula-and-falsity-avar-to-efq-proof needs to be
+;; adapted to the general form of clauses, for instance
+;; allnc n^(TotalNat n^ -> allnc m^(TotalNat m^ -> TotalLam(Thrd n^ m^)))
+
+;; 2016-10-16.  Adapt all-formula-to-mr-ind-proof to invariance axioms.
+
+;; 2016-08-12.  In the dev branch examples/classical/gcd.scm gives an
+;; error at (proof-to-extracted-d-term (theorem-name-to-proof "GcdAnd"))
+;; mk-term-in-app-form
+;; applicable type expected
+;; nat
+
+;; 2016-06-09.  Replace axiom mr-intro-mr-aconst by a theorem
+
+;; 2016-06-09.  Parsing of (i) cases display (ii) predicates
+
+;; 2016-04-17.  Prove axioms of an ordered field for rat, with RatEqv
+;; == as equality.  Define RatUDiv.
 
 ;; 2015-06-07.  axiom-to-soundness-proof has problems at intro and
 ;; elim axioms for idpcs with parameters (already in the unnested case).

@@ -10,7 +10,7 @@
 ;; ========
 ;; (typ.scm)
 
-;; Test for compose-substitutions
+;; Tests for compose-substitutions
 
 (define tsubst1 (list (list (py "alpha") (py "beta=>beta"))))
 (define tsubst2 (list (list (py "beta") (py "alpha"))))
@@ -89,6 +89,8 @@
 ;; list
 ;; 	Nil:	list alpha
 ;; 	Cons:	alpha=>list alpha=>list alpha
+;; inf
+;; 	Gen:	inf=>inf
 ;; zsnat
 ;; 	ZsnatZero:	alpha=>zsnat alpha beta
 ;; 	ZsnatSucc:	beta=>zsnat alpha beta=>zsnat alpha beta
@@ -261,10 +263,15 @@
 
 (finalg? (py "nat")) ;#t
 (finalg? (py "ordl")) ;#f
+(finalg? (py "ordl") (py "nat=>ordl")) ;#t
 (finalg? (py "list nat")) ;#t
 (finalg? (py "list alpha")) ;#f
+(finalg? (py "list(list nat)")) ;#t
+(finalg? (py "list(list alpha)")) ;#f
 (finalg? (py "nat yprod boole")) ;#t
 (finalg? (py "nat yprod alpha")) ;#f
+(finalg? (py "alpha yprod beta") (py "alpha") (py "beta")) ;#t
+(finalg? (py "alpha") (py "alpha yprod beta")) ;#f
 (finalg? (py "nat ysum boole")) ;#t
 (finalg? (py "nat ysum alpha")) ;#f
 (finalg? (py "tlist")) ;#t
@@ -273,6 +280,7 @@
 (finalg? (py "ltree nat")) ;#t
 (finalg? (py "ltlist alpha")) ;#f
 (finalg? (py "ltree alpha")) ;#f
+(finalg? (py "ltree alpha") (py "alpha")) ;#t
 (finalg? (py "hterm")) ;#t
 (finalg? (py "infltlist nat")) ;#f
 (finalg? (py "infltree nat")) ;#f
@@ -285,3 +293,68 @@
 (sfinalg? (py "ltlist alpha")) ;#t
 (sfinalg? (py "infltlist nat")) ;#f
 (sfinalg? (py "infltree nat")) ;#f
+
+;; Tests for type-to-canonical-inhabitant
+
+(pp (type-to-canonical-inhabitant (py "alpha")))
+;; (Inhab alpha)
+
+(pp (type-to-canonical-inhabitant (py "alpha yprod beta")))
+;; (Inhab alpha)pair(Inhab beta)
+
+(pp (alg-to-canonical-inhabitant (py "boole yprod nat")))
+;; True pair 0
+
+(pp (type-to-canonical-inhabitant (py "alpha ysum beta")))
+;; (InL alpha beta)(Inhab alpha)
+
+(pp (alg-to-canonical-inhabitant (py "boole ysum nat")))
+;; (InL boole nat)True
+
+(pp (alg-to-canonical-inhabitant (py "alpha ysum nat")))
+;; (InL alpha nat)(Inhab alpha)
+
+(pp (alg-to-canonical-inhabitant (py "nat")))
+;; 0
+	
+(add-algs (list "alga" "algb")
+	  '("algb=>alga" "Cba")
+	  '("algb=>alga=>alga" "Cbaa")
+	  '("nat=>alga=>algb=>algb" "Cnabb")
+	  '("nat=>algb" "Cnb"))
+
+(pp (alg-to-canonical-inhabitant (py "alga")))
+;; Cba(Cnb 0)
+
+(remove-alg-name "alga" "algb")
+	
+(add-algs (list "ap" "bp")
+	  '("alpha=>bp=>ap" "Cbap")
+	  '("bp=>ap=>ap" "Cbaap")
+	  '("nat=>ap=>bp=>bp" "Cnabbp")
+	  '("list alpha=>bp" "Clbp"))
+
+(display-alg "ap" "bp")
+
+(pp (rename-variables (nt (alg-to-canonical-inhabitant (py "ap alpha")))))
+
+;; (Cbap alpha)(Inhab alpha)((Clbp alpha)(Nil alpha))
+
+(pp (term-to-type (pt "(Cbap alpha)alpha((Clbp alpha)(Nil alpha))")))
+;; ap alpha
+
+(remove-alg-name "ap" "bp")
+
+(add-algs (list "alga")
+	  '("(nat=>boole)=>alga" "Inita"))
+
+(pp (rename-variables (alg-to-canonical-inhabitant (py "alga"))))
+;; Inita([n]True)
+
+(remove-alg-name "alga")
+
+(pp (alg-to-canonical-inhabitant (make-alg "algEv")))
+;; CInitEv
+(pp (alg-to-canonical-inhabitant (make-alg "algOd")))
+;; CGenOd CInitEv
+

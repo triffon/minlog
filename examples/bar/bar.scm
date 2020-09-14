@@ -117,8 +117,8 @@
 
 ;; (f fbar n+1)=ws++(f n):
 (inst-with-to
- "FBarAppdLast" (py "list nat") (pt "n") (pt "f") "FBarAppdLastInst")
-(simp "FBarAppdLastInst")
+ "ListFBarAppdLast" (py "list nat") (pt "n") (pt "f") "ListFBarAppdLastInst")
+(simp "ListFBarAppdLastInst")
 (simp "(f fbar n)=ws")
 (ng #t)
 (use "Truth")

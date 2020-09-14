@@ -1,4 +1,6 @@
-;; 2014-10-13.  fanwklu.scm
+;; 2020-07-17.  fanwklu.scm
+
+;; 2020-07-17.  ListFunzipTotal added.   ex replaced by exl, & by andnc.
 
 ;; 2011-07-14.  Adapted to lib/list.scm instead of the obsolete
 ;; lib/listrev.scm .  Reasons for discarding listrev.scm .  (1) It
@@ -30,6 +32,7 @@
 (libload "list.scm")
 (set! COMMENT-FLAG #t)
 
+(add-var-name "k" (py "nat"))
 (add-var-name "x" "y" (py "alpha"))
 (add-var-name "xy" (py "alpha yprod alpha"))
 (add-var-name "xys" (py "list(alpha yprod alpha)"))
@@ -67,7 +70,7 @@
 (use "Ty")
 (use "IH")
 ;; Proof finished.
-(save "ListZipTotal")
+(save-totality)
 
 (add-var-name "xs" "ys" (py "list alpha"))
 
@@ -112,12 +115,7 @@
 (use "IHn1")
 (use "Txs2")
 ;; Proof finished.
-(save "ListUnzipTotal")
-
-(add-ids (list (list "STotalYprod" (make-arity (py "alpha1 yprod alpha2"))
-	       "unit"))
-	 '("allnc alpha1^,alpha2^ STotalYprod(alpha1^ pair alpha2^)"
-	   "STotalYprodInit"))
+(save-totality)
 
 ;; STotalYprodEqDPair
 (set-goal "allnc xy^(STotalYprod xy^ -> xy^ eqd(lft xy^ pair rht xy^))")
@@ -167,35 +165,6 @@
 
 ;; (add-rewrite-rule (pt "Lh Zip xys") (pt "2*Lh xys"))
 
-(add-program-constant "Half" (py "nat=>nat"))
-(add-computation-rules
- "Half 0" "0"
- "Half 1" "0"
- "Half(Succ(Succ nat))" "Succ(Half nat)")
-
-;; (pp (nt (pt "Half 17")))
-
-;; HalfTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Half"))))
-(assert "allnc n^(TotalNat n^ -> TotalNat(Half n^) & TotalNat(Half(Succ n^)))")
- (use "AllTotalElim")
- (ind)
- (ng #t)
- (split)
- (use "TotalNatZero")
- (use "TotalNatZero")
- (assume "n1" "IH")
- (ng #t)
- (split)
- (use "IH")
- (use "TotalNatSucc")
- (use "IH")
-(assume "Assertion" "n^" "Tn")
-(use "Assertion")
-(use "Tn")
-;; Proof finished.
-(save "HalfTotal")
-
 (add-program-constant "Even" (py "nat=>boole"))
 
 (add-computation-rules
@@ -224,7 +193,7 @@
 (use "Assertion")
 (use "Tn")
 ;; Proof finished.
-(save "EvenTotal")
+(save-totality)
 
 ;; "ListFzip" and "ListFunzip" added as program constants
 
@@ -262,8 +231,8 @@
 (add-computation-rules
  "nat=>alpha yprod alpha fzip nat"
  "[if (Even nat)
-          (lft(nat=>alpha yprod alpha(Half nat)))
-          (rht(nat=>alpha yprod alpha(Half nat)))]")
+          (lft(nat=>alpha yprod alpha(NatHalf nat)))
+          (rht(nat=>alpha yprod alpha(NatHalf nat)))]")
 
 ;; (pp (nt (pt "([n]2*n pair 2*n+1)fzip 16")))
 ;; 16
@@ -275,17 +244,17 @@
 (use "BooleIfTotal")
 (use "EvenTotal")
 (use "Tn")
-;; ?_5:Total(lft((nat=>alpha yprod alpha)^(Half n^)))
+;; ?_5:Total(lft((nat=>alpha yprod alpha)^(NatHalf n^)))
 (use "PairOneTotal")
 (use "Hyp")
-(use "HalfTotal")
+(use "NatHalfTotal")
 (use "Tn")
 (use "PairTwoTotal")
 (use "Hyp")
-(use "HalfTotal")
+(use "NatHalfTotal")
 (use "Tn")
 ;; Proof finished.
-(save "ListFzipTotal")
+(save-totality)
 
 ;; Here we needed totality properties PairOneTotal and PairTwoTotal of
 ;; the defined yprod, or else totality axioms for the primitive pair.
@@ -332,6 +301,26 @@
 
 ;; (nat=>nat)0::
 ;; (nat=>nat)1::(nat=>nat)2::(nat=>nat)3::(nat=>nat)4::((nat=>nat)5):
+
+;; ListFunzipTotal
+(set-goal
+ (rename-variables (term-to-totality-formula (pt "(ListFunzip alpha)"))))
+(assume "(nat=>alpha)^" "Hyp" "n^" "Tn")
+(ng #t)
+(intro 0)
+(use "Hyp")
+(use "NatTimesTotal")
+(use "NatTotalVar")
+(use "Tn")
+;; 5
+(use "Hyp")
+(intro 1)
+(use "NatTimesTotal")
+(use "NatTotalVar")
+(use "Tn")
+;; Proof finished.
+;; (cdp)
+(save-totality)
 
 (add-var-name "a" "b" "c" (py "list boole")) ;node
 (add-var-name "r" "s" "t" (py "list boole=>boole")) ;tree, bar
@@ -516,40 +505,42 @@
  "Even(Succ(nat+nat))" "False")
 
 (add-rewrite-rules
- "Half(nat+nat)" "nat"
- "Half(Succ(nat+nat))" "nat")
+ "NatHalf(nat+nat)" "nat"
+ "NatHalf(Succ(nat+nat))" "nat")
+
+;; 2020-07-17.  FanImpPFan rewritten without the primitive ex
 
 ;; FanImpPFan
-(set-goal "all s^(
-all f ex m s^(f fbar m) -> ex k all f exca m(m<k+1 ! s^(f fbar m))) ->
+(set-goal "all s(
+all f exl m s(f fbar m) -> exl k all f exca m(m<k+1 ! s(f fbar m))) ->
 all n,ss(
  all bc,n(n<=Lh bc -> ss(bc bar n) -> ss bc) ->
  all gh(
   ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
-  ex m ss(gh fbar m)) ->
- ex k
+  exl m ss(gh fbar m)) ->
+ exl k
   all gh(
    ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
     ss(gh fbar k)))")
 (assume "Fan" "n" "ss" "Upclosed_ss" "Bar_ss")
-(assert "all f ex m  AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
+(assert "all f exl m  AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
                                  False)impb
-                           ss(Half Lh(f fbar m)unzip(f fbar m))) ->
-          ex k all f exca m.
+                           ss(NatHalf Lh(f fbar m)unzip(f fbar m))) ->
+          exl k all f exca m.
              m<k+1 !
              AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
                             False)impb
-                      ss(Half Lh(f fbar m)unzip(f fbar m)))")
+                      ss(NatHalf Lh(f fbar m)unzip(f fbar m)))")
 ;; We instantiate Fan with s_n
 (use-with "Fan" (pt "[a]AllBNat n([i](a__(2*i)=a__(2*i+1) impb False)impb
-                                     ss((Half(Lh a)unzip a)))"))
+                                     ss((NatHalf(Lh a)unzip a)))"))
 (assume "FanInst")
 (drop "Fan")
 ;; We need to show that s_n bars every path.
 (assert
- "all f ex m AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
+ "all f exl m AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
                                 False)impb
-                           ss(Half Lh(f fbar m)unzip f fbar m))")
+                           ss(NatHalf Lh(f fbar m)unzip f fbar m))")
  (assume "f")
  (cases (pt "AllBNat n([i]f(2*i)=f(2*i+1))"))
  (assume "Case1")
@@ -560,12 +551,12 @@ all n,ss(
  (drop "Case1")
  (assume "Case1Log")
  ;; We guess that 2*n will be the proper m
- (ex-intro (pt "2*n"))
+ (intro 0 (pt "2*n"))
  ;; For easier use we write our goal in logical form
  (use-with
   "AllBNatIntro"
   (pt "[i]((f fbar 2*n)__(2*i)=(f fbar 2*n)__(2*i+1)impb False)impb
-          ss(Half Lh(f fbar 2*n)unzip f fbar 2*n)")
+          ss(NatHalf Lh(f fbar 2*n)unzip f fbar 2*n)")
   (pt "n") "?")
  (assume "i" "i<n")
  (ng #t)
@@ -593,9 +584,9 @@ all n,ss(
  (use "Truth")
 
  (assume "Case2")
- ;; By Bar_ss with gh := Funzip f we can find an m such tha
+ ;; By Bar_ss with gh := Funzip f we can find an m such that
  ;; bc := (Funzip f fbar m) is in ss
- (assert "ex m ss(Funzip f fbar m)")
+ (assert "exl m ss(Funzip f fbar m)")
   (use "Bar_ss")
   (add-global-assumption
    "FanImpPFanAux3"
@@ -617,10 +608,10 @@ all n,ss(
   (use "ExHypInst")
  (assume "H1")
 ;; Now we can take a:= Zip(bc) = Zip(Funzip f fbar(m+n)) = f fbar(2*(m+n))
- (ex-intro (pt "2*(m max n)"))
+ (intro 0 (pt "2*(m max n)"))
   (add-global-assumption
    "FanImpPFanAux5"
-   "all f,m,n (Half Lh(f fbar 2*(m max n))unzip f fbar 2*(m max n))=
+   "all f,m,n (NatHalf Lh(f fbar 2*(m max n))unzip f fbar 2*(m max n))=
               (Funzip f fbar m)")
   (simp "FanImpPFanAux5")
   (simp "ExHypInst")
@@ -632,7 +623,7 @@ all n,ss(
 (inst-with-to "FanInst" "FanInstHyp" "ExHyp")
 (drop "FanInst" "FanInstHyp")
 (by-assume "ExHyp" "k" "Uniform-sn-bound")
-(ex-intro (pt "k max n"))
+(intro 0 (pt "k max n"))
 (assume "gh" "ghdiff")
 ;; We use ss(gh fbar 2*(k max n)) from sn(a), for a = f fbar(2*(k max n))
 (add-global-assumption
@@ -645,13 +636,155 @@ all n,ss(
    AllBNat n
    ([i]
      ((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb False)impb
-     ss(Half Lh(f fbar m)unzip f fbar m))) ->
+     ss(NatHalf Lh(f fbar m)unzip f fbar m))) ->
    ss(gh fbar k max n))")
 (use "FanImpPFanAux6")
 (use "ghdiff")
 (use "Uniform-sn-bound")
 ;; Proof finished.
-(save "FanImpPFan")
+;; (cdp)
+(save"FanImpPFan")
+
+;; Code discarded 2020-07-17
+;; ;; FanImpPFan
+;; (set-goal "all s^(
+;; all f ex m s^(f fbar m) -> ex k all f exca m(m<k+1 ! s^(f fbar m))) ->
+;; all n,ss(
+;;  all bc,n(n<=Lh bc -> ss(bc bar n) -> ss bc) ->
+;;  all gh(
+;;   ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
+;;   ex m ss(gh fbar m)) ->
+;;  ex k
+;;   all gh(
+;;    ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
+;;     ss(gh fbar k)))")
+;; (assume "Fan" "n" "ss" "Upclosed_ss" "Bar_ss")
+;; (assert "all f ex m  AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
+;;                                  False)impb
+;;                            ss(NatHalf Lh(f fbar m)unzip(f fbar m))) ->
+;;           ex k all f exca m.
+;;              m<k+1 !
+;;              AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
+;;                             False)impb
+;;                       ss(NatHalf Lh(f fbar m)unzip(f fbar m)))")
+;; ;; We instantiate Fan with s_n
+;; (use-with "Fan" (pt "[a]AllBNat n([i](a__(2*i)=a__(2*i+1) impb False)impb
+;;                                      ss((NatHalf(Lh a)unzip a)))"))
+;; (assume "FanInst")
+;; (drop "Fan")
+;; ;; We need to show that s_n bars every path.
+;; (assert
+;;  "all f ex m AllBNat n([i]((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb
+;;                                 False)impb
+;;                            ss(NatHalf Lh(f fbar m)unzip f fbar m))")
+;;  (assume "f")
+;;  (cases (pt "AllBNat n([i]f(2*i)=f(2*i+1))"))
+;;  (assume "Case1")
+;;  ;; For easier use we write our case assumption in logical form
+;;  (assert "all i(i<n -> f(2*i)=f(2*i+1))")
+;;   (use-with "AllBNatElim" (pt "[i]f(2*i)=f(2*i+1)") (pt "n")
+;;             "Case1")
+;;  (drop "Case1")
+;;  (assume "Case1Log")
+;;  ;; We guess that 2*n will be the proper m
+;;  (intro 0 (pt "2*n"))
+;;  ;; For easier use we write our goal in logical form
+;;  (use-with
+;;   "AllBNatIntro"
+;;   (pt "[i]((f fbar 2*n)__(2*i)=(f fbar 2*n)__(2*i+1)impb False)impb
+;;           ss(NatHalf Lh(f fbar 2*n)unzip f fbar 2*n)")
+;;   (pt "n") "?")
+;;  (assume "i" "i<n")
+;;  (ng #t)
+;;  ;; From i<n we infer (f fbar n+n)__(i+i)=f(i+i)
+;;  (assert "(f fbar n+n)__(i+i)=f(i+i)")
+;;   (add-global-assumption
+;;    "FanImpPFanAux2" "all f,i,n(i<n -> (f fbar n+n)__(i+i)=f(i+i))")
+;;   (use "FanImpPFanAux2")
+;;   (use "i<n")
+;;  (assume "H1")
+;;  (simp "H1")
+;;  ;; From i<n we infer (f fbar n+n)__(Succ(i+i))=f(Succ(i+i))
+;;  (assert "(f fbar n+n)__(Succ(i+i))=f(Succ(i+i))")
+;;   (add-global-assumption
+;;    "FanImpPFanAux2a" "all f,i,n(i<n -> (f fbar n+n)__(Succ(i+i))=f(Succ(i+i)))")
+;;   (use "FanImpPFanAux2a")
+;;   (use "i<n")
+;;  (assume "H2")
+;;  (simp "H2")
+;;  (assert "f(2*i)=f(2*i+1)")
+;;   (use "Case1Log")
+;;   (use "i<n")
+;;  (assume "H3")
+;;  (simp "H3")
+;;  (use "Truth")
+
+;;  (assume "Case2")
+;;  ;; By Bar_ss with gh := Funzip f we can find an m such tha
+;;  ;; bc := (Funzip f fbar m) is in ss
+;;  (assert "ex m ss(Funzip f fbar m)")
+;;   (use "Bar_ss")
+;;   (add-global-assumption
+;;    "FanImpPFanAux3"
+;;    "all f,n((AllBNat n([i]f(2*i)=f(2*i+1)) -> F) ->
+;;          (([i]lft(f funzip i))fbar n)=(([i]rht(f funzip i))fbar n) -> F)")
+;;   (use "FanImpPFanAux3")
+;;   (use "Case2")
+;;  (assume "ExHyp")
+;;  (by-assume "ExHyp" "m" "ExHypInst")
+;; ;; By Upclosed_ss we can assume n<=m
+;;  (add-global-assumption
+;;   "FanImpPFanAux4"
+;;   "all ss,gh,m,n(all bc,n(n<=Lh bc -> ss(bc bar n) -> ss bc) ->
+;;                          ss(gh fbar m) ->
+;;                          ss(gh fbar(m max n)))")
+;;  (assert "ss(Funzip f fbar(m max n))")
+;;   (use "FanImpPFanAux4")
+;;   (use "Upclosed_ss")
+;;   (use "ExHypInst")
+;;  (assume "H1")
+;; ;; Now we can take a:= Zip(bc) = Zip(Funzip f fbar(m+n)) = f fbar(2*(m+n))
+;;  (intro 0 (pt "2*(m max n)"))
+;;   (add-global-assumption
+;;    "FanImpPFanAux5"
+;;    "all f,m,n (NatHalf Lh(f fbar 2*(m max n))unzip f fbar 2*(m max n))=
+;;               (Funzip f fbar m)")
+;;   (simp "FanImpPFanAux5")
+;;   (simp "ExHypInst")
+;;   (use "AllBNatIntro")
+;;   (strip)
+;;   (use "Truth")
+
+;; (assume "FanInstHyp")
+;; (inst-with-to "FanInst" "FanInstHyp" "ExHyp")
+;; (drop "FanInst" "FanInstHyp")
+;; (by-assume "ExHyp" "k" "Uniform-sn-bound")
+;; (intro 0 (pt "k max n"))
+;; (assume "gh" "ghdiff")
+;; ;; We use ss(gh fbar 2*(k max n)) from sn(a), for a = f fbar(2*(k max n))
+;; (add-global-assumption
+;;  "FanImpPFanAux6"
+;;  "all gh,n,ss,k(
+;;  ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
+;;  all f
+;;   exca m(
+;;    m<k+1 !
+;;    AllBNat n
+;;    ([i]
+;;      ((f fbar m)__(2*i)=(f fbar m)__(2*i+1)impb False)impb
+;;      ss(NatHalf Lh(f fbar m)unzip f fbar m))) ->
+;;    ss(gh fbar k max n))")
+;; (use "FanImpPFanAux6")
+;; (use "ghdiff")
+;; (use "Uniform-sn-bound")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; ;; check-aconst
+;; ;; Ex-Elim
+;; ;; not a sharp psubst: c.r. pvar
+;; ;; (pvar (arity alpha1089) 551 0 0 )
+;; ;; substituted by cterm with n.c. formula ...
+;; (save "FanImpPFan")
 
 ;; Variable names to be used in the extracted term.
 
@@ -668,7 +801,7 @@ all n,ss(
 ;;    AllBNat n
 ;;    ([n0]
 ;;      ((n0+n0 thof a)=(Succ(n0+n0)thof a)impb False)impb
-;;      ss(Half Lh a unzip a)))
+;;      ss(NatHalf Lh a unzip a)))
 ;;  ([f]
 ;;    [if (AllBNat n([n0]f(n0+n0)=f(Succ(n0+n0))))
 ;;      (n+n)
@@ -694,21 +827,21 @@ all n,ss(
  all bc,n(n<=Lh bc -> ss(bc bar n) -> ss bc) ->
  all gh(
   ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
-  ex m ss(gh fbar m)) ->
- ex k
+  exl m ss(gh fbar m)) ->
+ exl k
   all gh(
    ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
    ss(gh fbar k))) ->
 all t(
  Tree t ->
  all g,h,n(
-  ((g fbar n)=(h fbar n) -> F) -> ex m(t(g fbar m) -> t(h fbar m) -> F)) ->
+  ((g fbar n)=(h fbar n) -> F) -> exl m(t(g fbar m) -> t(h fbar m) -> F)) ->
  all n
-  ex k(n<=k & all b,c(Lh b=k -> Lh c=k -> t b -> t c -> b bar n=c bar n)))")
+  exl k(n<=k andnc all b,c(Lh b=k -> Lh c=k -> t b -> t c -> b bar n=c bar n)))")
 (assume "PFan" "t" "Tree t" "EffUniq t" "n")
 ;; We apply PFan to ss_t = { bc | t b impb t c impb False }
 ;; So we assert its conclusion
-(assert "ex k
+(assert "exl k
           all gh(
            ((([i]lft(gh i))fbar n)=
             (([i]rht(gh i))fbar n) -> F) ->
@@ -732,13 +865,13 @@ all t(
  ;; (drop "Tree t")
  ;; The second premise follows from EffUniq t.  We assert its conclusion
  (assume "gh" "ghdiff")
- (assert "ex m(t(([i]lft(gh i))fbar m) -> t(([i]rht(gh i))fbar m) -> F)")
+ (assert "exl m(t(([i]lft(gh i))fbar m) -> t(([i]rht(gh i))fbar m) -> F)")
   (use-with "EffUniq t" (pt "[i]lft(gh i)") (pt "[i]rht(gh i)")
 	    (pt "n") "ghdiff")
   (drop "EffUniq t")
  (assume "ExHyp")
  (by-assume "ExHyp" "m" "ExHypInst")
- (ex-intro (pt "m"))
+ (intro 0 (pt "m"))
  (ng #t)
  (assume "H1" "H2")
  (use "ExHypInst")
@@ -747,7 +880,7 @@ all t(
 (assume "PFanConcl")
 (drop "PFan" "EffUniq t")
 (by-assume "PFanConcl" "k" "PFanBound k")
-(ex-intro (pt "n max k"))
+(intro 0 (pt "n max k"))
 (split)
 (use "NatMaxUB1")
 (assume "b" "c" "H1" "H2" "H3" "H4")
@@ -851,7 +984,172 @@ all t(
 (use "NatMaxUB2")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "FanBound")
+
+;; ;; FanBound
+;; (set-goal "all n,ss(
+;;  all bc,n(n<=Lh bc -> ss(bc bar n) -> ss bc) ->
+;;  all gh(
+;;   ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
+;;   ex m ss(gh fbar m)) ->
+;;  ex k
+;;   all gh(
+;;    ((([i]lft(gh i))fbar n)=(([i]rht(gh i))fbar n) -> F) ->
+;;    ss(gh fbar k))) ->
+;; all t(
+;;  Tree t ->
+;;  all g,h,n(
+;;   ((g fbar n)=(h fbar n) -> F) -> ex m(t(g fbar m) -> t(h fbar m) -> F)) ->
+;;  all n
+;;   ex k(n<=k & all b,c(Lh b=k -> Lh c=k -> t b -> t c -> b bar n=c bar n)))")
+;; (assume "PFan" "t" "Tree t" "EffUniq t" "n")
+;; ;; We apply PFan to ss_t = { bc | t b impb t c impb False }
+;; ;; So we assert its conclusion
+;; (assert "ex k
+;;           all gh(
+;;            ((([i]lft(gh i))fbar n)=
+;;             (([i]rht(gh i))fbar n) -> F) ->
+;;            ([bc]t(([pq]lft pq)map bc)impb t(([pq]rht pq)map bc)impb False)
+;;            (gh fbar k))")
+;;  (use-with
+;;   "PFan"
+;;   (pt "n")
+;;   (pt "[bc]t(([pq]lft pq)map bc)impb t(([pq]rht pq)map bc)impb False")
+;;   "?" "?")
+;;  (drop "PFan")
+;;  ;; The first premise follows from Tree
+;;  (ng #t)
+;;  (add-global-assumption "FanBoundAux1"
+;;       "all t(Tree t -> all bc,n(
+;;         n<=Lh bc ->
+;;         t(([pq0]lft pq0)map bc bar n)impb
+;;         t(([pq0]rht pq0)map bc bar n)impb False ->
+;;         t(([pq0]lft pq0)map bc)impb t(([pq0]rht pq0)map bc)impb False))")
+;;  (use-with "FanBoundAux1" (pt "t") "Tree t")
+;;  ;; (drop "Tree t")
+;;  ;; The second premise follows from EffUniq t.  We assert its conclusion
+;;  (assume "gh" "ghdiff")
+;;  (assert "ex m(t(([i]lft(gh i))fbar m) -> t(([i]rht(gh i))fbar m) -> F)")
+;;   (use-with "EffUniq t" (pt "[i]lft(gh i)") (pt "[i]rht(gh i)")
+;; 	    (pt "n") "ghdiff")
+;;   (drop "EffUniq t")
+;;  (assume "ExHyp")
+;;  (by-assume "ExHyp" "m" "ExHypInst")
+;;  (intro 0 (pt "m"))
+;;  (ng #t)
+;;  (assume "H1" "H2")
+;;  (use "ExHypInst")
+;;  (use "H1")
+;;  (use "H2")
+;; (assume "PFanConcl")
+;; (drop "PFan" "EffUniq t")
+;; (by-assume "PFanConcl" "k" "PFanBound k")
+;; (intro 0 (pt "n max k"))
+;; (split)
+;; (use "NatMaxUB1")
+;; (assume "b" "c" "H1" "H2" "H3" "H4")
+;; (inst-with-to
+;;  "PFanBound k"
+;;  (pt "[i][if (i<(n max k)+1) (b__i pair c__i) (True pair True)]")
+;;  "H")
+;; (ng "H")
+
+;; (assert
+;;  "(([n0]lft[if (n0<Succ(n max k)) ((n0 thof b)pair n0 thof c) (True pair True)])
+;;   fbar n)eqd
+;;   (([n0][if (n0<Succ(n max k)) (n0 thof b) True])fbar n)")
+;;  (use "EqDFBar")
+;;  (ng #t)
+;;  (assume "i" "i<n")
+;;  (use-with "AppIf" (py "boole yprod boole") (py "boole")
+;; 	   (pt "(PairOne boole boole)")
+;; 	   (pt "(i thof b)pair i thof c") (pt "True pair True")
+;; 	   (pt "i<Succ(n max k)"))
+;; (assume "Assertion1")
+;; (simphyp-with-to "H" "Assertion1" "SimpH1")
+;; (drop "H" "Assertion1")
+
+;; (assert
+;;  "(([n0]lft[if (n0<Succ(n max k)) ((n0 thof b)pair n0 thof c) (True pair True)])
+;;   fbar k)eqd
+;;   (([n0][if (n0<Succ(n max k)) (n0 thof b) True])fbar k)")
+;;  (use "EqDFBar")
+;;  (ng #t)
+;;  (assume "i" "i<k")
+;;  (use-with "AppIf" (py "boole yprod boole") (py "boole")
+;; 	   (pt "(PairOne boole boole)")
+;; 	   (pt "(i thof b)pair i thof c") (pt "True pair True")
+;; 	   (pt "i<Succ(n max k)"))
+;; (assume "Assertion2")
+;; (simphyp-with-to "SimpH1" "Assertion2" "SimpH2")
+;; (drop "SimpH1" "Assertion2")
+
+;; (assert
+;;  "(([n0]rht[if (n0<Succ(n max k)) ((n0 thof b)pair n0 thof c) (True pair True)])
+;;   fbar n)eqd
+;;   (([n0][if (n0<Succ(n max k)) (n0 thof c) True])fbar n)")
+;;  (use "EqDFBar")
+;;  (ng #t)
+;;  (assume "i" "i<n")
+;;  (use-with "AppIf" (py "boole yprod boole") (py "boole")
+;; 	   (pt "(PairTwo boole boole)")
+;; 	   (pt "(i thof b)pair i thof c") (pt "True pair True")
+;; 	   (pt "i<Succ(n max k)"))
+;; (assume "Assertion3")
+;; (simphyp-with-to "SimpH2" "Assertion3" "SimpH3")
+;; (drop "SimpH2" "Assertion3")
+
+;; (assert
+;;  "(([n0]rht[if (n0<Succ(n max k)) ((n0 thof b)pair n0 thof c) (True pair True)])
+;;   fbar k)eqd
+;;   (([n0][if (n0<Succ(n max k)) (n0 thof c) True])fbar k)")
+;;  (use "EqDFBar")
+;;  (ng #t)
+;;  (assume "i" "i<k")
+;;  (use-with "AppIf" (py "boole yprod boole") (py "boole")
+;; 	   (pt "(PairTwo boole boole)")
+;; 	   (pt "(i thof b)pair i thof c") (pt "True pair True")
+;; 	   (pt "i<Succ(n max k)"))
+;; (assume "Assertion4")
+;; (simphyp-with-to "SimpH3" "Assertion4" "SimpH4")
+;; (drop "SimpH3" "Assertion4")
+
+;; (use "Stab")
+;; (assume "NegEq")
+;; (inst-with "SimpH4" "?" "?")
+;; (use 20)
+;; (add-global-assumption
+;;  "FanBoundAux4" "all t,k,b(Tree t -> k<=Lh b -> t b -> t(b bar k))")
+;; (simp "=FBarIf")
+;; (use "FanBoundAux4")
+;; (use "Tree t")
+;; (simp "H2")
+;; (use "NatMaxUB2")
+;; (use "H4")
+;; (use "NatLeTrans" (pt "n max k"))
+;; (use "NatMaxUB2")
+;; (use "Truth")
+;; (simp "=FBarIf")
+;; (simp "=FBarIf")
+;; (use "NegEq")
+;; (use "NatLeTrans" (pt "n max k"))
+;; (use "NatMaxUB1")
+;; (use "Truth")
+;; (use "NatLeTrans" (pt "n max k"))
+;; (use "NatMaxUB1")
+;; (use "Truth")
+;; (simp "=FBarIf")
+;; (use "FanBoundAux4")
+;; (use "Tree t")
+;; (simp "H1")
+;; (use "NatMaxUB2")
+;; (use "H3")
+;; (use "NatLeTrans" (pt "n max k"))
+;; (use "NatMaxUB2")
+;; (use "Truth")
+;; ;; Proof finished.
+;; (save "FanBound")
 
 (add-var-name
  "pfan"
@@ -887,11 +1185,11 @@ all t(
  all n n<=ks n ->
  all n,b,c(Lh b=ks n -> Lh c=ks n -> t b -> t c -> b bar n=c bar n) ->
  all n ks n<=ks(n+1) ->
- all n Lh(as n)=n -> all n t(as n) -> ex f all n t(f fbar n))")
+ all n Lh(as n)=n -> all n t(as n) -> exl f all n t(f fbar n))")
 (assume "t" "ks" "as" "Tree t" "Incr" "FanBd" "Mon" "Inf1" "Inf2")
 
 ;; Take f n := (b_{n+1})__n, with b_n := as(ks n)bar n.
-(ex-intro (pt "[n](as(ks(Succ n))bar Succ n)__n"))
+(intro 0 (pt "[n](as(ks(Succ n))bar Succ n)__n"))
 
 ;; We assert Path: all n f fbar n=b__n
 (assert "all n(([n](as(ks(Succ n))bar Succ n)__n)fbar n)=as(ks n)bar n")
@@ -899,7 +1197,7 @@ all t(
  (ng #t)
  (use "Truth")
  (assume "n" "IH")
- (simp "FBarAppdLast")
+ (simp "ListFBarAppdLast")
  (simp (pf "([n]n thof as(ks(Succ n))bar Succ n)n=
             (n thof as(ks(Succ n))bar Succ n)")) ;will follow by ng
  (simp "IH")
@@ -907,7 +1205,7 @@ all t(
  ;; To be able to apply BarAppdLast we replace b_n by (b_{n+1} bar n).
  ;; This is (6) and will follow from FanBd and (2)
  (simp (pf "as(ks n)bar n=as(ks(Succ n))bar Succ n bar n"))
- (simp "BarAppdLast")
+ (simp "ListBarAppdLast")
  (use "Truth")
  (ng #t)
  (use "Truth")
@@ -984,6 +1282,7 @@ all t(
  (use "Incr")
  (use "Inf2")
 ;; Proof finished.
+;; (cdp)
 (save "Path")
 
 (define eterm (proof-to-extracted-term (theorem-name-to-proof "Path")))
@@ -1004,13 +1303,13 @@ all t(
 ;; We will need AC to construct ks and as
 
 (add-global-assumption
- "ACNat" "all n ex k (Pvar nat nat)^ n k ->
-           ex ks all n (Pvar nat nat)^ n(ks n)" 1)
+ "ACNat" "all n exl k (Pvar nat nat)^ n k ->
+           exl ks all n (Pvar nat nat)^ n(ks n)" 1)
 
 (add-global-assumption
  "ACListBoole"
- "all n ex a (Pvar nat list boole)^ n a ->
-   ex as all n (Pvar nat list boole)^ n(as n)" 1)
+ "all n exl a (Pvar nat list boole)^ n a ->
+   exl as all n (Pvar nat list boole)^ n(as n)" 1)
 
 ;; We also need the canonical monotone upper bound (Mon ks0) of ks0
 
@@ -1023,29 +1322,30 @@ all t(
 (add-global-assumption "MonMon" "all ns,n Mon ns n<=Mon ns(Succ n)")
 
 ;; "FanImpWKL!"
-(set-goal "all s^(
-all f ex m s^(f fbar m) -> ex k all f exca m(m<k+1 ! s^(f fbar m))) ->
+(set-goal "all s(
+all f exl m s(f fbar m) -> exl k all f exca m(m<k+1 ! s(f fbar m))) ->
 all t(
  Tree t ->
- all n ex a(Lh a=n & t a) ->
+ all n exl a(Lh a=n andnc t a) ->
  all g,h,n(
-  ((g fbar n)=(h fbar n) -> F) -> ex m(t(g fbar m) -> t(h fbar m) -> F)) ->
- ex f all n t(f fbar n))")
+  ((g fbar n)=(h fbar n) -> F) -> exl m(t(g fbar m) -> t(h fbar m) -> F)) ->
+ exl f all n t(f fbar n))")
 (assume "Fan" "t" "Tree t" "Inf t" "EffUniq t")
-;; We assert "Inf t" in the form "ex as ..."
-(assert "ex as all n(Lh(as n)=n & t(as n))")
+;; We assert "Inf t" in the form "exl as ..."
+(assert "exl as all n(Lh(as n)=n andnc t(as n))")
  (use-with "ACListBoole"
-	   (make-cterm (pv "n") (pv "a") (pf "Lh a=n & t a")) "?")
+	   (make-cterm (pv "n") (pv "a") (pf "Lh a=n andnc t a")) "?")
  (use "Inf t")
 (assume "Exas")
 (by-assume "Exas" "as" "ExHyp1")
-;; We assert the conclusion of "FanBound" in the form "ex ks ..."
-(assert "ex ks all n(n<=ks n & all b,c(Lh b=ks n -> Lh c=ks n -> t b -> t c ->
-                                    b bar n=c bar n))")
+;; We assert the conclusion of "FanBound" in the form "exl ks ..."
+(assert
+ "exl ks all n(n<=ks n andnc all b,c(Lh b=ks n -> Lh c=ks n -> t b -> t c ->
+                                     b bar n=c bar n))")
  (use-with
   "ACNat"
   (make-cterm (pv "n") (pv "k")
-	      (pf "n<=k & all b,c(Lh b=k -> Lh c=k -> t b -> t c ->
+	      (pf "n<=k andnc all b,c(Lh b=k -> Lh c=k -> t b -> t c ->
                                   b bar n=c bar n)")) "?")
  (use "FanBound")
  (use "FanImpPFan")
@@ -1054,14 +1354,14 @@ all t(
  (use "EffUniq t")
 (assume "Exks")
 (by-assume "Exks" "ks0" "ExHyp2")
-;; ?_20:ex f all n t(f fbar n)
+;; ?_20:exl f all n t(f fbar n)
 ;; (pp "Path")
 ;; all t,ks,as(
 ;;  Tree t ->
 ;;  all n n<=ks n ->
 ;;  all n,b,c(Lh b=ks n -> Lh c=ks n -> t b -> t c -> b bar n=c bar n) ->
 ;;  all n ks n<=ks(n+1) ->
-;;  all n Lh(as n)=n -> all n t(as n) -> ex f all n t(f fbar n))
+;;  all n Lh(as n)=n -> all n t(as n) -> exl f all n t(f fbar n))
 (use "Path" (pt "Mon ks0") (pt "as"))
 (use "Tree t")
 (assume "n")
@@ -1102,6 +1402,7 @@ all t(
 (assume "n")
 (use "ExHyp1")
 ;; Proof finished.
+;; (cdp)
 (save "FanImpWKLU")
 
 (define eterm (proof-to-extracted-term (theorem-name-to-proof "FanImpWKLU")))
@@ -1123,26 +1424,26 @@ all t(
 (pp neterm)
 
 ;; [fan,r,as,uniq,n]
-;;  n thof
+;;  n thof 
 ;;  cACListBoole as
 ;;  (Mon
-;;   (cACNa
+;;   (cACNat
 ;;    ([n0]
-;;      n0 max
+;;      n0 max 
 ;;      fan
 ;;      ([a]
 ;;        AllBNat n0
 ;;        ([n1]
-;;          ((n1+n1 thof a)=(Succ(n1+n1)thof a)impb False)impb
-;;          r((PairOne boole boole)map Half Lh a unzip a)impb
-;;          r((PairTwo boole boole)map Half Lh a unzip a)impb False))
+;;          ((n1+n1 thof a)=(Succ(n1+n1)thof a)impb False)impb 
+;;          r((PairOne boole boole)map NatHalf Lh a unzip a)impb 
+;;          r((PairTwo boole boole)map NatHalf Lh a unzip a)impb False))
 ;;      ([f]
 ;;        [if (AllBNat n0([n1]f(n1+n1)=f(Succ(n1+n1))))
 ;;          (n0+n0)
 ;;          (uniq([n1]f(n1+n1))([n1]f(Succ(n1+n1)))n0 max n0+
-;;          uniq([n1]f(n1+n1))([n1]f(Succ(n1+n1)))n0 max n0)])max
+;;          uniq([n1]f(n1+n1))([n1]f(Succ(n1+n1)))n0 max n0)])max 
 ;;      n0))
-;;   (Succ n))bar
+;;   (Succ n))bar 
 ;;  Succ n
 
 ;; WKL! implies Fan
@@ -1204,13 +1505,14 @@ all t(
 (use "IH")
 (use "Tb1")
 ;; Proof finished.
-(save "PrecTotal")
+;; (cdp)
+(save-totality)
 
 ;; We need some recursive functions:
 
 ;; (UL n r) (for "uppermost leftmost"): If n is big (i.e., all a with
 ;; Lh a=n are in r), it is the uppermost leftmost node not in r.  So
-;; all b preceeding (UL n r) (hence of the same length) are in r, bu
+;; all b preceeding (UL n r) (hence of the same length) are in r, but
 ;; (UL n r) is not.  Moreover all b of length Lh(UL n r)+1 are in r.
 ;; If n is not big, UL n r can be arbitrary.
 
@@ -1221,7 +1523,7 @@ all t(
 ;; length n such that b is not in r, if there is one, and arbitrary
 ;; otherwise.
 
-;; Ext r (for "extension"): The extension of the complement of r, tha
+;; Ext r (for "extension"): The extension of the complement of r, that
 ;; is, the set of all b such that if b is in r, then b is big and b =
 ;; LExt(UL(Lh b)r)(Lh b).
 
@@ -1299,20 +1601,20 @@ all t(
 ;; WKLUImpFan
 (set-goal "all t(
  Tree t ->
- all n ex a(Lh a=n & t a) ->
+ all n exl a(Lh a=n andnc t a) ->
  all g,h,n(
-  ((g fbar n)=(h fbar n) -> F) -> ex m(t(g fbar m) -> t(h fbar m) -> F)) ->
- ex f all n t(f fbar n)) ->
+  ((g fbar n)=(h fbar n) -> F) -> exl m(t(g fbar m) -> t(h fbar m) -> F)) ->
+ exl f all n t(f fbar n)) ->
 all s(
- all f ex m s(f fbar m) ->
- ex k all f(all m(m<k+1 -> s(f fbar m) -> F) -> F))")
+ all f exl m s(f fbar m) ->
+ exl k all f(all m(m<k+1 -> s(f fbar m) -> F) -> F))")
 (assume "WKL!" "s" "Bar s")
 ;; It suffices to construct big k in (Up s)
-(cut "ex k AllBList k(Up s)")
+(cut "exl k AllBList k(Up s)")
 ;; (drop "WKL!")
 (assume "ExBig")
 (by-assume "ExBig" "k" "kBig")
-(ex-intro (pt "k"))
+(intro 0 (pt "k"))
 (cut "all a(Lh a=k -> exca m(m<Lh a+1 ! s(a bar m)))")
 ;; This will follow from kBig
 (assume "kBigConseq" "f")
@@ -1341,7 +1643,7 @@ all s(
 (use "UpElim")
 (use "Up s a")
 
-;; ?_4: ex k AllBList k(Up s).  That is, ex k Big_r k
+;; ?_4: exl k AllBList k(Up s).  That is, exl k Big_r k
 (inst-with "WKL!" (pt "Ext(Up s)") "?" "?" "?")
 (by-assume 3 "f" "fPath")
 (inst-with-to "Bar s" (pt "f") "fHit")
@@ -1354,7 +1656,7 @@ all s(
  (use "s(f fbar m)")
 (assume "Up s(f fbar m)")
 ;; ...and at this length we have the desired big k
-(ex-intro (pt "m"))
+(intro 0 (pt "m"))
 (assert "Ext(Up s)(f fbar m)")
  (use "fPath")
 (assume "Ext(Up s)(f fbar m)")
@@ -1362,12 +1664,12 @@ all s(
 (use "Ext(Up s)(f fbar m)")
 (use "Up s(f fbar m)")
 (use "Truth")
-
+;; 32
 (use "ExtTree")
 ;; We now prove that Ext(Up s)a is infinite
-;; ?_33: all n ex a(Lh a=n & Ext(Up s)a)
+;; ?_33: all n exl a(Lh a=n andnc Ext(Up s)a)
 (assume "n")
-(ex-intro (pt "[if (AllBList n(Up s)) (LExt(UL n(Up s))n) (BMu n(Up s))]"))
+(intro 0 (pt "[if (AllBList n(Up s)) (LExt(UL n(Up s))n) (BMu n(Up s))]"))
 (cases (pt "AllBList n(Up s)"))
 (assume "Big n")
 (ng #t)
@@ -1385,13 +1687,13 @@ all s(
 ;; We now prove that Ext(Up s)a is infinite
 ;; ?_34: all g,h,n(
 ;;        ((g fbar n)=(h fbar n) -> F) ->
-;;        ex m(Ext(Up s)(g fbar m) -> Ext(Up s)(h fbar m) -> F))
+;;        exl m(Ext(Up s)(g fbar m) -> Ext(Up s)(h fbar m) -> F))
 (assume "g" "h" "n" "ghdiff")
 (inst-with-to "Bar s" (pt "g") "gHit")
 (by-assume "gHit" "m1" "gBar")
 (inst-with-to "Bar s" (pt "h") "hHit")
 (by-assume "hHit" "m2" "hBar")
-(ex-intro (pt "m1 max m2 max n"))
+(intro 0 (pt "m1 max m2 max n"))
 (assume "gmaxExt" "hmaxExt")
 (use "ghdiff")
 (assert "Up s(g fbar m1 max m2 max n)")
@@ -1423,6 +1725,7 @@ all s(
 (use "ListBoole=")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "WKLUImpFan")
 
 (add-var-name

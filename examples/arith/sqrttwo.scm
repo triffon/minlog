@@ -1,10 +1,12 @@
-;; $Id: sqrttwo.scm 2353 2009-11-13 11:47:37Z schwicht $
+;; 2020-07-30.  examplesarithsqrttwo.scm
 
 ;; From Freek Wiedijk's "stamp collection" of formal proofs that
 ;; sqrt(2) is irrational (F. Wiedijk (ed.), The Seventeen Provers of
 ;; the World, LNAI 3600, 2006).
 
-;; We prove "all n,m(n*n=D(m*m) -> n=0)", using general induction GInd.
+;; 2020-07-30.  Updated to the present nat.scm
+
+;; We prove "all n,m(n*n=NatDouble(m*m) -> n=0)", using general induction GInd.
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -16,77 +18,39 @@
 '(
 NatPlus
   comprules
-	nat+0	nat
-	nat1+Succ nat2	Succ(nat1+nat2)
+0	n+0	n
+1	n+Succ m	Succ(n+m)
   rewrules
-	0+nat	nat
-	Succ nat1+nat2	Succ(nat1+nat2)
-	nat1+(nat2+nat3)	nat1+nat2+nat3
+0	0+n	n
+1	Succ n+m	Succ(n+m)
+2	n+(m+l)	n+m+l
 NatTimes
   comprules
-	nat*0	0
-	nat1*Succ nat2	nat1*nat2+nat1
+0	n*0	0
+1	n*Succ m	n*m+n
   rewrules
-	0*nat	0
-	Succ nat1*nat2	nat1*nat2+nat2
-	nat1*(nat2+nat3)	nat1*nat2+nat1*nat3
-	(nat1+nat2)*nat3	nat1*nat3+nat2*nat3
-	nat1*(nat2*nat3)	nat1*nat2*nat3
-	nat1*Pred nat2	nat1*nat2--nat1
-	Pred nat2*nat1	nat2*nat1--nat1
-	nat1*(nat2--nat3)	nat1*nat2--nat1*nat3
-	(nat2--nat3)*nat1	nat2*nat1--nat3*nat1
+0	0*n	0
+1	Succ n*m	n*m+m
+2	n*(m+l)	n*m+n*l
+3	(n+m)*l	n*l+m*l
+4	n*(m*l)	n*m*l
+5	n*Pred m	n*m--n
+6	Pred m*n	m*n--n
+7	n*(m--l)	n*m--n*l
+8	(m--l)*n	m*n--l*n)  
+
+(display-pconst "NatDouble" "NatHalf")
+'(
+  NatDouble
+  comprules
+0	NatDouble 0	0
+1	NatDouble(Succ n)	Succ(Succ(NatDouble n))
+NatHalf
+  comprules
+0	NatHalf 0	0
+1	NatHalf 1	0
+2	NatHalf(Succ(Succ n))	Succ(NatHalf n)
 )
-
-;; "Double"
-(add-program-constant "D" (py "nat=>nat"))
-
-(add-computation-rules
- "D 0" "0"
- "D(Succ n)" "Succ(Succ(D n))")
-
-;; "DTotal"
-(set-goal (term-to-totality-formula (pt "D")))
-(assume "n^" "Tn")
-(elim "Tn")
-(ng #t)
-(use "TotalNatZero")
-(assume "n^1" "Tn1" "TDn1")
-(ng #t)
-(use "TotalNatSucc")
-(use "TotalNatSucc")
-(use "TDn1")
-;; Proof finished.
-(save "DTotal")
-
-;; "Half"
-(add-program-constant "H" (py "nat=>nat"))
-
-(add-computation-rules
- "H 0" "0"
- "H 1" "0"
- "H(Succ(Succ n))" "Succ(H n)")
-
-;; "HTotal"
-(set-goal (term-to-totality-formula (pt "H")))
-(assert (pf "allnc n^(TotalNat n^ -> TotalNat(H n^) & TotalNat(H(Succ n^)))"))
-(assume "n^" "Tn")
-(elim "Tn")
-(ng #t)
-(split)
-(use "TotalNatZero")
-(use "TotalNatZero")
-(assume "n^1" "Tn1" "THn1Sn1")
-(ng #t)
-(split)
-(use "THn1Sn1")
-(use "TotalNatSucc")
-(use "THn1Sn1")
-(assume "Assertion" "n^" "Tn")
-(use "Assertion")
-(use "Tn")
-;; Proof finished.
-(save "HTotal")
 
 ;; "NatSquareZeroRev"
 (set-goal (pf "all n(n*n=0 -> n=0)"))
@@ -121,34 +85,8 @@ NatTimes
 ;; Proof finished.
 (save "NatLtMonSquareRev")
 
-;; "NatLeDouble"
-(set-goal "all n n<=D n")
-(ind)
-(use "Truth")
-(assume "n" "IHn")
-(ng #t)
-(use "NatLeTrans" (pt "D n"))
-(use "IHn")
-(use "Truth")
-;; Proof finished.
-(save "NatLeDouble")
-
-;; "NatLtDouble"
-(set-goal "all n(0<n -> n<D n)")
-(ind)
-(assume "0<0")
-(use "0<0")
-(assume "n" "IHn")
-(assume "Useless")
-(ng #t)
-(use "NatLeLtTrans" (pt "D n"))
-(use "NatLeDouble")
-(use "Truth")
-;; Proof finished.
-(save "NatLtDouble")
-
 ;; "NatDoublePosRev"
-(set-goal "all n(0<D n -> 0<n)")
+(set-goal "all n(0<NatDouble n -> 0<n)")
 (cases)
 (assume "Absurd")
 (use "Absurd")
@@ -168,7 +106,7 @@ NatTimes
 (save "NatSquarePos")
 
 ;; "NatDoublePlus"
-(set-goal "all n,m D(n+m)=D n+D m")
+(set-goal "all n,m NatDouble(n+m)=NatDouble n+NatDouble m")
 (assume "n")
 (ind)
 (use "Truth")
@@ -179,7 +117,7 @@ NatTimes
 (save "NatDoublePlus")
 
 ;; "NatDoubleTimes1"
-(set-goal "all n,m D(n*m)=D n*m")
+(set-goal "all n,m NatDouble(n*m)=NatDouble n*m")
 (assume "n")
 (ind)
 (use "Truth")
@@ -192,7 +130,7 @@ NatTimes
 (save "NatDoubleTimes1")
 
 ;; "NatDoubleTimes2"
-(set-goal "all n,m D(n*m)=n*D m")
+(set-goal "all n,m NatDouble(n*m)=n*NatDouble m")
 (assume "n")
 (ind)
 (use "Truth")
@@ -200,13 +138,13 @@ NatTimes
 (ng #t)
 (simp "NatDoublePlus")
 (simp "IHm")
-(simp (pf "n*D m+n+n=n*D m+(n+n)"))
-(assert "all k k+k=D k")
+(simp (pf "n*NatDouble m+n+n=n*NatDouble m+(n+n)"))
+(assert "all l l+l=NatDouble l")
  (ind)
  (use "Truth")
- (assume "k" "IHk")
+ (assume "l" "IHl")
  (ng #t)
- (use "IHk")
+ (use "IHl")
 (assume "Assertion")
 (simp "Assertion")
 (ng #t)
@@ -217,7 +155,7 @@ NatTimes
 (save "NatDoubleTimes2")
 
 ;; "NatDoubleInj"
-(set-goal "all n,m(D n=D m -> n=m)")
+(set-goal "all n,m(NatDouble n=NatDouble m -> n=m)")
 (ind)
 (cases)
 (assume "Useless")
@@ -246,7 +184,8 @@ NatTimes
  "Odd(Succ n)" "Even n")
 
 ;; "NatEvenOddTotal"
-(set-goal "allnc n^(TotalNat n^ -> TotalBoole(Even n^) & TotalBoole(Odd n^))")
+(set-goal
+ "allnc n^(TotalNat n^ -> TotalBoole(Even n^) andd TotalBoole(Odd n^))")
 (assume "n^" "Tn")
 (elim "Tn")
 (split)
@@ -261,8 +200,7 @@ NatTimes
 ;; Proof finished.
 (save "NatEvenOddTotal")
 
-;; "EvenTotal"
-(set-goal (term-to-totality-formula (pt "Even")))
+(set-totality-goal "Even")
 (assume "n^" "Tn")
 (use "NatEvenOddTotal")
 (use "Tn")
@@ -270,7 +208,7 @@ NatTimes
 (save "EvenTotal")
 
 ;; "OddTotal"
-(set-goal (term-to-totality-formula (pt "Odd")))
+(set-totality-goal "Odd")
 (assume "n^" "Tn")
 (use "NatEvenOddTotal")
 (use "Tn")
@@ -278,7 +216,8 @@ NatTimes
 (save "OddTotal")
 
 ;; "NatEvenOddDoubleHalf"
-(set-goal "all n((Even n -> D(H n)=n)&(Odd n -> D(H(Succ n))=Succ n))")
+(set-goal "all n((Even n ->
+ NatDouble(NatHalf n)=n) andnc (Odd n -> NatDouble(NatHalf(Succ n))=Succ n))")
 (ind)
 (split)
 (assume "Useless")
@@ -293,7 +232,7 @@ NatTimes
 (save "NatEvenOddDoubleHalf")
 
 ;; "NatEvenOddPlusRev"
-(set-goal "all n,m((Even(n+m+m) -> Even n)&(Odd(n+m+m) -> Odd n))")
+(set-goal "all n,m((Even(n+m+m) -> Even n) andnc (Odd(n+m+m) -> Odd n))")
 (assume "n")
 (ind)
 (split)
@@ -307,7 +246,7 @@ NatTimes
 (save "NatEvenOddPlusRev")
 
 ;; "NatEvenOddSquareRev"
-(set-goal "all n((Even(n*n) -> Even n)&(Odd(n*n) -> Odd n))")
+(set-goal "all n((Even(n*n) -> Even n) andnc (Odd(n*n) -> Odd n))")
 (ind)
 (split)
 (assume "Useless")
@@ -330,49 +269,49 @@ NatTimes
 (save "NatEvenOddSquareRev")
 
 ;; "SqrtTwoAux"
-(set-goal "all n,m(n*n=D(m*m) -> m*m=D(H n*H n))")
-(assume "n" "m" "n*n=D(m*m)")
+(set-goal "all n,m(n*n=NatDouble(m*m) -> m*m=NatDouble(NatHalf n*NatHalf n))")
+(assume "n" "m" "n*n=NatDouble(m*m)")
 (simp "NatDoubleTimes1")
 (use "NatDoubleInj")
-(simp "<-" "n*n=D(m*m)")
+(simp "<-" "n*n=NatDouble(m*m)")
 (simp "NatDoubleTimes2")
-(simp (pf "D(H n)=n"))
+(simp (pf "NatDouble(NatHalf n)=n"))
 (use "Truth")
 (use "NatEvenOddDoubleHalf")
 (use "NatEvenOddSquareRev")
-(simp "n*n=D(m*m)")
-(assert "all k Even(D k)")
+(simp "n*n=NatDouble(m*m)")
+(assert "all l Even(NatDouble l)")
  (ind)
  (use "Truth")
- (assume "k" "IHk")
+ (assume "l" "IHl")
  (ng #t)
- (use "IHk")
+ (use "IHl")
 (assume "Assertion")
 (use "Assertion")
 ;; Proof finished
 (save "SqrtTwoAux")
 
 ;; "SqrtTwo"
-(set-goal "all n,m(n*n=D(m*m) -> n=0)")
+(set-goal "all n,m(n*n=NatDouble(m*m) -> n=0)")
 (gind (pt "[n]n"))
 (ng #t)
-(assume "n" "IHn" "m" "n*n=D(m*m)")
+(assume "n" "IHn" "m" "n*n=NatDouble(m*m)")
 (cases (pt "0<n"))
 ;; Case 0<n
 (assume "0<n")
 (use "NatSquareZeroRev")
-(simp "n*n=D(m*m)")
+(simp "n*n=NatDouble(m*m)")
 (assert "m=0")
- (use "IHn" (pt "H n"))
+ (use "IHn" (pt "NatHalf n"))
  (use "NatLtMonSquareRev")
- (simp "n*n=D(m*m)")
+ (simp "n*n=NatDouble(m*m)")
  (use "NatLtDouble")
  (use "NatDoublePosRev")
- (simp "<-" "n*n=D(m*m)")
+ (simp "<-" "n*n=NatDouble(m*m)")
  (use "NatSquarePos")
  (use "0<n")
  (use "SqrtTwoAux")
- (use "n*n=D(m*m)")
+ (use "n*n=NatDouble(m*m)")
 (assume "m=0")
 (simp "m=0")
 (use "Truth")
@@ -390,4 +329,3 @@ NatTimes
 
 (define aconsts (proof-to-aconsts proof))
 (map aconst-to-name aconsts)
-

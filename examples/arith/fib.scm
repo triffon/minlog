@@ -1,4 +1,4 @@
-;; $Id: fib.scm 2156 2008-01-25 13:25:12Z schimans $
+;; 2020-08-01.  fib.scm
 
 ;; Extraction of the Fibonacci algorithm from a constructive proof
 
@@ -8,7 +8,7 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
-(add-var-name "l" (py "nat"))
+(add-var-name "k" "l" (py "nat"))
 (add-var-name "p" (py "nat@@nat"))
 
 ;; The graph of the Fibonacci function:
@@ -70,7 +70,7 @@
 (pp (nt (make-term-in-app-form neterm (pt "10")))) ;"55"
 (pp (nt (make-term-in-app-form neterm (pt "12")))) ;"144"
 
-(term-to-expr neterm)
+ (term-to-scheme-expr neterm)
 
 ;; (lambda (n)
 ;;   (car (((natRec n) (cons 0 1))

@@ -9,7 +9,7 @@
 (set! COMMENT-FLAG #t)
 
 (add-var-name "A" "X" "B" (py "list nat")) 
-(add-var-name "i" "j" "a" "l" (py "nat"))
+(add-var-name "i" "j" "a" "k" (py "nat"))
 (add-var-name "p" (py "boole"))
 
 ;; X=i0::i1::...::i(p-1): is a list of blocks, B=j0::j1::...::j(q-1): a

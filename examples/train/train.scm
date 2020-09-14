@@ -1,4 +1,4 @@
-;; 2014-10-18.  train.scm
+;; 2020-09-09.  train.scm
 
 ;; (load "~/git/minlog/init.scm")
 
@@ -299,6 +299,7 @@
 (simp "Present")
 (simp "Present")
 (ng #t)
+(simp "SuccTotalFPFalseR")
 (simp "Full")
 (use "Truth")
 ;; Proof finished.
@@ -328,6 +329,7 @@
 (simp "g t=c+1")
 (simp "g t=c+1")
 (ng #t)
+(simp "SuccTotalFPFalseR")
 (simp "Ntc=0")
 (use "Truth")
 ;; Proof finished.
@@ -483,10 +485,11 @@
  (use "BPassive")
  (simp "<-" "b=Btn")
  (simp "g t=b+1")
+ (simp "SuccTotalFPFalseL")
  (assume "Absurd")
  (use "Absurd")
 (assume "B(t+1)n=Btn")
-(simp "B(t+1)n=Btn") ;takes a while
+(simp "B(t+1)n=Btn")
 (assert "N in f g(Succ t)(B in ib f g t n)=N in f g t(B in ib f g t n)")
  (use "NLeftNextFull" (pt "ib"))
  (use "Left")
@@ -558,7 +561,7 @@
  (simp "g t=b+1")
  (use "b+1=/=Btn")
 (assume "N(t+1)(Btn)=Nt(Btn)")
-(simp "B(t+1)n=Btn") ;takes a while
+(simp "B(t+1)n=Btn")
 (simp "N(t+1)(Btn)=Nt(Btn)")
 (use "IHt")
 ;; ?_9:(f t -> F) -> N in f g(Succ t)(B in ib f g(Succ t)n)=n
@@ -567,7 +570,7 @@
 ;; Proof finished.
 (save "NB")
 
-;; To prove our safety property we need some mor lemmata.
+;; To prove our safety property we need some more lemmata.
 
 ;; ActiveLeftFull
 (set-goal "all in,ib,f,g,t,n(

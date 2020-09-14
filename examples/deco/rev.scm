@@ -14,46 +14,54 @@
 
 ;; We want x as the default variable of type nat, hence
 
-(remove-var-name "n" "m" "k")
-(add-var-name "x" "y" "n" "m" "k" (py "nat"))
-(add-var-name "v" "w" "u" (py "list nat"))
+(remove-var-name "n" "m" "l")
+(add-var-name "x" "y" "n" (py "nat"))
+(add-var-name "v" "w" (py "list nat"))
 
-;; RevClass
-(set-goal "all rev,v(
+;; ExclRev
+(set-goal "allnc rev all v(
       rev(Nil nat)(Nil nat) -> 
       all v,w,x(rev v w -> rev(v++x:)(x::w)) ->
       excl w rev v w)")
-(assume "rev" "v0" "InitRev" "GenRev" "Hyp")
-(assert "all u all v(v++u=v0 -> all w(rev v w -> bot))")
+(assume "rev" "v" "InitRev" "GenRev" "u")
+(assert "all v2,v1(v1++v2=v -> all w(rev v1 w -> bot))")
  (ind)
- (assume "v")
+ ;; Base
  (ng)
- (assume "v=v0")
- (simp "v=v0")
- (use "Hyp")
- (assume "x" "u" "IH""v" "H1" "w" "H2")
- (use-with "IH" (pt "v++x:") "?" (pt "x::w") "?")
- (ng #t)
- (use "H1")
+ (assume "v1" "u0")
+ (simp "u0")
+ (use "u")
+ ;; Step
+ (assume "x" "v2" "IH" "v1" "u1" "w" "u2")
+ (use-with "IH" (pt "v1++x:") "?" (pt "x::w") "?")
+ (ng)
+ (use "u1")
  (use "GenRev")
- (use "H2")
-(assume "ISNR")
-(use "ISNR" (pt "v0") (pt "(Nil nat)") (pt "(Nil nat)"))
+ (use "u2")
+;; Assertion proved
+(assume "Assertion")
+(use "Assertion" (pt "v") (pt "(Nil nat)") (pt "(Nil nat)"))
 (use "Truth")
 (use "InitRev")
 ;; Proof finished.
-(save "RevClass")
+(save "ExclRev")
 
+(define proof (current-proof))
+(define nproof (np proof))
+;; (proof-to-expr-with-formulas nproof)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 2.  Translation into an existence proof
-;; =======================================
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define min-excl-proof (theorem-name-to-proof "RevClass"))
-(define ex-proof (atr-min-excl-proof-to-intuit-ex-proof min-excl-proof))
-(define eterm (proof-to-extracted-term ex-proof))
+(define exproof (atr-excl-proof-to-ex-proof nproof))
+;; (cdp exproof)
+(define eterm (proof-to-extracted-term exproof))
 (add-var-name "g" (py "list nat=>list nat=>list nat"))
-(pp (rename-variables (nt eterm)))
+(define neterm (rename-variables (nt eterm)))
+(pp neterm)
 
-;; [rev,v]
+;; [v]
 ;;  (Rec list nat=>list nat=>list nat=>list nat)v([v0,v1]v1)
 ;;  ([x,v0,g,v1,v2]g(v1++x:)(x::v2))
 ;;  (Nil nat)
@@ -66,18 +74,18 @@
 ;; Notice that the second argument of h is not needed.  However, its
 ;; presence makes the algorithm quadratic.  
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 3.  Optimal decoration
-;; ======================
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define decproof (decorate ex-proof))
+(define decproof (decorate exproof))
 ;; (cdp decproof)
 
 (add-var-name "f" (py "list nat=>list nat"))
 (define eterm (proof-to-extracted-term decproof))
 (pp (rename-variables (nt eterm)))
 
-;; [rev,v]
-;;  (Rec list nat=>list nat=>list nat)v([v0]v0)([x,v0,f,v1]f(x::v1))(Nil nat)
+;; [v](Rec list nat=>list nat=>list nat)v([v0]v0)([x,v0,f,v1]f(x::v1))(Nil nat)
 
 ;; This amounts to:  f(v) = g(v,nil) with
 ;;   g(nil,v0) = v0,

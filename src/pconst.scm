@@ -1,4 +1,4 @@
-;; $Id: pconst.scm 2686 2014-01-24 09:17:14Z schwicht $
+;; 2020-07-12.  pconst.scm
 ;; 4. Constants
 ;; ============
 
@@ -112,15 +112,8 @@
 ;; (b) An ex-formula for an "Ex-Intro" axiom.  One uses
 ;; ex-formula-to-ex-intro-const .
 
-;; (c) An exnc-formula for an "Exnc-Intro" axiom.  One uses ;obsolete
-;; exnc-formula-to-exnc-intro-const .
-
 ;; (6) For an Ex-Elim constant (of kind 'fixed-rules): an ex-formula
 ;; and a conclusion.  One uses ex-formula-and-concl-to-ex-elim-const .
-
-;; (7) For an Exnc-Elim constant (of kind 'fixed-rules): an ;obsolete
-;; exnc-formula and a conclusion.  One uses
-;; exnc-formula-and-concl-to-exnc-elim-const .
 
 (define const-to-object-or-arity cadr)
 (define const-to-name caddr)
@@ -216,8 +209,8 @@
 (define (pconst-name? string) (assoc string PROGRAM-CONSTANTS))
 
 (define (fixed-rules-name? string)
-  (and (member string '("Rec" "Cases" "GRec" "GRecGuard" "CoRec" "Destr" "Efq"
-			"Ex-Elim" "=" "E" "SE"))))
+  (and (member string '("Rec" "Cases" "GRec" "GRecGuard" "CoRec" "Destr" "Map"
+			"Efq" "Ex-Elim" "=" "E" "SE"))))
 
 (define (const=? const1 const2)
   (and (string=? (const-to-name const1) (const-to-name const2))
@@ -304,32 +297,6 @@
 		arity))))
     (make-const obj "Ex-Intro" 'constr
 		exintroop-type empty-subst 1 'const ex-formula)))
-
-(define (exnc-formula-to-exnc-intro-const exnc-formula) ;obsolete
-  (let* ((free (formula-to-free exnc-formula))
-	 (free-types (map var-to-type free))
-	 (f (length free))
-         (var (exnc-form-to-var exnc-formula))
-         (kernel (exnc-form-to-kernel exnc-formula))
-	 (type (var-to-type var))
-	 (kernel-type (nbe-formula-to-type kernel))
-	 (arity (+ f 2))
-	 (exncintroop-type
-	  (apply mk-arrow
-		 (append free-types
-			 (list type kernel-type (make-tconst "existential")))))
-	 (obj (nbe-make-object
-	       exncintroop-type
-	       (nbe-curry
-		(lambda objs
-		  (nbe-make-object
-		     (make-tconst "existential")
-		     (nbe-make-constr-value
-		      (list "Exnc-Intro" exnc-formula) objs)))
-		exncintroop-type
-		arity))))
-    (make-const obj "Exnc-Intro" 'constr
-		exncintroop-type empty-subst 1 'const exnc-formula)))
 
 (define (number-and-idpredconst-to-intro-const i idpc)
   (let* ((aconst (number-and-idpredconst-to-intro-aconst i idpc))
@@ -418,54 +385,51 @@
 
 ;; A display function for program constants:
 
-(define (display-pconst . x)
+(define (display-pconst . names)
   (if
    COMMENT-FLAG
-   (let ((reduced-pconsts (if (null? x)
-			      PROGRAM-CONSTANTS
-			      (do ((l PROGRAM-CONSTANTS (cdr l))
-				   (res '() (if (member (caar l) x)
-						(cons (car l) res)
-						res)))
-				  ((null? l) res)))))
-     (for-each
-      (lambda (pconst)
-	(let* ((name (car pconst))
-	       (comprules (pconst-name-to-comprules name))
-	       (rewrules (pconst-name-to-rewrules name))
-	       (external-code (pconst-name-to-external-code name)))
-	  (display name) (newline)
-	  (if (pair? comprules)
-	      (begin
-		(display "  comprules") (newline)
-		(do ((lc comprules (cdr lc)))
-		    ((null? lc))
-		  (begin (display tab)
-			 (dt (rule-to-lhs (car lc)))
-			 (display tab)
-			 (dt (term-to-eta-nf (rule-to-rhs (car lc))))
-			 (newline)))))
-	  (if (pair? rewrules)
-	      (begin
-		(display "  rewrules") (newline)
-		(do ((lr rewrules (cdr lr)))
-		    ((null? lr))
-		  (begin (display tab)
-			 (dt (rule-to-lhs (car lr)))
-			 (display tab)
-			 (dt (term-to-eta-nf (rule-to-rhs (car lr))))
-			 (newline)))))
-	  (if (pair? external-code)
-	      (let* ((char-list (string->list name))
-		     (lower-case-pconst-name
-		      (list->string
-		       (map char-downcase char-list)))
-		     (code-name (string-append lower-case-pconst-name
-					       "-code")))
-		(begin (display "  external code present: evaluate ")
-		       (display code-name)
-		       (newline))))))
-      reduced-pconsts))))
+   (for-each
+    (lambda (name)
+      (let* ((pconst (pconst-name-to-pconst name))
+	     (comprules (pconst-name-to-comprules name))
+	     (rewrules (pconst-name-to-rewrules name))
+	     (external-code (pconst-name-to-external-code name)))
+	(display name) (newline)
+	(if (pair? comprules)
+	    (begin
+	      (display "  comprules") (newline)
+	      (do ((lc comprules (cdr lc))
+		   (n 0 (+ 1 n)))
+		  ((null? lc))
+		(begin (display n)
+		       (display tab)
+		       (dt (rule-to-lhs (car lc)))
+		       (display tab)
+		       (dt (term-to-eta-nf (rule-to-rhs (car lc))))
+		       (newline)))))
+	(if (pair? rewrules)
+	    (begin
+	      (display "  rewrules") (newline)
+	      (do ((lr rewrules (cdr lr))
+		   (n 0 (+ 1 n)))
+		  ((null? lr))
+		(begin (display n)
+		       (display tab)
+		       (dt (rule-to-lhs (car lr)))
+		       (display tab)
+		       (dt (term-to-eta-nf (rule-to-rhs (car lr))))
+		       (newline)))))
+	(if (pair? external-code)
+	    (let* ((char-list (string->list name))
+		   (lower-case-pconst-name
+		    (list->string
+		     (map char-downcase char-list)))
+		   (code-name (string-append lower-case-pconst-name
+					     "-code")))
+	      (begin (display "  external code present: evaluate ")
+		     (display code-name)
+		     (newline))))))
+    names)))
 
 ;; For backwards compatibility we keep
 
@@ -1000,7 +964,7 @@
 	(if (or (not (proof-form? proof))
 		(pair? (proof-to-free-avars proof))
 		(not (member-wrt formula=?
-				 (cadr (all-form-to-vars-and-final-kernel
+				 (cadr (all-allnc-form-to-vars-and-final-kernel
 					(proof-to-formula proof)))
 				 rewrite-flas)))
 	    (add-global-assumption
@@ -1057,111 +1021,6 @@
 			   (list "AndConst" "ImpConst" "OrConst" "NegConst")))
 	      (comment "ok, rewrite rule " (term-to-string lhs) " -> "
 		       (term-to-string embedded-rhs) " added")))))))
-
-(define (change-t-deg-to-one name)
-  (let ((info (assoc name PROGRAM-CONSTANTS)))
-    (if
-     (not info)
-     (myerror "change-t-deg-to-one" "name of program constant expected" name))
-    (let* ((pconst (pconst-name-to-pconst name))
-	   (comprules (pconst-name-to-comprules name))
-	   (rewrules (pconst-name-to-rewrules name))
-	   (code (pconst-name-to-external-code name)) ;may be #f
-	   (pconsts-except-name
-	    (do ((l PROGRAM-CONSTANTS (cdr l))
-		 (res '() (if (string=? (caar l) name)
-			      res
-			      (cons (car l) res))))
-		((null? l) (reverse res))))
-	   (arity (const-to-object-or-arity pconst))
-	   (uninst-type (const-to-uninst-type pconst))
-	   (token-type (const-to-token-type pconst))
-	   (new-pconst (make-const arity name 'pconst uninst-type empty-subst
-				   t-deg-one token-type))
-	   (obj
-	    (if (zero? arity)
-		(nbe-reflect
-		 (nbe-make-termfam
-		  uninst-type
-		  (lambda (k) (make-term-in-const-form new-pconst))))
-		(nbe-make-object
-		 uninst-type
-		 (nbe-curry
-		  (lambda objs ;arity many
-		    (let* ((obj1 (nbe-reflect
-				  (nbe-make-termfam
-				   uninst-type
-				   (lambda (k)
-				     (make-term-in-const-form new-pconst)))))
-			   (val (nbe-object-to-value obj1)))
-		      (apply (nbe-uncurry val arity) objs)))
-		  uninst-type
-		  arity))))
-	   (inst-objs (list (list empty-subst obj))))
-      (set! PROGRAM-CONSTANTS
-	    (cons (if code
-		      (list name new-pconst '() '() inst-objs code)
-		      (list name new-pconst '() '() inst-objs))
-		  pconsts-except-name))
-      (remove-token name)
-      (set! THEOREMS ;remove all with names like NatPlus1...
-	    (list-transform-positive THEOREMS
-	      (lambda (x)
-		(let* ((thm-name (car x))
-		       (first-name (string-to-first-name thm-name))
-		       (l (string-length first-name)))
-		  (not (and (string=? name first-name)
-			    (< l (string-length thm-name))
-			    (char-numeric? (string-ref thm-name l))))))))
-      (if (null? (type-to-tvars uninst-type))
-	  (add-token name
-		     (const-to-token-type pconst)
-		     (const-to-token-value new-pconst))
-	  (add-token name
-		     'constscheme
-		     new-pconst))
-      (do ;add again the previous comprules, now using the new-pconst
-	  ((lc comprules (cdr lc)))
-	  ((null? lc))
-	(let* ((new-lhs (term-gen-subst
-			 (rule-to-lhs (car lc))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (new-rhs (term-gen-subst
-			 (rule-to-rhs (car lc))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (type1 (term-to-type new-lhs))
-	       (type2 (term-to-type new-rhs)))
-	  (if (type-le? type2 type1)
-	      (add-computation-rule
-	       new-lhs
-	       ((types-to-embedding type2 type1) new-rhs))
-	      (myerror
-	       "change-t-deg-to-one" "unexpected computation rule.  Lhs:"
-	       new-lhs "with type" type1
-	       "Rhs:" new-rhs "of type" type2))))
-      (do ;add again the previous rewrules, now using the new-pconst
-	  ((lr rewrules (cdr lr)))
-	  ((null? lr))
-	(let* ((new-lhs (term-gen-subst
-			 (rule-to-lhs (car lr))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (new-rhs (term-gen-subst
-			 (rule-to-rhs (car lr))
-			 (make-term-in-const-form pconst)
-			 (make-term-in-const-form new-pconst)))
-	       (type1 (term-to-type new-lhs))
-	       (type2 (term-to-type new-rhs)))
-	  (if (type-le? type2 type1)
-	      (add-rewrite-rule
-	       new-lhs
-	       ((types-to-embedding type2 type1) new-rhs))
-	      (myerror
-	       "change-t-deg-to-one" "unexpected rewrite rule.  Lhs:"
-	       new-lhs "with type" type1
-	       "Rhs:" new-rhs "of type" type2)))))))
 
 ;; change-t-deg-to-one takes a list of pconst-names as arguments.
 ;; This is necessary to have all these pconsts in the stored totality
@@ -1593,6 +1452,10 @@
        arity)))))
 
 ;; Constants with fixed rules
+
+;; Let rho(alphas) be a type with alphas strictly positive tvars.  For
+;; gives argtypes sigmas and valtypes taus Map has type
+;; rho(sigmas)=>(sigmas=>taus)=>rho(sigmas)
 
 (define (make-map-const type tvars argtypes valtypes)
   (let* ((val-tvars (map (lambda (x) (new-tvar)) tvars))
@@ -3047,10 +2910,11 @@
 ;; avoid unit ysum ..).  In the alg-case (chosen if tau is nulltype or
 ;; unit) take uysum^m(product-type1 ysum .. ysum product-typek)=>alg.
 
+;; 2017-03-07 default for prim-prod-flag changed to #f 
 (define (alg-or-arrow-types-to-uninst-corecop-types-and-tsubst
 	 . alg-or-arrow-types-and-opt-prim-prod-flag)
   (let* ((last (car (last-pair alg-or-arrow-types-and-opt-prim-prod-flag)))
-	 (prim-prod-flag (if (or (alg-form? last) (arrow-form? last)) #t last))
+	 (prim-prod-flag (if (or (alg-form? last) (arrow-form? last)) #f last))
 	 (alg-or-arrow-types
 	  (if (or (alg-form? last) (arrow-form? last))
 	      alg-or-arrow-types-and-opt-prim-prod-flag
@@ -3187,16 +3051,16 @@
 		     (make-alg "ysumu" rel-simalg)))
 	       rel-simalgs f-or-types))
 	 (argtypes-without-irrel-alg-names
-	   (list-transform-positive argtypes
-	     (lambda (argtype) (null? (intersection (type-to-alg-names argtype)
-						    irrel-simalg-names)))))
+	  (list-transform-positive argtypes
+	    (lambda (argtype) (null? (intersection (type-to-alg-names argtype)
+						   irrel-simalg-names)))))
 	 (steptype-factors
 	  (map (lambda (argtype)
 		 (type-gen-substitute
 		  argtype
 		  (map list rel-simalgs rel-simalgs-plus-types)))
 	       argtypes-without-irrel-alg-names))
-	 (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag))))
+	 (prim-prod? (and (pair? opt-prim-prod-flag) (car opt-prim-prod-flag))))
     (apply (if prim-prod? mk-star mk-yprod) steptype-factors)))
 
 (define (alg-or-arrow-types-to-corec-consts . alg-or-arrow-types)
@@ -3208,7 +3072,7 @@
     (map (lambda (uninst-corecop-type)
 	   (make-const
 	    (corec-at uninst-corecop-type tsubst)
-	    "CoRec" 'fixed-rules uninst-corecop-type tsubst t-deg-one 'const))
+	    "CoRec" 'fixed-rules uninst-corecop-type tsubst t-deg-zero 'const))
 	 uninst-corecop-types)))
 
 (define (alg-or-arrow-types-to-corec-const . alg-or-arrow-types)
@@ -3605,6 +3469,55 @@
 	rest)))
     (else (myerror "undelay-delayed-corec" "term expected" term))))
 
+;; Temporarily we add for instance ListCoRecRule as global assumption.
+;; It should be an axiom.
+
+(define (alg-name-to-corec-rule-ga alg-name)
+  (let* ((simalg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (cond ((= 1 (alg-name-to-arity alg-name))
+		       (list (make-tvar -1 "beta")))
+		      ((= 2 (alg-name-to-arity alg-name))
+		       (list (make-tvar -1 "beta") (make-tvar -1 "gamma")))
+		      (else (alg-name-to-tvars alg-name))))
+	 (simalgs (map (lambda (simalg-name)
+			 (apply make-alg simalg-name tvars))
+		       simalg-names))
+	 (arg-tvars (cond
+		     ((= 1 (length simalg-names))
+		      (list (make-tvar -1 "alpha")))
+		     ((= 2 (length simalg-names))
+		      (list (make-tvar -1 "alpha1") (make-tvar -1 "alpha2")))
+		     (else (map (lambda (x) (new-tvar)) simalg-names))))
+	 (arrow-types (map (lambda (arg-tvar simalg)
+			     (make-arrow arg-tvar simalg))
+			   arg-tvars simalgs))
+	 (corec-consts (apply alg-or-arrow-types-to-corec-consts
+			      arrow-types))
+	 (corec-const (car corec-consts))
+	 (bcorec-term (corec-const-and-bound-to-bcorec-term
+		       corec-const (pt "Succ Zero")))
+	 (corec-type (const-to-type corec-const))
+	 (arg-type (arrow-form-to-arg-type corec-type))
+	 (step-type (arrow-form-to-arg-type
+		     (arrow-form-to-val-type corec-type)))
+	 (arg-var (make-var arg-type -1 t-deg-zero (default-var-name arg-type)))
+	 (step-var
+	   (make-var step-type -1 t-deg-zero (default-var-name step-type)))
+	 (applied-corec-term (mk-term-in-app-form
+			      (make-term-in-const-form corec-const)
+			      (make-term-in-var-form arg-var)
+			      (make-term-in-var-form step-var)))
+	 (applied-bcorec-term (mk-term-in-app-form
+			       bcorec-term
+			       (make-term-in-var-form arg-var)
+			       (make-term-in-var-form step-var)))
+	 (eq-fla (make-eqd applied-corec-term applied-bcorec-term))
+	 (neq-fla (rename-variables (nf eq-fla)))
+	 (gen-neq-fla (mk-allnc arg-var step-var neq-fla))
+	 (ga-name (string-append (string-capitalize-first alg-name)
+				 "CoRecRule")))
+    (add-global-assumption ga-name gen-neq-fla)))
+
 ;; Now for destructors.
 
 (define (alg-to-uninst-destr-type-and-tsubst alg . opt-prim-prod-flag)
@@ -3619,7 +3532,7 @@
 	 (typed-constr-names ;only those for the present alg-name
 	  (alg-name-to-typed-constr-names alg-name))
 	 (constr-types (map typed-constr-name-to-type typed-constr-names))
-	 (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag)))
+	 (prim-prod? (and (pair? opt-prim-prod-flag) (car opt-prim-prod-flag)))
 	 (product-types
 	  (map (lambda (constr-type)
 		 (apply (if prim-prod? mk-star mk-yprod)
@@ -3688,8 +3601,8 @@
 	      (if
 	       (null? constr-args)
 	       (nbe-term-to-object injection-or-f '())
-	       (let* ((prim-prod? (or (null? opt-prim-prod-flag)
-				      (car opt-prim-prod-flag)))
+	       (let* ((prim-prod? (and (pair? opt-prim-prod-flag)
+				       (car opt-prim-prod-flag)))
 		      (prod-obj
 		       (if
 			prim-prod?
@@ -3784,67 +3697,6 @@
     exelimop-type
     arity)))
 
-;; 2011-07-14.  exnc is obsolete.  It can be replaced by exr.
-;; exnc-elim: allnc zs(exnc z A -> allnc z(A -> B) -> B)
-
-(define (exnc-formula-and-concl-to-exnc-elim-const ;obsolete
-	 exnc-formula concl)
-  (let* ((free (union (formula-to-free exnc-formula) (formula-to-free concl)))
-	 (free-types (map var-to-type free))
-	 (f (length free))
-         (var (exnc-form-to-var exnc-formula))
-	 (inst-type (var-to-type var))
-         (kernel (exnc-form-to-kernel exnc-formula))
-	 (side-formula (mk-allnc var (mk-imp kernel concl)))
-	 (side-type (nbe-formula-to-type side-formula))
-	 (concl-type (nbe-formula-to-type concl))
-	 (arity (+ f 2))
-	 (exncelimop-type
-	  (apply mk-arrow (append free-types (list (make-tconst "existential")
-						   side-type concl-type)))))
-    (exnc-formula-and-concl-to-exnc-elim-const-aux
-     exnc-formula concl f arity exncelimop-type)))
-
-(define (exnc-formula-and-concl-to-exnc-elim-const-aux ;obsolete
-	 exnc-formula concl f arity exncelimop-type)
-  (make-const (exnc-formula-and-concl-to-exnc-elim-const-obj
-	       exnc-formula concl f arity exncelimop-type)
-	      "Exnc-Elim" 'fixed-rules exncelimop-type empty-subst
-	      1 'const exnc-formula concl))
-
-(define (exnc-formula-and-concl-to-exnc-elim-const-obj ;obsolete
-	 exnc-formula concl f arity exncelimop-type)
-  (nbe-make-object
-   exncelimop-type
-   (nbe-curry
-    (lambda objs
-      (let* ((exnc-obj (list-ref objs f))
-	     (exnc-value (nbe-object-to-value exnc-obj)))
-	(cond
-	 ((nbe-fam-value? exnc-value) ;then reproduce
-	  (let* ((refl-term-obj
-		  (nbe-reflect
-		   (nbe-make-termfam
-		    exncelimop-type
-		    (lambda (k)
-		      (make-term-in-const-form
-		       (exnc-formula-and-concl-to-exnc-elim-const-aux
-			exnc-formula concl f arity exncelimop-type))))))
-		 (val (nbe-object-to-value refl-term-obj)))
-	    (apply (nbe-uncurry val arity) objs)))
-	 ((nbe-constr-value? exnc-value)
-	  (let* ((args (nbe-constr-value-to-args exnc-value))
-		 (f1 (- (length args) 2))
-		 (inst-obj (list-ref args f1))
-		 (kernel-obj (list-ref args (+ f1 1)))
-		 (side-obj (list-ref objs (+ f 1))))
-	    (nbe-object-app side-obj inst-obj kernel-obj)))
-	 (else (myerror "exnc-formula-and-concl-to-exnc-elim-const-obj"
-			"exnc-value expected"
-			exnc-value)))))
-    exncelimop-type
-    arity)))
-
 (define (nbe-curry f type n)
   (if (= 1 n)
       f
@@ -3878,14 +3730,13 @@
 	  (token-type (const-to-token-type const))
 	  (repro-data (const-to-repro-data const))
 	  (composed-tsubst (compose-substitutions orig-tsubst tsubst))
-	  (tvars (const-to-tvars const))
-	  (restricted-tsubst
-	   (restrict-substitution-to-args composed-tsubst tvars)))
+	  (restricted-tsubst (restrict-substitution-to-args
+			      composed-tsubst (const-to-tvars const))))
      (case (const-to-kind const)
        ((constr)
 	(if
 	 (or (string=? "Ex-Intro" (const-to-name const))
-	     (string=? "Intro" (const-to-name const)))
+ 	     (string=? "Intro" (const-to-name const)))
 	 const
          ;else form new-constr with restricted-subst.  If not yet done,
          ;update CONSTRUCTORS, via computing for all simalgs and all of
@@ -4036,9 +3887,75 @@
 	    (car (apply alg-or-arrow-types-to-corec-consts
 			inst-alg-or-arrow-types))))
 	 ((string=? "Destr" name)
-	  (let* ((alg (destr-const-to-alg const))
+	  (let* ((val-type (arrow-form-to-val-type uninst-type))
+		 (components (ysum-without-unit-to-components val-type))
+		 (prim-prod-flag
+		  (if (pair? components)
+		      (cond
+		       ((alg-form? (car components)) #f)
+		       ((star-form? (car components)) #t)
+		       (else (myerror "const-substitute"
+				      "alg or star form expected at Destr"
+				      (car components))))
+		      (myerror "const-substitute"
+			       "components expected in Destr val-type"
+			       val-type)))
+		 (alg (destr-const-to-alg const))
 		 (inst-alg (type-substitute alg restricted-tsubst)))
-	    (alg-to-destr-const inst-alg)))
+	    (alg-to-destr-const inst-alg prim-prod-flag)))
+	 ((string=? "Map" name)
+	  (let* ((inst-mapop-type ;rho(sigmas)=>(sigmas=>taus)=>rho(taus)
+	  	  (const-to-type const))
+		 (inst-arrow-types ;sigmas=>taus
+	  	  (arrow-form-to-arg-types
+	  	   (arrow-form-to-val-type inst-mapop-type)))
+		 (argtypes ;sigmas
+	  	  (map arrow-form-to-arg-type inst-arrow-types))
+		 (valtypes ;taus
+	  	  (map arrow-form-to-val-type inst-arrow-types))
+		 (subst-argtypes
+		  (map (lambda (type) (type-substitute type tsubst))
+		       argtypes))
+		 (subst-valtypes
+		  (map (lambda (type) (type-substitute type tsubst))
+		       valtypes))
+		 (uninst-mapop-type ;rho(alphas)=>(alphas=>xis)=>rho(xis)
+		  (const-to-uninst-type const))
+		 (uninst-maparg-type ;rho(alphas)
+		  (arrow-form-to-arg-type uninst-type))
+		 (uninst-arrow-types ;alphas=>xis
+		  (arrow-form-to-arg-types
+		   (arrow-form-to-val-type uninst-type)))
+		 (bound-tvars ;alphas
+		  (map arrow-form-to-arg-type uninst-arrow-types))
+		 (val-tvars ;xis
+		  (map arrow-form-to-val-type uninst-arrow-types))
+		 (no-clash?
+		  (null? (intersection
+			  (append bound-tvars val-tvars)
+			  (apply append
+				 (map car tsubst)
+				 (map type-to-tvars (map cadr tsubst)))))))
+	    (if
+	     no-clash?
+	     (make-map-const
+	      (type-substitute uninst-maparg-type tsubst)
+					;(rho(alphas))theta
+	      bound-tvars subst-argtypes subst-valtypes)
+					;else clash: use new tvars
+	     (let* ((new-bound-tvars ;betas
+		     (map (lambda (x) (new-tvar)) bound-tvars))
+		    (new-val-tvars ;zetas
+		     (map (lambda (x) (new-tvar)) val-tvars))
+		    (renaming-tsubst (make-substitution
+				      (append bound-tvars val-tvars)
+				      (append new-bound-tvars new-val-tvars)))
+		    (new-uninst-maparg-type ;(rho(betas))
+		     (type-substitute uninst-maparg-type renaming-tsubst)))
+	       (make-map-const
+		(type-substitute new-uninst-maparg-type tsubst)
+					;(rho(betas))theta
+		new-bound-tvars subst-argtypes subst-valtypes)))))
 	 ((string=? "SE" name)
 	  (let* ((inst-type (type-substitute uninst-type restricted-tsubst))
 		 (sfinalg (arrow-form-to-arg-type inst-type)))
@@ -4051,4 +3968,6 @@
 	 (else (myerror "const-substitute" "fixed rule name expected" name))))
        (else (myerror "const-substitute" "unknown kind"
 		      (const-to-kind const)))))))
+
+
 

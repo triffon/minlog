@@ -29,20 +29,17 @@
 ;; (cdp proof)
 ;; (proof-to-expr-with-formulas proof)
 
-;; Elim: A andd B -> (A -> B -> B) -> B
-;; u2128: A andd B
-;; u2129: A
-;; u2130: B
+;; Rht: A andd B -> B
+;; u: A andd B
 
-;; (lambda (u2128)
-;;   ((Elim u2128) (lambda (u2129) (lambda (u2130) u2130))))
+;; (lambda (u) (Rht u))
 
 (define decproof
   (fully-decorate (theorem-name-to-proof "AndRLemma")
-		  (pf "A andu B -> B")))
+		  (pf "A andnc B -> B")))
 
 (pp (proof-to-formula decproof))
-;; A andr B -> B
+;; A andd B -> B
 
 (for-each pp (cdr (proof-to-final-allnc-elim-op-and-args
 		   (mk-proof-in-elim-form
@@ -78,6 +75,7 @@
 (define nproof (np proof))
 ;; (cdp nproof)
 ;; (proof-to-expr-with-formulas nproof)
+
 ;; Ind: allnc p all n(S^ p 0 -> all n0(S^ p n0 -> S^ p(Succ n0)) -> S^ p n)
 ;; v: all n(S^ p n -> S^ p(Succ n))
 ;; u: S^ p 0
@@ -89,8 +87,9 @@
 (pp (rename-variables
      (aconst-to-formula
       (imp-formulas-to-elim-aconst (pf "Even n^ -> S^ p n^")))))
+
 ;; allnc n^,p(
-;;  Even n^ ->
+;;  Even n^ -> 
 ;;  S^ p 0 -> allnc n^0(Even n^0 -> S^ p n^0 -> S^ p(n^0+2)) -> S^ p n^)
 
 ;; Note that the parameter p is bound after n^, not before (as with Ind)
@@ -116,8 +115,9 @@
 
 ;; (cdp proof)
 ;; (proof-to-expr-with-formulas proof)
+
 ;; Elim: allnc n^,p(
-;;  Even n^ ->
+;;  Even n^ -> 
 ;;  S^ p 0 -> allnc n^0(Even n^0 -> S^ p n^0 -> S^ p(n^0+2)) -> S^ p n^)
 ;; Intro: allnc n^(Even n^ -> Even(n^ +2))
 ;; w: Even n^
@@ -133,8 +133,9 @@
 
 ;; (cdp nproof)
 ;; (proof-to-expr-with-formulas nproof)
+
 ;; Elim: allnc n^,p(
-;;  Even n^ ->
+;;  Even n^ -> 
 ;;  S^ p 0 -> allnc n^0(Even n^0 -> S^ p n^0 -> S^ p(n^0+2)) -> S^ p n^)
 ;; v: allnc n^(Even n^ -> S^(negb p)n^ -> S^(negb p)(n^ +2))
 ;; w: Even n^
@@ -222,22 +223,22 @@
 
 (define elim-aconst
   (imp-formulas-to-elim-aconst
-   (pf "(RTotalBbin (cterm (n^) S m^ n^))a^ -> P k^ a^")))
+   (pf "(RTotalBbin (cterm (n^) S m^ n^))a^ -> P l^ a^")))
 
 (pp (rename-variables (aconst-to-formula elim-aconst)))
 
-;; allnc a^,m^,k^(
-;;  (RTotalBbin (cterm (n^) S m^ n^))a^ ->
-;;  P k^(BbinNil nat) ->
+;; allnc a^,m^,l^(
+;;  (RTotalBbin (cterm (n^) S m^ n^))a^ -> 
+;;  P l^(BbinNil nat) -> 
 ;;  allnc n^(
-;;   S m^ n^ ->
+;;   S m^ n^ -> 
 ;;   allnc a^0(
-;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 ->
+;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 -> 
+;;    P l^ a^0 -> 
 ;;    allnc a^1(
-;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 ->
-;;     P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1)))) ->
-;;  P k^ a^)
+;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 -> 
+;;     P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1)))) -> 
+;;  P l^ a^)
 
 (define idpredconst
   (make-idpredconst
@@ -263,19 +264,19 @@
   (let ((u1 (make-avar (pf "S m^ n^") 1 "u"))
 	(u2 (make-avar (pf "(RTotalBbin (cterm (n^) S m^ n^))a^") 2 "u"))
 	(u3 (make-avar (pf "(RTotalBbin (cterm (n^) S m^ n^))b^") 3 "u"))
-	(v0 (make-avar (pf "P k^(BbinNil nat)") 0 "v"))
+	(v0 (make-avar (pf "P l^(BbinNil nat)") 0 "v"))
 	(v1 (make-avar (pf
 "allnc n^(
   S m^ n^ ->
   allnc a^0(
    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-   P k^ a^0 ->
+   P l^ a^0 ->
    allnc a^1(
     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 ->
-    P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1))))") 1 "v")))
+    P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1))))") 1 "v")))
     (mk-proof-in-elim-form
      (make-proof-in-aconst-form elim-aconst)
-     (pt "(BbinBranch nat)n^ a^ b^") (pt "m^") (pt "k^")
+     (pt "(BbinBranch nat)n^ a^ b^") (pt "m^") (pt "l^")
      (mk-proof-in-elim-form
       (make-proof-in-aconst-form intro-aconst)
       (pt "m^") (pt "n^") (make-proof-in-avar-form u1)
@@ -286,18 +287,18 @@
 
 ;; (cdp proof)
 ;; (proof-to-expr-with-formulas proof)
-;; Elim: allnc a^,m^,k^(
+;; Elim: allnc a^,m^,l^(
 ;;  (RTotalBbin (cterm (n^) S m^ n^))a^ ->
-;;  P k^(BbinNil nat) ->
+;;  P l^(BbinNil nat) ->
 ;;  allnc n^(
 ;;   S m^ n^ ->
 ;;   allnc a^0(
 ;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 ->
+;;    P l^ a^0 ->
 ;;    allnc a^1(
 ;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 ->
-;;     P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1)))) ->
-;;  P k^ a^)
+;;     P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1)))) ->
+;;  P l^ a^)
 ;; Intro: allnc m^,n^(
 ;;  S m^ n^ ->
 ;;  allnc a^(
@@ -308,17 +309,17 @@
 ;; u1: S m^ n^
 ;; u2: (RTotalBbin (cterm (n^) S m^ n^))a^
 ;; u3: (RTotalBbin (cterm (n^) S m^ n^))b^
-;; v0: P k^(BbinNil nat)
+;; v0: P l^(BbinNil nat)
 ;; v1: allnc n^(
 ;;  S m^ n^ ->
 ;;  allnc a^(
 ;;   (RTotalBbin (cterm (n^0) S m^ n^0))a^ ->
-;;   P k^ a^ ->
+;;   P l^ a^ ->
 ;;   allnc a^0(
 ;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 -> P k^((BbinBranch nat)n^ a^ a^0))))
+;;    P l^ a^0 -> P l^((BbinBranch nat)n^ a^ a^0))))
 
-;; ((((((Elim (((BbinBranch n^) a^) b^)) m^) k^)
+;; ((((((Elim (((BbinBranch n^) a^) b^)) m^) l^)
 ;;     (((((((Intro m^) n^) u1) a^) u2) b^) u3))
 ;;    v0)
 ;;   v1)
@@ -328,36 +329,36 @@
 ;; (cdp nproof)
 (proof-to-expr-with-formulas nproof)
 
-;; Elim: allnc a^,m^,k^(
-;;  (RTotalBbin (cterm (n^) S m^ n^))a^ ->
-;;  P k^(BbinNil nat) ->
+;; Elim: allnc a^,m^,l^(
+;;  (RTotalBbin (cterm (n^) S m^ n^))a^ -> 
+;;  P l^(BbinNil nat) -> 
 ;;  allnc n^(
-;;   S m^ n^ ->
+;;   S m^ n^ -> 
 ;;   allnc a^0(
-;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 ->
+;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 -> 
+;;    P l^ a^0 -> 
 ;;    allnc a^1(
-;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 ->
-;;     P k^ a^1 -> P k^((BbinBranch nat)n^ a^0 a^1)))) ->
-;;  P k^ a^)
+;;     (RTotalBbin (cterm (n^0) S m^ n^0))a^1 -> 
+;;     P l^ a^1 -> P l^((BbinBranch nat)n^ a^0 a^1)))) -> 
+;;  P l^ a^)
 ;; v1: allnc n^(
-;;  S m^ n^ ->
+;;  S m^ n^ -> 
 ;;  allnc a^(
-;;   (RTotalBbin (cterm (n^0) S m^ n^0))a^ ->
-;;   P k^ a^ ->
+;;   (RTotalBbin (cterm (n^0) S m^ n^0))a^ -> 
+;;   P l^ a^ -> 
 ;;   allnc a^0(
-;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 ->
-;;    P k^ a^0 -> P k^((BbinBranch nat)n^ a^ a^0))))
+;;    (RTotalBbin (cterm (n^0) S m^ n^0))a^0 -> 
+;;    P l^ a^0 -> P l^((BbinBranch nat)n^ a^ a^0))))
 ;; u1: S m^ n^
 ;; u2: (RTotalBbin (cterm (n^) S m^ n^))a^
-;; v0: P k^(BbinNil nat)
+;; v0: P l^(BbinNil nat)
 ;; u3: (RTotalBbin (cterm (n^) S m^ n^))b^
 
 ;; ((((((((v1 n^) u1) a^) u2)
-;;      ((((((Elim a^) m^) k^) u2) v0) v1))
+;;      ((((((Elim a^) m^) l^) u2) v0) v1))
 ;;     b^)
 ;;    u3)
-;;   ((((((Elim b^) m^) k^) u3) v0) v1))
+;;   ((((((Elim b^) m^) l^) u3) v0) v1))
 
 ;; Note that in the elim-aconst variables are generalized in the order
 ;; idpc-arg-vars idpc-cterm-vars competitor-extra-vars
@@ -430,13 +431,12 @@
 ;; Elim: allnc n^(Even n^ -> P 0 -> allnc n^0(Even n^0 -> P n^0 -> P(n^0+2)) -> P n^)
 ;; Intro: allnc n^(Even n^ -> Even(n^ +2))
 ;; Intro: Even 0
-;; Base1688: P 0
-;; Step1689: allnc n^(Even n^ -> P n^ -> P(n^ +2))
+;; Base: P 0
+;; Step: allnc n^(Even n^ -> P n^ -> P(n^ +2))
 
-;; (lambda (Base1688)
-;;   (lambda (Step1689)
-;;     ((((Elim 4) ((Intro 2) ((Intro 0) Intro))) Base1688)
-;;       Step1689)))
+;; (lambda (Base)
+;;   (lambda (Step)
+;;     ((((Elim 4) ((Intro 2) ((Intro 0) Intro))) Base) Step)))
 
 ;; To normalize this proof it is first translated into a term where
 ;; Elim is trabslated int an recursion operator.  Then this term in
@@ -478,12 +478,12 @@
 
 ;; Intro: allnc n^(Even n^ -> Even(n^ +2))
 ;; Intro: Even 0
-;; u2182: P 0
-;; u2183: allnc n^(Even n^ -> P n^ -> P(n^ +2))
+;; u: P 0
+;; u0: allnc n^(Even n^ -> P n^ -> P(n^ +2))
 
-;; (lambda (u2182)
-;;   (lambda (u2183)
-;;     (((u2183 2) ((Intro 0) Intro)) (((u2183 0) Intro) u2182))))
+;; (lambda (u)
+;;   (lambda (u0)
+;;     (((u0 2) ((Intro 0) Intro)) (((u0 0) Intro) u))))
 
 ;; (cdp nproof)
 
@@ -514,7 +514,7 @@
 (add-var-name "i" "j" (py "nat"))
 
 ;; TestThm
-(set-goal "all i,j ex k(i<=k & j<=k)")
+(set-goal "all i,j ex l(i<=l & j<=l)")
 (assume "i" "j")
 (use "If" (pt "i<=j"))
 (assume "PosHyp1")
@@ -541,15 +541,15 @@
 (define testproof (theorem-name-to-proof "TestThm"))
 (proof-to-expr-with-formulas testproof)
 (pp (rename-variables (nt (proof-to-extracted-term testproof))))
-;; [n,n0][if (n<=n0) n0 [if (n<=n0) 0 n]]
+;; [n,n0](cIf nat)(n<=n0)n0((cIf nat)(n<=n0)0 n)
 
 (define rem-testproof (remove-predecided-if-theorems testproof))
 (proof-to-expr rem-testproof)
 (pp (rename-variables (nt (proof-to-extracted-term rem-testproof))))
-;; [n,n0][if (n<=n0) n0 n]
+;; [n,n0](cIf nat)(n<=n0)n0 n
 
 ;; TestThm1
-(set-goal "all i,j ex k(i<=k & j<=k)")
+(set-goal "all i,j ex l(i<=l & j<=l)")
 (assume "i" "j")
 (use "If" (pt "i<=j"))
 (assume "PosHyp1")
@@ -579,15 +579,15 @@
 (define testproof1 (theorem-name-to-proof "TestThm1"))
 (proof-to-expr-with-formulas testproof1)
 (pp (rename-variables (nt (proof-to-extracted-term testproof1))))
-;; [n0,n1][if (n0<=n1) n1 [if (n0<=n1--Pred n0) 0 n0]]
+;; [n,n0](cIf nat)(n<=n0)n0((cIf nat)(n<=n0--Pred n)0 n)
 
 (define rem-testproof1 (remove-predecided-if-theorems testproof1))
 (proof-to-expr rem-testproof1)
 (pp (nt (proof-to-extracted-term rem-testproof1)))
-;; [n,n0][if (n<=n0) n0 [if (n<=n0--Pred n) 0 n]]
+;; [n0,n1](cIf nat)(n0<=n1)n1 n0
 
 ;; TestThm2
-(set-goal "all i,j ex k(i<=k & j<=k)")
+(set-goal "all i,j ex l(i<=l & j<=l)")
 (assume "i" "j")
 (use "If" (pt "i<=j--Pred i"))
 (assume "PosHyp1")
@@ -623,66 +623,68 @@
 (define testproof2 (theorem-name-to-proof "TestThm2"))
 (proof-to-expr-with-formulas testproof2)
 (pp (rename-variables (nt (proof-to-extracted-term testproof2))))
-;; [n,n0][if (n<=n0--Pred n) n0 [if (n<=n0--(Pred n+Pred(Pred n))) 0 (n+n0)]]
+;; [n,n0]
+;;  (cIf nat)(n<=n0--Pred n)n0((cIf nat)(n<=n0--(Pred n+Pred(Pred n)))0(n+n0))
 
 (define rem-testproof2 (remove-predecided-if-theorems testproof2))
 (proof-to-expr rem-testproof2)
 (pp (rename-variables (nt (proof-to-extracted-term rem-testproof2))))
-;; [n,n0][if (n<=n0--Pred n) n0 (n+n0)]
+;; [n,n0](cIf nat)(n<=n0--Pred n)n0(n+n0)
 
-;; Tests for proof-to-one-step-reduct formula-and-psubsts-to-mon-proof
+;; Code discarded 2020-07-14.  Nested idpredconstd not admitted any more
+;; ;; Tests for proof-to-one-step-reduct formula-and-psubsts-to-mon-proof
 
-;; This is for hand normalization of proofs, including beta conversion
-;; and idpredconst-elim-intro conversion.  The latter uses for nested
-;; idpredconstants formula-and-psubsts-to-mon-proof .  An elim-intro
-;; redex occurs when an elim aconst is applied to terms and the result
-;; of applying an intro-aconst to terms and an idpc-proof.  This redex
-;; is contracted as follows.  (1) Unnested idpredconst (s. 2013-10-03).
-;; step-proof applied to idpc-params, intro-args and pd-proof:
-;; elim-aconst applied to idpc-params, terms, intro-args and
-;; step-proofs.  (2) Nested idpredconst (s. 2013-10-29).  step-proof
-;; applied to idpc-params, intro-args and pd-proof: monotonicity proof
-;; for the formula of intro-arg applied to terms, intro-arg and
-;; sub-proofs.  The latter are obtained via andd-intros from
-;; idpc-avars and elim-aconst applied to terms, idpc-avar and
-;; step-proofs.  Here we test (2).
+;; ;; This is for hand normalization of proofs, including beta conversion
+;; ;; and idpredconst-elim-intro conversion.  The latter uses for nested
+;; ;; idpredconstants formula-and-psubsts-to-mon-proof .  An elim-intro
+;; ;; redex occurs when an elim aconst is applied to terms and the result
+;; ;; of applying an intro-aconst to terms and an idpc-proof.  This redex
+;; ;; is contracted as follows.  (1) Unnested idpredconst (s. 2013-10-03).
+;; ;; step-proof applied to idpc-params, intro-args and pd-proof:
+;; ;; elim-aconst applied to idpc-params, terms, intro-args and
+;; ;; step-proofs.  (2) Nested idpredconst (s. 2013-10-29).  step-proof
+;; ;; applied to idpc-params, intro-args and pd-proof: monotonicity proof
+;; ;; for the formula of intro-arg applied to terms, intro-arg and
+;; ;; sub-proofs.  The latter are obtained via andd-intros from
+;; ;; idpc-avars and elim-aconst applied to terms, idpc-avar and
+;; ;; step-proofs.  Here we test (2).
 
-(add-var-name "a" (make-alg "ntree"))
-(add-var-name "as" (make-alg "list" (make-alg "ntree")))
-(add-totality "ntree")
+;; (add-var-name "a" (make-alg "ntree"))
+;; (add-var-name "as" (make-alg "list" (make-alg "ntree")))
+;; (add-totality "ntree")
 
-(add-pvar-name "P" (make-arity (py "ntree")))
+;; (add-pvar-name "P" (make-arity (py "ntree")))
 
-(display-idpc "RTotalList")
+;; (display-idpc "RTotalList")
 
-(set-goal "allnc as^((RTotalList (cterm (a^) TotalNtree a^))as^ ->
-  allnc as^((RTotalList (cterm (a^) TotalNtree a^ andd P a^))as^ ->
-  P(NBranch as^)) ->
-  P(NBranch as^))")
-(assume "as^" "IntroArg" "Step")
-(use (make-proof-in-aconst-form
-      (imp-formulas-to-elim-aconst (pf "TotalNtree a^ -> P a^"))))
-(use "TotalNtreeNBranch")
-(use "IntroArg")
-(use "Step")
-;; Proof finished
+;; (set-goal "allnc as^((RTotalList (cterm (a^) TotalNtree a^))as^ ->
+;;   allnc as^((RTotalList (cterm (a^) TotalNtree a^ andd P a^))as^ ->
+;;   P(NBranch as^)) ->
+;;   P(NBranch as^))")
+;; (assume "as^" "IntroArg" "Step")
+;; (use (make-proof-in-aconst-form
+;;       (imp-formulas-to-elim-aconst (pf "TotalNtree a^ -> P a^"))))
+;; (use "TotalNtreeNBranch")
+;; (use "IntroArg")
+;; (use "Step")
+;; ;; Proof finished
 
-;; Now the test of proof-to-one-step-reduct
+;; ;; Now the test of proof-to-one-step-reduct
 
-(define proof (current-proof))
-;; (cdp proof) ;ok
+;; (define proof (current-proof))
+;; ;; (cdp proof) ;ok
 
-(define nproof (proof-to-one-step-reduct proof))
+;; (define nproof (proof-to-one-step-reduct proof))
 
-;; (cdp nproof) ;ok
+;; ;; (cdp nproof) ;ok
 
-(remove-pvar-name "P")
-(remove-var-name "a" "as")
+;; (remove-pvar-name "P")
+;; (remove-var-name "a" "as")
 
 ;; Tests for aconst-substitute
 
-;; We test (admissible) top-substitution in all-allpartial-aconst and
-;; allpartial-all-aconst .
+;; We test (admissible) top-substitution in alltotal-elim-aconst and
+;; alltotal-intro-aconst .
 
 (pp (aconst-to-uninst-formula alltotal-elim-aconst))
 
@@ -709,11 +711,11 @@
 ;;   (Pvar alpha) ->  (cterm (n^) (Pvar nat)n^)
 
 (pp (rename-variables
-     (aconst-to-formula (aconst-substitute all-allpartial-aconst topsubst))))
+     (aconst-to-formula (aconst-substitute alltotal-elim-aconst topsubst))))
 ;; all n (Pvar nat)n -> allnc n^(TotalNat n^ -> (Pvar nat)n^)
 
 (pp (rename-variables
-     (aconst-to-formula (aconst-substitute allpartial-all-aconst topsubst))))
+     (aconst-to-formula (aconst-substitute alltotal-intro-aconst topsubst))))
 ;; allnc n^(TotalNat n^ -> (Pvar nat)n^) -> all n (Pvar nat)n
 
 ;; Tests for proof-substitute for an aconst.
@@ -819,21 +821,271 @@
 (remove-var-name "h" "w" "g" "b")
 (remove-pvar-name "P" "S")
 
-;; Tests for formula-to-efq-proof
+;; 10-7-2.  Generalizing the introduction axioms for defined and, ex
 
-(define proof (formula-to-efq-proof (pf "Even 0")))
+;; Tests for formulas-to-and-intro-proof
+
+(define proof (formulas-to-and-intro-proof (pf "Pvar1") (pf "Pvar2")))
+(define proof (formulas-to-and-intro-proof (pf "Pvar1") (pf "Pvar^2")))
+(define proof (formulas-to-and-intro-proof (pf "Pvar^1") (pf "Pvar2")))
+(define proof (formulas-to-and-intro-proof (pf "Pvar^1") (pf "Pvar^2")))
+;; (cdp proof)
+
+(define proof
+  (formulas-to-and-intro-proof (pf "Pvar^1") (pf "Pvar2") (pf "Pvar^3")))
+(define proof
+  (formulas-to-and-intro-proof (pf "Pvar1") (pf "Pvar^2") (pf "Pvar3")))
+;; (cdp proof)
+;; (pp (proof-to-formula proof))
+;; (proof-to-expr-with-formulas proof)
+
+(add-pvar-name "P" (make-arity (py "nat")))
+
+(define proof (formulas-to-and-intro-proof (pf "P1 n1") (pf "P2 n2")))
+(define proof (formulas-to-and-intro-proof (pf "P1(n+n1)") (pf "P2(n+m+n2)")))
+;; (cdp proof)
+;; (pp (proof-to-formula proof))
+;; (proof-to-expr-with-formulas proof)
+
+(define proof
+  (formulas-to-and-intro-proof (pf "P1 n1") (pf "P2 n2") (pf "P3 n3")))
+(define proof (formulas-to-and-intro-proof
+	       (pf "P1(n+n1)") (pf "P2(n+m+n2)") (pf "P3 n3")))
+(define proof (formulas-to-and-intro-proof
+	       (pf "P^1(n+n1)") (pf "P2(n+m+n2)") (pf "P^3 n3")))
+(define proof (formulas-to-and-intro-proof
+	       (pf "P1(n+n1)") (pf "P^2(n+m+n2)") (pf "P3 n3")))
+;; (cdp proof)
+;; (pp (proof-to-formula proof))
+;; (proof-to-expr-with-formulas proof)
+
+;; Tests for vars-and-formulas-to-exand-intro-proof
+
+(define proof (vars-and-formulas-to-exand-intro-proof (pv "n") (pf "P n")))
+(define proof (vars-and-formulas-to-exand-intro-proof (pv "n") (pf "P^ n")))
+;; (cdp proof)
+;; (pp (rename-variables (proof-to-formula proof)))
+;; (proof-to-expr-with-formulas proof)
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n2") (pf "P1 n1") (pf "P2 n2")))
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n1") (pv "n2") (pf "P1 n1") (pf "P2 n2")))
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n1") (pv "n2") (pv "n3")
+   (pf "P^1(n+n1)") (pf "P2(n+m+n2)") (pf "P^3 n3")))
+
+(define proof
+  (vars-and-formulas-to-exand-intro-proof
+   (pv "n1") (pv "n2") (pv "n3")
+   (pf "P1(n+n1)") (pf "P^2(n+m+n2)") (pf "P3 n3")))
+
+;; (cdp proof)
+;; (pp (rename-variables (proof-to-formula proof)))
+;; (proof-to-expr-with-formulas proof)
+;; (define nproof (np proof))
+;; (cdp nproof)
+;; (proof-to-expr-with-formulas nproof)
+
+
+;; 10-8. Basic proof constructions
+;; ===============================
+
+;; Tests for formula-to-ef-proof
+
+(define testproofs
+  (list
+   (formula-to-ef-proof (pf "T"))
+   (formula-to-ef-proof (pf "F"))
+   (formula-to-ef-proof (pf "TotalNat n^"))
+
+   (formula-to-ef-proof (pf "exl n n=0"))
+   (formula-to-ef-proof (pf "exd n Even n"))
+   (formula-to-ef-proof (pf "exr n Even n"))
+   (formula-to-ef-proof (pf "exr n^ Even n^"))
+
+   (formula-to-ef-proof (pf "Ev n ord Od n"))
+   (formula-to-ef-proof (pf "Ev n orl n=0"))
+   (formula-to-ef-proof (pf "n=0 orr Od n"))
+   (formula-to-ef-proof (pf "n=0 oru n=1"))
+   (formula-to-ef-proof (pf "n=0 ornc n=1"))
+
+   (formula-to-ef-proof (pf "Ev n andd Od n"))
+   (formula-to-ef-proof (pf "Ev n andl n=0"))
+   (formula-to-ef-proof (pf "n=0 andr Od n"))
+   (formula-to-ef-proof (pf "n=0 andnc n=1"))
+
+   (formula-to-ef-proof (pf "Ev n^"))
+   (formula-to-ef-proof (pf "Od n^"))
+   ))
+
+(for-each (lambda (pf)
+	    (begin (display (map aconst-to-name (proof-to-aconsts pf)))
+		   (newline)))
+	  testproofs)
+
+;; ()
+;; (EqDCompat EfEqD EqDCompat Intro)
+;; (EqDCompat EfEqD Intro)
+;; (Intro EfAtom)
+;; (Intro EqDCompat EfEqD Intro)
+;; (Intro EqDCompat EfEqD Intro)
+;; (Intro EqDCompat EfEqD Intro)
+;; (Intro EqDCompat EfEqD Intro)
+;; (Intro EqDCompat EfEqD Intro)
+;; (Intro EfAtom)
+;; (Intro EfAtom)
+;; (Intro EfAtom)
+;; (Intro EqDCompat EfEqD Intro EqDCompat Intro)
+;; (Intro EqDCompat EfEqD Intro EfAtom)
+;; (Intro EfAtom EqDCompat EfEqD Intro EqDCompat Intro)
+;; (Intro EfAtom)
+;; (EqDCompat EfEqD Intro)
+;; (EqDCompat EfEqD Intro EqDCompat Intro)
+
+(define proof (formula-to-ef-proof (pf "Even 0")))
 
 ;; (cdp proof)
 
 (add-co "Even")
 
-(define proof (formula-to-efq-proof (pf "CoEven 0")))
+(pp "CoEvenClause")
+;; allnc n^(CoEven n^ -> n^ eqd 0 orr exr n^0(CoEven n^0 andl n^ eqd n^0+2))
 
+;; By the greatest-fixed-point (or coinduction) axiom CoEven is a
+;; fixed point.  Hence the inverse implication holds as well.
+
+;; CoEvenClauseInv
+(set-goal
+ "allnc n^(n^ eqd 0 orr exr n^0(CoEven n^0 andl n^ eqd n^0+2) -> CoEven n^)")
+(assume "n^" "Disj")
+(coind "Disj")
+(drop "Disj")
+(assume "n^1" "n1Prop")
+(elim "n1Prop")
+;; 6,7
+(drop "n1Prop")
+(assume "n1=0")
+(intro 0)
+(use "n1=0")
+;; 7
+(drop "n1Prop")
+(assume "ExHyp")
+(by-assume "ExHyp" "n^2" "n2Prop")
+(intro 1)
+(intro 0 (pt "n^2"))
+(split)
+(intro 0)
+(use "n2Prop")
+(use "n2Prop")
+;; Proof finished.
+;; (cdp)
+(save "CoEvenClauseInv")
+
+;; We can split this proposition into two, i.e., show that CoEven
+;; satisfies the clauses of Even.
+
+(pp "InitEven")
+;; Even 0
+(pp "GenEven")
+;; allnc n^(Even n^ -> Even(n^ +2))
+
+;; InitCoEven
+(set-goal "CoEven 0")
+(use "CoEvenClauseInv")
+(intro 0)
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "InitCoEven")
+
+;; GenCoEven
+(set-goal "allnc n^(CoEven n^ -> CoEven(n^ +2))")
+(assume "n^" "CoEn")
+(use "CoEvenClauseInv")
+(intro 1)
+(intro 0 (pt "n^"))
+(split)
+(use "CoEn")
+(use "InitEqD")
+;; Proof finished.
+;; (cdp)
+(save "GenCoEven")
+
+;; Since Even is the least predicate satifying its clauses Even is a
+;; subset of CoEven.
+
+;; EvenToCoEven
+(set-goal "allnc n^(Even n^ -> CoEven n^)")
+(assume "n^" "En")
+(elim "En")
+;; 3,4
+(use "InitCoEven")
+;; 4
+(assume "n^1" "Useless")
+(use "GenCoEven")
+;; Proof finished.
+;; (cdp)
+(save "EvenToCoEven")
+
+;; ;; EvenSatCoEvenClause
+;; (set-goal
+;;  "allnc n^(Even n^ -> n^ eqd 0 orr exr n^0(Even n^0 andl n^ eqd n^0+2))")
+;; (assume "n^" "En")
+;; (elim "En")
+;; ;; 3,4
+;; (intro 0)
+;; (use "InitEqD")
+;; ;; 4
+;; (assume "n^1" "En1" "Useless")
+;; (intro 1)
+;; (intro 0 (pt "n^1"))
+;; (split)
+;; (use "En1")
+;; (use "InitEqD")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "EvenSatCoEvenClause")
+
+;; ;; Test of coind for Even n^ -> CoEven n^.  Generally I x^ -> CoI x^
+
+;; ;; EvenToCoEven
+;; (set-goal "allnc n^(Even n^ -> CoEven n^)")
+;; (assume "n^" "En")
+;; (coind "En")
+;; (assume "n^1" "En1")
+;; (inst-with-to "EvenSatCoEvenClause" (pt "n^1") "En1" "Dsj")
+;; (elim "Dsj")
+;; ;; 7,8
+;; (assume "n1=0")
+;; (intro 0)
+;; (use "n1=0")
+;; ;; 8
+;; (drop "Dsj")
+;; (assume "ExHyp")
+;; (by-assume "ExHyp" "n^2" "n2Prop")
+;; (intro 1)
+;; (intro 0 (pt "n^2"))
+;; (split)
+;; (intro 1)
+;; (use "n2Prop")
+;; (use "n2Prop")
+;; ;; Proof finished.
+;; ;; (cdp)
+;; (save "EvenToCoEven")
+
+(define proof (formula-to-ef-proof (pf "CoEven 2")))
 ;; (cdp proof)
+
 (define nproof (np proof))
-;; (cdp nproof) ;ok
-(pp (rename-variables (proof-to-extracted-term nproof)))
-;; (CoRec nat)(DummyL nat ysumu)
+;; (cdp nproof)
+(pp (nt (proof-to-extracted-term nproof)))
+;; cInitCoEven
 
 ;; Tests for make-proof-in-iterated-imp-elim-form
 
@@ -857,6 +1109,14 @@
 
 ;; (u2184 (u2185 (u2186 (u2187 u2179))))
 
+;; Tests for formula-and-falsity-avar-to-ef-proof
+
+(cdp (formula-and-falsity-avar-to-ef-proof
+      (pf "boole1 eqd boole2") (make-avar (pf "F") -1 "")))
+
+(cdp (formula-and-falsity-avar-to-ef-proof
+      (pf "TotalBoole boole^") (make-avar (pf "F") -1 "")))
+
 ;; Tests for eqd-proofs-and-predicate-proof-to-proof
 
 ;; Given eqd-proofs of r1 eqd s1, ..., rn eqd sn and a predicate-proof
@@ -878,17 +1138,17 @@
 ;; (proof-to-expr-with-formulas proof)
 
 ;; EqDCompat: allnc m,m0,n^,n^0(
-;;  n^ eqd n^0 --> (Pvar nat nat nat)m m0 n^ -> (Pvar nat nat nat)m m0 n^0)
+;;  n^ eqd n^0 -> (Pvar nat nat nat)m m0 n^ -> (Pvar nat nat nat)m m0 n^0)
 ;; EqDCompat: allnc m,n,n^0,n^1(
-;;  n^0 eqd n^1 --> (Pvar nat nat nat)m n^0 n -> (Pvar nat nat nat)m n^1 n)
+;;  n^0 eqd n^1 -> (Pvar nat nat nat)m n^0 n -> (Pvar nat nat nat)m n^1 n)
 ;; EqDCompat: allnc n,n0,n^1,n^2(
-;;  n^1 eqd n^2 --> (Pvar nat nat nat)n^1 n n0 -> (Pvar nat nat nat)n^2 n n0)
-;; u2191: n3 eqd m3
-;; u2189: n2 eqd m2
-;; u2190: n1 eqd m1
-;; u2188: (Pvar nat nat nat)n1 n2 n3
+;;  n^1 eqd n^2 -> (Pvar nat nat nat)n^1 n n0 -> (Pvar nat nat nat)n^2 n n0)
+;; u5362: n3 eqd m3
+;; u5364: n2 eqd m2
+;; u5363: n1 eqd m1
+;; u5361: (Pvar nat nat nat)n1 n2 n3
 
-;; ((((((EqDCompat m1) m2) n3) m3) u2191)
-;;   ((((((EqDCompat m1) n3) n2) m2) u2189)
-;;     ((((((EqDCompat n2) n3) n1) m1) u2190) u2188)))
+;; ((((((EqDCompat m1) m2) n3) m3) u5362)
+;;   ((((((EqDCompat m1) n3) n2) m2) u5364)
+;;     ((((((EqDCompat n2) n3) n1) m1) u5363) u5361)))
 
