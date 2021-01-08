@@ -1,4 +1,4 @@
-;; 2014-10-12 wftest.scm
+;; 2020-08-30.  wftest.scm
 
 ;; We prove the existence of a "least" element in a well-founded set.
 
@@ -8,7 +8,7 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
-(add-var-name "l" (py "nat"))
+(add-var-name "k" (py "nat"))
 (add-var-name "f" (py "nat=>nat"))
 (add-var-name "g" (py "nat=>nat=>nat"))
 
@@ -247,7 +247,9 @@
 ;;          0)
 ;;         ((EqDTrueToAtom #t) (Intro #t))))))
 	
-(define proof1 (expand-theorems wftestproof))
+(define proof1
+  (expand-theorems wftestproof
+		   (lambda (string) (not (string=? "EqDCompat" string)))))
 (define eterm (atr-min-excl-proof-to-structured-extracted-term (np proof1)))
 (define neterm (rename-variables (nt eterm)))
 (pp neterm)

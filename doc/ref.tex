@@ -1,4 +1,4 @@
-%% $Id: ref.tex 2694 2014-01-24 09:22:30Z schwicht $
+%% 2017-04-21
 %% was: ea.tex,v 1.68 2001/08/13 12:55:02 schwicht Exp
 \documentclass[11pt,a4paper]{amsart}
 \RequirePackage[latin1]{inputenc}
@@ -4944,7 +4944,7 @@ cases are:
   \index{uniform one clause defined} idpredconst which is n.c.
   Examples are Leibniz equality%
   \index{Leibniz equality} \texttt{EqD}\index{EqD}, and uniform
-  variants \texttt{ExU}\index{ExU} and \texttt{AndU}\index{AndU} of
+  variants \texttt{ExNc}\index{ExNc} and \texttt{AndNc}\index{AndNc} of
   the existential quantifier and conjunction.
 \end{enumeratei}
 In all other cases the elimination scheme must be restricted to n.c.\
@@ -6007,10 +6007,10 @@ $\allnc$
 
 By means of inductively defined predicate constants, we have defined
 computationally sensitive forms of existential quantification
-\texttt{exd}, \texttt{exl}, \texttt{exr}, \texttt{exu} written $\exd$,
+\texttt{exd}, \texttt{exl}, \texttt{exr}, \texttt{exnc} written $\exd$,
 $\exL$, $\exR$, $\exnc$ and also their total versions \texttt{exdt},
-\texttt{exlt}, \texttt{exrt}, \texttt{exut}, conjunction
-\texttt{andd}, \texttt{andr}, \texttt{andu} written $\landd$,
+\texttt{exlt}, \texttt{exrt}, \texttt{exnct}, conjunction
+\texttt{andd}, \texttt{andr}, \texttt{andnc} written $\landd$,
 $\landR$, $\landnc$ (\texttt{andb} is used for the boolean operator),
 disjunction \texttt{or}, \texttt{orl}, \texttt{orr}, \texttt{oru},
 \texttt{ornc} written $\lord$, $\lorL$, $\lorR$, $\loru$, $\lornc$
@@ -6087,14 +6087,14 @@ and similar for the computationally sensitive logical connectives:
 \texttt{mk-exd}\index{mk-exd@\texttt{mk-exd}},
 \texttt{mk-exl}\index{mk-exl@\texttt{mk-exl}},
 \texttt{mk-exr}\index{mk-exr@\texttt{mk-exr}},
-\texttt{mk-exu}\index{mk-exu@\texttt{mk-exu}},
+\texttt{mk-exnc}\index{mk-exnc@\texttt{mk-exnc}},
 \texttt{mk-exdt}\index{mk-exdt@\texttt{mk-exdt}},
 \texttt{mk-exlt}\index{mk-exlt@\texttt{mk-exlt}},
 \texttt{mk-exrt}\index{mk-exrt@\texttt{mk-exrt}},
-\texttt{mk-exut}\index{mk-exut@\texttt{mk-exut}},
+\texttt{mk-exnct}\index{mk-exnct@\texttt{mk-exnct}},
 \texttt{mk-andd}\index{mk-andd@\texttt{mk-andd}},
 \texttt{mk-andr}\index{mk-andr@\texttt{mk-andr}},
-\texttt{mk-andu}\index{mk-andu@\texttt{mk-andu}},
+\texttt{mk-andnc}\index{mk-andnc@\texttt{mk-andnc}},
 \texttt{mk-ord}\index{mk-ord@\texttt{mk-ord}},
 \texttt{mk-orl}\index{mk-orl@\texttt{mk-orl}},
 \texttt{mk-orr}\index{mk-orr@\texttt{mk-orr}},
@@ -6753,14 +6753,14 @@ defined (decorated) existential quantifiers we have the abbreviating axioms
   \mathtt{ExRTotalElim}\index{ExRTotalElim@\texttt{ExRTotalElim}} \colon
   &\exR_x P x \to \exR_{\hat{x}}(\GTotal \hat{x} \landR P \hat{x}),
   \\
-  \mathtt{ExUTotalElim}\index{ExUTotalElim@\texttt{ExUTotalElim}} \colon
+  \mathtt{ExNcTotalElim}\index{ExNcTotalElim@\texttt{ExNcTotalElim}} \colon
   &\exnc_x P x \to \exnc_{\hat{x}}(\GTotal \hat{x} \landnc P \hat{x})
 \end{align*}
 and their converses $\mathtt{ExDTotalIntro}$%
 \index{ExDTotalIntro@\texttt{ExDTotalIntro}}, $\mathtt{ExLTotalIntro}$%
 \index{ExLTotalIntro@\texttt{ExLTotalIntro}}, $\mathtt{ExRTotalIntro}$%
-\index{ExRTotalIntro@\texttt{ExRTotalIntro}} and $\mathtt{ExUTotalIntro}$%
-\index{ExUTotalIntro@\texttt{ExUTotalIntro}}.  For the primitive
+\index{ExRTotalIntro@\texttt{ExRTotalIntro}} and $\mathtt{ExNcTotalIntro}$%
+\index{ExNcTotalIntro@\texttt{ExNcTotalIntro}}.  For the primitive
 existential quantifier we have the abbreviating axiom
 \begin{align*}
   \mathtt{ExTotalElim}\index{ExTotalElim@\texttt{ExTotalElim}} \colon
@@ -8887,12 +8887,14 @@ generates the a new goal with \texttt{m} replaced by \texttt{n}:
 
 \subsection{simp-with}
 This is a more verbose form of \texttt{simp}, where the terms are not
-inferred via matching, but have to be given explicitly.  Also, for
-the instantiated premises one can indicate how they are to come about.
-So in \texttt{(simp-with \textsl{opt-dir} \textsl{x} .\
-  \textsl{x-list})}\index{simp-with@\texttt{simp-with}},
-\textsl{opt-dir} and \textsl{x} are as in \texttt{simp}, and
-\textsl{x-list} is a list consisting of
+inferred via matching, but have to be given explicitly.  In fact,
+\texttt{simp} is defined via \texttt{simp-with}.  Also, for the
+instantiated premises one can indicate how they are to come about.  So
+in \texttt{(simp-with \textsl{opt-dir} \textsl{x}
+  .\ \textsl{x-list})}\index{simp-with@\texttt{simp-with}},
+\textsl{opt-dir} and \textsl{x} are as in \texttt{simp} (except that
+the formula of $x$ must be an atom, a negated atom or $t \approx s$),
+and \textsl{x-list} is a list consisting of
 \begin{enumeratei}
 \item a number or string identifying a hypothesis form the context,
 \item the name of a theorem or global assumption,

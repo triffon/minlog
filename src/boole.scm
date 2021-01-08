@@ -1,14 +1,17 @@
-;; $Id: boole.scm 2665 2014-01-08 09:54:29Z schwicht $
+;; 2020-04-06.  boole.scm
 ;; 7. Formulas and comprehension terms
 ;; ===================================
 
 ;; First we add some tokens (this can only be done after loading
 ;; minitab.scm, which is done immediately before loading the present file).
 
+(add-token "beta" 'tvar-name "beta")
+(add-token "gamma" 'tvar-name "gamma")
+
 (add-token "andd" 'and-jct make-andd)
 (add-token "andr" 'and-jct make-andr)
 (add-token "andl" 'and-jct make-andl)
-(add-token "andu" 'and-jct make-andu)
+(add-token "andnc" 'and-jct make-andnc)
 (add-token "andi" 'and-jct make-andi)
 
 (add-token "ord" 'or-jct make-ord)
@@ -24,10 +27,7 @@
 (add-token "exd" 'quantor (lambda (v k) (apply mk-exd (append v (list k)))))
 (add-token "exl" 'quantor (lambda (v k) (apply mk-exl (append v (list k)))))
 (add-token "exr" 'quantor (lambda (v k) (apply mk-exr (append v (list k)))))
-(add-token "exu" 'quantor (lambda (v k) (apply mk-exu (append v (list k)))))
 (add-token "exi" 'quantor (lambda (v k) (apply mk-exi (append v (list k)))))
-(add-token "exnci" 'quantor
-	   (lambda (v k) (apply mk-exnci (append v (list k)))))
 
 ;; We introduce a prefix display string Des for Destr
 
@@ -167,9 +167,10 @@
 (define (make-negation formula) (make-imp formula falsity))
 (add-token "not" 'prefix-jct make-negation)
 
-(define falsity-log
-  (make-predicate-formula
-   (make-pvar (make-arity) -1 h-deg-zero n-deg-zero "bot")))
+(define falsity-log-pvar
+  (make-pvar (make-arity) -1 h-deg-zero n-deg-zero "bot"))
+
+(define falsity-log (make-predicate-formula falsity-log-pvar))
 
 (define (make-negation-log formula) (make-imp formula falsity-log))
 (add-token "notl" 'prefix-jct make-negation-log)
@@ -432,21 +433,6 @@
 			      (nbe-fam-apply (nbe-reify (car l)) k)
 			      (nbe-fam-apply (nbe-reify obj) k)))))))
 		       ((null? l) obj))))))))
-	   ((or constr1? constr2?)
-	    (let* ((constr-obj (if constr1? obj1 obj2))
-		   (constr-val (if constr1? val1 val2))
-		   (obj (if constr1? obj2 obj1)))
-	      (do ((l (nbe-constr-value-to-args constr-val) (cdr l)))
-		  ((or (null? l)
-		       (let* ((arg (car l))
-			      (argalg (nbe-object-to-type arg))
-			      (prev (nbe-object-app (in-at finalg argalg)
-						    obj arg))
-			      (prevval (nbe-object-to-value prev)))
-			 (trueval? prevval)))
-		   (if (null? l)
-		       reprod-obj
-		       falseobj)))))
 	   ((and (nbe-fam-value? val1) (nbe-fam-value? val2))
 	    (let ((term1 (nbe-extract val1))
 		  (term2 (nbe-extract val2)))
@@ -456,7 +442,7 @@
 		  reprod-obj)))
 	   (else reprod-obj))))))))
 
-(define (in-at finalg1 finalg2)
+(define (in-at finalg1 finalg2) ;obsolete
   (nbe-make-object
    (mk-arrow finalg1 finalg2 (make-alg "boole"))
    (lambda (obj1)
@@ -904,11 +890,6 @@
 (define (yprod-form-to-right-type yprod-type)
   (cadr (alg-form-to-types yprod-type)))
 
-(define (yprod-form? x)
-  (and (alg-form? x)
-       (string=? "yprod" (alg-form-to-name x))
-       (= 2 (length (alg-form-to-types x)))))
-
 (define (mk-yprod . x)
   (cond ((null? x) (make-alg "unit"))
 	((null? (cdr x)) (car x))
@@ -1154,5 +1135,27 @@
 ;; (pp (make-injection (py "alpha1 ysum alpha2") 1))
 ;; (InR alpha2 alpha1)
 
+(define (make-left-injection left-type right-type)
+  (let* ((inl-constr (constr-name-to-constr "InL"))
+	 (tvars (alg-name-to-tvars "ysum"))
+	 (tsubst (make-substitution tvars (list left-type right-type)))
+	 (subst-inl-constr (const-substitute inl-constr tsubst #t)))
+    (make-term-in-const-form subst-inl-constr)))
 
+;; (pp (make-left-injection (py "boole") (py "unit")))
+;; (InL boole unit)
+;; (pp (term-to-type (make-left-injection (py "boole") (py "unit"))))
+;; boole=>boole ysum unit
+
+(define (make-right-injection left-type right-type)
+  (let* ((inr-constr (constr-name-to-constr "InR"))
+	 (tvars (alg-name-to-tvars "ysum"))
+	 (tsubst (make-substitution tvars (list right-type left-type)))
+	 (subst-inr-constr (const-substitute inr-constr tsubst #t)))
+    (make-term-in-const-form subst-inr-constr)))
+
+;; (pp (make-right-injection (py "boole") (py "unit")))
+;; (InR boole unit)
+;; (pp (term-to-type (make-right-injection (py "boole") (py "unit"))))
+;; boole=>unit ysum boole
 

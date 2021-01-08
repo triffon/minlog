@@ -1501,6 +1501,7 @@
 (ind)
 (ng)
 (assume "w" "i" "Absurd")
+(use "EfAtom")
 (use "Absurd")
 (assume "ws" "vss" "IH" "w" "i" "i<Succ Lh vss")
 (use "InsertLemmaAux")
@@ -1508,6 +1509,8 @@
 (use "i<Succ Lh vss")
 ;; Proof finished.
 (save "InsertLemma")
+
+(remove-computation-rules-for (pt "(Inhab list alpha)"))
 
 (add-computation-rules
  "(Inhab list list nat)" "(Nil list nat)")

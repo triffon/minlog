@@ -21,18 +21,21 @@
   (cond ((eq system-type 'windows-nt)
 	 (setq scheme "---PETITEEXEPATH---"))
 	((getenv "SCHEME") (setq scheme (getenv "SCHEME")))
-	((and (file-readable-p "/usr/bin/petite")
-	      (string= system-type "gnu/linux"))
-	 (setq scheme "/usr/bin/petite"))
+	((eq 0 (shell-command "which scheme"))
+	 (setq scheme "scheme"))
 	((eq 0 (shell-command "which petite"))
 	 (setq scheme "petite"))
+	((eq 0 (shell-command "which racket"))
+	 (setq scheme "racket -l mzscheme -l r5rs -i --load"))
 	((eq 0 (shell-command "which mzscheme"))
-	 (if (string-match "v[67]\." (shell-command-to-string "mzscheme --version"))
-	     (setq scheme "mzscheme -l mzscheme -l r5rs -i --load")
-	   (setq scheme "mzscheme --load")))
+	 (let ((version-info (shell-command-to-string "mzscheme --version")))
+	   (if (or (string-match "Racket" version-info) ;; >= version 5
+		   (string-match "v4." version-info))
+	       (setq scheme "mzscheme -l mzscheme -l r5rs -i --load")
+	     (setq scheme "mzscheme --load"))))
 	((eq 0 (shell-command "which guile"))
 	 (setq scheme "guile -l"))
-	(t (error "Neither petite nor mzscheme nor guile installed ")))
+	(t (error "Neither scheme nor petite nor racket nor mzscheme nor guile installed ")))
 
   ;; is there a heap file ?
   (if (and (file-readable-p (concat minlogpath "/minlog.heap"))
@@ -69,8 +72,6 @@
 	 (border (frame-parameter left-frame 'border-width))
 	 (tp  (cdr (assoc 'top (frame-parameters (selected-frame))))))
     (delete-frame orig-frame)
-    ;(set-frame-size left-frame 80 ht)
-    ;(set-frame-size right-frame 80 ht)
     (set-frame-position left-frame lt tp)
     (set-frame-position right-frame (+ lt wh (* 2 border)) tp)
     (if filename
@@ -84,3 +85,6 @@
   (other-window 1))
 
 (defun quote-string (s) (concat "\"" s "\""))
+
+(load "---MINLOGPATH---/util/minlog-unicode.el")
+

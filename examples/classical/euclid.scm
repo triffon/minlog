@@ -1,3 +1,6 @@
+;; 2020-09-10.  euclid.scm.  Rewritten for pairs and components
+;; w.r.t. yprod.  Totality proofs redone.  
+
 ;; 2014-03-31.  examples/classical/euclid.scm.  Unfolding of Lin a1 a2
 ;; k1 k2 is blocked, as in gcd-gind.scm.  Still Lin a1 a2 k1 k2 =
 ;; Dist(k1*a1)(k2*a2) can be proved.
@@ -24,12 +27,14 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
+(add-var-name "k" (py "nat"))
+
 (add-program-constant "Dist" (py "nat=>nat=>nat"))
 (add-computation-rules
  "Dist nat1 nat2" "[if (nat2<nat1) (nat1--nat2) (nat2--nat1)]")
 
 ;; DistTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Dist"))))
+(set-totality-goal "Dist")
 (use "AllTotalElim")
 (assume "nat1")
 (use "AllTotalElim")
@@ -40,7 +45,8 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "DistTotal")
+;; (cdp)
+(save-totality)
 
 ;; DistComm
 (set-goal "all nat1,nat2 Dist nat1 nat2=Dist nat2 nat1")
@@ -72,6 +78,7 @@
 (simp "nat1<nat2 -> F")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "DistComm")
 
 ;; DistLemma
@@ -89,96 +96,127 @@
 (simp "nat1=nat2+nat3")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "DistLemma")
 
-(add-var-name "a" "b" "c" "q" "r" "l" (py "nat"))
-(add-var-name "p" (py "nat@@nat"))
+(add-var-name "a" "b" "c" "q" "r" (py "nat"))
+(add-var-name "p" (py "nat yprod nat"))
 
 (add-program-constant "Quot" (py "nat=>nat=>nat"))
 (add-program-constant "Rem" (py "nat=>nat=>nat"))
-(add-program-constant "QuotRem" (py "nat=>nat=>nat@@nat"))
-(add-program-constant "QuotRemPair" (py "nat=>nat@@nat=>nat@@nat"))
+(add-program-constant "QuotRem" (py "nat=>nat=>nat yprod nat"))
+(add-program-constant "QuotRemPair" (py "nat=>nat yprod nat=>nat yprod nat"))
 
 (add-computation-rules
  "QuotRemPair m p"
- "[if (Succ right p<m) (left p@Succ right p) (Succ left p@0)]")
+ "[if (Succ rht p<m) (lft p pair Succ rht p) (Succ lft p pair 0)]")
 
 ;; QuotRemPairTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "QuotRemPair"))))
-(assume "m^" "Tm" "p^" "Tp")
+(set-totality-goal "QuotRemPair")
+(use "AllTotalElim")
+(assume "n")
+(use "AllTotalElim")
+(assume "p")
 (ng #t)
-(split)
 (use "BooleIfTotal")
-(use "NatLtTotal")
-(use "TotalNatSucc")
-(use "Tp")
-(use "Tm")
-(use "Tp")
-(use "TotalNatSucc")
-(use "Tp")
-(use "BooleIfTotal")
-(use "NatLtTotal")
-(use "TotalNatSucc")
-(use "Tp")
-(use "Tm")
-(use "TotalNatSucc")
-(use "Tp")
-(use "TotalNatZero")
+;; 7-9
+(use "BooleTotalVar")
+;; 8
+(intro 0)
+(use "NatTotalVar")
+(use "NatTotalVar")
+;; 9
+(intro 0)
+(use "NatTotalVar")
+(use "NatTotalVar")
 ;; Proof finished.
-(save "QuotRemPairTotal")
+;; (cdp)
+(save-totality)
 
 (add-computation-rules
- "QuotRem 0 m" "0@0"
+ "QuotRem 0 m" "0 pair 0"
  "QuotRem(Succ n)m" "QuotRemPair m(QuotRem n m)")
 
 ;; QuotRemTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "QuotRem"))))
-(assume "n^" "Tn" "m^" "Tm")
-(elim "Tn")
+(set-totality-goal "QuotRem")
+(assert "allnc n^(
+     TotalNat n^ -> allnc n^0(TotalNat n^0 -> TotalYprod(QuotRem n^0 n^)))")
+(use "AllTotalElim")
+(assume "m")
+(use "AllTotalElim")
+(ind)
+;; Base
 (ng #t)
-(split)
-(use "TotalNatZero")
-(use "TotalNatZero")
-(assume "n^1" "Tn1" "IH")
-(assert "QuotRem(Succ n^1)m^ eqd QuotRemPair m^(QuotRem n^1 m^)")
- (use "InitEqD")
-(assume "EqdHyp")
-(simp "EqdHyp")
-(drop "EqdHyp")
-(use "QuotRemPairTotal")
-(use "Tm")
+(intro 0)
+(use "NatTotalVar")
+(use "NatTotalVar")
+;; Step
+(assume "n" "IH")
+(ng #t)
+(use "BooleIfTotal")
+(use "NatLtTotal")
+(intro 1)
+(use "PairTwoTotal")
 (use "IH")
+(use "NatTotalVar")
+(intro 0)
+(use "PairOneTotal")
+(use "IH")
+(intro 1)
+(use "PairTwoTotal")
+(use "IH")
+(intro 0)
+(intro 1)
+(use "PairOneTotal")
+(use "IH")
+(use "NatTotalVar")
+;; Assertion proved
+(assume "Assertion" "n^" "Tn" "m^" "Tm")
+(use "Assertion")
+(use "Tm")
+(use "Tn")
 ;; Proof finished.
-(save "QuotRemTotal")
+;; (cdp)
+(save-totality)
 
-(add-computation-rules "Quot n m" "left(QuotRem n m)")
+(add-computation-rules "Quot n m" "lft(QuotRem n m)")
 
 ;; QuotTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Quot"))))
-(assume "n^" "Tn" "m^" "Tm")
-(ng)
+(set-totality-goal "Quot")
+(use "AllTotalElim")
+(assume "n")
+(use "AllTotalElim")
+(assume "m")
+(ng #t)
+(use "PairOneTotal")
 (use "QuotRemTotal")
-(use "Tn")
-(use "Tm")
+(use "NatTotalVar")
+(use "NatTotalVar")
 ;; Proof finished.
-(save "QuotTotal")
+;; (cdp)
+(save-totality)
 
-(add-computation-rules "Rem n m" "right(QuotRem n m)")
+(add-computation-rules "Rem n m" "rht(QuotRem n m)")
 
 ;; RemTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Rem"))))
-(assume "n^" "Tn" "m^" "Tm")
-(ng)
+(set-totality-goal "Rem")
+(use "AllTotalElim")
+(assume "n")
+(use "AllTotalElim")
+(assume "m")
+(ng #t)
+(use "PairTwoTotal")
 (use "QuotRemTotal")
-(use "Tn")
-(use "Tm")
+(use "NatTotalVar")
+(use "NatTotalVar")
 ;; Proof finished.
+;; (cdp)
 (save "RemTotal")
 
 ;; (pp (nt (pt "QuotRem 777 13")))
 
 ;; QuotRemCorrect
-(set-goal "all m,n(0<m -> n=(Quot n m)*m+Rem n m & Rem n m<m)")
+(set-goal "all m,n(0<m -> n=(Quot n m)*m+Rem n m andnc Rem n m<m)")
 (assume "m")
 (ind)
 (ng)
@@ -206,7 +244,7 @@
 (ng)
 (simp "Sr=m")
 (ng)
-(assert "Succ n=left(QuotRem n m)*m+Succ right(QuotRem n m)")
+(assert "Succ n=lft(QuotRem n m)*m+Succ rht(QuotRem n m)")
   (use "IH")
   (use "0<m")
 (simp "Sr=m")
@@ -216,6 +254,7 @@
 (simp "Sr=m")
 (use "0<m")
 ;; Proof finished.
+;; (cdp)
 (save "QuotRemCorrect")
 
 ;; LQ
@@ -224,6 +263,7 @@
 (use "QuotRemCorrect")
 (use "0<b")
 ;; Proof finished.
+;; (cdp)
 (save "LQ")
 
 ;; LR
@@ -232,6 +272,7 @@
 (use "QuotRemCorrect")
 (use "0<b")
 ;; Proof finished.
+;; (cdp)
 (save "LR")
 
 (add-program-constant "Lin" (py "nat=>nat=>nat=>nat=>nat"))
@@ -240,7 +281,7 @@
  "Lin a1 a2(Succ k1)k2" "Dist(Succ k1*a1)(k2*a2)")
 
 ;; LinTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Lin"))))
+(set-totality-goal "Lin")
 (use "AllTotalElim")
 (assume "a1")
 (use "AllTotalElim")
@@ -260,7 +301,8 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "LinTotal")
+;; (cdp)
+(save-totality)
 
 ;; LinDist
 (set-goal "all a1,a2,k1,k2 Lin a1 a2 k1 k2=Dist(k1*a1)(k2*a2)")
@@ -271,6 +313,7 @@
 (assume "k1" "k2")
 (use "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "LinDist")
 
 (add-program-constant "Step" (py "nat=>nat=>nat=>nat=>nat=>nat"))
@@ -279,7 +322,7 @@
  "Step a1 a2 k1 k2(Succ q)" "[if (k2*a2<k1*a1) ((q+1)*k1--1) ((q+1)*k1+1)]")
 
 ;; StepTotal
-(set-goal (rename-variables (term-to-totality-formula (pt "Step"))))
+(set-totality-goal "Step")
 (use "AllTotalElim")
 (assume "a1")
 (use "AllTotalElim")
@@ -299,7 +342,8 @@
 (use "NatTotalVar")
 (use "NatTotalVar")
 ;; Proof finished.
-(save "StepTotal")
+;; (cdp)
+(save-totality)
 
 ;; LS1 or StepLemma
 (set-goal "all a1,a2,k1,k2,q,r(
@@ -389,7 +433,7 @@
  (use "Case1")
 (simp "<-" "0=k1")
 (assume "Absurd")
-(use "Efq")
+(use "EfAtom")
 (use "Absurd")
 
 ;; ?_26:(k2*a2<k1*a1 -> F) -> r=Lin a1 a2(Step a1 a2 k1 k2 q)(q*k2)
@@ -435,6 +479,7 @@
 (use "Truth")
 (use "b1<=b2")
 ;; Proof finished.
+;; (cdp)
 (save "LS1")
 
 ;; LS2
@@ -449,6 +494,7 @@
 (simp "<-" "LinDist")
 (use "LS1")
 ;; Proof finished.
+;; (cdp)
 (save "LS2")
 
 ;; Instead of NatLeCases we use its special case NatZeroLeCases, which
@@ -462,6 +508,7 @@
 (assume "n" "HypSucc" "Useless")
 (use-with "HypSucc" "Truth")
 ;; Proof finished.
+;; (cdp)
 (save "NatZeroLeCases")
 
 ;; We formalize a  classical existence proof (of Euclid's theorem).
@@ -528,6 +575,7 @@
 
 (use-with "u" (pt "k1") (pt "k2") "u4" "u3" "u2")
 ;; Proof finished.
+;; (cdp)
 (save "Euclid")
 
 (define euclid-proof (theorem-name-to-proof "Euclid"))
@@ -537,7 +585,8 @@
 (map aconst-to-name (proof-to-aconsts euclid-proof))
 
 ;; ("ExclIntroTwoNc" "GInd" "NatZeroLeCases" "EqDCompat" "NatEqToEqD" "LR"
-;;   "EqDCompat" "LS1" "QuotRemCorrect" "LS2" "Truth")
+;;   "EqDCompat" "LS1" "Elim" "QuotRemCorrect" "LS2" "Elim"
+;;   "Truth")
 
 ;; A-Translation
 
@@ -549,7 +598,7 @@
 (map aconst-to-name (proof-to-aconsts expanded-euclid-proof))
 
 ;; ("GInd" "Cases" "Truth" "EqDCompat" "NatEqToEqD" "LR"
-;;   "EqDCompat" "LS1" "QuotRemCorrect" "LS2")
+;;   "EqDCompat" "LS1" "Elim" "QuotRemCorrect" "LS2" "Elim")
 
 ;; We need to block unfolding of GRecGuard (whose last argument will be
 ;; True) to obtain a readable term:
@@ -560,38 +609,39 @@
 (define eterm-a
   (atr-min-excl-proof-to-structured-extracted-term min-excl-proof))
 
-(add-var-name "f" (py "nat=>nat=>nat@@nat"))
+(add-var-name "f" (py "nat=>nat=>nat yprod nat"))
 (define neterm-a (rename-variables (nt eterm-a)))
 ;; (pp neterm-a)
 
 ;; [n,n0]
-;;  (GRecGuard nat nat nat@@nat)(Lin n n0)0 1
+;;  (GRecGuard nat nat nat yprod nat)(Lin n n0)0 1
 ;;  ([n1,n2,f]
-;;    [if (right(QuotRem n(Lin n n0 n1 n2)))
-;;      [if (right(QuotRem n0(Lin n n0 n1 n2)))
-;;       (n1@n2)
+;;    [if (rht(QuotRem n(Lin n n0 n1 n2)))
+;;      [if (rht(QuotRem n0(Lin n n0 n1 n2)))
+;;       (n1 pair n2)
 ;;       ([n3]
-;;        f(left(QuotRem n0(Lin n n0 n1 n2))*n1)
-;;        (Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2))))]
+;;        f(lft(QuotRem n0(Lin n n0 n1 n2))*n1)
+;;        (Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2))))]
 ;;      ([n3]
-;;       f(Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2)))
-;;       (left(QuotRem n(Lin n n0 n1 n2))*n2))])
+;;       f(Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2)))
+;;       (lft(QuotRem n(Lin n n0 n1 n2))*n2))])
 ;;  True
 
 ;; (ppc neterm-a)
+
 ;; [n,n0]
-;;  (GRecGuard nat nat nat@@nat)(Lin n n0)0 1
+;;  (GRecGuard nat nat nat yprod nat)(Lin n n0)0 1
 ;;  ([n1,n2,f]
-;;    [case (right(QuotRem n(Lin n n0 n1 n2)))
-;;      (0 ->
-;;      [case (right(QuotRem n0(Lin n n0 n1 n2)))
-;;        (0 -> n1@n2)
-;;        (Succ n3 ->
-;;        f(left(QuotRem n0(Lin n n0 n1 n2))*n1)
-;;        (Step n0 n n2 n1 left(QuotRem n0(Lin n n0 n1 n2))))])
-;;      (Succ n3 ->
-;;      f(Step n n0 n1 n2 left(QuotRem n(Lin n n0 n1 n2)))
-;;      (left(QuotRem n(Lin n n0 n1 n2))*n2))])
+;;    [case (rht(QuotRem n(Lin n n0 n1 n2)))
+;;      (0 -> 
+;;      [case (rht(QuotRem n0(Lin n n0 n1 n2)))
+;;        (0 -> n1 pair n2)
+;;        (Succ n3 -> 
+;;        f(lft(QuotRem n0(Lin n n0 n1 n2))*n1)
+;;        (Step n0 n n2 n1 lft(QuotRem n0(Lin n n0 n1 n2))))])
+;;      (Succ n3 -> 
+;;      f(Step n n0 n1 n2 lft(QuotRem n(Lin n n0 n1 n2)))
+;;      (lft(QuotRem n(Lin n n0 n1 n2))*n2))])
 ;;  True
 
 (define expr (term-to-scheme-expr neterm-a))
@@ -654,7 +704,7 @@
 
 (time (((ev expr)
 	(* 176478618764 12074918274841)) (* 176478618764 34974982375987)))
-;; 1ms
+;; 3ms
 
 ;; (185532993086244630827154332830412341947793818158543070211562340813460220753425924222486261794483960792423184200678029819957159970733315429433310407832279427486496946293312632860482701208603676477486368193239
 ;;   .

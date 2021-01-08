@@ -25,7 +25,7 @@
 ;; ===============
 
 (add-var-name "a" "b" "c" (py "boole"))
-(add-var-name "i" "j" (py "nat"))
+(add-var-name "i" "j" "k" (py "nat"))
 (add-var-name "e"  (py "nat=>nat")) 
 (add-var-name "h"  (py "nat=>boole"))
 
@@ -116,15 +116,13 @@
 
 (define min-excl-proof (np (expand-theorems (theorem-name-to-proof "Cor"))))
 
-(min-excl-proof? min-excl-proof)
-
 ;; 3. Realizing classical dependent choice
 ;; =======================================
 
 ;; The following definitions and notations refer to section 3.2.
 
 (define rho (py "nat"))
-(define nu (py "nat@@nat"))
+(define nu (py "nat yprod nat"))
 (define sigma (mk-arrow nu nu))
 (define type-of-G (mk-arrow rho (mk-arrow rho sigma nu) nu))
 (define type-of-Y (mk-arrow (mk-arrow (py "nat") rho)
@@ -134,7 +132,7 @@
 (add-var-name "z" sigma)
 (add-var-name "G" type-of-G)
 (add-var-name "Y" type-of-Y)
-(define type-of-list (py "list (nat@@(nat@@nat=>nat@@nat))"))
+(define type-of-list (py "list (nat yprod (nat yprod nat=>nat yprod nat))"))
 (add-var-name "t" type-of-list)
 
 ;; [G,Y]Psi G Y Lin is a realizer for DC^X:
@@ -143,15 +141,16 @@
 ;; 4. A-translation
 ;; ================
 
-(define program (atr-min-excl-proof-to-structured-extracted-term
-		 min-excl-proof
-		 (pt "[h,G,Y]Psi G Y (Nil (nat@@(nat@@nat=>nat@@nat)))")))
+(define program
+  (atr-min-excl-proof-to-structured-extracted-term
+   min-excl-proof
+   (pt "[h,G,Y]Psi G Y (Nil (nat yprod (nat yprod nat=>nat yprod nat)))")))
 
 ;; For a better display we add some additional variable names:
 
-(add-var-name "f" (py "nat=>(nat@@nat=>nat@@nat)=>nat@@nat"))
-(add-var-name "g" (py "nat=>nat@@nat=>nat@@nat"))
-(add-var-name "p"(py "nat@@nat"))
+(add-var-name "f" (py "nat=>(nat yprod nat=>nat yprod nat)=>nat yprod nat"))
+(add-var-name "g" (py "nat=>nat yprod nat=>nat yprod nat"))
+(add-var-name "p"(py "nat yprod nat"))
 
 (define nprogram (rename-variables (nt program)))
 (pp nprogram)
@@ -160,28 +159,28 @@
 ;;  Psi
 ;;  ([n,f]
 ;;    [if (h(Succ n))
-;;      [if (h(Succ(Succ n)))
-;; 	 (Succ n@Succ(Succ n))
-;; 	 (f(Succ(Succ n))([p]p))]
+;;        [if (h(Succ(Succ n)))
+;; 	   (Succ n pair Succ(Succ n))
+;; 	   (f(Succ(Succ n))([p]p))]
 ;;      (f(Succ n)([p]p))])
-;;  ([e,g]g 0(g 1(e 1@e 2)))
-;;  (Nil nat@@(nat@@nat=>nat@@nat))
+;;  ([e,g]g 0(g 1(e 1 pair e 2)))
+;;  (Nil nat yprod(nat yprod nat=>nat yprod nat))
 
 ;; Note: depends on Psi as it is not animated yet.
 
 ;; 5. Animation of Psi
 ;; ===================
 
-(define type-of-beta (mk-arrow (py "nat") (make-star rho sigma)))
-(add-var-name "beta" type-of-beta)
+(define type-of-beta (mk-arrow (py "nat") (make-yprod rho sigma)))
+(add-var-name "varbeta" type-of-beta)
 
 (define type-of-Tilde (mk-arrow type-of-Y type-of-beta nu))
 
 (add-program-constant "Tilde" type-of-Tilde)
 
 (add-computation-rules
- "Tilde Y beta"
- "Y([n][if (n=0) 0 (left(beta(Pred n)))])([n]right(beta n))")
+ "Tilde Y varbeta"
+ "Y([n][if (n=0) 0 (lft(varbeta(Pred n)))])([n]rht(varbeta n))")
 
 ;; H is a realizer for an instance of the efq-axiom.  Here the instance
 ;; is bot -> (bot -> bot).
@@ -195,17 +194,18 @@
       ([n]
         [if (n<Lh t)
             (n thof t)
-            (0@H(G[if (Lh t=0)
+            (0 pair H(G[if (Lh t=0)
                       0
-                      (left(Pred Lh t thof t))]([x,z]Psi G Y(t++(x@z):))))])")
+                      (lft(Pred Lh t thof t))]
+        ([x,z]Psi G Y(t++(x pair z):))))])")
 
 (define nprogram (rename-variables (nt program)))
 (pp nprogram)
 
 ;; [h]
 ;;  [if (h 1)
-;;    [if (h 2) (1@2) [if (h 3) ([if (h 4) 3 2]@4) (2@3)]]
-;;    [if (h 2) ([if (h 3) 2 1]@3) (1@2)]]
+;;    [if (h 2) (1 pair 2) [if (h 3) ([if (h 4) 3 2] pair 4) (2 pair 3)]]
+;;    [if (h 2) ([if (h 3) 2 1] pair 3) (1 pair 2)]]
 
 ;; 6. Running the extracted program
 ;; ================================
@@ -213,7 +213,7 @@
 (add-program-constant "Constsequence" (py "nat=>boole"))
 (add-computation-rules "Constsequence n" "False")
 (pp (nt (mk-term-in-app-form nprogram (pt "Constsequence"))))
-;; ==> "1@2"
+;; ==> "1 pair 2"
 
 ;; Note that the 0th element is not found, the reason being h \circ e is
 ;; only constant for inputs n>0.
@@ -227,7 +227,7 @@
  "Sequence 4" "False")
 
 (pp (nt (mk-term-in-app-form nprogram (pt "Sequence"))))
-;; ==> "2@4"
+;; ==> "2 pair 4"
 
 (add-program-constant "Dualsequence" (py "nat=>boole"))
 (add-computation-rules
@@ -238,7 +238,7 @@
  "Dualsequence 4" "True")
 
 (pp (nt (mk-term-in-app-form nprogram (pt "Dualsequence"))))
-;; ==> "1@3"
+;; ==> "1 pair 3"
 
 (add-program-constant "Interesting" (py "nat=>boole"))
 (add-computation-rules
@@ -249,5 +249,5 @@
  "Interesting 4" "True")
 
 (pp (nt (mk-term-in-app-form nprogram (pt "Interesting"))))
-;; ==> "3@4"
+;; ==> "3 pair 4"
 

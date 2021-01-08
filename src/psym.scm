@@ -1,4 +1,4 @@
-;; $Id: psym.scm 2661 2014-01-08 09:51:52Z schwicht $
+;; 2020-07-10.  psym.scm
 ;; 5. Predicates
 ;; =============
 
@@ -35,6 +35,30 @@
 	 (varterms (map make-term-in-var-form vars))
 	 (formula (apply make-predicate-formula predicate varterms)))
     (apply make-cterm (append vars (list formula)))))
+
+(define (predicate-to-cterm-with-partial-total-vars predicate)
+  (let* ((arity (predicate-to-arity predicate))
+	 (types (arity-to-types arity))
+	 (rev-types (reverse types))
+	 (rev-vars (if (pair? rev-types)
+		       (cons (type-to-new-partial-var (car rev-types))
+			     (map type-to-new-var (cdr rev-types)))
+		       '()))
+	 (vars (reverse rev-vars))
+	 (varterms (map make-term-in-var-form vars))
+	 (formula (apply make-predicate-formula predicate varterms)))
+    (apply make-cterm (append vars (list formula)))))
+
+;; (define (predicate-to-cterm-with-partial-total-vars predicate)
+;;   (let* ((arity (predicate-to-arity predicate))
+;; 	 (types (arity-to-types arity))
+;; 	 (vars (if (pair? types)
+;; 		   (cons (type-to-new-partial-var (car types))
+;; 			 (map type-to-new-var (cdr types)))
+;; 		   '()))
+;; 	 (varterms (map make-term-in-var-form vars))
+;; 	 (formula (apply make-predicate-formula predicate varterms)))
+;;     (apply make-cterm (append vars (list formula)))))
 
 (define (predicate-to-tvars pred)
   (cond ((pvar-form? pred)
@@ -380,7 +404,7 @@
 	     (default-pvar-name arity)))
 
 (define (arity-to-new-harrop-pvar arity)
-  (make-pvar arity (+ 1 MAXPVARINDEX) h-deg-one n-deg-one
+  (make-pvar arity (+ 1 MAXPVARINDEX) h-deg-one n-deg-zero
 	     (default-pvar-name arity)))
 
 (define (arity-to-new-general-pvar arity)
@@ -402,31 +426,41 @@
 ;; 5-2. Predicate constants
 ;; ========================
 
-;; General reasons for having predicate constants:
-;; - We need Equal, Total and TotalMR, which are *not*
-;;   placeholders for formulas.
-;; - We need predicates to be axiomatized
-
-;; Remark: Equal is obsolete.  Use Leibniz equality EqD instead.
+;; General reason for having predicate constants: they are *not*
+;; placeholders for formulas.
 
 ;; General properties of predconsts:
-;; - Only Total and TotalMR have computational content.
+;; - Only some have computational content.
 ;; - They do not change their name when a tsubst is employed.  Hence from
 ;;   a name one can only read off the uninstantiated type.
-;; - Their meaning can be fixed by axioms (e.g. for Equal, E and also for
-;;   Bar(.,.) of arity ('arity tree seq))
 
 ;; Predicate constant names are provided in the form of an association
 ;; list, which assigns to the names their arities.  By default we have
-;; the predicate constants Equal of arity (arity alpha alpha) and Total
-;; of arity (arity alpha).
+;; the predicate constant Total of arity (arity alpha).
 
 (define PREDCONST-NAMES
   (list
-   (list "Equal" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
-			     (make-tvar -1 DEFAULT-TVAR-NAME)))
    (list "Total" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)))
-   (list "TotalMR" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+   (list "TotalNc" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "CoTotal" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "CoTotalNc" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "TotalMR" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME) ;obsolete?
+			       (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "CoTotalMR" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+				 (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "EqP" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+			   (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "EqPNc" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+			     (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "CoEqP" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+			     (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "CoEqPNc" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+			       (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "EqPMR" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+			     (make-tvar -1 DEFAULT-TVAR-NAME)
+			     (make-tvar -1 DEFAULT-TVAR-NAME)))
+   (list "CoEqPMR" (make-arity (make-tvar -1 DEFAULT-TVAR-NAME)
+			       (make-tvar -1 DEFAULT-TVAR-NAME)
 			       (make-tvar -1 DEFAULT-TVAR-NAME)))))
 
 (define (add-predconst-name . x)
@@ -572,6 +606,20 @@
 	(myerror "predconst-name-to-arity" "predconst-name expected"
 		 predconst-name))))
 
+;; Code discarded 2020-07-10
+;; (define (check-totality-predconst pred) ;name from (Co)Total(Nc)(MR)
+;;   (let* ((uninst-arity (predconst-to-uninst-arity pred))
+;; 	 (tsubst (predconst-to-tsubst pred))
+;; 	 (uninst-types (arity-to-types arity))
+;; 	 (uninst-type (car uninst-types))
+;; 	 (inst-type (type-substitute uninst-type tsubst))
+;; 	 (tvars (type-to-tvars inst-type))
+;; 	 (level (type-to-level inst-type)))
+;;     (if (and (null? tvars) (< 1 level))
+;; 	(myerror "check-totality-predconst" "totality predconst"
+;; 		 (predconst-to-name pred)
+;; 		 "has closed type of level larger than one" type))))
+
 ;; To allow for a convenient display, we maintain a global variable
 ;; PREDCONST-DISPLAY consisting of entries (name token-type display-string)
 
@@ -614,7 +662,7 @@
 
 (define (make-idpredconst name types cterms)
   (if
-   (and (member name '("ExDT" "ExLT" "ExRT" "ExUT"))
+   (and (member name '("ExDT" "ExLT" "ExRT" "ExNcT"))
 	(not (t-deg-one? (var-to-t-deg (car (cterm-to-vars (car cterms)))))))
    (myerror "make-idpredconst"
 	    "comprehension term with total variable expected"
@@ -643,11 +691,29 @@
 	  (map (lambda (cterm) (apply make-arity
 				      (map var-to-type (cterm-to-vars cterm))))
 	       cterms)))
+
     (if (not (equal? subst-param-pvar-arities cterm-arities))
 	(myerror "idpredconst-name-and-types-and-cterms-to-idpredconst"
 		 "equal arities expected of subst-param-pvar-arities"
 		 subst-param-pvar-arities "and cterm-arities"
 		 cterm-arities))
+					;check for sharp psubst
+    (for-each
+     (lambda (pvar cterm)
+       (let ((fla (cterm-to-formula cterm)))
+	 (if (and (h-deg-zero? (pvar-to-h-deg pvar)) ;c.r. pvar
+		  (formula-of-nulltype? fla)) ;n.c. formula
+	     (myerror
+	      "idpredconst-name-and-types-and-cterms-to-idpredconst"
+	      "not a sharp psubst: c.r. pvar" pvar
+	      "substituted by cterm with n.c. formula" fla))
+	 (if (and (h-deg-one? (pvar-to-h-deg pvar)) ;n.c.. pvar
+		  (not (formula-of-nulltype? fla))) ;c.r. formula
+	     (myerror
+	      "idpredconst-name-and-types-and-cterms-to-idpredconst"
+	      "sharp predicate substitution expected:  n.c. pvar" pvar
+	      "substituted by cterm with c.r. formula" fla))))
+     param-pvars cterms)
     (make-idpredconst name types cterms)))
 
 (define (idpredconst-form? x) (and (pair? x) (eq? 'idpredconst (car x))))
@@ -716,8 +782,8 @@
 			     (map (lambda (pvar cterm) (list pvar cterm))
 				  param-pvars cterms))))
 	(check-admissible-tpsubst tpsubst))
-					;tvar(param-pvar) in mr-et-tvars iff
-					;cterm c.r.
+					;tvar(param-pvar) in mr-et-tvars
+					;implies cterm c.r.
       (let* ((names (idpredconst-name-to-simidpc-names name))
 	     (clauses-with-names
 	      (apply append
@@ -725,7 +791,10 @@
 	     (clauses (map car clauses-with-names))
 	     (et-types (map formula-to-et-type clauses))
 	     (et-tvars (apply union (map type-to-tvars et-types)))
-	     (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
+	     (et-tvars-of-param-pvars
+	      (map PVAR-TO-TVAR (list-transform-positive param-pvars
+				  pvar-with-positive-content?)))
+	     ;; (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
 	     (mr-et-tvars (list-transform-positive et-tvars
 			    (lambda (tvar)
 			      (member tvar et-tvars-of-param-pvars)))))
@@ -734,11 +803,6 @@
 	   (if (and (member (PVAR-TO-TVAR pvar) mr-et-tvars)
 		    (formula-of-nulltype? (cterm-to-formula cterm)))
 	       (myerror "check-idpredconst" "c.r. formula expected"
-			(cterm-to-formula cterm)
-			"for param-pvar" pvar))
-	   (if (and (not (member (PVAR-TO-TVAR pvar) mr-et-tvars))
-		    (not (formula-of-nulltype? (cterm-to-formula cterm))))
-	       (myerror "check-idpredconst" "c.i. formula expected"
 			(cterm-to-formula cterm)
 			"for param-pvar" pvar)))
 	 param-pvars cterms)))))
@@ -802,13 +866,13 @@
 	(string-append "exr" (separator-string "exr" varstring)
 		       varstring (separator-string varstring kernelstring)
 		       kernelstring)))
-     ((member name '("ExU" "ExUT"))
+     ((member name '("ExNc" "ExNcT"))
       (let* ((cterm (car param-cterms))
 	     (var (car (cterm-to-vars cterm)))
 	     (kernel (cterm-to-formula cterm))
 	     (varstring (var-to-string var))
 	     (kernelstring (formula-to-string kernel)))
-	(string-append "exu" (separator-string "exu" varstring)
+	(string-append "exnc" (separator-string "exnc" varstring)
 		       varstring (separator-string varstring kernelstring)
 		       kernelstring)))
      ((string=? "AndD" name)
@@ -835,13 +899,13 @@
 	(string-append (formula-to-string kernel1)
 		       " andr "
 		       (formula-to-string kernel2))))
-     ((string=? "AndU" name)
+     ((string=? "AndNc" name)
       (let* ((cterm1 (car param-cterms))
 	     (cterm2 (cadr param-cterms))
 	     (kernel1 (cterm-to-formula cterm1))
 	     (kernel2 (cterm-to-formula cterm2)))
 	(string-append (formula-to-string kernel1)
-		       " andu "
+		       " andnc "
 		       (formula-to-string kernel2))))
      ((string=? "OrD" name)
       (let* ((cterm1 (car param-cterms))
@@ -1011,6 +1075,25 @@
 	 (spos-pvars (apply union (map formula-to-spos-pvars prems))))
     (set-minus spos-pvars pvars)))
 
+(define (idpredconst-name-to-relevant-param-pvars name)
+  (let* ((idpc-names-with-pvars-and-opt-alg-names
+	  (idpredconst-name-to-idpc-names-with-pvars-and-opt-alg-names name))
+	 (names (map car idpc-names-with-pvars-and-opt-alg-names))
+	 (pvars (map cadr idpc-names-with-pvars-and-opt-alg-names))
+	 (clauses-with-names
+	  (apply append (map idpredconst-name-to-clauses-with-names names)))
+	 (clauses (map car clauses-with-names))
+	 (prems
+	  (apply append (map imp-impnc-all-allnc-form-to-premises clauses)))
+	 (spos-pvars (apply union (map formula-to-spos-pvars prems)))
+	 (spos-param-pvars (set-minus spos-pvars pvars))
+	 (cr-pvars (list-transform-positive spos-param-pvars
+		     (lambda (pvar) (h-deg-zero? (pvar-to-h-deg pvar)))))
+	 (et-types (map formula-to-et-type clauses))
+	 (et-tvars (apply union (map type-to-tvars et-types))))
+    (list-transform-positive cr-pvars
+      (lambda (pvar) (member (PVAR-TO-TVAR pvar) et-tvars)))))
+
 (define (idpredconst-to-spos-pvars idpc)
   (let* ((idpc-name (idpredconst-to-name idpc))
 	 (cterms (idpredconst-to-cterms idpc))
@@ -1046,9 +1129,7 @@
 	       mr-idpc-name)))
 
 (define (idpredconst-name-to-tvars name)
-  (if (mr-idpredconst-name? name)
-      (mr-idpredconst-name-to-tvars name)
-      (orig-idpredconst-name-to-tvars name)))
+  (orig-idpredconst-name-to-tvars name))
 
 (define (orig-idpredconst-name-to-tvars name)
   (let* ((idpredconst-names-with-pvars-and-opt-alg-names
@@ -1059,27 +1140,6 @@
 	 (clauses (map car clauses-with-names))
 	 (clause-tvars-list (map formula-to-tvars clauses)))
     (apply union clause-tvars-list)))
-
-(define (mr-idpredconst-name-to-tvars mr-idpc-name)
-  (let* ((name (if (mr-idpredconst-name? mr-idpc-name)
-		   (mr-idpredconst-name-to-orig-idpredconst-name mr-idpc-name)
-		   (myerror "mr-idpredconst-name-to-tvars"
-			    "name of an mr-idpredconst expected"
-			    mr-idpc-name)))
-	 (names (idpredconst-name-to-simidpc-names name))
-	 (clauses-with-names
-	  (apply append (map idpredconst-name-to-clauses-with-names names)))
-	 (clauses (map car clauses-with-names))
-	 (clause-tvars-list (map formula-to-tvars clauses))
-	 (tvars (apply union clause-tvars-list))
-	 (et-types (map formula-to-et-type clauses))
-	 (et-tvars (apply union (map type-to-tvars et-types)))
-	 (param-pvars (idpredconst-name-to-param-pvars name))
-	 (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
-	 (mr-et-tvars (list-transform-positive et-tvars
-			(lambda (tvar)
-			  (member tvar et-tvars-of-param-pvars)))))
-    (append mr-et-tvars tvars)))
 
 (define (idpredconst-name-and-types-to-tsubst name types)
   (let ((tvars (idpredconst-name-to-tvars name)))
@@ -1119,21 +1179,15 @@
 ;; ALGEBRAS with nbe-alg, adds tokens for the idpc-names and adds the
 ;; clauses as theorems.
 
-;; We also allow non-computational (n.c.) (or computationally
-;; irrelevant (c.i.)) inductively defined predicates.  Then
-;; idpc-names-with-arities-and-opt-alg-names has no alg-name.
-;; Important special cases are: (i) For every I its witnessing
-;; predicate IMR.  It is special in the sense that (IMR t ss) just
-;; states the fact that we do have a realizer t for I ss.  IMR is
-;; created by calling add-mr-ids for a known idpc-name I.  (ii) By
-;; providing just one nullary clause with allnc, impnc only and no
-;; opt-alg-name one can introduce a uniform-one-clause-defined idpc
-;; which is n.c.  Examples are Leibniz equality EqD, and uniform
-;; variants ExU and AndU of the existential quantifier and conjunction.
-;; In all other cases the elimination scheme must be restricted to
-;; n.c. formulas.  Also, all (n.c.) clauses must be invariant.  This
-;; ensures that the soundness theorem holds: every intro and elim axiom
-;; is invariant, i.e., nullterm mr A is the same as A.
+;; We also allow non-computational (n.c.) inductively defined predicates.
+;; Then idpc-names-with-arities-and-opt-alg-names has no alg-name.  The
+;; elimination scheme for such inductive predicates must be restricted to
+;; n.c. formulas.  However, there is an important exception: in the
+;; special case of a one-clause-nc definition (i.e., with only one clause
+;; involving tonc, allnc only) there are no restrictions on the
+;; elimination scheme.  This is the case for Leibniz equality EqD, and
+;; n.c. variants ExNc and AndNc of the existential quantifier and of
+;; conjunction.
 
 (define (add-ids idpc-names-with-arities-and-opt-alg-names .
 		 clause-strings-with-opt-names)
@@ -1199,16 +1253,18 @@
 				((null? l1))
 			      (add-pvar-name (car l1) (car l2))))
        (clauses (map pf clause-strings))
-       (special-nc-idpc?
-	(and (= 1 (length clauses))
-	     (predicate-form?
-	      (impnc-form-to-final-conclusion
-	       (allnc-form-to-final-kernel (car clauses))))))
+       ;; (special-nc-idpc?
+       ;; 	(and (= 1 (length clauses))
+       ;; 	     (impnc-allnc-pvar-formula? (car clauses))))
+       (one-clause-nc-idpc?
+       	(and (= 1 (length clauses))
+	     (formula-of-one-clause-nc-idpredconst? (car clauses))))
        (remove-temporal-pvar-names (apply remove-pvar-name idpc-names))
        (idpc-pvars
-	(map (if (or all-with-content? special-nc-idpc?)
+	(map (if (or all-with-content? one-clause-nc-idpc?)
 		 arity-to-new-general-pvar
-		 arity-to-new-harrop-pvar) arities))
+		 arity-to-new-harrop-pvar)
+	     arities))
        (var-lists
 	(map (lambda (arity)
 	       (map type-to-new-partial-var (arity-to-types arity)))
@@ -1245,34 +1301,6 @@
 		(apply myerror "add-ids"
 		       "strict positivity of idpc pvars in premises expected"
 		       clauses-with-idpc-pvars)))))
-       (clause-test1 ;single n.c. clause uniform or non-computational-invariant
-	(if (and (= 1 (length clauses-with-idpc-pvars))
-		 all-without-content?
-		 (not (uniform-non-rec-idpc-clause?
-		       (car clauses-with-idpc-pvars) param-pvars idpc-pvars))
-		 (not (non-computational-invariant?
-		       (car clauses-with-idpc-pvars)
-		       (append param-pvars idpc-pvars))))
-	    (let ((clause (car clauses-with-idpc-pvars)))
-	      (set! COMMENT-FLAG OLD-COMMENT-FLAG)
-	      (apply remove-var-name idpc-names)
-	      (myerror "add-ids"
-		       "single n.c. clause neither uniform nor invariant"
-		       clause))))
-       (clause-test2 ;all n.c. clauses non-computational-invariant?
-	(or
-	 all-with-content?
-	 (for-each
-	  (lambda (clause)
-	    (if (not (non-computational-invariant?
-		      clause (append idpc-pvars param-pvars)))
-		(begin
-		  (set! COMMENT-FLAG OLD-COMMENT-FLAG)
-		  (apply remove-var-name idpc-names)
-		  (myerror
-		   "add-ids"
-		   "non-computational-invariant clause expected" clause))))
-	  clauses-with-idpc-pvars)))
        (clauses-with-idpc-pvars-and-opt-names
 	(map cons
 	     clauses-with-idpc-pvars
@@ -1304,6 +1332,9 @@
 		      (cons (list clause name) res)))))
 	    ((null? l) (reverse (cadr pvar-counter-alist-and-res)))))
        (clause-names (map cadr clauses-with-idpc-pvars-and-names))
+       ;; (idpc-tvars (if all-with-content?
+       ;; 		       (map PVAR-TO-TVAR idpc-pvars)
+       ;; 		       '()))
        (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
        (idpc-tvars-cr (if all-with-content?
 			  (map PVAR-TO-TVAR idpc-pvars)
@@ -1311,7 +1342,10 @@
        (alg-names (if all-with-content?
 		      (map caddr idpc-names-with-arities-and-opt-alg-names)
 		      '()))
-       (param-pvar-tvars (map PVAR-TO-TVAR param-pvars))
+       (param-pvar-tvars
+	(map PVAR-TO-TVAR (list-transform-positive param-pvars
+			    pvar-with-positive-content?)))
+       ;; (param-pvar-tvars (map PVAR-TO-TVAR param-pvars))
        (known-alg-names?
 	(and all-with-content?
 	     (assoc (car alg-names) ALGEBRAS)
@@ -1426,6 +1460,9 @@
 	     idpc-pvars))
        (clauses-list (map cdr idpc-pvars-with-clauses))
        (init-clauses (map car clauses-list))
+       ;; The only use of an idpc I without nullary initial clause is
+       ;; to allow generation of CoI via add-co.  check-idpredconst will
+       ;; reject I.
        ;; (test-for-inhabitedness
        ;; 	 (for-each
        ;; 	  (lambda (init-clause)
@@ -1648,7 +1685,7 @@
 		       (cdr names)))
 	       ((= i (length clauses-with-idpc-pvars-and-names)))
 	     (let* ((cterms
-		     (if (member idpc-name '("ExDT" "ExLT" "ExRT" "ExUT"))
+		     (if (member idpc-name '("ExDT" "ExLT" "ExRT" "ExNcT"))
 			 (map predicate-to-cterm-with-total-vars param-pvars)
 			 (map predicate-to-cterm param-pvars)))
 		    (aconst
@@ -1722,10 +1759,18 @@
 	 (car nullary-clauses-and-rest-clauses)))))
 
 ;; IMR is created by calling add-mr-ids for a known idpc-name I.
-;; add-mr-ids needs real-and-idpc-clause-to-mr-idpc-clause as auxiliary
-;; function.
+;; add-mr-ids needs real-and-formula-to-mr-formula-for-mr-clauses as
+;; auxiliary function.
 
 (define (add-mr-ids idpc-name)
+  ;; Code discarded 2018-06-16
+  ;; (if (initial-substring? "Total" idpc-name)
+  ;;     (myerror "add-mr-ids" "use TotalAlgNc instead of TotalAlgMR"))
+  (if (member idpc-name COIDS)
+      (myerror
+       "add-mr-ids"
+       "For CoIMR first use add-mr-ids and add-co on I to obtain IMR and CoI."
+       " Then use add-co on IMR"))
   (set! OLD-COMMENT-FLAG COMMENT-FLAG)
   (set! COMMENT-FLAG #f)
   (let* ((idpc-pvars (idpredconst-name-to-pvars idpc-name))
@@ -1768,16 +1813,33 @@
 	      (map (lambda (idpc-pvar alg)
 		     (list idpc-pvar
 			   (apply make-arity
-				  alg (arity-to-types
-				       (predicate-to-arity idpc-pvar)))))
+				  (append (arity-to-types
+					   (predicate-to-arity idpc-pvar))
+					  (list alg )))))
 		   idpc-pvars algs)
 	      (list (list (car idpc-pvars)
 			  (apply make-arity
-				 (arrow-form-to-arg-type
-				  (formula-to-et-type
-				   (car clauses-with-idpc-pvars)))
-				 (arity-to-types
-				  (predicate-to-arity (car idpc-pvars))))))))
+				 (append
+				  (arity-to-types
+				   (predicate-to-arity (car idpc-pvars)))
+				  (list (arrow-form-to-arg-type
+					 (formula-to-et-type
+					  (car clauses-with-idpc-pvars))))))))))
+	 ;; (idpc-pvar-to-mr-idpc-arity-alist
+	 ;;  (if (not identity?)
+	 ;;      (map (lambda (idpc-pvar alg)
+	 ;; 	     (list idpc-pvar
+	 ;; 		   (apply make-arity
+	 ;; 			  alg (arity-to-types
+	 ;; 			       (predicate-to-arity idpc-pvar)))))
+	 ;; 	   idpc-pvars algs)
+	 ;;      (list (list (car idpc-pvars)
+	 ;; 		  (apply make-arity
+	 ;; 			 (arrow-form-to-arg-type
+	 ;; 			  (formula-to-et-type
+	 ;; 			   (car clauses-with-idpc-pvars)))
+	 ;; 			 (arity-to-types
+	 ;; 			  (predicate-to-arity (car idpc-pvars))))))))
 	 (pvar-to-mr-pvar ;local pvar-to-mr-pvar, special for idpc-pvars
 	  (let ((assoc-list '()))
 	    (lambda (pvar)
@@ -1790,23 +1852,28 @@
 			     (cadr (assoc pvar
 					  idpc-pvar-to-mr-idpc-arity-alist))
 			     (apply make-arity
-				    (PVAR-TO-TVAR pvar)
-				    (arity-to-types
-				     (predicate-to-arity pvar)))))
+				    (append (arity-to-types
+					     (predicate-to-arity pvar))
+					    (list (PVAR-TO-TVAR pvar))))))
 			(mr-idpc-pvar
-			 (arity-to-new-harrop-pvar mr-idpc-arity)))
+			 (if (member pvar idpc-pvars)
+			     (arity-to-new-harrop-pvar mr-idpc-arity)
+			     (PVAR-TO-MR-PVAR pvar))))
 		   (set! assoc-list
 			 (cons (list pvar mr-idpc-pvar) assoc-list))
 		   mr-idpc-pvar))))))
 	 (param-pvars (idpredconst-name-to-param-pvars idpc-name))
-	 (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
+	 (et-tvars-of-param-pvars
+	  (map PVAR-TO-TVAR (list-transform-positive param-pvars
+			      pvar-with-positive-content?)))
+	 ;; (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
 	 (mr-et-tvars (list-transform-positive et-tvars
 			(lambda (tvar)
 			  (member tvar et-tvars-of-param-pvars))))
 	 (mr-clauses-with-mr-idpc-pvars
 	  (if (not identity?)
 	      (map (lambda (constr-term clause-with-idpc-pvars)
-		     (real-and-idpc-clause-to-mr-idpc-clause
+		     (real-and-formula-to-mr-formula-for-mr-clauses
 		      constr-term clause-with-idpc-pvars
 		      mr-et-tvars idpc-pvars pvar-to-mr-pvar))
 		   constr-terms clauses-with-idpc-pvars)
@@ -1814,7 +1881,7 @@
 		     (var (type-to-new-partial-var et-tvar))
 		     (real (make-term-in-abst-form
 			    var (make-term-in-var-form var))))
-		(list (nf (real-and-idpc-clause-to-mr-idpc-clause
+		(list (nf (real-and-formula-to-mr-formula-for-mr-clauses
 			   real (car clauses-with-idpc-pvars)
 			   mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))
 	 (mr-idpc-names (map (lambda (name) (string-append name "MR"))
@@ -1847,12 +1914,13 @@
        (cond ((pvar-form? pred)
 	      (if (or (member (PVAR-TO-TVAR pred) mr-et-tvars)
 		      (member pred idpc-pvars))
-		  (car (arity-to-types (predicate-to-arity
+		  (rac (arity-to-types (predicate-to-arity
 					(pvar-to-mr-pvar pred))))
 		  (make-tconst "nulltype")))
 	     ((predconst-form? pred)
-	      (if (string=? "Total" (predconst-to-name pred))
-		  (car (arity-to-types (predconst-to-arity pred)))
+	      (if (member (predconst-to-name pred)
+			  (list "Total" "CoTotal" "EqP" "CoEqP"))
+		  (rac (arity-to-types (predconst-to-arity pred)))
 		  (make-tconst "nulltype")))
 	     ((idpredconst-form? pred)
 	      (idpredconst-to-et-type-for-mr-clauses
@@ -1889,10 +1957,6 @@
     ((allnc) (formula-to-et-type-for-mr-clauses
 	      (allnc-form-to-kernel formula)
 	      mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-    ((exnc) ;obsolete
-     (formula-to-et-type-for-mr-clauses
-      (exnc-form-to-kernel formula)
-      mr-et-tvars idpc-pvars pvar-to-mr-pvar))
     ((exca excl excu) (formula-to-et-type-for-mr-clauses
 		       (unfold-formula formula)
 		       mr-et-tvars idpc-pvars pvar-to-mr-pvar))
@@ -1965,18 +2029,220 @@
 			   idpc)
 		  (car relevant-types-and-cterm-types)))))))))
 
-;; real-and-idpc-clause-to-mr-idpc-clause is similar to
-;; real-and-formula-to-mr-formula-aux .  The difference is in the usage
-;; of the local pvar-to-mr-pvar (with special results for idpc-pvars)
-;; and formula-to-et-type-for-mr-clauses.
+;; real-and-formula-to-mr-formula-for-mr-clauses is similar to
+;; real-and-formula-to-mr-formula-aux .  The difference is in the
+;; usage of the local pvar-to-mr-pvar (with special results for
+;; idpc-pvars) and formula-to-et-type-for-mr-clauses .  Moved here
+;; since they will be needed in axiom.scm
 
-;; real-and-idpc-clause-to-mr-idpc-clause to be renamed into
-;; real-and-formula-to-mr-formula-for-mr-clauses
+(define (real-and-formula-to-mr-formula real formula)
+  (cond
+   ((eq? 'eps real)
+    (if
+     (not (formula-of-nulltype? formula))
+     (myerror "real-and-formula-to-mr-formula"
+	      "n.c. formula expected" formula)
+     (begin
+       (comment
+	"warning: real-and-formula-to-mr-formula superfluous for n.c. formula "
+	(formula-to-string formula))
+       formula)))
+   ((and (term-form? real)
+	 (equal? (term-to-type real) (formula-to-et-type formula)))
+    (real-and-formula-to-mr-formula-aux real formula))
+   (else (myerror "real-and-formula-to-mr-formula" "equal types expected"
+		  (if (term-form? real)
+		      (type-to-string (term-to-type real))
+		      real)
+		  (formula-to-et-type formula)))))
 
-(define (real-and-idpc-clause-to-mr-idpc-clause
+;; Test
+;; (real-and-formula-to-mr-formula 'eps (pf "Pvar^"))
+;; (real-and-formula-to-mr-formula 'eps (pf "Pvar"))
+
+(define (real-and-formula-to-mr-formula-aux real formula)
+  (case (tag formula)
+    ((atom) formula) ;should be obsolete once all calls with 'eps are removed
+    ((predicate)
+     (let ((pred (predicate-form-to-predicate formula))
+	   (args (predicate-form-to-args formula)))
+       (cond
+	((pvar-form? pred)
+	 (if (pvar-with-positive-content? pred)
+	     (apply make-predicate-formula
+		    (PVAR-TO-MR-PVAR pred)
+		    (append args (list real)))
+	     formula))
+	((predconst-form? pred)
+	 (cond
+	  ((string=? "Total" (predconst-to-name pred))
+	   (let* ((arg (car args))
+		  (type (term-to-type arg)))
+	     (cond ((tvar-form? type)
+		    ;; (make-andnc (make-totalnc arg) (make-coeqpnc real arg)))
+		    (make-totalmr arg real))
+		   ((or (alg-form? type)
+			(arrow-form? type)
+			(star-form? type))
+		    (real-and-formula-to-mr-formula-aux
+		     real (unfold-formula formula)))
+		   (else (myerror
+			  "real-and-formula-to-mr-formula-aux"
+			  "type of tvar-, alg-, arrow- or star-form expected"
+			  type)))))
+	  ((string=? "CoTotal" (predconst-to-name pred))
+	   (let* ((arg (car args))
+		  (type (term-to-type arg)))
+	     (cond ((tvar-form? type)
+		    ;; (make-andnc (make-cototalnc arg) (make-coeqpnc real arg))
+		    (make-cototalmr real arg))
+		   ((or (alg-form? type)
+			(arrow-form? type)
+			(star-form? type))
+		    (real-and-formula-to-mr-formula-aux
+		     real (unfold-formula formula)))
+		   (else (myerror
+			  "real-and-formula-to-mr-formula-aux"
+			  "type of tvar-, alg-, arrow- or star-form expected"
+			  type)))))
+	  ((string=? "EqP" (predconst-to-name pred))
+	   (let* ((arg1 (car args))
+		  (arg2 (cadr args))
+		  (type (term-to-type arg1)))
+	     (cond ((tvar-form? type) ;; (make-andnc (make-eqpnc arg1 arg2)
+				      ;; 	     (make-coeqpnc real arg1)))
+		    (make-eqpmr arg1 arg2 real))
+		   ((or (alg-form? type)
+			(arrow-form? type)
+			(star-form? type))
+		    (real-and-formula-to-mr-formula-aux
+		     real (unfold-formula formula)))
+		   (else (myerror
+			  "real-and-formula-to-mr-formula-aux"
+			  "type of tvar-, alg-, arrow- or star-form expected"
+			  type)))))
+	  ((string=? "CoEqP" (predconst-to-name pred))
+	   (let* ((arg1 (car args))
+		  (arg2 (cadr args))
+		  (type (term-to-type arg1)))
+	     (cond ((tvar-form? type) ;; (make-andnc (make-coeqpnc arg1 arg2)
+				      ;; 	     (make-coeqpnc real arg1)))
+		    (make-coeqpmr arg1 arg2 real))
+		   ((or (alg-form? type)
+			(arrow-form? type)
+			(star-form? type))
+		    (real-and-formula-to-mr-formula-aux
+		     real (unfold-formula formula)))
+		   (else (myerror
+			  "real-and-formula-to-mr-formula-aux"
+			  "type of tvar-, alg-, arrow- or star-form expected"
+			  type)))))
+					;Code discarded 2019-08-19
+	  ;; ((string=? "Ext" (predconst-to-name pred))
+	  ;;  (let* ((arg (car args))
+	  ;; 	  (type (term-to-type arg)))
+	  ;;    (cond ((tvar-form? type)
+	  ;; 	    ;; (make-andnc (make-extnc arg) (make-coeqpnc real arg)))
+	  ;; 	    (make-extmr arg real))
+	  ;; 	   ((or (alg-form? type)
+	  ;; 		(arrow-form? type)
+	  ;; 		(star-form? type))
+	  ;; 	    (real-and-formula-to-mr-formula-aux
+	  ;; 	     real (unfold-formula formula)))
+	  ;; 	   (else (myerror
+	  ;; 		  "real-and-formula-to-mr-formula-aux"
+	  ;; 		  "type of tvar-, alg-, arrow- or star-form expected"
+	  ;; 		  type)))))
+	  ;; ((string=? "CoExt" (predconst-to-name pred))
+	  ;;  (let* ((arg (car args))
+	  ;; 	  (type (term-to-type arg)))
+	  ;;    (cond ((tvar-form? type)
+	  ;; 	    ;; (make-andnc (make-coextnc arg) (make-coeqpnc real arg))
+	  ;; 	    (make-coextmr arg real))
+	  ;; 	   ((or (alg-form? type)
+	  ;; 		(arrow-form? type)
+	  ;; 		(star-form? type))
+	  ;; 	    (real-and-formula-to-mr-formula-aux
+	  ;; 	     real (unfold-formula formula)))
+	  ;; 	   (else (myerror
+	  ;; 		  "real-and-formula-to-mr-formula-aux"
+	  ;; 		  "type of tvar-, alg-, arrow- or star-form expected"
+	  ;; 		  type)))))
+	  (else formula)))
+	((idpredconst-form? pred)
+	 (let* ((idpc-name (idpredconst-to-name pred))
+		(opt-alg-name (idpredconst-name-to-opt-alg-name idpc-name))
+		(alg-name (if (pair? opt-alg-name) ;c.r.idpc
+			      (car opt-alg-name)
+			      (myerror "real-and-formula-to-mr-formula-aux"
+				       "alg name expected for idpredconst"
+				       formula))))
+	   (apply make-predicate-formula
+		  (idpredconst-to-mr-idpredconst pred)
+		  (append args (list real)))))
+	(else ;witnessing idpc like "EvenMR".  Obsolete, since MR-flas are n.c.
+	 formula))))
+    ((imp)
+     (let* ((prem (imp-form-to-premise formula))
+	    (type1 (formula-to-et-type prem))
+	    (concl (imp-form-to-conclusion formula)))
+       (if (nulltype? type1)
+	   (make-imp prem (real-and-formula-to-mr-formula-aux real concl))
+	   (let* ((var (type-to-new-partial-var type1))
+		  (varterm (make-term-in-var-form var))
+		  (appterm (make-term-in-app-form real varterm))
+		  (prev-prem (real-and-formula-to-mr-formula-aux varterm prem))
+		  (prev-concl (real-and-formula-to-mr-formula-aux
+			       appterm concl)))
+	     (make-allnc var (make-imp prev-prem prev-concl))))))
+    ((impnc)
+     (let ((prem (imp-form-to-premise formula))
+	   (concl (imp-form-to-conclusion formula)))
+       (make-imp prem (real-and-formula-to-mr-formula-aux real concl))))
+    ((and)
+     (let ((left (and-form-to-left formula))
+	   (right (and-form-to-right formula)))
+       (cond
+	((formula-of-nulltype? left)
+	 (make-and left (real-and-formula-to-mr-formula-aux real right)))
+	((formula-of-nulltype? right)
+	 (make-and (real-and-formula-to-mr-formula-aux real left) right))
+	(else ;neither type1 nor type2 equals nulltype
+	 (let ((term1 (make-term-in-lcomp-form real))
+	       (term2 (make-term-in-rcomp-form real)))
+	   (make-and (real-and-formula-to-mr-formula-aux term1 left)
+		     (real-and-formula-to-mr-formula-aux term2 right)))))))
+    ((all)
+     (let* ((var (all-form-to-var formula))
+	    (kernel (all-form-to-kernel formula))
+	    (varterm (make-term-in-var-form var))
+	    (appterm (make-term-in-app-form real varterm)))
+       (make-allnc var (real-and-formula-to-mr-formula-aux appterm kernel))))
+    ((allnc)
+     (let ((var (allnc-form-to-var formula))
+	   (kernel (allnc-form-to-kernel formula)))
+       (make-allnc var (real-and-formula-to-mr-formula-aux real kernel))))
+    ((ex)
+     (let ((var (ex-form-to-var formula))
+	   (kernel (ex-form-to-kernel formula)))
+       (if (formula-of-nulltype? kernel)
+	   (formula-subst kernel var real)
+	   (let ((term1 (make-term-in-lcomp-form real))
+		 (term2 (make-term-in-rcomp-form real)))
+	     (real-and-formula-to-mr-formula-aux
+	      term2 (formula-subst kernel var term1))))))
+    ((exca excl excu)
+     (real-and-formula-to-mr-formula-aux real (unfold-formula formula)))
+    (else (myerror "real-and-formula-to-mr-formula-aux" "formula expected"
+		   formula))))
+
+(define (real-and-formula-to-mr-formula-for-mr-clauses
 	 real formula mr-et-tvars idpc-pvars pvar-to-mr-pvar)
   (case (tag formula)
-    ((atom) formula)
+    ((atom)
+     (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+	      "c.r. formula expected"
+	      formula))
     ((predicate)
      (let ((pred (predicate-form-to-predicate formula))
 	   (args (predicate-form-to-args formula)))
@@ -1985,90 +2251,88 @@
 	 (if ;idpc-pvar or cr-param-pvar
 	  (or (member pred idpc-pvars)
 	      (member (PVAR-TO-TVAR pred) mr-et-tvars))
-	  (apply make-predicate-formula (pvar-to-mr-pvar pred) real args)
-					;else nc-param-pvar
-	  formula))
+	  (apply make-predicate-formula (pvar-to-mr-pvar pred)
+		 (append args (list real)))
+	  (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		   "c.r. pvar expected"
+		   formula)))
 	((predconst-form? pred)
-	 (if (string=? "Total" (predconst-to-name pred))
-	     (make-totalmr real (car args))
-	     formula))
+	 (cond
+	  ((string=? "Total" (predconst-to-name pred))
+	   ;; (make-andnc (make-totalnc (car args))
+	   ;; 	      (make-coeqpnc real (car args))))
+	   (make-totalmr (car args) real))
+	  ((string=? "CoTotal" (predconst-to-name pred))
+	   ;; (make-andnc (make-cototalnc (car args))
+	   ;; 	      (make-coeqpnc real (car args))))
+	   (make-cototalmr real (car args)))
+	  ((string=? "EqP" (predconst-to-name pred))
+	   (let ((arg1 (car args))
+		 (arg2 (cadr args)))
+	     ;; (make-andnc (make-eqpnc arg1 arg2)
+	     ;; 		 (make-coeqpnc real arg1))
+	     (make-eqpmr arg1 arg2 real)))
+	  ((string=? "CoEqP" (predconst-to-name pred))
+	   (let ((arg1 (car args))
+		 (arg2 (cadr args)))
+	     ;; (make-andnc (make-coeqpnc arg1 arg2)
+	     ;; 		 (make-coeqpnc real arg1))
+	     (make-coeqpmr arg1 arg2 real)))
+	  (else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+			 "c.r. predicate constant with mr version expected"
+			 formula))))
 	((idpredconst-form? pred)
 	 (let* ((idpc-name (idpredconst-to-name pred))
 		(clauses (idpredconst-name-to-clauses idpc-name)))
-	   (cond
-	    ((pair? (idpredconst-name-to-opt-alg-name idpc-name)) ;c.r.idpc
-	     (apply make-predicate-formula
-		    (idpredconst-to-mr-idpredconst-for-mr-clauses
-		     pred mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		    real args))
-	    (;non-computational one-clause defined idpc like "EqD" "ExU" "AndU"
-	     (and (= 1 (length clauses))
-		  (predicate-form?
-		   (impnc-form-to-final-conclusion
-		    (allnc-form-to-final-kernel (car clauses)))))
-	     (let* ;same mr formula with exr y(y mr A) / eps mr A for
-					;c.r./n.c. param formulas A
-		 ((types (idpredconst-to-types pred))
-		  (cterms (idpredconst-to-cterms pred))
-		  (formulas (map cterm-to-formula cterms))
-		  (et-types (map formula-to-et-type formulas))
-		  (varterms-and-eps
-		   (map (lambda (x) (if (nulltype? x) 'eps
-					(make-term-in-var-form
-					 (type-to-new-partial-var x))))
-			et-types))
-		  (mr-formulas
-		   (map (lambda (x formula)
-			  (real-and-formula-to-mr-formula-aux x formula))
-			varterms-and-eps formulas))
-		  (mr-cterms
-		   (map (lambda (cterm mr-formula)
-			  (apply make-cterm (append (cterm-to-vars cterm)
-						    (list mr-formula))))
-			cterms mr-formulas))
-		  (mr-idpc (make-idpredconst idpc-name types mr-cterms)))
-	       (apply make-predicate-formula mr-idpc args)))
-	    (else ;witnessing idpc like "EvenMR"
-	     formula)))))))
-    ((imp impnc)
-     (let* ((prem (imp-impnc-form-to-premise formula))
-	    (type1 (formula-to-et-type-for-mr-clauses
-		    prem mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	    (concl (imp-impnc-form-to-conclusion formula))
-	    (type2 (formula-to-et-type-for-mr-clauses
-		    concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	    (m-imp (if (and (eq? 'imp (tag formula))
-	    		    (pair? (intersection (formula-to-pvars prem)
-	    					 idpc-pvars)))
-	    	       make-imp
-	    	       make-impnc)))
-       (cond
-	((nulltype? type1)
-	 (m-imp (real-and-idpc-clause-to-mr-idpc-clause
-		 'eps prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		(real-and-idpc-clause-to-mr-idpc-clause
-		 real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	((nulltype? type2)
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var)))
-	   (make-allnc
-	    var (m-imp
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  'eps concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
-	(else ;neither type1 nor type2 equals nulltype
-	 (let*  ((var (type-to-new-partial-var type1))
-		 (varterm (make-term-in-var-form var))
-		 (appterm (if (imp-form? formula)
-			      (make-term-in-app-form real varterm)
-			      real)))
-	   (make-allnc
-	    var (m-imp
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		 (real-and-idpc-clause-to-mr-idpc-clause
-		  appterm concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))))
+	   (if (pair? (idpredconst-name-to-opt-alg-name idpc-name)) ;c.r.idpc
+	       (apply make-predicate-formula
+		      (idpredconst-to-mr-idpredconst-for-mr-clauses
+		       pred mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+		      (append args (list real)))
+	       (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+			"c.r. idpredconst expected" formula))))
+	(else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		       "c.r. predicate expected" formula)))))
+    ((imp)
+     (let* ((prem (imp-form-to-premise formula))
+	    (concl (imp-form-to-conclusion formula)))
+       (if (formula-of-nulltype? prem)
+	   (make-imp prem
+		     (real-and-formula-to-mr-formula-for-mr-clauses
+		      real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))
+	   (let* ((type1 (formula-to-et-type-for-mr-clauses
+			  prem mr-et-tvars idpc-pvars pvar-to-mr-pvar))
+		  (var (type-to-new-partial-var type1))
+		  (varterm (make-term-in-var-form var))
+		  (appterm (make-term-in-app-form real varterm)))
+	     (make-allnc
+	      var (make-imp
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    appterm concl mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))))
+    ((impnc)
+     (let* ((prem (impnc-form-to-premise formula))
+	    (concl (impnc-form-to-conclusion formula)))
+       (if
+	(formula-of-nulltype? prem)
+	(make-imp prem
+		  (real-and-formula-to-mr-formula-for-mr-clauses
+		   real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))
+	(let* ((type1 (formula-to-et-type-for-mr-clauses
+		       prem mr-et-tvars idpc-pvars pvar-to-mr-pvar))
+	       (var (type-to-new-partial-var type1))
+	       (varterm (make-term-in-var-form var)))
+	  (if (null? (intersection (formula-to-pvars prem) idpc-pvars))
+	      (make-imp prem
+			(real-and-formula-to-mr-formula-for-mr-clauses
+			 real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))
+	      (make-allnc
+	       var (make-imp
+		    (real-and-formula-to-mr-formula-for-mr-clauses
+		     varterm prem mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+		    (real-and-formula-to-mr-formula-for-mr-clauses
+		     real concl mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))))
     ((and)
      (let* ((left (and-form-to-left formula))
 	    (type1 (formula-to-et-type-for-mr-clauses
@@ -2077,84 +2341,71 @@
 	    (type2 (formula-to-et-type-for-mr-clauses
 		    right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
        (cond
-	((and (nulltype? type1) (nulltype? type2))
-	 (make-and (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		   (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	((nulltype? type1)
-	 (make-and (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		   (real-and-idpc-clause-to-mr-idpc-clause
-		    real right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	((nulltype? type2)
-	 (make-and (real-and-idpc-clause-to-mr-idpc-clause
+	((and (not (nulltype? type1)) (nulltype? type2))
+	 (make-and (real-and-formula-to-mr-formula-for-mr-clauses
 		    real left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		   (real-and-idpc-clause-to-mr-idpc-clause
-		    'eps right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-	(else ;neither type1 nor type2 equals nulltype
+		   right))
+	((and (nulltype? type1) (not (nulltype? type2)))
+	 (make-and left
+		   (real-and-formula-to-mr-formula-for-mr-clauses
+		    real right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
+	((and (not (nulltype? type1)) (not (nulltype? type2)))
 	 (let*  ((term1 (make-term-in-lcomp-form real))
 		 (term2 (make-term-in-rcomp-form real)))
-	   (make-and (real-and-idpc-clause-to-mr-idpc-clause
+	   (make-and (real-and-formula-to-mr-formula-for-mr-clauses
 		      term1 left mr-et-tvars idpc-pvars pvar-to-mr-pvar)
-		     (real-and-idpc-clause-to-mr-idpc-clause
-		      term2 right mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))))
+		     (real-and-formula-to-mr-formula-for-mr-clauses
+		      term2 right mr-et-tvars idpc-pvars pvar-to-mr-pvar))))
+	(else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		       "c.r. conjunction expected" formula)))))
     ((all)
      (let* ((var (all-form-to-var formula))
 	    (kernel (all-form-to-kernel formula))
 	    (type (formula-to-et-type-for-mr-clauses
 		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-       (if
-	(nulltype? type)
-	(make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-		       'eps kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	(let* ((varterm (make-term-in-var-form var))
-	       (appterm (make-term-in-app-form real varterm)))
-	  (make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-			 appterm kernel
-			 mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))
+       (if (nulltype? type)
+	   (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		    "c.r. all formula expected" formula)
+	   (let* ((varterm (make-term-in-var-form var))
+		  (appterm (make-term-in-app-form real varterm)))
+	     (make-allnc var (real-and-formula-to-mr-formula-for-mr-clauses
+			    appterm kernel
+			    mr-et-tvars idpc-pvars pvar-to-mr-pvar))))))
     ((allnc)
      (let* ((var (allnc-form-to-var formula))
 	    (kernel (allnc-form-to-kernel formula))
 	    (type (formula-to-et-type-for-mr-clauses
 		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-       (if
-	(nulltype? type)
-	(make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-			 'eps kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	(make-allnc var (real-and-idpc-clause-to-mr-idpc-clause
-			 real kernel
-			 mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
+       (if (nulltype? type)
+	   (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		    "c.r. allnc formula expected" formula)
+	   (make-allnc var (real-and-formula-to-mr-formula-for-mr-clauses
+			  real kernel
+			  mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
     ((ex)
      (let* ((var (ex-form-to-var formula))
 	    (kernel (ex-form-to-kernel formula))
 	    (type (formula-to-et-type-for-mr-clauses
 		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
        (if (nulltype? type)
-	   (real-and-idpc-clause-to-mr-idpc-clause
-	    'eps (formula-subst kernel var real)
-	    mr-et-tvars idpc-pvars pvar-to-mr-pvar)
+	   (formula-subst kernel var real)
 	   (let ((term1 (make-term-in-lcomp-form real))
 		 (term2 (make-term-in-rcomp-form real)))
-	     (real-and-idpc-clause-to-mr-idpc-clause
+	     (real-and-formula-to-mr-formula-for-mr-clauses
 	      term2 (formula-subst kernel var term1)
 	      mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
-    ((exnc) ;obsolete
-     (let* ((var (exnc-form-to-var formula))
-	    (kernel (exnc-form-to-kernel formula))
-	    (type (formula-to-et-type-for-mr-clauses
-		   kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-       (if
-	(nulltype? type)
-	(make-exnc var (real-and-idpc-clause-to-mr-idpc-clause
-			'eps kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-	(make-exnc var (real-and-idpc-clause-to-mr-idpc-clause
-			real kernel mr-et-tvars idpc-pvars pvar-to-mr-pvar)))))
     ((exca excl excu)
-     (real-and-idpc-clause-to-mr-idpc-clause
+     (real-and-formula-to-mr-formula-for-mr-clauses
       real (unfold-formula formula) mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-    (else (myerror "real-and-idpc-clause-to-mr-idpc-clause" "formula expected"
-		   formula))))
+    (else (myerror "real-and-formula-to-mr-formula-for-mr-clauses"
+		   "c.r. formula expected" formula))))
+
+;; We must require a sharp substitution for c.r. param pvars Y in a c.r.
+;; idpc I if tau(Y) is free in tau of any of the clauses.  Reason: Y^r
+;; in I^r needs a cterm of arity (tau(A), rhos) if Y |-> {xs|A} in I.
+;; Similarly: a param-pvar Y in a relevant occurrence of an aconst
+;; with tau(Y) in the type of its uninst formula must be sharply
+;; substituted as well, to avoid nullterm in eterms.
 
 (define (idpredconst-to-mr-idpredconst-for-mr-clauses
 	 idpc mr-et-tvars idpc-pvars pvar-to-mr-pvar)
@@ -2168,24 +2419,27 @@
 	 (clause-et-types (map formula-to-et-type clauses))
 	 (clause-et-tvars (apply union (map type-to-tvars clause-et-types)))
 	 (param-pvars (idpredconst-name-to-param-pvars idpc-name))
-	 (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
+	 (et-tvars-of-param-pvars
+	  (map PVAR-TO-TVAR (list-transform-positive param-pvars
+			      pvar-with-positive-content?)))
+	 ;; (et-tvars-of-param-pvars (map PVAR-TO-TVAR param-pvars))
 	 (local-mr-et-tvars
 	  (list-transform-positive clause-et-tvars
 	    (lambda (tvar) (member tvar et-tvars-of-param-pvars))))
-	 (pvar-et-type-list
+	 (pvar-et-type-alist
 	  (map (lambda (pvar cterm)
 		 (list pvar (formula-to-et-type-for-mr-clauses
 			     (cterm-to-formula cterm)
 			     mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
 	       param-pvars cterms))
-	 (c-r-pvar-et-type-list
-	  (list-transform-positive pvar-et-type-list
+	 (relevant-pvar-et-type-alist
+	  (list-transform-positive pvar-et-type-alist
 	    (lambda (x) (member (PVAR-TO-TVAR (car x)) local-mr-et-tvars))))
 	 (et-tsubst (map (lambda (x)
 			   (let ((pvar (car x))
 				 (et-type (cadr x)))
 			     (list (PVAR-TO-TVAR pvar) et-type)))
-			 c-r-pvar-et-type-list))
+			 relevant-pvar-et-type-alist))
 	 (orig-and-mr-tvars (idpredconst-name-to-tvars mr-idpc-name))
 	 (orig-and-mr-types (map (lambda (tvar)
 				   (let ((info1 (assoc tvar tsubst))
@@ -2194,53 +2448,48 @@
 					   (info2 (cadr info2))
 					   (else tvar))))
 				 orig-and-mr-tvars))
-	 (mr-cterms
+	 (orig-and-mr-pvars (idpredconst-name-to-param-pvars mr-idpc-name))
+	 (pvar-cterm-alist (map list param-pvars cterms)) ;not a psubst
+	 (mr-pvar-cterm-alist
 	  (map
 	   (lambda (pvar cterm)
 	     (let ((vars (cterm-to-vars cterm))
 		   (formula (cterm-to-formula cterm)))
-	       (if ;c.r. param-pvar
+	       (if ;relevant param-pvar
 		(member (PVAR-TO-TVAR pvar) local-mr-et-tvars)
 		(if ;n.c. cterm
 		 (formula-of-nulltype? formula)
-		 (let* ((mr-formula
-			 (real-and-idpc-clause-to-mr-idpc-clause
-			  'eps formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-			(mr-var (type-to-new-partial-var (make-alg "unit")))
-			(mr-vars (cons mr-var vars)))
-		   (apply make-cterm (append mr-vars (list mr-formula))))
+		 (myerror
+		  "idpredconst-to-mr-idpredconst" "c.r. formula expected"
+		  formula "for relevant param-pvar" pvar)
 					;else c.r. cterm
 		 (let* ((et-type
 			 (formula-to-et-type-for-mr-clauses
 			  formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
 			(mr-var (type-to-new-partial-var et-type))
-			(mr-vars (cons mr-var vars))
+			(mr-vars (append vars (list mr-var)))
 			(mr-formula
-			 (real-and-idpc-clause-to-mr-idpc-clause
+			 (real-and-formula-to-mr-formula-for-mr-clauses
 			  (make-term-in-var-form mr-var) formula
 			  mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-		   (apply make-cterm (append mr-vars (list mr-formula)))))
-					;else n.c. param-pvar
-		(if ;n.c. cterm
-		 (formula-of-nulltype? formula)
-		 (let ((mr-formula
-			(real-and-idpc-clause-to-mr-idpc-clause
-			 'eps formula mr-et-tvars idpc-pvars pvar-to-mr-pvar)))
-		   (apply make-cterm (append vars (list mr-formula))))
-					;else c.r. cterm
-		 (let* ((et-type
-			 (formula-to-et-type-for-mr-clauses
-			  formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-			(mr-var (type-to-new-partial-var et-type))
-			(mr-formula
-			 (real-and-idpc-clause-to-mr-idpc-clause
-			  (make-term-in-var-form mr-var)
-			  formula mr-et-tvars idpc-pvars pvar-to-mr-pvar))
-			(exu-mr-formula (make-exu mr-var mr-formula)))
-		   (apply make-cterm
-			  (append vars (list exu-mr-formula))))))))
-	   param-pvars cterms)))
-    (make-idpredconst mr-idpc-name orig-and-mr-types mr-cterms)))
+		   (list
+		    (PVAR-TO-MR-PVAR pvar)
+		    (apply make-cterm (append mr-vars (list mr-formula))))))
+					;else irrelevant param-pvar.  Not used
+		(list pvar cterm))))
+	   param-pvars cterms))
+	 (orig-and-mr-cterms
+	  (map (lambda (pvar)
+		 (let ((info1 (assoc pvar pvar-cterm-alist))
+		       (info2 (assoc pvar mr-pvar-cterm-alist)))
+		   (cond (info1 (cadr info1))
+			 (info2 (cadr info2))
+			 (else (myerror
+				"idpredconst-to-mr-idpredconst-for-mr-clauses"
+				"unexpected orig-and-mr-pvars"
+				orig-and-mr-pvars)))))
+	       orig-and-mr-pvars)))
+    (make-idpredconst mr-idpc-name orig-and-mr-types orig-and-mr-cterms)))
 
 (define (alg-and-cterms-to-rtotality-idpredconst alg cterms)
   (let* ((alg-name (alg-form-to-name alg))
@@ -2253,105 +2502,106 @@
     (idpredconst-name-and-types-and-cterms-to-idpredconst ;involves some tests
      idpredconst-name types cterms)))
 
-(define (alg-name-to-totality-clauses-and-pvars alg-name)
-  (let* ((alg-names (alg-name-to-simalg-names alg-name))
-	 (tvars (alg-name-to-tvars alg-name))
-	 (algs (map (lambda (name) (apply make-alg name tvars))
-		    alg-names))
-	 (typed-constr-names
-	  (apply append (map alg-name-to-typed-constr-names alg-names)))
-	 (constr-names (map car typed-constr-names))
-	 (constr-types (map typed-constr-name-to-type typed-constr-names))
-	 (totality-idpc-names
-	  (map alg-name-to-totality-idpredconst-name alg-names))
-	 (param-arg-types-list
-	  (map constr-type-to-constr-param-types constr-types))
-	 (rec-arg-types-list
-	  (map (lambda (x y)
-		 (list-tail (arrow-form-to-arg-types x) (length y)))
-	       constr-types param-arg-types-list))
-	 (param-vars-list (map (lambda (l) (map type-to-new-partial-var l))
-			       param-arg-types-list))
-	 (rec-vars-list (map (lambda (l) (map type-to-new-partial-var l))
-			     rec-arg-types-list))
-	 (param-varterms-list (map (lambda (l) (map make-term-in-var-form l))
-				   param-vars-list))
-	 (rec-varterms-list (map (lambda (l) (map make-term-in-var-form l))
-				 rec-vars-list))
-	 (param-totality-prems-list
-	  (map (lambda (param-varterms)
-		 (map term-to-totality-formula param-varterms))
-	       param-varterms-list))
-	 (alg-to-pvar-alist
-	  (do ((l algs (cdr l))
-	       (res '() (let* ((alg (car l))
-			       (alg-name (alg-form-to-name alg))
-			       (totality-idpc-name
-				(alg-name-to-totality-idpredconst-name
-				 alg-name))
-			       (pvar (make-pvar (make-arity alg)
-						(+ 1 MAXPVARINDEX)
-						h-deg-zero n-deg-zero
-						"")))
-			  (cons (list alg pvar) res))))
-	      ((null? l) (reverse res))))
-	 (rec-totality-prems-list
-	  (map (lambda (rec-arg-types rec-varterms)
-		 (map (lambda (rec-arg-type rec-varterm)
-			(let* ((arg-types
-				(arrow-form-to-arg-types rec-arg-type))
-			       (val-type
-				(arrow-form-to-final-val-type rec-arg-type))
-			       (vars (map type-to-new-partial-var arg-types))
-			       (varterms (map make-term-in-var-form vars))
-			       (totality-prems
-				(map term-to-totality-formula varterms))
-			       (appterm (apply mk-term-in-app-form
-					       rec-varterm varterms))
-			       (alg (arrow-form-to-final-val-type
-				     rec-arg-type))
-			       (concl (make-predicate-formula
-				       (cadr (assoc alg alg-to-pvar-alist))
-				       appterm)))
-			  (apply
-			   mk-allnc
-			   (append vars
-				   (list (apply mk-imp
-						(append totality-prems
-							(list concl))))))))
-		      rec-arg-types rec-varterms))
-	       rec-arg-types-list rec-varterms-list))
-	 (constr-list (map constr-name-to-constr constr-names))
-	 (constr-appterm-list
-	  (map (lambda (constr param-varterms rec-varterms)
-		 (apply mk-term-in-app-form
-			(append (list (make-term-in-const-form constr))
-				param-varterms rec-varterms)))
-	       constr-list param-varterms-list rec-varterms-list))
-	 (concl-list (map (lambda (constr-appterm)
-			    (make-predicate-formula
-			     (cadr (assoc (term-to-type constr-appterm)
-					  alg-to-pvar-alist))
-			     constr-appterm))
-			  constr-appterm-list)))
-					;return totality clauses and pvars
-    (list
-     (map (lambda (param-vars
-		   rec-vars
-		   param-totality-prems
-		   rec-totality-prems
-		   concl)
-	    (apply mk-allnc
-		   (append param-vars rec-vars
-			   (list (apply mk-imp (append param-totality-prems
-						       rec-totality-prems
-						       (list concl)))))))
-	  param-vars-list
-	  rec-vars-list
-	  param-totality-prems-list
-	  rec-totality-prems-list
-	  concl-list)
-     (map cadr alg-to-pvar-alist))))
+;; Code discarded 2019-08-20: not used
+;; (define (alg-name-to-totality-clauses-and-pvars alg-name)
+;;   (let* ((alg-names (alg-name-to-simalg-names alg-name))
+;; 	 (tvars (alg-name-to-tvars alg-name))
+;; 	 (algs (map (lambda (name) (apply make-alg name tvars))
+;; 		    alg-names))
+;; 	 (typed-constr-names
+;; 	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+;; 	 (constr-names (map car typed-constr-names))
+;; 	 (constr-types (map typed-constr-name-to-type typed-constr-names))
+;; 	 (totality-idpc-names
+;; 	  (map alg-name-to-totality-idpredconst-name alg-names))
+;; 	 (param-arg-types-list
+;; 	  (map constr-type-to-constr-param-types constr-types))
+;; 	 (rec-arg-types-list
+;; 	  (map (lambda (x y)
+;; 		 (list-tail (arrow-form-to-arg-types x) (length y)))
+;; 	       constr-types param-arg-types-list))
+;; 	 (param-vars-list (map (lambda (l) (map type-to-new-partial-var l))
+;; 			       param-arg-types-list))
+;; 	 (rec-vars-list (map (lambda (l) (map type-to-new-partial-var l))
+;; 			     rec-arg-types-list))
+;; 	 (param-varterms-list (map (lambda (l) (map make-term-in-var-form l))
+;; 				   param-vars-list))
+;; 	 (rec-varterms-list (map (lambda (l) (map make-term-in-var-form l))
+;; 				 rec-vars-list))
+;; 	 (param-totality-prems-list
+;; 	  (map (lambda (param-varterms)
+;; 		 (map term-to-totality-formula param-varterms))
+;; 	       param-varterms-list))
+;; 	 (alg-to-pvar-alist
+;; 	  (do ((l algs (cdr l))
+;; 	       (res '() (let* ((alg (car l))
+;; 			       (alg-name (alg-form-to-name alg))
+;; 			       (totality-idpc-name
+;; 				(alg-name-to-totality-idpredconst-name
+;; 				 alg-name))
+;; 			       (pvar (make-pvar (make-arity alg)
+;; 						(+ 1 MAXPVARINDEX)
+;; 						h-deg-zero n-deg-zero
+;; 						"")))
+;; 			  (cons (list alg pvar) res))))
+;; 	      ((null? l) (reverse res))))
+;; 	 (rec-totality-prems-list
+;; 	  (map (lambda (rec-arg-types rec-varterms)
+;; 		 (map (lambda (rec-arg-type rec-varterm)
+;; 			(let* ((arg-types
+;; 				(arrow-form-to-arg-types rec-arg-type))
+;; 			       (val-type
+;; 				(arrow-form-to-final-val-type rec-arg-type))
+;; 			       (vars (map type-to-new-partial-var arg-types))
+;; 			       (varterms (map make-term-in-var-form vars))
+;; 			       (totality-prems
+;; 				(map term-to-totality-formula varterms))
+;; 			       (appterm (apply mk-term-in-app-form
+;; 					       rec-varterm varterms))
+;; 			       (alg (arrow-form-to-final-val-type
+;; 				     rec-arg-type))
+;; 			       (concl (make-predicate-formula
+;; 				       (cadr (assoc alg alg-to-pvar-alist))
+;; 				       appterm)))
+;; 			  (apply
+;; 			   mk-allnc
+;; 			   (append vars
+;; 				   (list (apply mk-imp
+;; 						(append totality-prems
+;; 							(list concl))))))))
+;; 		      rec-arg-types rec-varterms))
+;; 	       rec-arg-types-list rec-varterms-list))
+;; 	 (constr-list (map constr-name-to-constr constr-names))
+;; 	 (constr-appterm-list
+;; 	  (map (lambda (constr param-varterms rec-varterms)
+;; 		 (apply mk-term-in-app-form
+;; 			(append (list (make-term-in-const-form constr))
+;; 				param-varterms rec-varterms)))
+;; 	       constr-list param-varterms-list rec-varterms-list))
+;; 	 (concl-list (map (lambda (constr-appterm)
+;; 			    (make-predicate-formula
+;; 			     (cadr (assoc (term-to-type constr-appterm)
+;; 					  alg-to-pvar-alist))
+;; 			     constr-appterm))
+;; 			  constr-appterm-list)))
+;; 					;return totality clauses and pvars
+;;     (list
+;;      (map (lambda (param-vars
+;; 		   rec-vars
+;; 		   param-totality-prems
+;; 		   rec-totality-prems
+;; 		   concl)
+;; 	    (apply mk-allnc
+;; 		   (append param-vars rec-vars
+;; 			   (list (apply mk-imp (append param-totality-prems
+;; 						       rec-totality-prems
+;; 						       (list concl)))))))
+;; 	  param-vars-list
+;; 	  rec-vars-list
+;; 	  param-totality-prems-list
+;; 	  rec-totality-prems-list
+;; 	  concl-list)
+;;      (map cadr alg-to-pvar-alist))))
 
 (define (add-totality alg-name)
   (if (not (assoc alg-name ALGEBRAS))
@@ -2399,10 +2649,7 @@
 ;; For add-totality we need the following auxiliary functions
 
 (define (alg-name-to-totality-idpredconst-name alg-name)
-  (let* ((char-list (string->list alg-name))
-	 (capitalized-alg-name
-	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
-    (string-append "Total" capitalized-alg-name)))
+  (string-append "Total" (string-capitalize-first alg-name)))
 
 (define (alg-to-totality-idpredconst alg)
   (let* ((alg-name (alg-form-to-name alg))
@@ -2413,52 +2660,30 @@
 
 (define (term-and-alist-to-totality-formula term type-to-pred-alist)
   (let ((type (term-to-type term)))
+    ;; (if (< 1 (type-to-level type))
+    ;; 	(myerror "term-and-alist-to-totality-formula"
+    ;; 		 "type of level at most 1 expected" type))
     (cond
      ((tvar-form? type)
       (let ((info (assoc type type-to-pred-alist)))
 	(if info
 	    (make-predicate-formula (cadr info) term)
 	    (make-total term))))
-     ((alg-form? type)
-      (let ((info (assoc type type-to-pred-alist)))
-	(if
-	 info ;idpc-pvar, needed in add-totality for add-ids-aux
-	 (make-predicate-formula (cadr info) term)
-	 (let* ((types (alg-form-to-types type))
-		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
-				     (lambda (item) (alg-form? (car item)))))
-		(alist-alg-names (map alg-form-to-name
-				      (map car alg-to-pvar-alist)))
-		(alg-names-list (map type-to-alg-names types))
-		(intersections
-		 (map (lambda (alg-names)
-			(intersection alist-alg-names alg-names))
-		      alg-names-list)))
-	   (cond
-	    ((apply and-op (map null? intersections))
-	     (make-predicate-formula (alg-to-totality-idpredconst type) term))
-	    ((apply and-op (map pair? intersections))
-	     (let* ((vars (map type-to-new-partial-var types))
-		    (varterms (map make-term-in-var-form vars))
-		    (prevs (map (lambda (varterm)
-				  (term-and-alist-to-totality-formula
-				   varterm type-to-pred-alist))
-				varterms))
-		    (cterms (map make-cterm vars prevs)))
-	       (make-predicate-formula
-		(alg-and-cterms-to-rtotality-idpredconst type cterms) term)))
-	    (else (apply myerror "term-and-alist-to-totality-formula"
-			 "not implemented for term" term
-			 "and type-to-pred-alist" type-to-pred-alist)))))))
+     ((alg-form? type) (make-predicate-formula
+			(let ((info (assoc type type-to-pred-alist)))
+			  (if info ;idpc-pvar, needed for add-ids-aux
+			      (cadr info)
+			      (alg-to-totality-idpredconst type)))
+			term))
      ((arrow-form? type)
       (let* ((arg-type (arrow-form-to-arg-type type))
 	     (var (type-to-new-partial-var arg-type))
 	     (varterm (make-term-in-var-form var))
 	     (appterm (make-term-in-app-form term varterm))
-	     (arg-formula
-	      (term-and-alist-to-totality-formula varterm type-to-pred-alist))
-	     (val-formula
-	      (term-and-alist-to-totality-formula appterm type-to-pred-alist)))
+	     (arg-formula (term-and-alist-to-totality-formula
+			   varterm type-to-pred-alist))
+	     (val-formula (term-and-alist-to-totality-formula
+			   appterm type-to-pred-alist)))
 	(make-allnc var (make-imp arg-formula val-formula))))
      ((star-form? type)
       (let ((left (if (term-in-pair-form? term)
@@ -2467,14 +2692,94 @@
 	    (right (if (term-in-pair-form? term)
 		       (term-in-pair-form-to-right term)
 		       (make-term-in-rcomp-form term))))
-	(make-and
-	 (term-and-alist-to-totality-formula left type-to-pred-alist)
-	 (term-and-alist-to-totality-formula right type-to-pred-alist))))
+	(make-and (term-and-alist-to-totality-formula
+		   left type-to-pred-alist)
+		  (term-and-alist-to-totality-formula
+		   right type-to-pred-alist))))
      (else (myerror "term-and-alist-to-totality-formula" "type expected" type
 		    "of term" term)))))
 
+;; Code discarded 2019-08-20.  Simplified for finitary unnnested algebras.
+;; (define (term-and-alist-to-totality-formula term type-to-pred-alist)
+;;   (let ((type (term-to-type term)))
+;;     (cond
+;;      ((tvar-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if info
+;; 	    (make-predicate-formula (cadr info) term)
+;; 	    (make-total term))))
+;;      ((alg-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if
+;; 	 info ;idpc-pvar, needed in add-totality for add-ids-aux
+;; 	 (make-predicate-formula (cadr info) term)
+;; 	 (let* ((types (alg-form-to-types type))
+;; 		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
+;; 				     (lambda (item) (alg-form? (car item)))))
+;; 		(alist-alg-names (map alg-form-to-name
+;; 				      (map car alg-to-pvar-alist)))
+;; 		(alg-names-list (map type-to-alg-names types))
+;; 		(intersections
+;; 		 (map (lambda (alg-names)
+;; 			(intersection alist-alg-names alg-names))
+;; 		      alg-names-list)))
+;; 	   (cond
+;; 	    ((apply and-op (map null? intersections))
+;; 	     (make-predicate-formula (alg-to-totality-idpredconst type) term))
+;; 	    ((apply and-op (map pair? intersections))
+;; 	     (let* ((vars (map type-to-new-partial-var types))
+;; 		    (varterms (map make-term-in-var-form vars))
+;; 		    (prevs (map (lambda (varterm)
+;; 				  (term-and-alist-to-totality-formula
+;; 				   varterm type-to-pred-alist))
+;; 				varterms))
+;; 		    (cterms (map make-cterm vars prevs)))
+;; 	       (make-predicate-formula
+;; 		(alg-and-cterms-to-rtotality-idpredconst type cterms) term)))
+;; 	    (else (apply myerror "term-and-alist-to-totality-formula"
+;; 			 "not implemented for term" term
+;; 			 "and type-to-pred-alist" type-to-pred-alist)))))))
+;;      ((arrow-form? type)
+;;       (let* ((arg-type (arrow-form-to-arg-type type))
+;;      	     (var1 (type-to-new-partial-var arg-type))
+;;      	     (varterm1 (make-term-in-var-form var1))
+;;      	     (appterm1 (make-term-in-app-form term varterm1)))
+;;      	(if ;simpler form, correct by Ext & Preservation of T
+;;      	 (apply finalg? arg-type (type-to-free arg-type))
+;;      	 (let* ((arg-totality-formula (term-and-alist-to-totality-formula
+;;      				       varterm1 type-to-pred-alist))
+;;      		(val-totality-formula (term-and-alist-to-totality-formula
+;;      				       appterm1 type-to-pred-alist)))
+;;      	   (make-allnc var1 (make-imp arg-totality-formula
+;;      				      val-totality-formula)))
+;;      	 (let* ((var2 (type-to-new-partial-var arg-type))
+;;      		(varterm2 (make-term-in-var-form var2))
+;;      		(appterm2 (make-term-in-app-form term varterm2))
+;;      		(arg-eqp-formula (terms-to-eqp-formula varterm1 varterm2))
+;;      		(val-eqp-formula (terms-to-eqp-formula appterm1 appterm2)))
+;;      	   (mk-allnc var1 var2 (make-imp arg-eqp-formula val-eqp-formula))))))
+;;      ((star-form? type)
+;;       (let ((left (if (term-in-pair-form? term)
+;; 		      (term-in-pair-form-to-left term)
+;; 		      (make-term-in-lcomp-form term)))
+;; 	    (right (if (term-in-pair-form? term)
+;; 		       (term-in-pair-form-to-right term)
+;; 		       (make-term-in-rcomp-form term))))
+;; 	(make-and
+;; 	 (term-and-alist-to-totality-formula left type-to-pred-alist)
+;; 	 (term-and-alist-to-totality-formula right type-to-pred-alist))))
+;;      (else (myerror "term-and-alist-to-totality-formula" "type expected" type
+;; 		    "of term" term)))))
+
 (define (term-to-totality-formula term)
   (term-and-alist-to-totality-formula term '()))
+
+;; (pp (rename-variables (term-to-totality-formula (pt "(alpha=>beta)^"))))
+
+;; allnc alpha^0(Total alpha^0 -> Total((alpha=>beta)^ alpha^0)) andl 
+;; allnc alpha^0,alpha^1(
+;;  EqPNc alpha^0 alpha^1 -> 
+;;  EqPNc((alpha=>beta)^ alpha^0)((alpha=>beta)^ alpha^1))
 
 (define (add-rtotality alg-name)
   (if (not (assoc alg-name ALGEBRAS))
@@ -2642,34 +2947,37 @@
 	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
     (string-append "STotal" capitalized-alg-name)))
 
-(define (terms-to-mr-totality-formula term1 term2)
-  (let ((type (term-to-type term1)))
-    (if (not (equal? type (term-to-type term2)))
+(define (terms-to-mr-totality-formula term real)
+  (let ((type (term-to-type real)))
+    ;; (if (< 1 (type-to-level type))
+    ;; 	(myerror "terms-to-mr-totality-formula"
+    ;; 		 "type of level at most 1 expected" type))
+    (if (not (equal? type (term-to-type term)))
 	(myerror "terms-to-mr-totality-formula"
 		 "terms of equal type expected"
-		 term1 term2
+		 real term
 		 "which have types"
-		 type (term-to-type term2)))
+		 type (term-to-type term)))
     (cond
-     ((tvar-form? type) (make-totalmr term1 term2))
+     ((tvar-form? type) (make-totalmr term real))
      ((alg-form? type)
       (make-predicate-formula
-       (alg-to-mr-totality-idpredconst type) term1 term2))
+       (alg-to-mr-totality-idpredconst type) term real))
      ((arrow-form? type)
       (let* ((arg-type (arrow-form-to-arg-type type))
 	     (var (type-to-new-partial-var arg-type))
 	     (varterm (make-term-in-var-form var))
-	     (appterm1 (make-term-in-app-form term1 varterm))
-	     (appterm2 (make-term-in-app-form term2 varterm))
+	     (appterm1 (make-term-in-app-form term varterm))
+	     (appterm2 (make-term-in-app-form real varterm))
 	     (arg-formula (term-to-totality-formula varterm))
 	     (val-formula (terms-to-mr-totality-formula appterm1 appterm2)))
 	(make-allnc var (make-imp arg-formula val-formula))))
      ((star-form? type)
       (make-and
-       (terms-to-mr-totality-formula (make-term-in-lcomp-form term1)
-				     (make-term-in-lcomp-form term2))
-       (terms-to-mr-totality-formula (make-term-in-rcomp-form term1)
-				     (make-term-in-rcomp-form term2))))
+       (terms-to-mr-totality-formula (make-term-in-lcomp-form term)
+				     (make-term-in-lcomp-form real))
+       (terms-to-mr-totality-formula (make-term-in-rcomp-form term)
+				     (make-term-in-rcomp-form real))))
      (else (myerror "terms-to-mr-totality-formula" "type expected" type)))))
 
 (define (alg-to-mr-totality-idpredconst alg)
@@ -2683,11 +2991,1841 @@
 (define (alg-name-to-mr-totality-idpredconst-name alg-name)
   (string-append (alg-name-to-totality-idpredconst-name alg-name) "MR"))
 
+(define (terms-to-mr-cototality-formula term real)
+  (let ((type (term-to-type real)))
+    ;; (if (< 1 (type-to-level type))
+    ;; 	(myerror "terms-to-mr-cototality-formula"
+    ;; 		 "type of level at most 1 expected" type))
+    (if (not (equal? type (term-to-type term)))
+	(myerror "terms-to-mr-cototality-formula"
+		 "terms of equal type expected"
+		 real term
+		 "which have types"
+		 type (term-to-type term)))
+    (cond
+     ((tvar-form? type) (make-cototalmr term real))
+     ((alg-form? type)
+      (make-predicate-formula
+       (alg-to-mr-cototality-idpredconst type) term real))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var (type-to-new-partial-var arg-type))
+	     (varterm (make-term-in-var-form var))
+	     (appterm1 (make-term-in-app-form term varterm))
+	     (appterm2 (make-term-in-app-form real varterm))
+	     (arg-formula (term-to-cototality-formula varterm))
+	     (val-formula (terms-to-mr-cototality-formula appterm1 appterm2)))
+	(make-allnc var (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (make-and
+       (terms-to-mr-cototality-formula (make-term-in-lcomp-form term)
+				       (make-term-in-lcomp-form real))
+       (terms-to-mr-cototality-formula (make-term-in-rcomp-form term)
+				       (make-term-in-rcomp-form real))))
+     (else (myerror "terms-to-mr-cototality-formula" "type expected" type)))))
+
+(define (alg-to-mr-cototality-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name
+	  (alg-name-to-mr-cototality-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (alg-name-to-mr-cototality-idpredconst-name alg-name)
+  (string-append "Co" (alg-name-to-totality-idpredconst-name alg-name) "MR"))
+
+(define (terms-to-mr-eqp-formula term1 term2 real)
+  (let ((type (term-to-type real)))
+    (if (not (equal? type (term-to-type term1)))
+	(myerror "terms-to-mr-eqp-formula"
+		 "terms of equal type expected"
+		 term1 real
+		 "which have types"
+		 (term-to-type term1) type))
+    (if (not (equal? type (term-to-type term2)))
+	(myerror "terms-to-mr-eqp-formula"
+		 "terms of equal type expected"
+		 term2 real
+		 "which have types"
+		 (term-to-type term2) type))
+    (cond
+     ((tvar-form? type) (make-eqpmr term1 term2 real))
+     ((alg-form? type)
+      (make-predicate-formula
+       (alg-to-mr-eqp-idpredconst type) term1 term2 real))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var (type-to-new-partial-var arg-type))
+	     (varterm (make-term-in-var-form var))
+	     (appterm1 (make-term-in-app-form term1 varterm))
+	     (appterm2 (make-term-in-app-form term2 varterm))
+	     (appterm3 (make-term-in-app-form real varterm))
+	     (arg-formula (term-to-eqp-formula varterm))
+	     (val-formula
+	      (terms-to-mr-eqp-formula appterm1 appterm2 appterm3)))
+	(make-allnc var (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (make-and
+       (terms-to-mr-eqp-formula (make-term-in-lcomp-form term1)
+				(make-term-in-lcomp-form term2)
+				(make-term-in-lcomp-form real))
+       (terms-to-mr-eqp-formula (make-term-in-rcomp-form term1)
+				(make-term-in-rcomp-form term2)
+				(make-term-in-rcomp-form real))))
+     (else (myerror "terms-to-mr-eqp-formula" "type expected" type)))))
+
+(define (alg-to-mr-eqp-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name
+	  (alg-name-to-mr-eqp-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (alg-name-to-mr-eqp-idpredconst-name alg-name)
+  (string-append (alg-name-to-eqp-idpredconst-name alg-name) "MR"))
+
+(define (terms-to-mr-coeqp-formula term1 term2 real)
+  (let ((type (term-to-type real)))
+    (if (not (equal? type (term-to-type term1)))
+	(myerror "terms-to-mr-coeqp-formula"
+		 "terms of equal type expected"
+		 term1 real
+		 "which have types"
+		 (term-to-type term1) type))
+    (if (not (equal? type (term-to-type term2)))
+	(myerror "terms-to-mr-coeqp-formula"
+		 "terms of equal type expected"
+		 term2 real
+		 "which have types"
+		 (term-to-type term2) type))
+    (cond
+     ((tvar-form? type) (make-coeqpmr term1 term2 real))
+     ((alg-form? type)
+      (make-predicate-formula
+       (alg-to-mr-coeqp-idpredconst type) term1 term2 real))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var (type-to-new-partial-var arg-type))
+	     (varterm (make-term-in-var-form var))
+	     (appterm1 (make-term-in-app-form term1 varterm))
+	     (appterm2 (make-term-in-app-form term2 varterm))
+	     (appterm3 (make-term-in-app-form real varterm))
+	     (arg-formula (term-to-coeqp-formula varterm))
+	     (val-formula
+	      (terms-to-mr-coeqp-formula appterm1 appterm2 appterm3)))
+	(make-allnc var (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (make-and
+       (terms-to-mr-coeqp-formula (make-term-in-lcomp-form term1)
+				(make-term-in-lcomp-form term2)
+				(make-term-in-lcomp-form real))
+       (terms-to-mr-coeqp-formula (make-term-in-rcomp-form term1)
+				(make-term-in-rcomp-form term2)
+				(make-term-in-rcomp-form real))))
+     (else (myerror "terms-to-mr-coeqp-formula" "type expected" type)))))
+
+(define (alg-to-mr-coeqp-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name
+	  (alg-name-to-mr-coeqp-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (alg-name-to-mr-coeqp-idpredconst-name alg-name)
+  (string-append (alg-name-to-coeqp-idpredconst-name alg-name) "MR"))
+
 ;; (add-var-name "ns" (py "list nat"))
 ;; (pp (rename-variables (term-to-unfolded-totality-formula (pt "ns^"))))
 ;; (RTotalList (cterm (n^) TotalNat n^))ns^
 
 ;; To do: term-to-unfolded-mr-totality-formula
+
+(define (add-totalnc alg-name)
+  (if (not (assoc alg-name ALGEBRAS))
+      (myerror "add-totalnc" "alg-name expected" alg-name))
+  (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+  (set! COMMENT-FLAG #f)
+  (let* ((alg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+	 (idpc-arities (map make-arity algs))
+	 (idpc-pvars (map arity-to-new-general-pvar idpc-arities))
+	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+	 (typed-constr-names
+	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+	 (constr-names (map car typed-constr-names))
+	 (constrs (map constr-name-to-constr constr-names))
+	 (clauses-with-idpc-pvars
+	  (map (lambda (constr) (term-and-alist-to-totalnc-formula
+				 (make-term-in-const-form constr)
+				 alg-to-idpc-pvar-alist))
+	       constrs))
+	 (totalnc-idpc-names
+	  (map alg-name-to-totalnc-idpredconst-name alg-names))
+	 (idpc-names-with-arities-and-opt-alg-names
+	  (map list totalnc-idpc-names idpc-arities)) ;no alg-names here
+	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+	 (typed-constr-names-list
+	  (map alg-name-to-typed-constr-names alg-names))
+	 (constr-names-list (map (lambda (typed-constr-names)
+	 			   (map car typed-constr-names))
+	 			 typed-constr-names-list))
+	 (clause-names-list
+	  (map (lambda (totalnc-idpc-name constr-names)
+		 (map (lambda (constr-name)
+			(string-append totalnc-idpc-name constr-name))
+		      constr-names))
+	       totalnc-idpc-names constr-names-list))
+	 (opt-names (map list (apply append clause-names-list))))
+    (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+		 clauses-with-idpc-pvars
+		 idpc-pvars
+		 idpc-tvars
+		 opt-names)))
+
+;; For add-totalnc we need the following auxiliary functions
+
+(define (alg-name-to-totalnc-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "Total" capitalized-alg-name "Nc")))
+
+(define (alg-to-totalnc-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-totalnc-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (term-and-alist-to-totalnc-formula term type-to-pred-alist)
+  (let ((type (term-to-type term)))
+    ;; (if (< 1 (type-to-level type))
+    ;; 	(myerror "term-and-alist-to-totalnc-formula"
+    ;; 		 "type of level at most 1 expected" type))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term)
+	    (make-totalnc term))))
+     ((alg-form? type) (make-predicate-formula
+			(let ((info (assoc type type-to-pred-alist)))
+			  (if info ;idpc-pvar, needed for add-ids-aux
+			      (cadr info)
+			      (alg-to-totalnc-idpredconst type)))
+			term))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var (type-to-new-partial-var arg-type))
+	     (varterm (make-term-in-var-form var))
+	     (appterm (make-term-in-app-form term varterm))
+	     (arg-formula (term-and-alist-to-totalnc-formula
+			   varterm type-to-pred-alist))
+	     (val-formula (term-and-alist-to-totalnc-formula
+			   appterm type-to-pred-alist)))
+	(make-allnc var (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left (if (term-in-pair-form? term)
+		      (term-in-pair-form-to-left term)
+		      (make-term-in-lcomp-form term)))
+	    (right (if (term-in-pair-form? term)
+		       (term-in-pair-form-to-right term)
+		       (make-term-in-rcomp-form term))))
+	(make-and (term-and-alist-to-totalnc-formula
+		   left type-to-pred-alist)
+		  (term-and-alist-to-totalnc-formula
+		   right type-to-pred-alist))))
+     (else (myerror "term-and-alist-to-totalnc-formula" "type expected" type
+		    "of term" term)))))
+
+;; Code discarded 2019-08-20.  Simplified for finitary unnnested algebras.
+;; (define (term-and-alist-to-totalnc-formula term type-to-pred-alist)
+;;   (let ((type (term-to-type term)))
+;;     (cond
+;;      ((tvar-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if info
+;; 	    (make-predicate-formula (cadr info) term)
+;; 	    (make-totalnc term))))
+;;      ((alg-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if
+;; 	 info ;idpc-pvar, needed in add-totalnc for add-ids-aux
+;; 	 (make-predicate-formula (cadr info) term)
+;; 	 (let* ((types (alg-form-to-types type))
+;; 		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
+;; 				     (lambda (item) (alg-form? (car item)))))
+;; 		(alist-alg-names (map alg-form-to-name
+;; 				      (map car alg-to-pvar-alist)))
+;; 		(alg-names-list (map type-to-alg-names types))
+;; 		(intersections
+;; 		 (map (lambda (alg-names)
+;; 			(intersection alist-alg-names alg-names))
+;; 		      alg-names-list)))
+;; 	   (cond
+;; 	    ((apply and-op (map null? intersections))
+;; 	     (make-predicate-formula (alg-to-totalnc-idpredconst type) term))
+;; 	    ((apply and-op (map pair? intersections))
+;; 	     (let* ((vars (map type-to-new-partial-var types))
+;; 		    (varterms (map make-term-in-var-form vars))
+;; 		    (prevs (map (lambda (varterm)
+;; 				  (term-and-alist-to-totalnc-formula
+;; 				   varterm type-to-pred-alist))
+;; 				varterms))
+;; 		    (cterms (map make-cterm vars prevs)))
+;; 	       (make-predicate-formula
+;; 		(alg-and-cterms-to-rtotalnc-idpredconst type cterms) term)))
+;; 	    (else (apply myerror "term-and-alist-to-totalnc-formula"
+;; 			 "not implemented for term" term
+;; 			 "and type-to-pred-alist" type-to-pred-alist)))))))
+;;      ((arrow-form? type)
+;;       (let* ((arg-type (arrow-form-to-arg-type type))
+;; 	     (var1 (type-to-new-partial-var arg-type))
+;; 	     (varterm1 (make-term-in-var-form var1))
+;; 	     (appterm1 (make-term-in-app-form term varterm1)))
+;; 	(if ;simpler form, correct by Ext & Preservation of T
+;; 	 (apply finalg? arg-type (type-to-free arg-type))
+;; 	 (let* ((arg-totalnc-formula (term-and-alist-to-totalnc-formula
+;; 				      varterm1 type-to-pred-alist))
+;; 		(val-totalnc-formula (term-and-alist-to-totalnc-formula
+;; 				      appterm1 type-to-pred-alist)))
+;; 	   (make-allnc var1 (make-imp arg-totalnc-formula
+;; 				      val-totalnc-formula)))
+;; 	 (let* ((var2 (type-to-new-partial-var arg-type))
+;; 		(varterm2 (make-term-in-var-form var2))
+;; 		(appterm2 (make-term-in-app-form term varterm2))
+;; 		(arg-eqpnc-formula (terms-to-eqpnc-formula
+;; 				    varterm1 varterm2))
+;; 		(val-eqpnc-formula (terms-to-eqpnc-formula
+;; 				    appterm1 appterm2)))
+;; 	   (mk-allnc var1 var2 (make-imp arg-eqpnc-formula
+;; 					 val-eqpnc-formula))))))
+;;      ((star-form? type)
+;;       (let ((left (if (term-in-pair-form? term)
+;; 		      (term-in-pair-form-to-left term)
+;; 		      (make-term-in-lcomp-form term)))
+;; 	    (right (if (term-in-pair-form? term)
+;; 		       (term-in-pair-form-to-right term)
+;; 		       (make-term-in-rcomp-form term))))
+;; 	(make-and
+;; 	 (term-and-alist-to-totalnc-formula left type-to-pred-alist)
+;; 	 (term-and-alist-to-totalnc-formula right type-to-pred-alist))))
+;;      (else (myerror "term-and-alist-to-totalnc-formula" "type expected" type
+;; 		    "of term" term)))))
+
+(define (term-to-totalnc-formula term)
+  (term-and-alist-to-totalnc-formula term '()))
+
+;; (pp (rename-variables (term-to-totalnc-formula (pt "(alpha=>beta)^"))))
+
+;; allnc alpha^0(TotalNc alpha^0 -> TotalNc((alpha=>beta)^ alpha^0)) andnc 
+;; allnc alpha^0,alpha^1(
+;;  EqPNc alpha^0 alpha^1 -> 
+;;  EqPNc((alpha=>beta)^ alpha^0)((alpha=>beta)^ alpha^1))
+
+(define (add-rtotalnc alg-name)
+  (if (not (assoc alg-name ALGEBRAS))
+      (myerror "add-rtotalnc" "alg-name expected" alg-name))
+  (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+  (set! COMMENT-FLAG #f)
+  (let* ((alg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+	 (idpc-arities (map make-arity algs))
+	 (idpc-pvars (map arity-to-new-harrop-pvar idpc-arities))
+	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+	 (arities (map make-arity tvars))
+	 (pvars (map arity-to-new-harrop-pvar arities))
+	 (tvar-to-pvar-alist (map list tvars pvars))
+	 (typed-constr-names
+	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+	 (constr-names (map car typed-constr-names))
+	 (constrs (map constr-name-to-constr constr-names))
+	 (clauses-with-idpc-pvars
+	  (map (lambda (constr)
+		 (term-and-alist-to-totalnc-formula
+		  (make-term-in-const-form constr)
+		  (append alg-to-idpc-pvar-alist tvar-to-pvar-alist)))
+	       constrs))
+	 (rtotalnc-idpc-names
+	  (map alg-name-to-rtotalnc-idpredconst-name alg-names))
+	 (idpc-names-with-arities-and-opt-alg-names
+	  (map list rtotalnc-idpc-names idpc-arities)) ;no alg-names here
+	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+	 (typed-constr-names-list
+	  (map alg-name-to-typed-constr-names alg-names))
+	 (constr-names-list (map (lambda (typed-constr-names)
+	 			   (map car typed-constr-names))
+	 			 typed-constr-names-list))
+	 (clause-names-list
+	  (map (lambda (rtotalnc-idpc-name constr-names)
+		 (map (lambda (constr-name)
+			(string-append rtotalnc-idpc-name constr-name))
+		      constr-names))
+	       rtotalnc-idpc-names constr-names-list))
+	 (opt-names (map list (apply append clause-names-list))))
+    (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+		 clauses-with-idpc-pvars
+		 idpc-pvars
+		 idpc-tvars
+		 opt-names)))
+
+;; For add-rtotalnc we need the following auxiliary functions
+
+(define (alg-name-to-rtotalnc-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "RTotal" capitalized-alg-name "Nc")))
+
+(define (alg-to-rtotalnc-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-rtotalnc-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+;; Code discarded 2019-08-20.  Not needed.
+;; (define (term-and-alist-to-rtotalnc-formula term type-to-pred-alist)
+;;   (let ((type (term-to-type term)))
+;;     (cond
+;;      ((tvar-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if info
+;; 	    (make-predicate-formula (cadr info) term)
+;; 	    (make-rtotalnc term)))) ;make-rtotalnc still to be defined
+;;      ((alg-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if
+;; 	 info ;idpc-pvar, needed in add-rtotalnc for add-ids-aux
+;; 	 (make-predicate-formula (cadr info) term)
+;; 	 (let* ((types (alg-form-to-types type))
+;; 		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
+;; 				     (lambda (item) (alg-form? (car item)))))
+;; 		(alist-alg-names (map alg-form-to-name
+;; 				      (map car alg-to-pvar-alist)))
+;; 		(alg-names-list (map type-to-alg-names types))
+;; 		(intersections
+;; 		 (map (lambda (alg-names)
+;; 			(intersection alist-alg-names alg-names))
+;; 		      alg-names-list)))
+;; 	   (cond
+;; 	    ((apply and-op (map null? intersections))
+;; 	     (make-predicate-formula (alg-to-rtotalnc-idpredconst type) term))
+;; 	    ((apply and-op (map pair? intersections))
+;; 	     (let* ((vars (map type-to-new-partial-var types))
+;; 		    (varterms (map make-term-in-var-form vars))
+;; 		    (prevs (map (lambda (varterm)
+;; 				  (term-and-alist-to-rtotalnc-formula
+;; 				   varterm type-to-pred-alist))
+;; 				varterms))
+;; 		    (cterms (map make-cterm vars prevs)))
+;; 	       (make-predicate-formula
+;; 		(alg-and-cterms-to-rrtotalnc-idpredconst type cterms) term)))
+;; 	    (else (apply myerror "term-and-alist-to-rtotalnc-formula"
+;; 			 "not implemented for term" term
+;; 			 "and type-to-pred-alist" type-to-pred-alist)))))))
+;;      ((arrow-form? type)
+;;       (let* ((arg-type (arrow-form-to-arg-type type))
+;; 	     (var (type-to-new-partial-var arg-type))
+;; 	     (varterm (make-term-in-var-form var))
+;; 	     (appterm (make-term-in-app-form term varterm))
+;; 	     (arg-formula
+;; 	      (term-and-alist-to-rtotalnc-formula varterm type-to-pred-alist))
+;; 	     (val-formula
+;; 	      (term-and-alist-to-rtotalnc-formula appterm type-to-pred-alist)))
+;; 	(make-all var (make-imp arg-formula val-formula))))
+;;      ((star-form? type)
+;;       (let ((left (if (term-in-pair-form? term)
+;; 		      (term-in-pair-form-to-left term)
+;; 		      (make-term-in-lcomp-form term)))
+;; 	    (right (if (term-in-pair-form? term)
+;; 		       (term-in-pair-form-to-right term)
+;; 		       (make-term-in-rcomp-form term))))
+;; 	(make-and
+;; 	 (term-and-alist-to-rtotalnc-formula left type-to-pred-alist)
+;; 	 (term-and-alist-to-rtotalnc-formula right type-to-pred-alist))))
+;;      (else (myerror "term-and-alist-to-rtotalnc-formula" "type expected" type
+;; 		    "of term" term)))))
+
+;; (define (term-to-rtotalnc-formula term)
+;;   (term-and-alist-to-rtotalnc-formula term '()))
+
+(define (add-eqp alg-name)
+  (if (not (assoc alg-name ALGEBRAS))
+      (myerror "add-eqp" "alg-name expected" alg-name))
+  (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+  (set! COMMENT-FLAG #f)
+  (let* ((alg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+	 (idpc-arities (map (lambda (alg) (make-arity alg alg)) algs))
+	 (idpc-pvars (map arity-to-new-general-pvar idpc-arities))
+	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+	 (typed-constr-names
+	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+	 (constr-names (map car typed-constr-names))
+	 (constrs (map constr-name-to-constr constr-names))
+	 (clauses-with-idpc-pvars
+	  (map (lambda (constr) (terms-and-alist-to-eqp-formula
+				 (make-term-in-const-form constr)
+				 (make-term-in-const-form constr)
+				 alg-to-idpc-pvar-alist))
+	       constrs))
+	 (eqp-idpc-names (map alg-name-to-eqp-idpredconst-name alg-names))
+	 (idpc-names-with-arities-and-opt-alg-names
+	  (map list eqp-idpc-names idpc-arities alg-names))
+	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+	 (typed-constr-names-list
+	  (map alg-name-to-typed-constr-names alg-names))
+	 (constr-names-list (map (lambda (typed-constr-names)
+	 			   (map car typed-constr-names))
+	 			 typed-constr-names-list))
+	 (clause-names-list
+	  (map (lambda (eqp-idpc-name constr-names)
+		 (map (lambda (constr-name)
+			(string-append eqp-idpc-name constr-name))
+		      constr-names))
+	       eqp-idpc-names constr-names-list))
+	 (opt-names (map list (apply append clause-names-list))))
+    (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+		 clauses-with-idpc-pvars
+		 idpc-pvars
+		 idpc-tvars
+		 opt-names)))
+
+;; For add-eqp we need the following auxiliary functions
+
+(define (alg-name-to-eqp-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "EqP" capitalized-alg-name)))
+
+(define (alg-to-eqp-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-eqp-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (terms-and-alist-to-eqp-formula term1 term2 type-to-pred-alist)
+  (if (not (equal? (term-to-type term1) (term-to-type term2)))
+      (myerror "terms-and-alist-to-eqp-formula" "equal types expected"
+	       (term-to-type term1) (term-to-type term2)))
+  (let ((type (term-to-type term1)))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term1 term2)
+	    (make-eqp term1 term2))))
+     ((alg-form? type) (make-predicate-formula 
+			(let ((info (assoc type type-to-pred-alist)))
+			  (if info ;idpc-pvar, needed for add-ids-aux
+			      (cadr info)
+			      (alg-to-eqp-idpredconst type)))
+			term1 term2))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+     	     (var1 (type-to-new-partial-var arg-type))
+     	     (varterm1 (make-term-in-var-form var1))
+     	     (appterm1 (make-term-in-app-form term1 varterm1))
+     	     (var2 (type-to-new-partial-var arg-type))
+     	     (varterm2 (make-term-in-var-form var2))
+     	     (appterm2 (make-term-in-app-form term2 varterm2))
+     	     (arg-formula (terms-and-alist-to-eqp-formula
+			   varterm1 varterm2 type-to-pred-alist))
+     	     (val-formula (terms-and-alist-to-eqp-formula
+			   appterm1 appterm2 type-to-pred-alist)))
+     	(mk-allnc var1 var2 (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left1 (if (term-in-pair-form? term1)
+		       (term-in-pair-form-to-left term1)
+		       (make-term-in-lcomp-form term1)))
+	    (right1 (if (term-in-pair-form? term1)
+			(term-in-pair-form-to-right term1)
+			(make-term-in-rcomp-form term1)))
+	    (left2 (if (term-in-pair-form? term2)
+		       (term-in-pair-form-to-left term2)
+		       (make-term-in-lcomp-form term2)))
+	    (right2 (if (term-in-pair-form? term2)
+			(term-in-pair-form-to-right term2)
+			(make-term-in-rcomp-form term2))))
+	(make-and
+	 (terms-and-alist-to-eqp-formula left1 left2 type-to-pred-alist)
+	 (terms-and-alist-to-eqp-formula right1 right2 type-to-pred-alist))))
+     (else (myerror "terms-and-alist-to-eqp-formula" "type expected" type
+		    "of term" term1)))))
+
+;; Code discarded 2019-08-20.  Simplified for finitary unnnested algebras.
+;; (define (terms-and-alist-to-eqp-formula term1 term2 type-to-pred-alist)
+;;   (if (not (equal? (term-to-type term1) (term-to-type term2)))
+;;       (myerror "terms-and-alist-to-eqp-formula" "equal types expected"
+;; 	       (term-to-type term1) (term-to-type term2)))
+;;   (let ((type (term-to-type term1)))
+;;     (cond
+;;      ((tvar-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if info
+;; 	    (make-predicate-formula (cadr info) term1 term2)
+;; 	    (make-eqp term1 term2))))
+;;      ((alg-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if info ;idpc-pvar, needed in add-eqp for add-ids-aux
+;; 	    (make-predicate-formula (cadr info) term1 term2)
+;; 	    (let* ((types (alg-form-to-types type))
+;; 		   (alg-to-pvar-alist (list-transform-positive
+;; 					  type-to-pred-alist
+;; 					(lambda (item) (alg-form? (car item)))))
+;; 		   (alist-alg-names (map alg-form-to-name
+;; 					 (map car alg-to-pvar-alist)))
+;; 		   (alg-names-list (map type-to-alg-names types))
+;; 		   (intersections
+;; 		    (map (lambda (alg-names)
+;; 			   (intersection alist-alg-names alg-names))
+;; 			 alg-names-list)))
+;; 	      (if
+;; 	       (apply and-op (map null? intersections))
+;; 	       (make-predicate-formula
+;; 		(alg-to-eqp-idpredconst type) term1 term2)
+;; 	       (apply myerror "terms-and-alist-to-eqp-formula"
+;; 		      "not implemented for terms" term1 term2
+;; 		      "and type-to-pred-alist" type-to-pred-alist))))))
+;;      ((arrow-form? type)
+;;       (let* ((arg-type (arrow-form-to-arg-type type))
+;;      	     (var1 (type-to-new-partial-var arg-type))
+;;      	     (varterm1 (make-term-in-var-form var1))
+;;      	     (appterm1 (make-term-in-app-form term1 varterm1))
+;;      	     (var2 (type-to-new-partial-var arg-type))
+;;      	     (varterm2 (make-term-in-var-form var2))
+;;      	     (appterm2 (make-term-in-app-form term2 varterm2))
+;;      	     (arg-formula (terms-and-alist-to-eqp-formula
+;; 			   varterm1 varterm2 type-to-pred-alist))
+;;      	     (val-formula (terms-and-alist-to-eqp-formula
+;; 			   appterm1 appterm2 type-to-pred-alist)))
+;;      	(mk-allnc var1 var2 (make-imp arg-formula val-formula))))
+;;      ((star-form? type)
+;;       (let ((left1 (if (term-in-pair-form? term1)
+;; 		       (term-in-pair-form-to-left term1)
+;; 		       (make-term-in-lcomp-form term1)))
+;; 	    (right1 (if (term-in-pair-form? term1)
+;; 			(term-in-pair-form-to-right term1)
+;; 			(make-term-in-rcomp-form term1)))
+;; 	    (left2 (if (term-in-pair-form? term2)
+;; 		       (term-in-pair-form-to-left term2)
+;; 		       (make-term-in-lcomp-form term2)))
+;; 	    (right2 (if (term-in-pair-form? term2)
+;; 			(term-in-pair-form-to-right term2)
+;; 			(make-term-in-rcomp-form term2))))
+;; 	(make-and
+;; 	 (terms-and-alist-to-eqp-formula left1 left2 type-to-pred-alist)
+;; 	 (terms-and-alist-to-eqp-formula right1 right2 type-to-pred-alist))))
+;;      (else (myerror "terms-and-alist-to-eqp-formula" "type expected" type
+;; 		    "of term" term1)))))
+
+(define (terms-to-eqp-formula term1 term2 . opt-cotype)
+  (let* ((type (term-to-type term1))
+	 (cotype (if (pair? opt-cotype)
+		     (car opt-cotype)
+		     type)))
+    (case (tag cotype)
+      ((tvar) (make-eqp term1 term2))
+      ((alg)
+       (let* ((name (alg-form-to-name cotype))
+	      (alg-name (if (coalg-name? name)
+			    (substring name 2 (string-length name))
+			    name)))
+	 (if
+	  (null? (alg-name-to-tvars alg-name))
+	  ;; (null? (type-to-tvars cotype))
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoEqP" "EqP")
+				 (string-capitalize-first alg-name)))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name '() '())
+			(myerror "terms-to-eqp-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2))
+					;else alg name with tvars
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoREqP" "REqP")
+				 (string-capitalize-first alg-name)))
+		 (cotypes (alg-form-to-types cotype))
+		 (types (map cotype-to-type cotypes))
+		 (prev-cterms (map cotype-to-eqp-cterm cotypes))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name types prev-cterms)
+			(myerror "terms-to-eqp-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2)))))
+      ((arrow)
+       (let* ((arg-cotype (arrow-form-to-arg-type cotype))
+	      (val-cotype (arrow-form-to-val-type cotype))
+	      (arg-type (cotype-to-type arg-cotype)))
+	 (if
+	  (and (= 0 (type-to-level arg-type)) (null? (type-to-tvars arg-type)))
+	  (let* ((var (type-to-new-partial-var arg-type))
+		 (varterm (make-term-in-var-form var))
+		 (alg-name (alg-form-to-name arg-type))
+		 (prem
+		  (if
+		   (pair? (alg-form-to-types arg-type))
+		   (if (equal? arg-type arg-cotype)
+		       (unfold-formula (make-total varterm))
+		       (unfold-formula (make-cototal varterm)))
+		   (let*
+		       ((idpc-name
+			 (string-append
+			  (if (equal? arg-type arg-cotype) "Total" "CoTotal")
+			  (string-capitalize-first alg-name)))
+			(idpc
+			 (if
+			  (assoc idpc-name IDS)
+			  (idpredconst-name-and-types-and-cterms-to-idpredconst
+			   idpc-name '() '())
+			  (myerror "terms-to-eqp-formula"
+				   "unknown idpredconst name" idpc-name))))
+		     (make-predicate-formula idpc varterm))))
+		 (appterm1 (make-term-in-app-form term1 varterm))
+		 (appterm2 (make-term-in-app-form term2 varterm))
+		 (prev-concl
+		  (terms-to-eqp-formula appterm1 appterm2 val-cotype)))
+	    (make-allnc var (make-imp prem prev-concl)))
+	  (let* ((var1 (type-to-new-partial-var arg-type))
+		 (varterm1 (make-term-in-var-form var1))
+		 (appterm1 (make-term-in-app-form term1 varterm1))
+		 (var2 (type-to-new-partial-var arg-type))
+		 (varterm2 (make-term-in-var-form var2))
+		 (appterm2 (make-term-in-app-form term2 varterm2))
+		 (prev-prem (terms-to-eqp-formula
+			     varterm1 varterm2 arg-cotype))
+		 (prev-concl (terms-to-eqp-formula
+			      appterm1 appterm2 val-cotype)))
+	    (mk-allnc var1 var2 (make-imp prev-prem prev-concl))))))
+      ((star)
+       (let* ((left-cotype (star-form-to-left-type cotype))
+	      (right-cotype (star-form-to-right-type cotype))
+	      (left-term1 (make-term-in-lcomp-form term1))
+	      (right-term1 (make-term-in-rcomp-form term1))
+	      (left-term2 (make-term-in-lcomp-form term2))
+	      (right-term2 (make-term-in-rcomp-form term2))
+	      (prev-left (terms-to-eqp-formula
+			  left-term1 left-term2 left-cotype))
+	      (prev-right (terms-to-eqp-formula
+			   right-term1 right-term2 right-cotype)))
+	 (make-and prev-left prev-right)))
+      (else (myerror "terms-to-eqp-formula" "cotype expected" cotype)))))
+
+(define (cotype-to-eqp-cterm cotype)
+  (let* ((type (cotype-to-type cotype))
+	 (var1 (type-to-new-partial-var type))
+	 (varterm1 (make-term-in-var-form var1))
+	 (var2 (type-to-new-partial-var type))
+	 (varterm2 (make-term-in-var-form var2))
+	 (fla (terms-to-eqp-formula varterm1 varterm2 cotype)))
+    (make-cterm var1 var2 fla)))
+
+;; Similarly we will need (in unfold-formula) terms-to-coeqp-formula
+
+(define (alg-name-to-coeqp-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "CoEqP" capitalized-alg-name)))
+
+(define (alg-to-coeqp-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-coeqp-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (terms-and-alist-to-coeqp-formula term1 term2 type-to-pred-alist)
+  (if (not (equal? (term-to-type term1) (term-to-type term2)))
+      (myerror "terms-and-alist-to-coeqp-formula" "equal types expected"
+	       (term-to-type term1) (term-to-type term2)))
+  (let ((type (term-to-type term1)))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term1 term2)
+	    (make-coeqp term1 term2))))
+     ((alg-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info ;idpc-pvar, needed in add-eqp for add-ids-aux
+	    (make-predicate-formula (cadr info) term1 term2)
+	    (let* ((types (alg-form-to-types type))
+		   (alg-to-pvar-alist (list-transform-positive
+					  type-to-pred-alist
+					(lambda (item) (alg-form? (car item)))))
+		   (alist-alg-names (map alg-form-to-name
+					 (map car alg-to-pvar-alist)))
+		   (alg-names-list (map type-to-alg-names types))
+		   (intersections
+		    (map (lambda (alg-names)
+			   (intersection alist-alg-names alg-names))
+			 alg-names-list)))
+	      (if
+	       (apply and-op (map null? intersections))
+	       (make-predicate-formula
+		(alg-to-coeqp-idpredconst type) term1 term2)
+	       (apply myerror "terms-and-alist-to-coeqp-formula"
+		      "not implemented for terms" term1 term2
+		      "and type-to-pred-alist" type-to-pred-alist))))))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var1 (type-to-new-partial-var arg-type))
+	     (varterm1 (make-term-in-var-form var1))
+	     (appterm1 (make-term-in-app-form term1 varterm1))
+	     (var2 (type-to-new-partial-var arg-type))
+	     (varterm2 (make-term-in-var-form var2))
+	     (appterm2 (make-term-in-app-form term2 varterm2))
+	     (arg-formula
+	      (terms-and-alist-to-coeqp-formula
+	       varterm1 varterm2 type-to-pred-alist))
+	     (val-formula
+	      (terms-and-alist-to-coeqp-formula
+	       appterm1 appterm2 type-to-pred-alist)))
+	(mk-allnc var1 var2 (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left1 (if (term-in-pair-form? term1)
+		       (term-in-pair-form-to-left term1)
+		       (make-term-in-lcomp-form term1)))
+	    (right1 (if (term-in-pair-form? term1)
+			(term-in-pair-form-to-right term1)
+			(make-term-in-rcomp-form term1)))
+	    (left2 (if (term-in-pair-form? term2)
+		       (term-in-pair-form-to-left term2)
+		       (make-term-in-lcomp-form term2)))
+	    (right2 (if (term-in-pair-form? term2)
+			(term-in-pair-form-to-right term2)
+			(make-term-in-rcomp-form term2))))
+	(make-and
+	 (terms-and-alist-to-coeqp-formula left1 left2 type-to-pred-alist)
+	 (terms-and-alist-to-coeqp-formula right1 right2 type-to-pred-alist))))
+     (else (myerror "terms-and-alist-to-coeqp-formula" "type expected" type
+		    "of term" term1)))))
+
+(define (terms-to-coeqp-formula term1 term2)
+  (terms-and-alist-to-coeqp-formula term1 term2 '()))
+
+;; We now continue with building compatibility formulas
+
+(define (add-eqpnc alg-name)
+  (if (not (assoc alg-name ALGEBRAS))
+      (myerror "add-eqpnc" "alg-name expected" alg-name))
+  (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+  (set! COMMENT-FLAG #f)
+  (let* ((alg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+	 (idpc-arities (map (lambda (alg) (make-arity alg alg)) algs))
+	 (idpc-pvars (map arity-to-new-harrop-pvar idpc-arities))
+	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+	 (typed-constr-names
+	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+	 (constr-names (map car typed-constr-names))
+	 (constrs (map constr-name-to-constr constr-names))
+	 (clauses-with-idpc-pvars
+	  (map (lambda (constr) (terms-and-alist-to-eqpnc-formula
+				 (make-term-in-const-form constr)
+				 (make-term-in-const-form constr)
+				 alg-to-idpc-pvar-alist))
+	       constrs))
+	 (eqpnc-idpc-names
+	  (map alg-name-to-eqpnc-idpredconst-name alg-names))
+	 (idpc-names-with-arities-and-opt-alg-names
+	  (map list eqpnc-idpc-names idpc-arities)) ;no alg-names here
+	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+	 (typed-constr-names-list
+	  (map alg-name-to-typed-constr-names alg-names))
+	 (constr-names-list (map (lambda (typed-constr-names)
+	 			   (map car typed-constr-names))
+	 			 typed-constr-names-list))
+	 (clause-names-list
+	  (map (lambda (eqpnc-idpc-name constr-names)
+		 (map (lambda (constr-name)
+			(string-append eqpnc-idpc-name constr-name))
+		      constr-names))
+	       eqpnc-idpc-names constr-names-list))
+	 (opt-names (map list (apply append clause-names-list))))
+    (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+		 clauses-with-idpc-pvars
+		 idpc-pvars
+		 idpc-tvars
+		 opt-names)))
+
+;; Code discarded 2019-08-20
+;; (define (add-eqpnc alg-name)
+;;   (if (not (assoc alg-name ALGEBRAS))
+;;       (myerror "add-eqpnc" "alg-name expected" alg-name))
+;;   (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+;;   (set! COMMENT-FLAG #f)
+;;   (let* ((alg-names (alg-name-to-simalg-names alg-name))
+;; 	 (tvars (alg-name-to-tvars alg-name))
+;; 	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+;; 	 (idpc-arities (map (lambda (alg) (make-arity alg alg)) algs))
+;; 	 (idpc-pvars (map arity-to-new-harrop-pvar idpc-arities))
+;; 	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+;; 	 (typed-constr-names
+;; 	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+;; 	 (constr-names (map car typed-constr-names))
+;; 	 (constrs (map constr-name-to-constr constr-names))
+;; 	 (clauses-with-idpc-pvars
+;; 	  (map (lambda (constr) (constr-and-alist-to-eqpnc-clause
+;; 				 constr alg-to-idpc-pvar-alist))
+;; 	       constrs))
+;; 	 (eqpnc-idpc-names
+;; 	  (map alg-name-to-eqpnc-idpredconst-name alg-names))
+;; 	 (idpc-names-with-arities-and-opt-alg-names
+;; 	  (map list eqpnc-idpc-names idpc-arities)) ;no alg-names here
+;; 	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+;; 	 (typed-constr-names-list
+;; 	  (map alg-name-to-typed-constr-names alg-names))
+;; 	 (constr-names-list (map (lambda (typed-constr-names)
+;; 	 			   (map car typed-constr-names))
+;; 	 			 typed-constr-names-list))
+;; 	 (clause-names-list
+;; 	  (map (lambda (eqpnc-idpc-name constr-names)
+;; 		 (map (lambda (constr-name)
+;; 			(string-append eqpnc-idpc-name constr-name))
+;; 		      constr-names))
+;; 	       eqpnc-idpc-names constr-names-list))
+;; 	 (opt-names (map list (apply append clause-names-list))))
+;;     (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+;; 		 clauses-with-idpc-pvars
+;; 		 idpc-pvars
+;; 		 idpc-tvars
+;; 		 opt-names)))
+
+;; (define (constr-and-alist-to-eqpnc-clause constr type-to-pred-alist)
+;;   (let* ((constr-type (const-to-type constr))
+;; 	 (alg (arrow-form-to-final-val-type constr-type))
+;; 	 (arg-types (arrow-form-to-arg-types constr-type))
+;; 	 (arg-vars1 (map type-to-new-partial-var arg-types))
+;; 	 (applied-constr1
+;; 	  (apply mk-term-in-app-form
+;; 		 (make-term-in-const-form constr)
+;; 		 (map make-term-in-var-form arg-vars1)))
+;; 	 (arg-vars2 (map type-to-new-partial-var arg-types))
+;; 	 (applied-constr2
+;; 	  (apply mk-term-in-app-form
+;; 		 (make-term-in-const-form constr)
+;; 		 (map make-term-in-var-form arg-vars2)))
+;; 	 (val-formula
+;; 	  (let ((info (assoc alg type-to-pred-alist)))
+;; 	    (if info
+;; 		(make-predicate-formula
+;; 		 (cadr info) applied-constr1 applied-constr2)
+;; 		(myerror "constr-and-alist-to-eqpnc-clause"
+;; 			 "alg-name" alg "has no assigned pvar in"
+;; 			 type-to-pred-alist))))
+;; 	 (arg-formulas
+;; 	  (map
+;; 	   (lambda (arg-type arg-var1 arg-var2)
+;; 	     (let* ((arg-arg-types (arrow-form-to-arg-types arg-type))
+;; 		    (vars1 (map type-to-new-partial-var arg-arg-types))
+;; 		    (varterms1 (map make-term-in-var-form vars1))
+;; 		    (prems (map term-to-totalnc-formula varterms1))
+;; 		    (arg-var1-at-vars1 (apply mk-term-in-app-form
+;; 					      (make-term-in-var-form arg-var1)
+;; 					      varterms1))
+;; 		    (arg-var2-at-vars1 (apply mk-term-in-app-form
+;; 					      (make-term-in-var-form arg-var2)
+;; 					      varterms1))
+;; 		    (concl (let ((info (assoc alg type-to-pred-alist)))
+;; 			     (if (and info
+;; 				      (equal? (term-to-type arg-var1-at-vars1)
+;; 					      alg))
+;; 				 (make-predicate-formula
+;; 				  (cadr info)
+;; 				  arg-var1-at-vars1 arg-var2-at-vars1)
+;; 				 (terms-to-eqpnc-formula
+;; 				  arg-var1-at-vars1 arg-var2-at-vars1))))
+;; 		    (prems ;expressing totality of vars1
+;; 		     (map (lambda (var)
+;; 			    (term-to-totalnc-formula
+;; 			     (make-term-in-var-form var)))
+;; 			  vars1))
+;; 		    (imp-fla (apply mk-imp (append prems (list concl)))))
+;; 	       (apply mk-all (append vars1 (list imp-fla)))))
+;; 	   arg-types arg-vars1 arg-vars2))
+;; 	 (imp-formula (apply mk-imp (append arg-formulas (list val-formula))))
+;; 	 (free (formula-to-free imp-formula)))
+;;     (apply mk-all (append free (list imp-formula)))))
+
+;; For add-eqpnc we need the following auxiliary functions
+
+(define (alg-name-to-eqpnc-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "EqP" capitalized-alg-name "Nc")))
+
+(define (alg-to-eqpnc-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-eqpnc-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (terms-and-alist-to-eqpnc-formula term1 term2 type-to-pred-alist)
+  (if (not (equal? (term-to-type term1) (term-to-type term2)))
+      (myerror "terms-and-alist-to-eqpnc-formula" "equal types expected"
+	       (term-to-type term1) (term-to-type term2)))
+  (let ((type (term-to-type term1)))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term1 term2)
+	    (make-eqpnc term1 term2))))
+     ((alg-form? type) (make-predicate-formula 
+			(let ((info (assoc type type-to-pred-alist)))
+			  (if info ;idpc-pvar, needed for add-ids-aux
+			      (cadr info)
+			      (alg-to-eqpnc-idpredconst type)))
+			term1 term2))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+     	     (var1 (type-to-new-partial-var arg-type))
+     	     (varterm1 (make-term-in-var-form var1))
+     	     (appterm1 (make-term-in-app-form term1 varterm1))
+     	     (var2 (type-to-new-partial-var arg-type))
+     	     (varterm2 (make-term-in-var-form var2))
+     	     (appterm2 (make-term-in-app-form term2 varterm2))
+     	     (arg-formula (terms-and-alist-to-eqpnc-formula
+			   varterm1 varterm2 type-to-pred-alist))
+     	     (val-formula (terms-and-alist-to-eqpnc-formula
+			   appterm1 appterm2 type-to-pred-alist)))
+     	(mk-allnc var1 var2 (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left1 (if (term-in-pair-form? term1)
+		       (term-in-pair-form-to-left term1)
+		       (make-term-in-lcomp-form term1)))
+	    (right1 (if (term-in-pair-form? term1)
+			(term-in-pair-form-to-right term1)
+			(make-term-in-rcomp-form term1)))
+	    (left2 (if (term-in-pair-form? term2)
+		       (term-in-pair-form-to-left term2)
+		       (make-term-in-lcomp-form term2)))
+	    (right2 (if (term-in-pair-form? term2)
+			(term-in-pair-form-to-right term2)
+			(make-term-in-rcomp-form term2))))
+	(make-and
+	 (terms-and-alist-to-eqpnc-formula left1 left2 type-to-pred-alist)
+	 (terms-and-alist-to-eqpnc-formula right1 right2 type-to-pred-alist))))
+     (else (myerror "terms-and-alist-to-eqpnc-formula" "type expected" type
+		    "of term" term1)))))
+
+;; Code discarded 2019-08-20.  Simplified for finitary unnnested algebras.
+;; (define (terms-and-alist-to-eqpnc-formula term1 term2 type-to-pred-alist)
+;;   (if (not (equal? (term-to-type term1) (term-to-type term2)))
+;;       (myerror "terms-and-alist-to-eqpnc-formula" "equal types expected"
+;; 	       (term-to-type term1) (term-to-type term2)))
+;;   (let ((type (term-to-type term1)))
+;;     (cond
+;;      ((tvar-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if info
+;; 	    (make-predicate-formula (cadr info) term1 term2)
+;; 	    (make-eqpnc term1 term2))))
+;;      ((alg-form? type)
+;;       (let ((info (assoc type type-to-pred-alist)))
+;; 	(if info ;idpc-pvar, needed in add-eqp for add-ids-aux
+;; 	    (make-predicate-formula (cadr info) term1 term2)
+;; 	    (let* ((types (alg-form-to-types type))
+;; 		   (alg-to-pvar-alist (list-transform-positive
+;; 					  type-to-pred-alist
+;; 					(lambda (item) (alg-form? (car item)))))
+;; 		   (alist-alg-names (map alg-form-to-name
+;; 					 (map car alg-to-pvar-alist)))
+;; 		   (alg-names-list (map type-to-alg-names types))
+;; 		   (intersections
+;; 		    (map (lambda (alg-names)
+;; 			   (intersection alist-alg-names alg-names))
+;; 			 alg-names-list)))
+;; 	      (if
+;; 	       (apply and-op (map null? intersections))
+;; 	       (make-predicate-formula
+;; 		(alg-to-eqpnc-idpredconst type) term1 term2)
+;; 	       (apply myerror "terms-and-alist-to-eqpnc-formula"
+;; 		      "not implemented for terms" term1 term2
+;; 		      "and type-to-pred-alist" type-to-pred-alist))))))
+;;      ((arrow-form? type)
+;;       (let* ((arg-type (arrow-form-to-arg-type type))
+;;      	     (var1 (type-to-new-partial-var arg-type))
+;;      	     (varterm1 (make-term-in-var-form var1))
+;;      	     (appterm1 (make-term-in-app-form term1 varterm1))
+;;      	     (var2 (type-to-new-partial-var arg-type))
+;;      	     (varterm2 (make-term-in-var-form var2))
+;;      	     (appterm2 (make-term-in-app-form term2 varterm2))
+;;      	     (arg-formula (terms-and-alist-to-eqpnc-formula
+;; 			   varterm1 varterm2 type-to-pred-alist))
+;;      	     (val-formula (terms-and-alist-to-eqpnc-formula
+;; 			   appterm1 appterm2 type-to-pred-alist)))
+;;      	(mk-allnc var1 var2 (make-imp arg-formula val-formula))))
+;;      ((star-form? type)
+;;       (let ((left1 (if (term-in-pair-form? term1)
+;; 		       (term-in-pair-form-to-left term1)
+;; 		       (make-term-in-lcomp-form term1)))
+;; 	    (right1 (if (term-in-pair-form? term1)
+;; 			(term-in-pair-form-to-right term1)
+;; 			(make-term-in-rcomp-form term1)))
+;; 	    (left2 (if (term-in-pair-form? term2)
+;; 		       (term-in-pair-form-to-left term2)
+;; 		       (make-term-in-lcomp-form term2)))
+;; 	    (right2 (if (term-in-pair-form? term2)
+;; 			(term-in-pair-form-to-right term2)
+;; 			(make-term-in-rcomp-form term2))))
+;; 	(make-and
+;; 	 (terms-and-alist-to-eqpnc-formula left1 left2 type-to-pred-alist)
+;; 	 (terms-and-alist-to-eqpnc-formula right1 right2 type-to-pred-alist))))
+;;      (else (myerror "terms-and-alist-to-eqpnc-formula" "type expected" type
+;; 		    "of term" term1)))))
+
+(define (terms-to-eqpnc-formula term1 term2 . opt-cotype)
+  (let* ((type (term-to-type term1))
+	 (cotype (if (pair? opt-cotype)
+		     (car opt-cotype)
+		     type)))
+    (case (tag cotype)
+      ((tvar) (make-eqpnc term1 term2))
+      ((alg)
+       (let* ((name (alg-form-to-name cotype))
+	      (alg-name (if (coalg-name? name)
+			    (substring name 2 (string-length name))
+			    name)))
+	 (if
+	  (null? (alg-name-to-tvars alg-name))
+	  ;; (null? (type-to-tvars cotype))
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoEqP" "EqP")
+				 (string-capitalize-first alg-name) "Nc"))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name '() '())
+			(myerror "terms-to-eqpnc-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2))
+					;else alg name with tvars
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoREqP" "REqP")
+				 (string-capitalize-first alg-name) "Nc"))
+		 (cotypes (alg-form-to-types cotype))
+		 (types (map cotype-to-type cotypes))
+		 (prev-cterms (map cotype-to-eqp-cterm cotypes))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name types prev-cterms)
+			(myerror "terms-to-eqpnc-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2)))))
+      ((arrow)
+       (let* ((arg-cotype (arrow-form-to-arg-type cotype))
+	      (val-cotype (arrow-form-to-val-type cotype))
+	      (arg-type (cotype-to-type arg-cotype))
+	      (var1 (type-to-new-partial-var arg-type))
+	      (varterm1 (make-term-in-var-form var1))
+	      (appterm1 (make-term-in-app-form term1 varterm1)))
+	 (if
+	  (and (= (type-to-level arg-type) 0) (null? (type-to-tvars arg-type)))
+	  (let* ((alg-name (alg-form-to-name arg-type))
+		 (idpc-name
+		  (string-append
+		   (if (equal? arg-type arg-cotype) "Total" "CoTotal")
+		   (string-capitalize-first alg-name) "Nc"))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name '() '())
+			(myerror "terms-to-eqpnc-formula"
+				 "unknown idpredconst name" idpc-name)))
+		 (prem (make-predicate-formula idpc varterm1))
+		 (appterm2 (make-term-in-app-form term2 varterm1))
+		 (prev-concl (terms-to-eqpnc-formula
+			      appterm1 appterm2 val-cotype)))
+	    (make-allnc var1 (make-imp prem prev-concl)))
+	  (let* ((var2 (type-to-new-partial-var arg-type))
+		 (varterm2 (make-term-in-var-form var2))
+		 (appterm2 (make-term-in-app-form term2 varterm2))
+		 (prev-prem (terms-to-eqpnc-formula
+			     varterm1 varterm2 arg-cotype))
+		 (prev-concl (terms-to-eqpnc-formula
+			      appterm1 appterm2 val-cotype)))
+	    (mk-allnc var1 var2 (make-imp prev-prem prev-concl))))))
+      ((star)
+       (let* ((left-cotype (star-form-to-left-type cotype))
+	      (right-cotype (star-form-to-right-type cotype))
+	      (left-term1 (make-term-in-lcomp-form term1))
+	      (right-term1 (make-term-in-rcomp-form term1))
+	      (left-term2 (make-term-in-lcomp-form term2))
+	      (right-term2 (make-term-in-rcomp-form term2))
+	      (prev-left (terms-to-eqpnc-formula
+			  left-term1 left-term2 left-cotype))
+	      (prev-right (terms-to-eqpnc-formula
+			  right-term1 right-term2 right-cotype)))
+	 (make-and prev-left prev-right)))
+      (else (myerror "terms-to-eqpnc-formula" "cotype expected" cotype)))))
+
+(define (cotype-to-eqpnc-cterm cotype)
+  (let* ((type (cotype-to-type cotype))
+	 (var1 (type-to-new-partial-var type))
+	 (varterm1 (make-term-in-var-form var1))
+	 (var2 (type-to-new-partial-var type))
+	 (varterm2 (make-term-in-var-form var2))
+	 (fla (terms-to-eqpnc-formula varterm1 varterm2 cotype)))
+    (make-cterm var1 var2 fla)))
+
+;; Similarly we will need (in unfold-formula) terms-to-coeqpnc-formula
+
+(define (alg-name-to-coeqpnc-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "CoEqP" capitalized-alg-name "Nc")))
+
+(define (alg-to-coeqpnc-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-coeqpnc-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (terms-and-alist-to-coeqpnc-formula term1 term2 type-to-pred-alist)
+  (if (not (equal? (term-to-type term1) (term-to-type term2)))
+      (myerror "terms-and-alist-to-coeqpnc-formula" "equal types expected"
+	       (term-to-type term1) (term-to-type term2)))
+  (let ((type (term-to-type term1)))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term1 term2)
+	    (make-coeqpnc term1 term2))))
+     ((alg-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info ;idpc-pvar, needed in add-eqp for add-ids-aux
+	    (make-predicate-formula (cadr info) term1 term2)
+	    (let* ((types (alg-form-to-types type))
+		   (alg-to-pvar-alist (list-transform-positive
+					  type-to-pred-alist
+					(lambda (item) (alg-form? (car item)))))
+		   (alist-alg-names (map alg-form-to-name
+					 (map car alg-to-pvar-alist)))
+		   (alg-names-list (map type-to-alg-names types))
+		   (intersections
+		    (map (lambda (alg-names)
+			   (intersection alist-alg-names alg-names))
+			 alg-names-list)))
+	      (if
+	       (apply and-op (map null? intersections))
+	       (make-predicate-formula
+		(alg-to-coeqpnc-idpredconst type) term1 term2)
+	       (apply myerror "terms-and-alist-to-coeqpnc-formula"
+		      "not implemented for terms" term1 term2
+		      "and type-to-pred-alist" type-to-pred-alist))))))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var1 (type-to-new-partial-var arg-type))
+	     (varterm1 (make-term-in-var-form var1))
+	     (appterm1 (make-term-in-app-form term1 varterm1))
+	     (var2 (type-to-new-partial-var arg-type))
+	     (varterm2 (make-term-in-var-form var2))
+	     (appterm2 (make-term-in-app-form term2 varterm2))
+	     (arg-formula
+	      (terms-and-alist-to-coeqpnc-formula
+	       varterm1 varterm2 type-to-pred-alist))
+	     (val-formula
+	      (terms-and-alist-to-coeqpnc-formula
+	       appterm1 appterm2 type-to-pred-alist)))
+	(mk-all var1 var2 (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left1 (if (term-in-pair-form? term1)
+		       (term-in-pair-form-to-left term1)
+		       (make-term-in-lcomp-form term1)))
+	    (right1 (if (term-in-pair-form? term1)
+			(term-in-pair-form-to-right term1)
+			(make-term-in-rcomp-form term1)))
+	    (left2 (if (term-in-pair-form? term2)
+		       (term-in-pair-form-to-left term2)
+		       (make-term-in-lcomp-form term2)))
+	    (right2 (if (term-in-pair-form? term2)
+			(term-in-pair-form-to-right term2)
+			(make-term-in-rcomp-form term2))))
+	(make-and
+	 (terms-and-alist-to-coeqpnc-formula left1 left2 type-to-pred-alist)
+	 (terms-and-alist-to-coeqpnc-formula right1 right2
+					     type-to-pred-alist))))
+     (else (myerror "terms-and-alist-to-coeqpnc-formula" "type expected" type
+		    "of term" term1)))))
+
+(define (terms-to-coeqpnc-formula term1 term2)
+  (terms-and-alist-to-coeqpnc-formula term1 term2 '()))
+
+(define (add-reqp alg-name)
+  (if (not (assoc alg-name ALGEBRAS))
+      (myerror "add-reqp" "alg-name expected" alg-name))
+  (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+  (set! COMMENT-FLAG #f)
+  (let* ((alg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+	 (idpc-arities (map (lambda (alg) (make-arity alg alg)) algs))
+	 (idpc-pvars (map arity-to-new-general-pvar idpc-arities))
+	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+	 (arities (map (lambda (tvar) (make-arity tvar tvar)) tvars))
+	 (pvars (map arity-to-new-general-pvar arities))
+	 (tvar-to-pvar-alist (map list tvars pvars))
+	 (typed-constr-names
+	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+	 (constr-names (map car typed-constr-names))
+	 (constrs (map constr-name-to-constr constr-names))
+	 (clauses-with-idpc-pvars
+	  (map (lambda (constr)
+		 (terms-and-alist-to-eqp-formula
+		  (make-term-in-const-form constr)
+		  (make-term-in-const-form constr)
+		  (append alg-to-idpc-pvar-alist tvar-to-pvar-alist)))
+	       constrs))
+	 (reqp-idpc-names (map alg-name-to-reqp-idpredconst-name alg-names))
+	 (idpc-names-with-arities-and-opt-alg-names
+	  (map list reqp-idpc-names idpc-arities alg-names))
+	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+	 (typed-constr-names-list
+	  (map alg-name-to-typed-constr-names alg-names))
+	 (constr-names-list (map (lambda (typed-constr-names)
+	 			   (map car typed-constr-names))
+	 			 typed-constr-names-list))
+	 (clause-names-list
+	  (map (lambda (reqp-idpc-name constr-names)
+		 (map (lambda (constr-name)
+			(string-append reqp-idpc-name constr-name))
+		      constr-names))
+	       reqp-idpc-names constr-names-list))
+	 (opt-names (map list (apply append clause-names-list))))
+    (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+		 clauses-with-idpc-pvars
+		 idpc-pvars
+		 idpc-tvars
+		 opt-names)))
+
+;; For add-reqp we need the following auxiliary function
+
+(define (alg-name-to-reqp-idpredconst-name alg-name)
+  (string-append "REqP" (string-capitalize-first alg-name)))
+
+(define (add-reqpnc alg-name)
+  (if (not (assoc alg-name ALGEBRAS))
+      (myerror "add-reqpnc" "alg-name expected" alg-name))
+  (set! OLD-COMMENT-FLAG COMMENT-FLAG)
+  (set! COMMENT-FLAG #f)
+  (let* ((alg-names (alg-name-to-simalg-names alg-name))
+	 (tvars (alg-name-to-tvars alg-name))
+	 (algs (map (lambda (name) (apply make-alg name tvars)) alg-names))
+	 (idpc-arities (map (lambda (alg) (make-arity alg alg)) algs))
+	 (idpc-pvars (map arity-to-new-harrop-pvar idpc-arities))
+	 (alg-to-idpc-pvar-alist (map list algs idpc-pvars))
+	 (arities (map (lambda (tvar) (make-arity tvar tvar)) tvars))
+	 (pvars (map arity-to-new-harrop-pvar arities))
+	 (tvar-to-pvar-alist (map list tvars pvars))
+	 (typed-constr-names
+	  (apply append (map alg-name-to-typed-constr-names alg-names)))
+	 (constr-names (map car typed-constr-names))
+	 (constrs (map constr-name-to-constr constr-names))
+	 (clauses-with-idpc-pvars
+	  (map (lambda (constr)
+		 (terms-and-alist-to-eqpnc-formula
+		  (make-term-in-const-form constr)
+		  (make-term-in-const-form constr)
+		  (append alg-to-idpc-pvar-alist tvar-to-pvar-alist)))
+	       constrs))
+	 (reqpnc-idpc-names (map alg-name-to-reqpnc-idpredconst-name alg-names))
+	 (idpc-names-with-arities-and-opt-alg-names
+	  (map list reqpnc-idpc-names idpc-arities)) ;no alg-names here
+	 (idpc-tvars (map PVAR-TO-TVAR idpc-pvars))
+	 (typed-constr-names-list
+	  (map alg-name-to-typed-constr-names alg-names))
+	 (constr-names-list (map (lambda (typed-constr-names)
+	 			   (map car typed-constr-names))
+	 			 typed-constr-names-list))
+	 (clause-names-list
+	  (map (lambda (reqpnc-idpc-name constr-names)
+		 (map (lambda (constr-name)
+			(string-append reqpnc-idpc-name constr-name))
+		      constr-names))
+	       reqpnc-idpc-names constr-names-list))
+	 (opt-names (map list (apply append clause-names-list))))
+    (add-ids-aux idpc-names-with-arities-and-opt-alg-names
+		 clauses-with-idpc-pvars
+		 idpc-pvars
+		 idpc-tvars
+		 opt-names)))
+
+(define (alg-name-to-reqpnc-idpredconst-name alg-name)
+  (string-append "REqP" (string-capitalize-first alg-name) "Nc"))
+
+(define (term-to-ext-formula term . opt-cotype)
+  (let* ((type (term-to-type term))
+	 (cotype (if (pair? opt-cotype)
+		     (car opt-cotype)
+		     type)))
+    (case (tag cotype)
+      ((tvar) (make-ext term))
+      ((alg)
+       (let* ((name (alg-form-to-name cotype))
+	      (alg-name (if (coalg-name? name)
+			    (substring name 2 (string-length name))
+			    name)))
+	 (if
+	  (null? (alg-name-to-tvars alg-name))
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoTotal" "Total")
+				 (string-capitalize-first alg-name)))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name '() '())
+			(myerror "term-to-ext-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term))
+					;else alg name with tvars
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoRTotal" "RTotal")
+				 (string-capitalize-first alg-name)))
+		 (cotypes (alg-form-to-types cotype))
+		 (types (map cotype-to-type cotypes))
+		 (vars (map type-to-new-partial-var types))
+		 (varterms (map make-term-in-var-form vars))
+		 (flas (map (lambda (varterm cotype)
+			      (term-to-ext-formula varterm cotype)) ;rec call
+			    varterms cotypes))
+		 (prev-cterms (map (lambda (var fla) (make-cterm var fla))
+				   vars flas))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name types prev-cterms)
+			(myerror "term-to-ext-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term)))))
+      ((arrow)
+       (let* ((arg-cotype (arrow-form-to-arg-type cotype))
+	      (val-cotype (arrow-form-to-val-type cotype))
+       	      (arg-type (cotype-to-type arg-cotype)))
+	 (cond
+	  ((and (= 0 (type-to-level arg-type)) (null? (type-to-tvars arg-type)))
+	   (if ;arg-cotype is co-free
+	    (equal? arg-cotype arg-type)
+	    (let* ((var (type-to-new-var arg-type))
+		   (varterm (make-term-in-var-form var))
+		   (appterm (make-term-in-app-form term varterm))
+		   (prev-concl (term-to-ext-formula appterm val-cotype)))
+	      (make-all var prev-concl))
+	    (let* ((var (type-to-new-partial-var arg-type))
+		   (varterm (make-term-in-var-form var))
+		   (prev-prem (term-to-ext-formula varterm arg-cotype))
+		   (appterm (make-term-in-app-form term varterm))
+		   (prev-concl (term-to-ext-formula appterm val-cotype)))
+	      (make-allnc var (make-imp prev-prem prev-concl)))))
+	  ((and (= 1 (type-to-level arg-type))
+		(null? (type-to-tvars arg-type))
+		(equal? arg-cotype arg-type))
+	   (let* ((arg-argtypes (arrow-form-to-arg-types arg-type))
+		  (vars (map type-to-new-var arg-argtypes))
+		  (varterms (map make-term-in-var-form vars))
+		  (var1 (type-to-new-var arg-type))
+		  (varterm1 (make-term-in-var-form var1))
+		  (appterm1 (make-term-in-app-form term varterm1))
+		  (var1-appterm (apply mk-term-in-app-form varterm1 varterms))
+		  (var2 (type-to-new-var arg-type))
+		  (varterm2 (make-term-in-var-form var2))
+		  (appterm2 (make-term-in-app-form term varterm2))
+		  (var2-appterm (apply mk-term-in-app-form varterm2 varterms))
+		  (prem (apply mk-allnc
+			       (append vars (list (make-= var1-appterm
+							  var2-appterm)))))
+		  (prev-concl (terms-to-eqp-formula
+			       appterm1 appterm2 val-cotype)))
+	     (make-all var1 (make-allnc var2 (make-imp prem prev-concl)))))
+	  (else
+	   (let* ((val-type (cotype-to-type val-cotype))
+		  (var1 (type-to-new-partial-var arg-type))
+		  (varterm1 (make-term-in-var-form var1))
+		  (appterm1 (make-term-in-app-form term varterm1))
+		  (var2 (type-to-new-partial-var arg-type))
+		  (varterm2 (make-term-in-var-form var2))
+		  (appterm2 (make-term-in-app-form term varterm2))
+		  (prev-prem (terms-to-eqp-formula
+			      varterm1 varterm2 arg-cotype))
+		  (prev-concl (terms-to-eqp-formula
+			       appterm1 appterm2 val-cotype)))
+	     (mk-allnc var1 var2 (make-imp prev-prem prev-concl)))))))
+      ((star)
+       (let* ((left-cotype (star-form-to-left-type cotype))
+	      (right-cotype (star-form-to-right-type cotype))
+	      (left-term (make-term-in-lcomp-form term))
+	      (right-term (make-term-in-rcomp-form term))
+	      (prev-left (term-to-ext-formula left-term left-cotype))
+	      (prev-right (term-to-ext-formula right-term right-cotype)))
+	 (make-and prev-left prev-right)))
+      (else (myerror "term-to-ext-formula" "cotype expected" cotype)))))
+
+(define (cotype-to-ext-cterm cotype)
+  (let* ((type (cotype-to-type cotype))
+	 (var (type-to-new-partial-var type))
+	 (varterm (make-term-in-var-form var))
+	 (fla (term-to-ext-formula varterm cotype)))
+    (make-cterm var fla)))
+
+(define (term-to-extnc-formula term . opt-cotype)
+  (let* ((type (term-to-type term))
+	 (cotype (if (pair? opt-cotype)
+		     (car opt-cotype)
+		     type)))
+    (case (tag cotype)
+      ((tvar) (make-extnc term))
+      ((alg)
+       (let* ((name (alg-form-to-name cotype))
+	      (alg-name (if (coalg-name? name)
+			    (substring name 2 (string-length name))
+			    name)))
+	 (cond
+	  ((null? (alg-name-to-tvars alg-name))
+	   (let* ((idpc-name
+		   (string-append (if (coalg-name? name) "CoTotal" "Total")
+				  (string-capitalize-first alg-name)
+				  "Nc"))
+		  (idpc (if
+			 (assoc idpc-name IDS)
+			 (idpredconst-name-and-types-and-cterms-to-idpredconst
+			  idpc-name '() '())
+			 (myerror "term-to-extnc-formula"
+				  "unknown idpredconst name" idpc-name))))
+	     (make-predicate-formula idpc term)))
+	  ((= (type-to-level cotype) 0)
+	   (let* ((idpc-name (string-append
+			      (if (coalg-name? name) "CoRTotal" "RTotal")
+			      (string-capitalize-first alg-name)
+			      "Nc"))
+		  (cotypes (alg-form-to-types cotype))
+		  (types (map cotype-to-type cotypes))
+		  (prev-cterms (map cotype-to-extnc-cterm cotypes))
+		  (idpc (if
+			 (assoc idpc-name IDS)
+			 (idpredconst-name-and-types-and-cterms-to-idpredconst
+			  idpc-name types prev-cterms)
+			 (myerror "term-to-extnc-formula"
+				  "unknown idpredconst name" idpc-name))))
+	     (make-predicate-formula idpc term)))
+	  (else (terms-to-eqp-formula term term cotype)))))
+      ((arrow)
+       (let* ((arg-cotype (arrow-form-to-arg-type cotype))
+       	      (arg-type (cotype-to-type arg-cotype)))
+	 (if
+	  (alg-form? arg-type)
+	  (let* ((var (type-to-new-partial-var arg-type))
+		 (varterm (make-term-in-var-form var))
+		 (appterm (make-term-in-app-form term varterm))
+		 (prev-prem (term-to-extnc-formula varterm arg-cotype))
+		 (val-cotype (arrow-form-to-val-type cotype))
+		 (prev-concl (term-to-extnc-formula appterm val-cotype)))
+	    (mk-allnc var (make-imp prev-prem prev-concl)))
+	  (terms-to-eqp-formula term term cotype))))
+      ((star)
+       (let* ((left-cotype (star-form-to-left-type cotype))
+	      (right-cotype (star-form-to-right-type cotype))
+	      (left-term (make-term-in-lcomp-form term))
+	      (right-term (make-term-in-rcomp-form term))
+	      (prev-left (term-to-extnc-formula left-term left-cotype))
+	      (prev-right (term-to-extnc-formula right-term right-cotype)))
+	 (make-and prev-left prev-right)))
+      (else (myerror "term-to-extnc-formula" "cotype expected" cotype)))))
+
+(define (cotype-to-extnc-cterm cotype)
+  (let* ((type (cotype-to-type cotype))
+	 (var (type-to-new-partial-var type))
+	 (varterm (make-term-in-var-form var))
+	 (fla (term-to-extnc-formula varterm cotype)))
+    (make-cterm var fla)))
+
+;; 2020-05-29.  terms-to-pure-eqp-formula , term-to-pure-ext-formula
+;; terms-to-pure-eqpnc-formula , term-to-pure-extnc-formula
+;; added, with no use of totality predicates.
+
+(define (terms-to-pure-eqp-formula term1 term2 . opt-cotype)
+  (let* ((type (term-to-type term1))
+	 (cotype (if (pair? opt-cotype)
+		     (car opt-cotype)
+		     type)))
+    (case (tag cotype)
+      ((tvar) (make-eqp term1 term2))
+      ((alg)
+       (let* ((name (alg-form-to-name cotype))
+	      (alg-name (if (coalg-name? name)
+			    (substring name 2 (string-length name))
+			    name)))
+	 (if
+	  (null? (alg-name-to-tvars alg-name))
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoEqP" "EqP")
+				 (string-capitalize-first alg-name)))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name '() '())
+			(myerror "terms-to-pure-eqp-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2))
+					;else alg name with tvars
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoREqP" "REqP")
+				 (string-capitalize-first alg-name)))
+		 (cotypes (alg-form-to-types cotype))
+		 (types (map cotype-to-type cotypes))
+		 (prev-cterms (map cotype-to-pure-eqp-cterm cotypes))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name types prev-cterms)
+			(myerror "terms-to-pure-eqp-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2)))))
+      ((arrow)
+       (let* ((arg-cotype (arrow-form-to-arg-type cotype))
+	      (val-cotype (arrow-form-to-val-type cotype))
+	      (arg-type (cotype-to-type arg-cotype))
+	      (var1 (type-to-new-partial-var arg-type))
+	      (varterm1 (make-term-in-var-form var1))
+	      (appterm1 (make-term-in-app-form term1 varterm1))
+	      (var2 (type-to-new-partial-var arg-type))
+	      (varterm2 (make-term-in-var-form var2))
+	      (appterm2 (make-term-in-app-form term2 varterm2))
+	      (prev-prem (terms-to-pure-eqp-formula
+			  varterm1 varterm2 arg-cotype))
+	      (prev-concl (terms-to-pure-eqp-formula
+			   appterm1 appterm2 val-cotype)))
+	 (mk-allnc var1 var2 (make-imp prev-prem prev-concl))))
+      ((star)
+       (let* ((left-cotype (star-form-to-left-type cotype))
+	      (right-cotype (star-form-to-right-type cotype))
+	      (left-term1 (make-term-in-lcomp-form term1))
+	      (right-term1 (make-term-in-rcomp-form term1))
+	      (left-term2 (make-term-in-lcomp-form term2))
+	      (right-term2 (make-term-in-rcomp-form term2))
+	      (prev-left (terms-to-pure-eqp-formula
+			  left-term1 left-term2 left-cotype))
+	      (prev-right (terms-to-pure-eqp-formula
+			   right-term1 right-term2 right-cotype)))
+	 (make-and prev-left prev-right)))
+      (else (myerror "terms-to-pure-eqp-formula" "cotype expected" cotype)))))
+
+(define (cotype-to-pure-eqp-cterm cotype)
+  (let* ((type (cotype-to-type cotype))
+	 (var1 (type-to-new-partial-var type))
+	 (varterm1 (make-term-in-var-form var1))
+	 (var2 (type-to-new-partial-var type))
+	 (varterm2 (make-term-in-var-form var2))
+	 (fla (terms-to-pure-eqp-formula varterm1 varterm2 cotype)))
+    (make-cterm var1 var2 fla)))
+
+(define (term-to-pure-ext-formula term . opt-cotype)
+  (if (pair? opt-cotype)
+      (terms-to-pure-eqp-formula term term (car opt-cotype))
+      (terms-to-pure-eqp-formula term term)))
+
+(define (terms-to-pure-eqpnc-formula term1 term2 . opt-cotype)
+  (let* ((type (term-to-type term1))
+	 (cotype (if (pair? opt-cotype)
+		     (car opt-cotype)
+		     type)))
+    (case (tag cotype)
+      ((tvar) (make-eqpnc term1 term2))
+      ((alg)
+       (let* ((name (alg-form-to-name cotype))
+	      (alg-name (if (coalg-name? name)
+			    (substring name 2 (string-length name))
+			    name)))
+	 (if
+	  (null? (alg-name-to-tvars alg-name))
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoEqP" "EqP")
+				 (string-capitalize-first alg-name)
+				 "Nc"))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name '() '())
+			(myerror "terms-to-pure-eqpnc-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2))
+					;else alg name with tvars
+	  (let* ((idpc-name ;Code discarded 2020-07-02
+	  	  (string-append (if (coalg-name? name) "CoREqP" "REqP")
+	  			 (string-capitalize-first alg-name)
+	  			 "Nc"))
+	  	 (cotypes (alg-form-to-types cotype))
+	  	 (types (map cotype-to-type cotypes))
+	  	 (prev-cterms (map cotype-to-pure-eqpnc-cterm cotypes))
+	  	 (idpc (if
+	  		(assoc idpc-name IDS)
+	  		(idpredconst-name-and-types-and-cterms-to-idpredconst
+	  		 idpc-name types prev-cterms)
+	  		(myerror "terms-to-pure-eqpnc-formula"
+	  			 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2)))))
+      ((arrow)
+       (let* ((arg-cotype (arrow-form-to-arg-type cotype))
+	      (val-cotype (arrow-form-to-val-type cotype))
+	      (arg-type (cotype-to-type arg-cotype)))
+	 (let* ((var1 (type-to-new-partial-var arg-type))
+		(varterm1 (make-term-in-var-form var1))
+		(appterm1 (make-term-in-app-form term1 varterm1))
+		(var2 (type-to-new-partial-var arg-type))
+		(varterm2 (make-term-in-var-form var2))
+		(appterm2 (make-term-in-app-form term2 varterm2))
+		(prev-prem (terms-to-pure-eqpnc-formula
+			    varterm1 varterm2 arg-cotype))
+		(prev-concl (terms-to-pure-eqpnc-formula
+			     appterm1 appterm2 val-cotype)))
+	   (mk-allnc var1 var2 (make-imp prev-prem prev-concl)))))
+      ((star)
+       (let* ((left-cotype (star-form-to-left-type cotype))
+	      (right-cotype (star-form-to-right-type cotype))
+	      (left-term1 (make-term-in-lcomp-form term1))
+	      (right-term1 (make-term-in-rcomp-form term1))
+	      (left-term2 (make-term-in-lcomp-form term2))
+	      (right-term2 (make-term-in-rcomp-form term2))
+	      (prev-left (terms-to-pure-eqpnc-formula
+			  left-term1 left-term2 left-cotype))
+	      (prev-right (terms-to-pure-eqpnc-formula
+			   right-term1 right-term2 right-cotype)))
+	 (make-and prev-left prev-right)))
+      (else (myerror "terms-to-pure-eqpnc-formula" "cotype expected" cotype)))))
+
+(define (cotype-to-pure-eqpnc-cterm cotype)
+  (let* ((type (cotype-to-type cotype))
+	 (var1 (type-to-new-partial-var type))
+	 (varterm1 (make-term-in-var-form var1))
+	 (var2 (type-to-new-partial-var type))
+	 (varterm2 (make-term-in-var-form var2))
+	 (fla (terms-to-pure-eqpnc-formula varterm1 varterm2 cotype)))
+    (make-cterm var1 var2 fla)))
+
+(define (term-to-pure-extnc-formula term . opt-cotype)
+  (if (pair? opt-cotype)
+      (terms-to-pure-eqpnc-formula term term (car opt-cotype))
+      (terms-to-pure-eqpnc-formula term term)))
+
+(define (terms-to-pure-mr-eqp-formula term1 term2 real . opt-cotype)
+  (let* ((type (term-to-type term1))
+	 (cotype (if (pair? opt-cotype)
+		     (car opt-cotype)
+		     type)))
+    (if (not (equal? type (term-to-type term1)))
+	(myerror "terms-to-pure-mr-eqp-formula"
+		 "terms of equal type expected"
+		 term1 real
+		 "which have types"
+		 (term-to-type term1) type))
+    (if (not (equal? type (term-to-type term2)))
+	(myerror "terms-to-pure-mr-eqp-formula"
+		 "terms of equal type expected"
+		 term2 real
+		 "which have types"
+		 (term-to-type term2) type))
+    (case (tag cotype)
+      ((tvar) (make-eqpmr term1 term2 real))
+      ((alg)
+       (let* ((name (alg-form-to-name cotype))
+	      (alg-name (if (coalg-name? name)
+			    (substring name 2 (string-length name))
+			    name)))
+	 (if
+	  (null? (alg-name-to-tvars alg-name))
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoEqP" "EqP")
+				 (string-capitalize-first alg-name)
+				 "MR"))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name '() '())
+			(myerror "terms-to-pure-mr-eqp-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2 real))
+					;else alg name with tvars
+	  (let* ((idpc-name
+		  (string-append (if (coalg-name? name) "CoREqP" "REqP")
+				 (string-capitalize-first alg-name)
+				 "MR"))
+		 (cotypes (alg-form-to-types cotype))
+		 (types (map cotype-to-type cotypes))
+		 (prev-cterms (map cotype-to-pure-mr-eqp-cterm cotypes))
+		 (idpc (if
+			(assoc idpc-name IDS)
+			(idpredconst-name-and-types-and-cterms-to-idpredconst
+			 idpc-name types prev-cterms)
+			(myerror "terms-to-pure-mr-eqp-formula"
+				 "unknown idpredconst name" idpc-name))))
+	    (make-predicate-formula idpc term1 term2 real)))))
+      ((arrow)
+       (let* ((arg-cotype (arrow-form-to-arg-type cotype))
+	      (val-cotype (arrow-form-to-val-type cotype))
+	      (arg-type (cotype-to-type arg-cotype))
+	      (var1 (type-to-new-partial-var arg-type))
+	      (varterm1 (make-term-in-var-form var1))
+	      (appterm1 (make-term-in-app-form term1 varterm1))
+	      (var2 (type-to-new-partial-var arg-type))
+	      (varterm2 (make-term-in-var-form var2))
+	      (appterm2 (make-term-in-app-form term2 varterm2))
+	      (var3 (type-to-new-partial-var arg-type))
+	      (varterm3 (make-term-in-var-form var3))
+	      (appterm3 (make-term-in-app-form term3 varterm3))
+	      (prev-prem (terms-to-pure-mr-eqp-formula
+			  varterm1 varterm2 varterm3 arg-cotype))
+	      (prev-concl (terms-to-pure-eqp-formula
+			   appterm1 appterm2 appterm3 val-cotype)))
+	 (mk-allnc var1 var2 var3 (make-imp prev-prem prev-concl))))
+      ((star)
+       (let* ((left-cotype (star-form-to-left-type cotype))
+	      (right-cotype (star-form-to-right-type cotype))
+	      (left-term1 (make-term-in-lcomp-form term1))
+	      (right-term1 (make-term-in-rcomp-form term1))
+	      (left-term2 (make-term-in-lcomp-form term2))
+	      (right-term2 (make-term-in-rcomp-form term2))
+	      (left-real (make-term-in-lcomp-form real))
+	      (right-real (make-term-in-rcomp-form real))
+	      (prev-left (terms-to-pure-mr-eqp-formula
+			  left-term1 left-term2 left-real left-cotype))
+	      (prev-right (terms-to-pure-eqp-formula
+			   right-term1 right-term2 tight-real right-cotype)))
+	 (make-and prev-left prev-right)))
+      (else (myerror "terms-to-pure-mr-eqp-formula"
+		     "cotype expected" cotype)))))
+
+(define (cotype-to-pure-mr-eqp-cterm cotype)
+  (let* ((type (cotype-to-type cotype))
+	 (var1 (type-to-new-partial-var type))
+	 (varterm1 (make-term-in-var-form var1))
+	 (var2 (type-to-new-partial-var type))
+	 (varterm2 (make-term-in-var-form var2))
+	 (var3 (type-to-new-partial-var type))
+	 (varterm3 (make-term-in-var-form var3))
+	 (fla (terms-to-pure-mr-eqp-formula varterm1 varterm2 varterm3 cotype)))
+    (make-cterm var1 var2 var3 fla)))
 
 (define (display-idpc . x)
   (if
@@ -2705,7 +4843,13 @@
 	       (clauses-with-names
 		(idpredconst-name-to-clauses-with-names idpc-name))
 	       (clause-names (map cadr clauses-with-names)))
-	  (display idpc-name) (newline)
+	  (display idpc-name) (display tab)
+	  (let ((opt-alg-name (idpredconst-name-to-opt-alg-name idpc-name)))
+	    (if (pair? opt-alg-name)
+		(display (string-append "with content of type "
+					(car opt-alg-name)))
+		(display "non-computational")))
+	  (newline)
 	  (for-each (lambda (cn)
 		      (display tab)
 		      (display cn) (display ":")
@@ -2908,19 +5052,219 @@
 ;; Here the assigned pvars serve for ease of substitutions when forming
 ;; a greatest fixed point axiom.
 
+;; For unfold-formula we need the following auxiliary functions.
+
+(define (alg-name-to-cototality-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "CoTotal" capitalized-alg-name)))
+
+(define (alg-to-cototality-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-cototality-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (alg-name-to-cototalnc-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "CoTotal" capitalized-alg-name "Nc")))
+
+(define (term-and-alist-to-cototality-formula term type-to-pred-alist)
+  (let ((type (term-to-type term)))
+    ;; (if (< 1 (type-to-level type))
+    ;; 	(myerror "term-and-alist-to-cototality-formula"
+    ;; 		 "type of level at most 1 expected" type))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term)
+	    (make-cototal term))))
+     ((alg-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if
+	 info ;idpc-pvar, needed in add-cototality for add-ids-aux
+	 (make-predicate-formula (cadr info) term)
+	 (let* ((types (alg-form-to-types type))
+		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
+				     (lambda (item) (alg-form? (car item)))))
+		(alist-alg-names (map alg-form-to-name
+				      (map car alg-to-pvar-alist)))
+		(alg-names-list (map type-to-alg-names types))
+		(intersections
+		 (map (lambda (alg-names)
+			(intersection alist-alg-names alg-names))
+		      alg-names-list)))
+	   (cond
+	    ((apply and-op (map null? intersections))
+	     (make-predicate-formula (alg-to-cototality-idpredconst type) term))
+	    ((apply and-op (map pair? intersections))
+	     (let* ((vars (map type-to-new-partial-var types))
+		    (varterms (map make-term-in-var-form vars))
+		    (prevs (map (lambda (varterm)
+				  (term-and-alist-to-cototality-formula
+				   varterm type-to-pred-alist))
+				varterms))
+		    (cterms (map make-cterm vars prevs)))
+	       (make-predicate-formula
+		(alg-and-cterms-to-rcototality-idpredconst type cterms) term)))
+	    (else (apply myerror "term-and-alist-to-cototality-formula"
+			 "not implemented for term" term
+			 "and type-to-pred-alist" type-to-pred-alist)))))))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var (type-to-new-partial-var arg-type))
+	     (varterm (make-term-in-var-form var))
+	     (appterm (make-term-in-app-form term varterm))
+	     (arg-formula (term-and-alist-to-cototality-formula
+			   varterm type-to-pred-alist))
+	     (val-formula (term-and-alist-to-cototality-formula
+			   appterm type-to-pred-alist)))
+	(make-allnc var (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left (if (term-in-pair-form? term)
+		      (term-in-pair-form-to-left term)
+		      (make-term-in-lcomp-form term)))
+	    (right (if (term-in-pair-form? term)
+		       (term-in-pair-form-to-right term)
+		       (make-term-in-rcomp-form term))))
+	(make-and
+	 (term-and-alist-to-cototality-formula left type-to-pred-alist)
+	 (term-and-alist-to-cototality-formula right type-to-pred-alist))))
+     (else (myerror "term-and-alist-to-cototality-formula" "type expected" type
+		    "of term" term)))))
+
+(define (term-to-cototality-formula term)
+  (term-and-alist-to-cototality-formula term '()))  
+
+(define (alg-name-to-cototalnc-idpredconst-name alg-name)
+  (let* ((char-list (string->list alg-name))
+	 (capitalized-alg-name
+	  (list->string (cons (char-upcase (car char-list)) (cdr char-list)))))
+    (string-append "CoTotal" capitalized-alg-name "Nc")))
+
+(define (alg-to-cototalnc-idpredconst alg)
+  (let* ((alg-name (alg-form-to-name alg))
+	 (types (alg-form-to-types alg))
+	 (idpredconst-name (alg-name-to-cototalnc-idpredconst-name alg-name)))
+    (idpredconst-name-and-types-and-cterms-to-idpredconst
+     idpredconst-name types '())))
+
+(define (term-and-alist-to-cototalnc-formula term type-to-pred-alist)
+  (let ((type (term-to-type term)))
+    ;; (if (< 1 (type-to-level type))
+    ;; 	(myerror "term-and-alist-to-cototalnc-formula"
+    ;; 		 "type of level at most 1 expected" type))
+    (cond
+     ((tvar-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if info
+	    (make-predicate-formula (cadr info) term)
+	    (make-cototalnc term)))) ;make-cototalnc still to be defined
+     ((alg-form? type)
+      (let ((info (assoc type type-to-pred-alist)))
+	(if
+	 info ;idpc-pvar, needed in add-cototalnc for add-ids-aux
+	 (make-predicate-formula (cadr info) term)
+	 (let* ((types (alg-form-to-types type))
+		(alg-to-pvar-alist (list-transform-positive type-to-pred-alist
+				     (lambda (item) (alg-form? (car item)))))
+		(alist-alg-names (map alg-form-to-name
+				      (map car alg-to-pvar-alist)))
+		(alg-names-list (map type-to-alg-names types))
+		(intersections
+		 (map (lambda (alg-names)
+			(intersection alist-alg-names alg-names))
+		      alg-names-list)))
+	   (cond
+	    ((apply and-op (map null? intersections))
+	     (make-predicate-formula (alg-to-cototalnc-idpredconst type) term))
+	    ((apply and-op (map pair? intersections))
+	     (let* ((vars (map type-to-new-partial-var types))
+		    (varterms (map make-term-in-var-form vars))
+		    (prevs (map (lambda (varterm)
+				  (term-and-alist-to-cototalnc-formula
+				   varterm type-to-pred-alist))
+				varterms))
+		    (cterms (map make-cterm vars prevs)))
+	       (make-predicate-formula
+		(alg-and-cterms-to-rcototalnc-idpredconst type cterms) term)))
+	    (else (apply myerror "term-and-alist-to-cototalnc-formula"
+			 "not implemented for term" term
+			 "and type-to-pred-alist" type-to-pred-alist)))))))
+     ((arrow-form? type)
+      (let* ((arg-type (arrow-form-to-arg-type type))
+	     (var (type-to-new-partial-var arg-type))
+	     (varterm (make-term-in-var-form var))
+	     (appterm (make-term-in-app-form term varterm))
+	     (arg-formula
+	      (term-and-alist-to-cototalnc-formula varterm type-to-pred-alist))
+	     (val-formula
+	      (term-and-alist-to-cototalnc-formula appterm type-to-pred-alist)))
+	(make-all var (make-imp arg-formula val-formula))))
+     ((star-form? type)
+      (let ((left (if (term-in-pair-form? term)
+		      (term-in-pair-form-to-left term)
+		      (make-term-in-lcomp-form term)))
+	    (right (if (term-in-pair-form? term)
+		       (term-in-pair-form-to-right term)
+		       (make-term-in-rcomp-form term))))
+	(make-and
+	 (term-and-alist-to-cototalnc-formula left type-to-pred-alist)
+	 (term-and-alist-to-cototalnc-formula right type-to-pred-alist))))
+     (else (myerror "term-and-alist-to-cototalnc-formula" "type expected" type
+		    "of term" term)))))
+
+(define (term-to-cototalnc-formula term)
+  (term-and-alist-to-cototalnc-formula term '()))
+
 ;; add-co adds companions for inductively defined predicate
 ;; constants to COIDS, for instance CoEv, CoOd for Ev, Od.  The
 ;; optional algebra names and pvars are the same as for the
 ;; corresponding idpcs.
 
-;; add-co takes an optional argument opt-prim-prod-flag.  If this is
-;; not present or true, the clause is formed with mk-ex, mk-and
-;; (generating extracted terms with the primitive product make-star).
-;; If this is present and #f, the clause is formed with the inductively
-;; defined existential quantifiers and conjunctions (generating
-;; extracted terms with the defined product yprod).
+;; add-co takes an optional argument opt-prim-prod-eq-info.  If 'prim
+;; is present clauses are formed with mk-ex, mk-and (generating
+;; extracted terms with the primitive product make-star).  Otherwise
+;; the clauses are formed with the inductively defined existential
+;; quantifiers and conjunctions (generating extracted terms with the
+;; defined product yprod).  The other items are lists of eq-names,
+;; usually as many as there are (simultaneously defined) idpc-names.
+;; Each list should have as many eq-names as there are arguments, with
+;; fitting types.  Too short lists are filled by EqD, and missing
+;; lists are taken to be lists of EqD.  Example:
+;; (add-co "IMR" '("CoEqPNc" "RealEq") '("CoEqPNc" "RealEq"))
 
-(define (add-co idpc-name . opt-prim-prod-flag)
+(define (add-co idpc-name . opt-prim-prod-eq-info)
+  (if ;partial test for correct opt-prim-prod-eq-info
+   (let ((symbols (list-transform-positive opt-prim-prod-eq-info symbol?))
+	 (lists (list-transform-positive opt-prim-prod-eq-info list?)))
+     (not (and
+	   (= (length opt-prim-prod-eq-info)
+	      (+ (length symbols) (length lists)))
+	   (apply and-op (map (lambda (lst) (apply and-op (map string? lst)))
+			      lists)))))
+   (myerror
+    "add-co"
+    "additional arguments of add-co should be either lists of eq-names"
+    "or else the symbol prim resulting in clauses formed with  mk-ex, mk-and"))
+  (if (idpredconst-name-to-explicit? idpc-name)
+      (myerror
+       "add-co" idpc-name
+       "does not make sense: there is no recursive call and one clause only"))
+  ;; Code discarded 2019-04-25
+  ;; (if ;test that we have a recursively defined c.r. idpc
+  ;;  (and (pair? (idpredconst-name-to-opt-alg-name idpc-name))
+  ;; 	(let* ((tvar (PVAR-TO-TVAR (idpredconst-name-to-pvar idpc-name)))
+  ;; 	       (clauses (idpredconst-name-to-clauses idpc-name))
+  ;; 	       (et-types (map formula-to-et-type clauses))
+  ;; 	       (argtypes-list (map arrow-form-to-arg-types et-types)))
+  ;; 	  (not (member tvar (apply union argtypes-list)))))
+  ;;  (myerror "add-co" "recursively defined c.r. idpc expected" idpc-name))
   (let*
       ((info (assoc idpc-name IDS))
        (idpredconst-names-with-pvars-and-opt-alg-names
@@ -2939,110 +5283,80 @@
        (opt-alg-names
 	(map cddr idpredconst-names-with-pvars-and-opt-alg-names))
        (arities (map pvar-to-arity pvars))
-       (var-lists (map (lambda (arity)
-			 (map type-to-new-partial-var (arity-to-types arity)))
-		       arities))
        (idpc-clauses-with-names-list
-	(map (lambda (name)
-	       (cddr (assoc name IDS)))
-	     idpc-names))
+	(map (lambda (name) (cddr (assoc name IDS))) idpc-names))
        (idpc-clauses-list (map (lambda (idpc-clauses-with-names)
 				 (map car idpc-clauses-with-names))
 			       idpc-clauses-with-names-list))
-       (prim-prod? (or (null? opt-prim-prod-flag) (car opt-prim-prod-flag)))
-       (mr-idpc? (mr-idpredconst-name? idpc-name))
+       
+       (prim-prod? (if (member 'prim (list-transform-positive
+					 opt-prim-prod-eq-info symbol?))
+		       #t #f))
+       (eq-names-lists (list-transform-positive opt-prim-prod-eq-info list?))	
+       (expanded-eq-names-lists
+	(if (<= (length eq-names-lists) (length arities))
+	    (append eq-names-lists
+		    (map (lambda (arity) ;for the unattended arities
+			   (make-list (length (arity-to-types arity)) "EqD"))
+			 (list-tail arities (length eq-names-lists))))
+	    (myerror "add-co" "at most" (length arities)
+		     "eq-names-lists expected" eq-names-lists)))
+       (filled-expanded-eq-names-lists
+	(map (lambda (lst arity)
+	       (let ((l (length (arity-to-types arity))))
+		 (if (<= (length lst) l)
+		     (append lst (make-list (- l (length lst)) "EqD"))
+		     (myerror "add-co" "too long list of eq-names" lst
+			      "for arity" arity))))
+	     expanded-eq-names-lists arities))
+       (eq-names-test
+	(for-each
+	 (lambda (eq-names-list arity)
+	   (for-each
+	    (lambda (eq-name type)
+	      (cond
+	       ((string=? "RealEq" eq-name)
+		(if (not (equal? (make-alg "rea") type))
+		    (myerror "add-co" "type rea expected" type)))
+	       ((string=? "=" eq-name)
+		(if (not (finalg? type))
+		    (myerror "add-co" "finitary algebra expected" type)))
+	       (else
+		(if (not (member eq-name
+				 (list "EqD" "CoEqPNc" "EqPNc" "RealFnEq")))
+		    (myerror
+		     "add-co" "eq-name EqD, CoEqPNc, EqPNc or RealFnEq expected"
+		     eq-name)))))
+	    eq-names-list (arity-to-types arity)))
+	 filled-expanded-eq-names-lists arities))
+       (var-lists (map (lambda (arity)
+       			 (map (lambda (type)
+       				(if (equal? type (make-alg "rea"))
+				    (type-to-new-var type)
+       				    (type-to-new-partial-var type)))
+       			      (arity-to-types arity)))
+       		       arities))
+       ;; (mr-idpc? (mr-idpredconst-name? idpc-name))
        (nc-idpc? (nc-idpredconst-name? idpc-name))
        (clauses-with-fvars ;one for each of idpc-names
-	(map
-	 (lambda (vars pvar idpc-clauses)
-	   (letrec
-	       ((make-cr-or-nc-andl (if mr-idpc? make-andu make-andl))
-		(make-cr-or-nc-andr (if mr-idpc? make-andu make-andr))
-		(make-cr-or-nc-andd
-		 (if prim-prod? make-and (if mr-idpc? make-andu make-andd)))
-		(m-andu (if prim-prod? mk-and mk-andu))
-		(make-cr-or-nc-exl (if mr-idpc? make-exu make-exl))
-		(make-cr-or-nc-exr (if mr-idpc? make-exu make-exr))
-		(make-cr-or-nc-exd
-		 (if prim-prod? make-ex (if mr-idpc? make-exu make-exd)))
-		(clause-to-exand-fla-and-c-flag
-		 (lambda (fla)
-		   (cond
-		    ((and (predicate-form? fla)
-			  (equal? pvar (predicate-form-to-predicate fla)))
-		     (let ((eqd-list (map make-eqd
-					  (map make-term-in-var-form vars)
-					  (predicate-form-to-args fla))))
-		       (list
-			(apply
-			 m-andu
-			 (if mr-idpc? ; change the order of eqd formulas
-			     (append (cdr eqd-list) (list (car eqd-list)))
-			     eqd-list))
-			#f)))
-		    ((imp-impnc-form? fla)
-		     (let* ((prem (imp-impnc-form-to-premise fla))
-			    (concl (imp-impnc-form-to-conclusion fla))
-			    (prev (clause-to-exand-fla-and-c-flag concl)))
-		       (if
-			(and (predicate-form? concl)
-			     (equal? pvar (predicate-form-to-predicate concl)))
-			(if (or (not (formula-of-nulltype? prem))
-				(intersection (formula-to-pvars prem) pvars))
-			    (list (make-cr-or-nc-andl prem (car prev)) #t)
-			    (list (m-andu prem (car prev)) #f))
-			(if (and (imp-form? fla)
-				 (or (not (formula-of-nulltype? prem))
-				     (intersection (formula-to-pvars prem) pvars)))
-			    (if (cadr prev)
-				(list (make-cr-or-nc-andd prem (car prev)) #t)
-				(list (make-cr-or-nc-andl prem (car prev)) #t))
-			    (if (cadr prev)
-				(list (make-cr-or-nc-andr prem (car prev)) #t)
-				(list (m-andu prem (car prev)) #f))))))
-		    ((all-allnc-form? fla)
-		     (let* ((var (all-allnc-form-to-var fla))
-			    (kernel (all-allnc-form-to-kernel fla))
-			    (prev (clause-to-exand-fla-and-c-flag kernel)))
-		       (if
-			(and (predicate-form? kernel)
-			     (equal? pvar (predicate-form-to-predicate kernel)))
-			(if (all-form? fla)
-			    (list (make-cr-or-nc-exl var (car prev)) #t)
-			    (list (make-exu var (car prev)) #f))
-			(if (all-form? fla)
-			    (if (cadr prev)
-				(list (make-cr-or-nc-exd var (car prev)) #t)
-				(list (make-cr-or-nc-exl var (car prev)) #t))
-			    (if (cadr prev)
-				(list (make-cr-or-nc-exr var (car prev)) #t)
-				(list (make-exu var (car prev)) #f))))))
-		    (else (myerror "clause-to-exand-fla-and-c-flag"
-				   "unexpected formula" fla))))))
-	     (let* ((exand-fla-and-c-flag-list
-		     (map clause-to-exand-fla-and-c-flag idpc-clauses))
-		    (exand-fla-list (map car exand-fla-and-c-flag-list)))
-	       (make-imp
-		(apply make-predicate-formula
-		       pvar (map make-term-in-var-form vars))
-		(apply (if nc-idpc? mk-ornc mk-ori)
-		       exand-fla-list)))))
-	 var-lists pvars idpc-clauses-list))
+	(map (lambda (eq-names-list vars pvar idpc-clauses)
+	       (let ((exand-flas (map (lambda (idpc-clause)
+					(clause-to-exand-formula
+					 idpc-clause eq-names-list vars pvar
+					 prim-prod? nc-idpc?))
+				      idpc-clauses)))
+		 (make-imp (apply make-predicate-formula
+				  pvar (map make-term-in-var-form vars))
+			   (apply (if nc-idpc? mk-ornc mk-ori) exand-flas))))
+	     filled-expanded-eq-names-lists var-lists pvars idpc-clauses-list))
        (param-tvars (apply union (map formula-to-tvars clauses-with-fvars)))
        (clauses
 	(map (lambda (vars clause-with-fvars)
-	       (apply
-		mk-allnc
-		(append
-		 (if mr-idpc?
-		     (append (cdr vars) (list (car vars)))
-		     vars)
-		 (list clause-with-fvars))))
+	       (apply mk-allnc ;(if nc-idpc? mk-all mk-allnc)
+		      (append vars (list clause-with-fvars))))
 	     var-lists clauses-with-fvars))
-       (param-pvars
-	(set-minus
-	 (apply union (map formula-to-pvars clauses))
-	 pvars)))
+       (param-pvars (set-minus (apply union (map formula-to-pvars clauses))
+			       pvars)))
     (for-each
      (lambda (coidpc-name clause-name clause arity)
        (let ((non-inferable-param-tvars
@@ -3082,11 +5396,10 @@
 	    (lambda (cterms)
 	      (string-and-arity-and-cterms-to-idpc-parse-function
 	       coidpc-name arity cterms))))
-	  (else
-	   (myerror
-	    "add-co"
-	    "unexpected coidpredconst without cterms whose param-tvars"
-	    "cannot be inferred from the arguments" coidpc-name)))))
+	  (else (myerror
+		 "add-co"
+		 "unexpected coidpredconst without cterms whose param-tvars"
+		 "cannot be inferred from the arguments" coidpc-name)))))
      coidpc-names clause-names clauses arities)
 					;add clauses as theorems
     (for-each
@@ -3105,3 +5418,59 @@
 				(proof-to-formula
 				 (theorem-name-to-proof clause-name)))))))))
 
+(define (clause-to-exand-formula
+	 fla eq-names-list vars pvar prim-prod? nc-idpc?)
+  (cond ((and (predicate-form? fla)
+	      (equal? pvar (predicate-form-to-predicate fla)))
+	 (let* ((args (predicate-form-to-args fla))
+		(eq-list (map (lambda (eq-name var arg)
+				((eq-name-to-predicate-generator eq-name)
+				 (make-term-in-var-form var) arg))
+			      eq-names-list vars args)))
+	   (apply (if prim-prod? mk-and mk-andnc) eq-list)))
+	((imp-impnc-form? fla)
+	 (let* ((prem (imp-impnc-form-to-premise fla))
+		(concl (imp-impnc-form-to-conclusion fla))
+		(prev (clause-to-exand-formula
+		       concl eq-names-list vars pvar
+		       prim-prod? nc-idpc?)))
+	   (if nc-idpc?
+	       ((if prim-prod? mk-and mk-andnc)
+		(if (or (formula-of-nulltype? prem)
+			(member pvar (formula-to-pvars prem)))
+		    prem (formula-to-nc-formula prem))
+		prev)
+	       ((if prim-prod? mk-and mk-andi)
+		(if (and (not (formula-of-nulltype? prem)) (impnc-form? fla))
+		    (formula-to-nc-formula prem)
+		    prem)
+		prev))))
+	((all-allnc-form? fla)
+	 (let* ((var (all-allnc-form-to-var fla))
+		(kernel (all-allnc-form-to-kernel fla))
+		(prev (clause-to-exand-formula
+		       kernel eq-names-list vars pvar
+		       prim-prod? nc-idpc?)))
+	   (cond (nc-idpc? (mk-exnc var prev))
+		 ((allnc-form? fla) (mk-exr var prev))
+		 (else ((if prim-prod? mk-ex mk-exd) var prev)))))
+	(else (myerror "clause-to-exand-formula" "unexpected formula" fla))))
+
+(define (eq-name-to-predicate-generator eq-name)
+  (if (not (string? eq-name))
+      (myerror "eq-name-to-predicate-generator" "string expected" eq-name))
+  (cond
+   ((string=? "EqD" eq-name) make-eqd)
+   ((string=? "RealEq" eq-name) make-realeq)
+   ((string=? "=" eq-name) make-=)
+   ((string=? "EqP" eq-name) make-eqp)
+   ((string=? "EqPNc" eq-name) make-eqpnc)
+   ((string=? "CoEqP" eq-name) make-coeqp)
+   ((string=? "CoEqPNc" eq-name) make-coeqpnc)
+   (else (myerror "eq-name-to-predicate-generator"
+		  "eq-name expected" eq-name))))
+
+(define (make-realeq arg1 arg2)
+  (make-predicate-formula
+   (idpredconst-name-and-types-and-cterms-to-idpredconst "RealEq" '() '())
+   arg1 arg2))

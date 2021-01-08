@@ -1,4 +1,4 @@
-;; 2015-10-19.  examples/parsing/parens.scm.
+;; 2020-08-01.  examples/parsing/parens.scm.
 
 ;; Let E range over expressions formed as lists of left and right
 ;; parentheses L,R.  We are interested in the correct ones, in the
@@ -93,13 +93,11 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "L=R")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "L=R")
 (cases)
 (assume "R=L")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "R=L")
 (assume "Useless")
 (use "InitEqD")
@@ -115,14 +113,12 @@
 (assume "Useless")
 (use "InitEqD")
 (assume "par1" "x1" "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "Absurd")
 (assume "par1" "x1" "IH")
 (cases)
 (assume "Absurd")
-(use "EFEqD")
-(use "AtomToEqDTrue")
+(use "EfEqD")
 (use "Absurd")
 (assume "par2" "x2" "=Hyp")
 (ng "=Hyp")
@@ -241,11 +237,14 @@
 ;; GenRP
 (ng #t)
 (assume "n1" "x1" "z1" "Useless1" "Useless2" "Useless3" "Useless4")
-(use "Efq")
+(assume "Absurd")
+(use (formula-to-ef-proof (goal-to-formula (current-goal))))
+(use "Absurd")
+;; (use "Efq")
 ;; 3
 ;; Step
 (cases)
-;; 10,11
+;; 12,13
 ;; Case L.  Use IHy for n+1
 (ng #t)
 (assume "y" "IHy" "n" "x" "z" "RP n x" "U z" "LP(Succ n)y")
@@ -255,16 +254,18 @@
 (use "RP n x")
 (use "InitU")
 (use "LP(Succ n)y")
-;; 11
+;; 13
 ;; Case R
 (assume "y" "IHy" "n" "x" "z" "RP n x")
 (elim "RP n x")
-;; 20,21
+;; 22,23
 ;; First RP clause
 (ng #t)
-(assume "U z")
-(use "Efq")
-;; 21
+(assume "U z" "Absurd")
+(use (formula-to-ef-proof (goal-to-formula (current-goal))))
+(use "Absurd")
+;; (use "Efq")
+;; 23
 ;; Second RP clause.  Uses IHy, GenU and equality arguments.
 (assume "n1" "x1" "z1" "Uz1" "RP n1 x1" "IH" "Uz")
 (ng #t)
@@ -312,7 +313,8 @@
 (assume "y" "IHy" "n")
 (cases)
 (assume "Hyp1" "Absurd")
-(use "Efq")
+(use (formula-to-ef-proof (goal-to-formula (current-goal))))
+;; (use "Efq")
 (use "Absurd")
 (ng)
 (use "IHy")
@@ -325,7 +327,8 @@
 (assume "x" "IHx" "y")
 (cases)
 (assume "m" "Absurd" "Hyp1")
-(use "Efq")
+(use (formula-to-ef-proof (goal-to-formula (current-goal))))
+;; (use "Efq")
 (use "Absurd")
 (use "IHx")
 ;; Proof finished.

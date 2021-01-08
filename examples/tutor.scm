@@ -1,4 +1,4 @@
-;; $Id: tutor.scm 2451 2011-03-29 21:32:09Z schwicht $
+;; tutor.scm
 
 ;; This file contains the examples of the Tutorial for Minlog version 5.0
 
@@ -66,7 +66,9 @@
 (libload "nat.scm")
 (set! COMMENT-FLAG #t)
 
-;; n, m, k are variables of type nat
+(add-var-name "k" (py "nat"))
+
+;; n, m, l are variables of type nat
 
 (add-pvar-name "P" "Q" (make-arity (py "nat")))
 
@@ -368,7 +370,7 @@
 (use "InitEqD")
 (assume "x" "xs" "IHxs")
 (ng #t)
-(simp "MapAppd")
+(simp "ListMapAppd")
 (simp "IHxs")
 (use "InitEqD")
 
@@ -416,7 +418,7 @@
 ;; Proof using induction on the predicate Even:
 
 (set-goal "all n(EvenI n -> ex m m+m=n)")
-(assume "n" "En"))
+(assume "n" "En")
 (elim "En")
 
 (ex-intro (pt "0"))
@@ -562,7 +564,7 @@
 	 '("allnc n(EvenNC n -> EvenNC(n+2))" "GenEvenNC"))
 
 ;; Exercise: Prove the following statement
-(set-goal "allnc n(EvenNC n -> exu m m+m=n)")
+(set-goal "allnc n(EvenNC n -> exnc m m+m=n)")
 (assume "n" "En")
 (elim "En")
 (intro 0 (pt "0"))
@@ -772,6 +774,8 @@
 (use "InitRP")
 ;; Proof finished.
 (save "Completeness")
+
+(add-var-name "p" (py "boole"))
 
 ;; ParseLemma
 (set-goal "all y ex p((p -> U y) & ((p -> F) -> U y -> F))")

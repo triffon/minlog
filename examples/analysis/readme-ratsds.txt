@@ -1,4 +1,4 @@
-$Id: ratsds.txt 2479 2011-05-18 06:46:37Z schwicht $
+2017-04-21
 readme file for git/minlog/examples/analysis/ratsds.scm
 18.05.2011
 Kenji Miyamoto
@@ -491,7 +491,7 @@ ok, ?_4 can be obtained from
   {a^}  2:Q a^
 -----------------------------------------------------------------------------
 ?_5:all a(
-     IntN 1<=a andu a<=1 -> 
+     IntN 1<=a andnc a<=1 -> 
      a eqd 0 orr 
      exr a^0((CoI a^0 ord Q a^0) andl a eqd(a^0-1)/2) ord 
      exr a^0((CoI a^0 ord Q a^0) andl a eqd a^0/2) ord 
@@ -499,14 +499,14 @@ ok, ?_4 can be obtained from
 (assume "a" "a in [-1,1]")
   {a^0}  1:Q a^0
   {a^}  2:Q a^
-  a  a in [-1,1]:IntN 1<=a andu a<=1
+  a  a in [-1,1]:IntN 1<=a andnc a<=1
 -----------------------------------------------------------------------------
 ?_6:a eqd 0 orr 
     exr a^0((CoI a^0 ord Q a^0) andl a eqd(a^0-1)/2) ord 
     exr a^0((CoI a^0 ord Q a^0) andl a eqd a^0/2) ord 
     exr a^0((CoI a^0 ord Q a^0) andl a eqd(a^0+1)/2)
 
-L97 Applying the elimination axiom of andu with a in [-1,1], we can
+L97 Applying the elimination axiom of andnc with a in [-1,1], we can
 decompose a in [-1,1] into two individual formulas.
 
 (elim "a in [-1,1]")
@@ -514,7 +514,7 @@ ok, ?_6 can be obtained from
 
   {a^0}  1:Q a^0
   {a^}  2:Q a^
-  a  a in [-1,1]:IntN 1<=a andu a<=1
+  a  a in [-1,1]:IntN 1<=a andnc a<=1
 -----------------------------------------------------------------------------
 ?_7:IntN 1<=a -> 
     a<=1 -> 
@@ -591,7 +591,7 @@ ok, ?_17 can be obtained from
 ?_18:exr a^0((CoI a^0 ord Q a^0) andl a eqd(a^0-1)/2)
 
 L110 Introduce "2*a+1" for the existential quantifier, and also
-splitting andu intro two sub goals.
+splitting andnc intro two sub goals.
 
 (intro 0 (pt "2*a+1"))
 ok, ?_18 can be obtained from
@@ -627,7 +627,7 @@ ok, we now have the new goals
 (intro 1)
 ?_22:Q(2*a+1)
 (intro 0)
-?_23:IntN 1<=2*a+1 andu 2*a+1<=1
+?_23:IntN 1<=2*a+1 andnc 2*a+1<=1
 (intro 0)
 ?_24:IntN 1<=2*a+1
 
