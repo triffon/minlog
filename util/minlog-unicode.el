@@ -41,5 +41,6 @@
 
 (add-hook 'minlog-font-lock-mode-on-hook 'add-minlog-symbol-keywords)
 (add-hook 'minlog-font-lock-mode-off-hook 'remove-minlog-symbol-keywords)
-(add-hook 'scheme-mode-hook 'minlog-font-lock-mode 'append)
-(add-hook 'inferior-scheme-mode-hook 'minlog-font-lock-mode 'append)
+;; do not automatically load unicode mode
+;; (add-hook 'scheme-mode-hook 'minlog-font-lock-mode 'append)
+;; (add-hook 'inferior-scheme-mode-hook 'minlog-font-lock-mode 'append)
